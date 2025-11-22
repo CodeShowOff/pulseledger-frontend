@@ -1,0 +1,602 @@
+/* Admin design system: colors, spacing, typography */
+:root {
+  /* Colors */
+  --admin-color-bg: #f3f4f6;
+  --admin-color-surface: #ffffff;
+  --admin-color-border: #e5e7eb;
+  --admin-color-border-subtle: #f1f5f9;
+  --admin-color-primary: #2563eb;
+  --admin-color-primary-soft: #eff6ff;
+  --admin-color-primary-dark: #1d4ed8;
+  --admin-color-muted: #6b7280;
+  --admin-color-muted-soft: #9ca3af;
+  --admin-color-danger: #dc2626;
+  --admin-color-danger-soft: #fee2e2;
+  --admin-color-success: #16a34a;
+  --admin-color-success-soft: #dcfce7;
+
+  /* Typography */
+  --admin-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --admin-font-size-xs: 0.75rem;
+  --admin-font-size-sm: 0.875rem;
+  --admin-font-size-base: 0.95rem;
+  --admin-font-size-lg: 1.125rem;
+  --admin-font-size-xl: 1.5rem;
+
+  /* Radius */
+  --admin-radius-sm: 0.375rem;
+  --admin-radius-md: 0.5rem;
+  --admin-radius-lg: 0.75rem;
+  --admin-radius-xl: 1rem;
+
+  /* Shadows */
+  --admin-shadow-soft: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --admin-shadow-card: 0 8px 18px rgba(15, 23, 42, 0.08);
+
+  /* Spacing */
+  --admin-space-xs: 0.25rem;
+  --admin-space-sm: 0.5rem;
+  --admin-space-md: 0.75rem;
+  --admin-space-lg: 1rem;
+  --admin-space-xl: 1.5rem;
+  --admin-space-2xl: 2rem;
+
+  /* Layout */
+  --admin-sidebar-width: 260px;
+  --admin-header-height: 56px;
+}
+
+.coach-content {
+  padding: 0.75rem 1.5rem 1.5rem 1.5rem;
+}
+
+.coach-content__inner {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* Coach plan form (create/edit) */
+.coach-plan-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.coach-plan-form__section {
+  background: var(--surface-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem 1.5rem 1.25rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.coach-plan-form__section--main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.coach-plan-form__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.coach-plan-form__row--title {
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.coach-plan-form__row--default {
+  display: flex;
+  justify-content: center;
+}
+
+.coach-plan-form__row--meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.coach-plan-form__row--assign {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.3fr);
+  gap: 1rem;
+}
+
+.coach-plan-form__default-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.04), rgba(59, 130, 246, 0));
+  min-width: 220px;
+}
+
+.coach-plan-form__default-toggle input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.coach-plan-form__hint {
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.coach-plan-form__info {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  padding: 0.9rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  background: rgba(239, 246, 255, 0.9);
+  color: #1d4ed8;
+}
+
+.coach-plan-form__section--tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.coach-plan-form__tasks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.coach-plan-form__tasks-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.coach-plan-form__tasks-empty {
+  font-size: 0.82rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.6rem;
+  border: 1px dashed rgba(148, 163, 184, 0.9);
+  color: #64748b;
+  background: rgba(248, 250, 252, 0.7);
+}
+
+.coach-plan-form__tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.coach-plan-form__task-card {
+  border-radius: 0.7rem;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: #f9fafb;
+  padding: 0.75rem 0.9rem 0.65rem;
+}
+
+.coach-plan-form__task-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 2fr) minmax(0, 0.9fr);
+  gap: 0.6rem;
+}
+
+.coach-plan-form__task-footer {
+  margin-top: 0.4rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.coach-plan-form__task-input {
+  font-size: 0.78rem;
+}
+
+.coach-plan-form__field--wide {
+  width: 100%;
+  max-width: 100%;
+}
+
+.coach-plan-form__row--description {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: center;
+}
+
+.coach-plan-form__input--lg {
+  font-size: 0.9rem;
+  padding-block: 0.7rem;
+}
+
+.coach-plan-form__textarea--lg {
+  min-height: 7.5rem;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.coach-plan-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 900px) {
+  .coach-plan-form__row--meta,
+  .coach-plan-form__row--assign {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .coach-plan-form__task-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr);
+    grid-template-rows: auto auto;
+  }
+
+  .coach-plan-form__task-input--date {
+    grid-column: 1 / -1;
+  }
+}
+
+.coach-page-header__title {
+  color: #111827;
+}
+
+.coach-page-header__subtitle {
+  color: var(--admin-color-muted);
+}
+
+/* Root wrapper for admin pages (applied in layout) */
+.admin-shell {
+  min-height: 100vh;
+  background-color: var(--admin-color-bg);
+  color: #111827;
+  font-family: var(--admin-font-family);
+  display: flex;
+}
+
+/* Sidebar */
+.admin-sidebar {
+  width: var(--admin-sidebar-width);
+  background-color: #f9fafb;
+  border-right: 1px solid var(--admin-color-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-sidebar__header {
+  height: var(--admin-header-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--admin-space-lg);
+  border-bottom: 1px solid var(--admin-color-border);
+  font-size: var(--admin-font-size-lg);
+  font-weight: 600;
+}
+
+.admin-sidebar__nav {
+  padding: var(--admin-space-lg) var(--admin-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: var(--admin-space-sm);
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--admin-radius-md);
+  color: #374151;
+  font-size: var(--admin-font-size-sm);
+  text-decoration: none;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.admin-sidebar__link-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.admin-sidebar__link--active {
+  background-color: var(--admin-color-primary-soft);
+  color: var(--admin-color-primary-dark);
+  font-weight: 500;
+}
+
+.admin-sidebar__link:hover {
+  background-color: #e5e7eb;
+}
+
+/* Main column (header + content) */
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-header {
+  height: var(--admin-header-height);
+  background-color: var(--admin-color-surface);
+  border-bottom: 1px solid var(--admin-color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--admin-space-xl);
+}
+
+.admin-header__title {
+  font-size: var(--admin-font-size-lg);
+  font-weight: 600;
+}
+
+.admin-header__meta {
+  font-size: var(--admin-font-size-xs);
+  color: var(--admin-color-muted);
+}
+
+.admin-content {
+  padding: var(--admin-space-xl);
+}
+
+.admin-content__inner {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* Page title + actions bar */
+.admin-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-space-xs);
+  margin-bottom: var(--admin-space-xl);
+}
+
+.admin-page-header__title {
+  font-size: var(--admin-font-size-xl);
+  font-weight: 600;
+}
+
+.admin-page-header__subtitle {
+  font-size: var(--admin-font-size-sm);
+  color: var(--admin-color-muted);
+}
+
+.admin-page-header__actions {
+  margin-top: var(--admin-space-sm);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--admin-space-sm);
+}
+
+/* Cards */
+.admin-card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--admin-space-lg);
+}
+
+/* Allow grid children to shrink inside grid to avoid overflow */
+.admin-card-grid > * {
+  min-width: 0;
+}
+
+/* Coach dashboard stat container (was missing definition) */
+.coach-card--stat {
+  background-color: var(--admin-color-surface);
+  border-radius: var(--admin-radius-lg);
+  border: 1px solid var(--admin-color-border-subtle);
+  box-shadow: var(--admin-shadow-soft);
+  padding: var(--admin-space-lg);
+  max-width: 100%;
+}
+
+/* Ensure tables and charts never force overflow */
+.admin-table-wrapper,
+.admin-table-scroll,
+.admin-card,
+.coach-card--stat {
+  max-width: 100%;
+}
+
+.admin-card {
+  background-color: var(--admin-color-surface);
+  border-radius: var(--admin-radius-lg);
+  border: 1px solid var(--admin-color-border-subtle);
+  box-shadow: var(--admin-shadow-soft);
+  padding: var(--admin-space-lg);
+}
+
+.admin-card--stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-card__label {
+  font-size: var(--admin-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--admin-color-muted);
+}
+
+.admin-card__value {
+  margin-top: 4px;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.admin-card__icon {
+  width: 32px;
+  height: 32px;
+  color: #9ca3af;
+}
+
+/* Tables */
+.admin-table-wrapper {
+  margin-top: var(--admin-space-lg);
+  background-color: var(--admin-color-surface);
+  border-radius: var(--admin-radius-lg);
+  border: 1px solid var(--admin-color-border-subtle);
+  box-shadow: var(--admin-shadow-soft);
+  overflow: hidden;
+}
+
+.admin-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--admin-font-size-sm);
+}
+
+.admin-table thead {
+  background-color: #f9fafb;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--admin-color-border-subtle);
+  text-align: left;
+}
+
+.admin-table th {
+  font-weight: 500;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
+.admin-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: var(--admin-font-size-xs);
+  font-weight: 500;
+}
+
+.badge--success {
+  background-color: var(--admin-color-success-soft);
+  color: var(--admin-color-success);
+}
+
+.badge--danger {
+  background-color: var(--admin-color-danger-soft);
+  color: var(--admin-color-danger);
+}
+
+.badge--neutral {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid transparent;
+  padding: 0.45rem 0.9rem;
+  font-size: var(--admin-font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #fff;
+  color: #111827;
+  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn--primary {
+  background-color: var(--admin-color-primary);
+  border-color: var(--admin-color-primary);
+  color: #ffffff;
+}
+
+.btn--primary:hover {
+  background-color: var(--admin-color-primary-dark);
+}
+
+.btn--outline {
+  background-color: #ffffff;
+  border-color: var(--admin-color-border);
+  color: #111827;
+}
+
+.btn--outline:hover {
+  background-color: #f9fafb;
+}
+
+.btn--danger {
+  background-color: var(--admin-color-danger);
+  border-color: var(--admin-color-danger);
+  color: #ffffff;
+}
+
+.btn--danger:hover {
+  background-color: #b91c1c;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn__icon {
+  margin-right: 0.4rem;
+  display: inline-flex;
+}
+
+/* Pagination / footer bar */
+.admin-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--admin-space-md) var(--admin-space-lg);
+  font-size: var(--admin-font-size-xs);
+  color: var(--admin-color-muted);
+}
+
+.admin-pagination__actions {
+  display: flex;
+  gap: var(--admin-space-sm);
+}
+
+/* Responsive tweaks */
+@media (max-width: 767px) {
+  .admin-shell {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--admin-color-border);
+  }
+
+  .admin-content {
+    padding: var(--admin-space-lg);
+  }
+
+  .admin-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) {
+  .admin-card-grid--stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
