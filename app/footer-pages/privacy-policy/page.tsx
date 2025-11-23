@@ -164,7 +164,7 @@ export default function PrivacyPolicyPage() {
               <h3 className="client-card__subsection-title">4.3 Payment and Transaction Processing</h3>
               <ul className="client-list">
                 <li>Process payments for subscriptions, products, and services</li>
-                <li>Process platform subscription fees for coaches (₹199 monthly fee with 28-day free trial)</li>
+                <li>Process platform subscription fees for coaches (₹99 monthly fee with 28-day free trial)</li>
                 <li>Verify payment proofs and transaction authenticity for all payment types</li>
                 <li>Track coach platform subscription status (trial, active, expired, suspended)</li>
                 <li>Send notifications about platform subscription expiry and payment reminders</li>
@@ -270,7 +270,7 @@ export default function PrivacyPolicyPage() {
           <div className="client-card">
             <h2 className="client-card__section-title">6. How We Share Your Information</h2>
             <div className="client-card__content">
-              <p><strong>We do not sell, rent, or trade your personal information to third parties.</strong> We may share your information in the following circumstances:</p>
+              <p><strong>IMPORTANT: We do not sell, rent, or trade your personal information to third parties for commercial purposes. We do not engage in data brokerage or sell user data to advertisers, marketers, or any other third parties.</strong> We may share your information only in the following limited circumstances:</p>
 
               <h3 className="client-card__subsection-title">6.1 Within the Platform</h3>
               <ul className="client-list">
@@ -287,7 +287,7 @@ export default function PrivacyPolicyPage() {
                 <li><strong>Analytics Providers:</strong> We may use analytics services to understand platform usage (data is anonymized where possible)</li>
                 <li><strong>Payment Processors:</strong> Secure payment processors handle payment transactions (we do not receive full payment card details)</li>
               </ul>
-              <p>All service providers are contractually obligated to protect your data and use it only for the purposes we specify.</p>
+              <p>All service providers are contractually obligated to protect your data and use it only for the purposes we specify. <strong>We do not permit service providers to sell or use your data for their own commercial purposes.</strong></p>
 
               <h3 className="client-card__subsection-title">6.3 Legal Requirements and Protection</h3>
               <p>We may disclose your information if required to do so by law or in response to valid requests by public authorities, including to:</p>
@@ -788,10 +788,18 @@ export default function PrivacyPolicyPage() {
                 Australian users have rights under the Privacy Act 1988. You can access and correct your personal information, make complaints, and request information about our privacy practices by contacting us.
               </p>
 
-              <h3 className="client-card__subsection-title">16.5 India</h3>
+              <h3 className="client-card__subsection-title">16.5 India - Primary Jurisdiction</h3>
               <p>
-                Given the nature of our health coaching services, we collect sensitive personal data as defined under Indian law. We implement reasonable security practices and procedures to protect this information.
+                <strong>PulseLedger operates primarily under Indian jurisdiction and complies with Indian data protection laws.</strong>
               </p>
+              <ul className="client-list">
+                <li>Given the nature of our health coaching services, we collect sensitive personal data as defined under Indian law (health information, biometric data). We implement reasonable security practices and procedures as required under the Information Technology Act, 2000 and the IT (Reasonable Security Practices) Rules, 2011</li>
+                <li>We comply with the Consumer Protection Act, 2019 for consumer data rights</li>
+                <li>Data may be stored with international cloud providers (MongoDB, Cloudinary) as permitted by Indian law</li>
+                <li>Financial records are retained for 7 years in compliance with Indian tax and accounting regulations</li>
+                <li><strong>We do not sell or trade personal data to third parties for commercial purposes</strong></li>
+                <li>For data protection inquiries, contact us at mail.pulseledger@gmail.com</li>
+              </ul>
             </div>
           </div>
 

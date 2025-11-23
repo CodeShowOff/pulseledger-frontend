@@ -61,7 +61,7 @@ export const LoginForm: React.FC = () => {
         // If backend indicates deactivated account, show persistent message under button
         if (message.toLowerCase().includes("deactivated")) {
           setDeactivatedMessage(
-            "Your account has been deactivated by the admin. Please contact admin at example@gmail.com to reactivate."
+            "Your account has been deactivated by the admin. Please contact admin at mail.pulseledger@gmail.com to reactivate."
           );
         }
         toast.error(message);

@@ -89,7 +89,7 @@ export default function TermsAndConditionsPage() {
                 <li>Continued use of the Service after changes constitutes acceptance of the modified Service</li>
               </ul>
 
-              <h3 className="client-card__subsection-title">2.4 Not Medical Advice</h3>
+              <h3 className="client-card__subsection-title">2.4 Not Medical Advice - Health and Safety Disclaimer</h3>
               <p><strong>IMPORTANT DISCLAIMER:</strong></p>
               <ul className="client-list">
                 <li>PulseLedger and the coaching services provided through our platform are <strong>not a substitute for professional medical advice, diagnosis, or treatment</strong></li>
@@ -97,6 +97,9 @@ export default function TermsAndConditionsPage() {
                 <li>Never disregard professional medical advice or delay seeking it because of information obtained through our Service</li>
                 <li>Coaches on our platform are fitness professionals, not licensed medical doctors (unless explicitly stated otherwise)</li>
                 <li>The Service is intended for general fitness, wellness, and lifestyle guidance only</li>
+                <li><strong>BY USING THIS SERVICE, YOU ACKNOWLEDGE THAT YOU HAVE CONSULTED OR WILL CONSULT WITH A QUALIFIED HEALTHCARE PROFESSIONAL BEFORE STARTING ANY FITNESS, NUTRITION, OR WELLNESS PROGRAM</strong></li>
+                <li><strong>YOU EXPRESSLY WAIVE ANY CLAIMS AGAINST PULSELEDGER FOR ANY HEALTH OUTCOMES, INJURIES, OR ADVERSE EFFECTS RESULTING FROM FOLLOWING COACHING ADVICE OR USING THE SERVICE</strong></li>
+                <li>You assume all risks associated with your use of the Service and acknowledge that physical activity carries inherent risks</li>
               </ul>
             </div>
           </div>
@@ -205,7 +208,7 @@ export default function TermsAndConditionsPage() {
           <div className="client-card">
             <h2 className="client-card__section-title">5. Coach-Specific Terms</h2>
             <div className="client-card__content">
-              <h3 className="client-card__subsection-title">5.1 Coach Qualifications</h3>
+              <h3 className="client-card__subsection-title">5.1 Coach Qualifications and Verification</h3>
               <p>By registering as a coach, you represent and warrant that:</p>
               <ul className="client-list">
                 <li>You possess the necessary qualifications, certifications, and expertise to provide health and fitness coaching</li>
@@ -213,6 +216,13 @@ export default function TermsAndConditionsPage() {
                 <li>All information about your credentials, experience, and qualifications is accurate and current</li>
                 <li>You maintain appropriate professional liability insurance (where required by law)</li>
                 <li>You comply with all applicable professional standards and regulations</li>
+              </ul>
+              <p><strong>IMPORTANT NOTICE:</strong></p>
+              <ul className="client-list">
+                <li><strong>PulseLedger does NOT verify, validate, or certify coach qualifications, credentials, or certifications</strong></li>
+                <li><strong>PulseLedger is NOT responsible for the accuracy of coach-provided information or the quality of coaching services</strong></li>
+                <li>Coaches are solely responsible for their professional conduct, qualifications, and the accuracy of their representations</li>
+                <li>Clients are advised to independently verify coach credentials before engaging their services</li>
               </ul>
 
               <h3 className="client-card__subsection-title">5.2 Coach Responsibilities</h3>
@@ -295,7 +305,7 @@ export default function TermsAndConditionsPage() {
               <h3 className="client-card__subsection-title">6.2 Subscription Terms</h3>
               <ul className="client-list">
                 <li><strong>Free Trial:</strong> New coaches receive a 28-day free trial period upon registration</li>
-                <li><strong>Monthly Fee:</strong> After the trial period, coaches must pay ₹199 per month to continue using the platform</li>
+                <li><strong>Monthly Fee:</strong> After the trial period, coaches must pay ₹99 per month to continue using the platform</li>
                 <li><strong>Subscription Duration:</strong> Each payment provides 30 days of platform access</li>
                 <li><strong>Payment Method:</strong> Payments are made via admin-provided QR code (UPI or bank transfer)</li>
                 <li><strong>Payment Proof:</strong> Coaches must upload payment proof screenshot when submitting payment</li>
@@ -385,12 +395,15 @@ export default function TermsAndConditionsPage() {
           <div className="client-card">
             <h2 className="client-card__section-title">7. Client-Specific Terms</h2>
             <div className="client-card__content">
-              <h3 className="client-card__subsection-title">6.1 Coach Assignment</h3>
+              <h3 className="client-card__subsection-title">6.1 Coach Assignment and Client Responsibility</h3>
               <ul className="client-list">
                 <li>Clients must register using a valid coach referral code</li>
                 <li>Once assigned, your coach relationship is established and cannot be changed without creating a new account</li>
                 <li>Your assigned coach will have access to your health data, progress logs, and subscription information</li>
                 <li>Coach assignment is primarily for service delivery; we do not guarantee specific outcomes</li>
+                <li><strong>YOU ARE SOLELY RESPONSIBLE FOR SELECTING YOUR COACH; PulseLedger does not recommend or endorse any specific coach</strong></li>
+                <li><strong>You are advised to independently verify your coach's qualifications, experience, and credentials before engaging their services</strong></li>
+                <li><strong>PulseLedger is not liable for any disputes, fraud, or issues arising from your coach-client relationship</strong></li>
               </ul>
 
               <h3 className="client-card__subsection-title">6.2 Health and Progress Tracking</h3>
@@ -677,7 +690,7 @@ export default function TermsAndConditionsPage() {
                 <li>Any material downloaded or obtained through the Service is done at your own risk</li>
               </ul>
 
-              <h3 className="client-card__subsection-title">11.2 Medical Disclaimer</h3>
+              <h3 className="client-card__subsection-title">11.2 Medical Disclaimer and Platform Liability Limitation</h3>
               <p><strong>IMPORTANT:</strong></p>
               <ul className="client-list">
                 <li>THE SERVICE IS NOT A SUBSTITUTE FOR PROFESSIONAL MEDICAL ADVICE, DIAGNOSIS, OR TREATMENT</li>
@@ -685,6 +698,10 @@ export default function TermsAndConditionsPage() {
                 <li>COACHES ARE INDEPENDENT PROFESSIONALS; WE DO NOT SUPERVISE, DIRECT, OR CONTROL THEIR SERVICES</li>
                 <li>YOU ASSUME ALL RISKS ASSOCIATED WITH FOLLOWING COACHING ADVICE OR USING THE SERVICE</li>
                 <li>ALWAYS CONSULT A QUALIFIED HEALTHCARE PROVIDER BEFORE STARTING ANY FITNESS OR NUTRITION PROGRAM</li>
+                <li><strong>PULSELEDGER IS ONLY A TECHNOLOGY PLATFORM PROVIDER AND IS NOT LIABLE FOR ANY FRAUD, MISCONDUCT, DISPUTES, OR ISSUES ARISING BETWEEN COACHES AND CLIENTS</strong></li>
+                <li><strong>CLIENTS INDEPENDENTLY CHOOSE THEIR COACHES; PULSELEDGER DOES NOT RECOMMEND, ENDORSE, OR GUARANTEE ANY COACH</strong></li>
+                <li><strong>PULSELEDGER'S LIABILITY IS LIMITED TO PLATFORM-RELATED TECHNICAL ISSUES ONLY AND DOES NOT EXTEND TO COACHING SERVICES, PRODUCTS, OR COACH-CLIENT RELATIONSHIPS</strong></li>
+                <li><strong>PULSELEDGER DOES NOT SELL, RENT, OR TRADE USER DATA TO THIRD PARTIES FOR COMMERCIAL PURPOSES</strong></li>
               </ul>
 
               <h3 className="client-card__subsection-title">11.3 No Guarantee of Results</h3>
@@ -747,6 +764,9 @@ export default function TermsAndConditionsPage() {
                 <li>Your interactions with other users or coaches</li>
                 <li>Any harm, injury, or damage caused by following coaching advice</li>
                 <li>For coaches: any coaching services you provide or products you sell</li>
+                <li><strong>For coaches: any fraud, misrepresentation, professional negligence, or breach of duty toward clients</strong></li>
+                <li><strong>Any disputes, claims, or legal actions arising from coach-client relationships, including but not limited to payment disputes, service quality disputes, or personal injury claims</strong></li>
+                <li><strong>Any misrepresentation of qualifications, credentials, or expertise by coaches</strong></li>
               </ul>
               <p>
                 We reserve the right to assume the exclusive defense and control of any matter otherwise subject to indemnification by you, in which event you will fully cooperate with us in asserting any available defenses.
@@ -806,19 +826,20 @@ export default function TermsAndConditionsPage() {
 
               <h3 className="client-card__subsection-title">14.2 Governing Law</h3>
               <ul className="client-list">
-                <li>These Terms shall be governed by and construed in accordance with the laws of [Your Jurisdiction], without regard to its conflict of law provisions</li>
+                <li>These Terms shall be governed by and construed in accordance with the laws of India, without regard to its conflict of law provisions</li>
                 <li>Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights</li>
+                <li>This agreement is subject to the Consumer Protection Act, 2019 and other applicable Indian laws</li>
               </ul>
 
               <h3 className="client-card__subsection-title">14.3 Jurisdiction</h3>
               <ul className="client-list">
-                <li>You agree to submit to the personal jurisdiction of the courts located in [Your Jurisdiction] for the purpose of litigating all such claims or disputes</li>
+                <li>You agree to submit to the personal jurisdiction of the courts located in India for the purpose of litigating all such claims or disputes</li>
                 <li>Some jurisdictions do not allow certain limitations on warranties or liability, so some of the above limitations may not apply to you</li>
               </ul>
 
-              <h3 className="client-card__subsection-title">14.4 Class Action Waiver</h3>
+              <h3 className="client-card__subsection-title">14.4 Individual Disputes</h3>
               <p>
-                You agree that any claim or dispute shall be brought in your individual capacity, and not as a plaintiff or class member in any purported class, collective, representative, multiple plaintiff, or similar proceeding.
+                To the extent permitted by Indian law, you agree to resolve disputes individually. This clause does not affect your statutory rights under Indian consumer protection laws, including your right to file complaints with consumer forums.
               </p>
 
               <h3 className="client-card__subsection-title">14.5 Time Limitation</h3>
@@ -908,6 +929,41 @@ export default function TermsAndConditionsPage() {
               <p>
                 By using the Service, you consent to receiving electronic communications from us. These communications may include notices about your account, transactional information, and other information concerning the Service. You agree that all agreements, notices, disclosures, and other communications that we provide electronically satisfy any legal requirement that such communications be in writing.
               </p>
+            </div>
+          </div>
+
+          {/* Section 17: India-Specific Compliance */}
+          <div className="client-card">
+            <h2 className="client-card__section-title">17. India-Specific Compliance and Legal Framework</h2>
+            <div className="client-card__content">
+              <h3 className="client-card__subsection-title">17.1 Applicable Indian Laws</h3>
+              <ul className="client-list">
+                <li>This platform complies with the Information Technology Act, 2000 and the Information Technology (Reasonable Security Practices and Procedures and Sensitive Personal Data or Information) Rules, 2011</li>
+                <li>We adhere to the Consumer Protection Act, 2019 and related consumer protection regulations</li>
+                <li>Data retention for financial records follows Indian tax laws requiring 7 years of record-keeping</li>
+              </ul>
+
+              <h3 className="client-card__subsection-title">17.2 Data Storage and Localization</h3>
+              <ul className="client-list">
+                <li>PulseLedger stores data with Indian and international cloud service providers (MongoDB, Cloudinary)</li>
+                <li>Data may be stored and processed outside India as permitted by applicable law</li>
+                <li>We implement reasonable security practices as required under Indian data protection regulations</li>
+              </ul>
+
+              <h3 className="client-card__subsection-title">17.3 GST and Tax Compliance</h3>
+              <ul className="client-list">
+                <li>GST registration and compliance for coaching services and product sales is the sole responsibility of individual coaches</li>
+                <li>Coaches earning above the GST threshold must register and comply with GST regulations independently</li>
+                <li>PulseLedger platform subscription fees (₹99/month) are subject to applicable GST</li>
+                <li>Coaches are responsible for issuing GST-compliant invoices to their clients where required</li>
+              </ul>
+
+              <h3 className="client-card__subsection-title">17.4 Sensitive Personal Data</h3>
+              <ul className="client-list">
+                <li>Given the nature of health coaching services, we collect sensitive personal data as defined under Indian law (health information, biometric data)</li>
+                <li>We implement reasonable security practices and procedures to protect sensitive personal data</li>
+                <li>Sensitive personal data is collected only with your consent and for legitimate service delivery purposes</li>
+              </ul>
             </div>
           </div>
 

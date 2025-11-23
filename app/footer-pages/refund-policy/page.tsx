@@ -36,13 +36,6 @@ export default function RefundPolicyPage() {
                 <li>Refund decisions are made by individual coaches based on their professional judgment and policies</li>
                 <li>PulseLedger cannot force coaches to issue refunds but encourages fair and reasonable refund practices</li>
               </ul>
-
-              <h3 className="client-card__subsection-title">1.4 Platform Fees</h3>
-              <ul className="client-list">
-                <li>Currently, PulseLedger does not charge platform fees or commissions on transactions</li>
-                <li>If platform fees are introduced in the future, separate refund terms will apply to those fees</li>
-                <li>This policy primarily governs refunds for coach services and products</li>
-              </ul>
             </div>
           </div>
 
@@ -233,14 +226,14 @@ export default function RefundPolicyPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">5.1 About Platform Subscription</h3>
               <p>
-                Coaches on PulseLedger are required to maintain an active platform subscription to access coaching features and manage clients. The platform subscription fee is ₹199 per month with a 28-day free trial for new coaches.
+                Coaches on PulseLedger are required to maintain an active platform subscription to access coaching features and manage clients. The platform subscription fee is ₹99 per month with a 28-day free trial for new coaches.
               </p>
 
               <h3 className="client-card__subsection-title">5.2 Platform Subscription Refund Policy</h3>
               <ul className="client-list">
                 <li><strong>Free Trial Period:</strong> No charges during the 28-day trial period, so no refunds apply</li>
                 <li><strong>Payment Submission:</strong> When coaches submit platform subscription payments, they upload payment proof and transaction details</li>
-                <li><strong>Pending Payments:</strong> Payments awaiting admin approval can be cancelled with full refund (₹199) by contacting PulseLedger support</li>
+                <li><strong>Pending Payments:</strong> Payments awaiting admin approval can be cancelled with full refund (₹99) by contacting PulseLedger support</li>
                 <li><strong>Approved Payments:</strong> Once approved by admin, platform subscription is activated for 30 days</li>
               </ul>
 

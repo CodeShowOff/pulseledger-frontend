@@ -76,7 +76,7 @@ export default function AdminSettingsPage() {
       <div className="admin-card">
         <h2 className="admin-card__title">Platform Subscription Payment QR Code</h2>
         <p style={{ color: "#6b7280", marginBottom: "1.5rem" }}>
-          Upload a QR code that coaches will use to pay the ₹199 monthly platform subscription fee.
+          Upload a QR code that coaches will use to pay the ₹99 monthly platform subscription fee.
           This QR code will be displayed on the coach payment page.
         </p>
 
