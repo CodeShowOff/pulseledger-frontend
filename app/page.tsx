@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useAuthStore } from "@/lib/store";
 import {
   Activity,
+  Award,
   BarChart3,
   Calendar,
   CheckCircle2,
@@ -102,6 +103,100 @@ export default function HomePage() {
               <span>Trusted by 100+ coaches</span>
             </div>
           </motion.div>
+        </div>
+
+        {/* Floating Health Icons - Left Side */}
+        <div className="home-hero__floating home-hero__floating--left">
+          <motion.div
+            className="floating-icon floating-icon--1"
+            animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Heart size={32} />
+          </motion.div>
+          <motion.div
+            className="floating-icon floating-icon--2"
+            animate={{ y: [0, 12, 0], scale: [1, 1.1, 1] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+          >
+            <Activity size={28} />
+          </motion.div>
+          <motion.div
+            className="floating-icon floating-icon--3"
+            animate={{ y: [0, -10, 0], rotate: [0, -8, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          >
+            <Target size={26} />
+          </motion.div>
+          <motion.div
+            className="floating-icon floating-icon--4"
+            animate={{ y: [0, 18, 0], x: [0, 5, 0] }}
+            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+          >
+            <Zap size={24} />
+          </motion.div>
+        </div>
+
+        {/* Floating Health Icons - Right Side */}
+        <div className="home-hero__floating home-hero__floating--right">
+          <motion.div
+            className="floating-icon floating-icon--5"
+            animate={{ y: [0, 14, 0], rotate: [0, -5, 0] }}
+            transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+          >
+            <LineChart size={30} />
+          </motion.div>
+          <motion.div
+            className="floating-icon floating-icon--6"
+            animate={{ y: [0, -12, 0], scale: [1, 1.08, 1] }}
+            transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
+          >
+            <Calendar size={26} />
+          </motion.div>
+          <motion.div
+            className="floating-icon floating-icon--7"
+            animate={{ y: [0, 10, 0], rotate: [0, 6, 0] }}
+            transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+          >
+            <Clock size={28} />
+          </motion.div>
+          <motion.div
+            className="floating-icon floating-icon--8"
+            animate={{ y: [0, -16, 0], x: [0, -5, 0] }}
+            transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut", delay: 0.9 }}
+          >
+            <Star size={24} />
+          </motion.div>
+        </div>
+
+        {/* Animated Pulse Lines */}
+
+      </section>
+
+      {/* Live Activity Ticker Section */}
+      <section className="home-ticker-section">
+        <div className="home-activity-ticker">
+          <div className="home-activity-ticker__track">
+            <div className="home-activity-ticker__content">
+              <span className="ticker-item"><Heart size={14} className="ticker-icon ticker-icon--red" /> New client joined in Mumbai</span>
+              <span className="ticker-item"><CheckCircle2 size={14} className="ticker-icon ticker-icon--green" /> Weight goal achieved by a client</span>
+              <span className="ticker-item"><FileText size={14} className="ticker-icon ticker-icon--blue" /> New nutrition plan created</span>
+              <span className="ticker-item"><Star size={14} className="ticker-icon ticker-icon--yellow" /> 5-star review received</span>
+              <span className="ticker-item"><Activity size={14} className="ticker-icon ticker-icon--purple" /> Workout completed in Delhi</span>
+              <span className="ticker-item"><MessageCircle size={14} className="ticker-icon ticker-icon--cyan" /> Coach-client session started</span>
+              <span className="ticker-item"><TrendingUp size={14} className="ticker-icon ticker-icon--green" /> BMI improved for 12 clients today</span>
+              <span className="ticker-item"><Zap size={14} className="ticker-icon ticker-icon--orange" /> New supplement order placed</span>
+              {/* Duplicate for seamless loop */}
+              <span className="ticker-item"><Heart size={14} className="ticker-icon ticker-icon--red" /> New client joined in Mumbai</span>
+              <span className="ticker-item"><CheckCircle2 size={14} className="ticker-icon ticker-icon--green" /> Weight goal achieved by a client</span>
+              <span className="ticker-item"><FileText size={14} className="ticker-icon ticker-icon--blue" /> New nutrition plan created</span>
+              <span className="ticker-item"><Star size={14} className="ticker-icon ticker-icon--yellow" /> 5-star review received</span>
+              <span className="ticker-item"><Activity size={14} className="ticker-icon ticker-icon--purple" /> Workout completed in Delhi</span>
+              <span className="ticker-item"><MessageCircle size={14} className="ticker-icon ticker-icon--cyan" /> Coach-client session started</span>
+              <span className="ticker-item"><TrendingUp size={14} className="ticker-icon ticker-icon--green" /> BMI improved for 12 clients today</span>
+              <span className="ticker-item"><Zap size={14} className="ticker-icon ticker-icon--orange" /> New supplement order placed</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -360,72 +455,6 @@ export default function HomePage() {
               </p>
             </motion.li>
           </motion.ol>
-        </div>
-      </section>
-
-      {/* Why Choose PulseLedger Section */}
-      <section className="home-section">
-        <div className="home-section__inner">
-          <header className="home-section__header">
-            <h2 className="home-section__title">
-              Why Choose PulseLedger?
-            </h2>
-            <p className="home-section__subtitle">
-              We've built the most comprehensive, user-friendly platform for
-              health coaching—backed by security, scalability, and support.
-            </p>
-          </header>
-
-          <ul className="home-reasons">
-            <li className="home-reason">
-              <span className="home-reason__dot">●</span>
-              <span>
-                <strong>All-in-One Solution:</strong> No need to juggle
-                spreadsheets, messaging apps, and payment tools. Everything is
-                integrated seamlessly.
-              </span>
-            </li>
-            <li className="home-reason">
-              <span className="home-reason__dot">●</span>
-              <span>
-                <strong>Real-Time Collaboration:</strong> Instant
-                notifications, task updates, and progress syncing keep coaches
-                and clients connected.
-              </span>
-            </li>
-            <li className="home-reason">
-              <span className="home-reason__dot">●</span>
-              <span>
-                <strong>Data-Driven Insights:</strong> Advanced analytics help
-                coaches optimize plans and clients visualize their health
-                journey.
-              </span>
-            </li>
-            <li className="home-reason">
-              <span className="home-reason__dot">●</span>
-              <span>
-                <strong>Flexible Subscriptions:</strong> Offer monthly,
-                quarterly, or custom subscription models—clients can upgrade or
-                pause anytime.
-              </span>
-            </li>
-            <li className="home-reason">
-              <span className="home-reason__dot">●</span>
-              <span>
-                <strong>Mobile-Friendly:</strong> Access your dashboard,
-                track progress, and communicate on any device—desktop, tablet,
-                or phone.
-              </span>
-            </li>
-            <li className="home-reason">
-              <span className="home-reason__dot">●</span>
-              <span>
-                <strong>Enterprise Security:</strong> Your data is encrypted
-                end-to-end. We comply with HIPAA and GDPR standards for health
-                data privacy.
-              </span>
-            </li>
-          </ul>
         </div>
       </section>
 
