@@ -6,20 +6,15 @@ import { motion } from "framer-motion";
 import { useAuthStore } from "@/lib/store";
 import {
   Activity,
-  Award,
   BarChart3,
-  Calendar,
   CheckCircle2,
-  Clock,
   FileText,
   Heart,
-  LineChart,
   Lock,
   MessageCircle,
   Shield,
   ShoppingBag,
   Star,
-  Target,
   TrendingUp,
   Users,
   Zap,
@@ -40,18 +35,17 @@ export default function HomePage() {
     <main className="home-page">
       {/* Hero Section */}
       <section className="home-hero">
-        <div className="home-hero__inner">
-          <motion.h1
+        <div className="home-hero__layout">
+          <div className="home-hero__inner" role="region" aria-label="PulseLedger hero">
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="home-hero__title"
+            className="home-hero__title-group"
           >
-            Transform Health Journeys with{" "}
-            <span style={{ color: "#3b82f6" }}>
-              PulseLedger
-            </span>
-          </motion.h1>
+            <h1 className="home-hero__title-small">Transform Health Journeys with</h1>
+            <span className="home-hero__title-brand">PulseLedger</span>
+          </motion.div>
 
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -84,6 +78,15 @@ export default function HomePage() {
             )}
           </motion.div>
 
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="home-hero__quote"
+          >
+            "Your health is an investment, not an expense. Take care of your body — it's the only place you have to live."
+          </motion.p>
+
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -103,73 +106,18 @@ export default function HomePage() {
               <span>Trusted by 100+ coaches</span>
             </div>
           </motion.div>
+          </div>
+          <div className="home-hero__media" aria-hidden="true">
+            <img
+              className="home-hero__image"
+              src="/hero.jpg"
+              alt="Healthy lifestyle illustration"
+              loading="lazy"
+            />
+          </div>
         </div>
 
-        {/* Floating Health Icons - Left Side */}
-        <div className="home-hero__floating home-hero__floating--left">
-          <motion.div
-            className="floating-icon floating-icon--1"
-            animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Heart size={32} />
-          </motion.div>
-          <motion.div
-            className="floating-icon floating-icon--2"
-            animate={{ y: [0, 12, 0], scale: [1, 1.1, 1] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          >
-            <Activity size={28} />
-          </motion.div>
-          <motion.div
-            className="floating-icon floating-icon--3"
-            animate={{ y: [0, -10, 0], rotate: [0, -8, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          >
-            <Target size={26} />
-          </motion.div>
-          <motion.div
-            className="floating-icon floating-icon--4"
-            animate={{ y: [0, 18, 0], x: [0, 5, 0] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-          >
-            <Zap size={24} />
-          </motion.div>
-        </div>
-
-        {/* Floating Health Icons - Right Side */}
-        <div className="home-hero__floating home-hero__floating--right">
-          <motion.div
-            className="floating-icon floating-icon--5"
-            animate={{ y: [0, 14, 0], rotate: [0, -5, 0] }}
-            transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
-          >
-            <LineChart size={30} />
-          </motion.div>
-          <motion.div
-            className="floating-icon floating-icon--6"
-            animate={{ y: [0, -12, 0], scale: [1, 1.08, 1] }}
-            transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
-          >
-            <Calendar size={26} />
-          </motion.div>
-          <motion.div
-            className="floating-icon floating-icon--7"
-            animate={{ y: [0, 10, 0], rotate: [0, 6, 0] }}
-            transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
-          >
-            <Clock size={28} />
-          </motion.div>
-          <motion.div
-            className="floating-icon floating-icon--8"
-            animate={{ y: [0, -16, 0], x: [0, -5, 0] }}
-            transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut", delay: 0.9 }}
-          >
-            <Star size={24} />
-          </motion.div>
-        </div>
-
-        {/* Animated Pulse Lines */}
+        {/* Hero cleaned: floating icons removed */}
 
       </section>
 
