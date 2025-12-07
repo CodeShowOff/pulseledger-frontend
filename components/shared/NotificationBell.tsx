@@ -49,8 +49,19 @@ const NotificationBell = React.memo(function NotificationBell() {
       `}</style>
       <Link
         href="/notifications"
-        className="site-navbar__avatar-button relative bell-button"
-        style={{ width: 40, height: 40, verticalAlign: "middle", lineHeight: 0, padding: 0 }}
+        className="site-navbar__avatar-button bell-button"
+        style={{ 
+          width: 40, 
+          height: 40, 
+          verticalAlign: "middle", 
+          lineHeight: 0, 
+          padding: 0,
+          position: "relative",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "visible"
+        }}
         aria-label="Notifications"
       >
         <Image
@@ -59,12 +70,28 @@ const NotificationBell = React.memo(function NotificationBell() {
           width={24}
           height={24}
           className={unread > 0 ? "bell-icon-animate" : ""}
-          style={{ display: "block", margin: "auto" }}
+          style={{ display: "block" }}
         />
         {unread > 0 && (
           <span
-            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] leading-[18px] text-center px-1 shadow"
-            style={{ fontWeight: 600 }}
+            style={{
+              position: "absolute",
+              top: 0,
+              right: -2,
+              minWidth: 18,
+              height: 18,
+              borderRadius: "50%",
+              backgroundColor: "#ef4444",
+              color: "#fff",
+              fontSize: 11,
+              fontWeight: 600,
+              lineHeight: "18px",
+              textAlign: "center",
+              padding: "0 5px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+              pointerEvents: "none",
+              zIndex: 10
+            }}
             aria-label={`${unread} unread notifications`}
           >
             {unread > 99 ? "99+" : unread}

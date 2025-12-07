@@ -51,7 +51,9 @@ api.interceptors.response.use(
       status === 401 &&
       !originalRequest._retry &&
       originalRequest.url &&
-      !originalRequest.url.includes("/auth/refresh")
+      // Do not attempt refresh for login requests; they should show invalid credentials
+      !originalRequest.url.includes("/auth/refresh") &&
+      !originalRequest.url.includes("/auth/login")
     ) {
       (originalRequest as any)._retry = true;
       try {

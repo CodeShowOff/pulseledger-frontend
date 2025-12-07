@@ -261,7 +261,6 @@ export default function CoachProductsPage() {
                         backgroundColor: "#f9fafb",
                         borderRadius: 12,
                         border: "1px solid #e5e7eb",
-                        filter: "brightness(1.2)",
                       }}
                     />
                   </div>
@@ -269,12 +268,7 @@ export default function CoachProductsPage() {
                 <div>
                   <h3 className="admin-card__title">{p.name}</h3>
                   {p.description && (
-                    <p
-                      className="admin-page-header__subtitle"
-                      style={{ marginTop: "0.25rem" }}
-                    >
-                      {p.description}
-                    </p>
+                    <DescriptionWithToggle text={p.description} />
                   )}
                   <p
                     className="admin-page-header__subtitle"
@@ -369,6 +363,57 @@ export default function CoachProductsPage() {
         />
       )}
       
+    </div>
+  );
+}
+
+function DescriptionWithToggle({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!expanded) {
+    return (
+      <p className="admin-page-header__subtitle" style={{ marginTop: "0.25rem", fontSize: "0.8rem" }}>
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          style={{
+            padding: 0,
+            border: "none",
+            background: "none",
+            color: "#3b82f6",
+            fontWeight: 600,
+            cursor: "pointer",
+            textDecoration: "none",
+          }}
+        >
+          View details
+        </button>
+      </p>
+    );
+  }
+
+  return (
+    <div>
+      <p className="admin-page-header__subtitle" style={{ marginTop: "0.25rem", fontSize: "0.8rem" }}>
+        {text}
+      </p>
+      <p className="admin-page-header__subtitle" style={{ marginTop: "0.25rem", fontSize: "0.8rem" }}>
+        <button
+          type="button"
+          onClick={() => setExpanded(false)}
+          style={{
+            padding: 0,
+            border: "none",
+            background: "none",
+            color: "#3b82f6",
+            fontWeight: 600,
+            cursor: "pointer",
+            textDecoration: "none",
+          }}
+        >
+          Hide details
+        </button>
+      </p>
     </div>
   );
 }

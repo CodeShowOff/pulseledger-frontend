@@ -157,7 +157,7 @@ const Navbar = React.memo(function Navbar() {
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: "pointer",
-                  marginLeft: 12,
+                  marginLeft: 4,
                 }}
               >
                 {avatarUrl ? (

@@ -153,7 +153,9 @@ export default function PlanForm({ plan, onClose, variant = "modal" }: { plan?: 
     }
 
     if (plan) {
-      updateMutation.mutate({ id: plan._id, payload });
+      // Remove clientId from update payload - clientId cannot be changed after creation
+      const { clientId: _, ...updatePayload } = payload;
+      updateMutation.mutate({ id: plan._id, payload: updatePayload });
     } else {
       createMutation.mutate(payload);
     }

@@ -153,7 +153,22 @@ function PublicCoachProfileContent() {
   };
 
   const scrollToContactForm = () => {
-    contactFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Prefer hash navigation for better mobile support within nested scroll containers
+    try {
+      const el = contactFormRef.current || document.getElementById("contact-form");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        // Update hash so browser preserves position on mobile
+        if (typeof window !== "undefined") {
+          const url = new URL(window.location.href);
+          url.hash = "contact-form";
+          window.history.replaceState(null, "", url.toString());
+        }
+        return;
+      }
+    } catch {}
+    // Fallback: push hash to trigger default browser jump
+    router.push(`#contact-form`);
   };
 
   const handleContactFormSubmit = async (e: React.FormEvent) => {
@@ -814,7 +829,7 @@ function PublicCoachProfileContent() {
         )}
 
         {/* Contact Form */}
-        <div ref={contactFormRef} className="profile-card" style={{ marginTop: "2rem", scrollMarginTop: "2rem" }}>
+        <div id="contact-form" ref={contactFormRef} className="profile-card" style={{ marginTop: "2rem", scrollMarginTop: "2rem" }}>
           <h2 className="profile-header__title" style={{ fontSize: "1.5rem", marginBottom: "1rem", color: "#3b82f6" }}>
             Contact Me
           </h2>
