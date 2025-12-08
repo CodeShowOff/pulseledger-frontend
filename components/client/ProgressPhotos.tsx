@@ -112,8 +112,111 @@ export default function ProgressPhotos() {
 
   return (
     <div>
-      {/* Upload Section */}
+      {/* Photos Gallery */}
       <div className="client-card" style={{ marginBottom: "1.5rem" }}>
+        <div style={{ marginBottom: "1rem" }}>
+          <p className="client-card__section-title">
+            My Progress Photos ({photos.length})
+          </p>
+          <p className="client-card__section-subtitle">
+            Your transformation journey in photos
+          </p>
+        </div>
+
+        {isLoading ? (
+          <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>Loading photos...</p>
+        ) : photos.length === 0 ? (
+          <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
+            No photos uploaded yet. Upload your first progress photo above!
+          </p>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+              gap: "1rem",
+            }}
+          >
+            {photos.map((photo: ProgressPhoto) => (
+              <div
+                key={photo._id}
+                style={{
+                  position: "relative",
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                  cursor: "pointer",
+                  transition: "transform 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
+                onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                onClick={() => setSelectedPhoto(photo)}
+              >
+                <Image
+                  src={photo.url}
+                  alt={photo.caption || "Progress photo"}
+                  width={250}
+                  height={250}
+                  style={{
+                    width: "100%",
+                    height: "250px",
+                    objectFit: "cover",
+                  }}
+                />
+                {photo.caption && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      background: "linear-gradient(transparent, rgba(0, 0, 0, 0.7))",
+                      color: "white",
+                      padding: "1rem 0.75rem 0.5rem",
+                      fontSize: "0.85rem",
+                    }}
+                  >
+                    {photo.caption}
+                  </div>
+                )}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "8px",
+                    right: "8px",
+                    background: "rgba(0, 0, 0, 0.6)",
+                    borderRadius: "8px",
+                    padding: "0.25rem",
+                  }}
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(photo);
+                    }}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "white",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0.25rem",
+                    }}
+                    title="Delete photo"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Upload Section */}
+      <div className="client-card">
         <div style={{ marginBottom: "1rem" }}>
           <p className="client-card__section-title">Upload Progress Photo</p>
           <p className="client-card__section-subtitle">
@@ -248,109 +351,6 @@ export default function ProgressPhotos() {
             >
               Cancel
             </button>
-          </div>
-        )}
-      </div>
-
-      {/* Photos Gallery */}
-      <div className="client-card">
-        <div style={{ marginBottom: "1rem" }}>
-          <p className="client-card__section-title">
-            My Progress Photos ({photos.length})
-          </p>
-          <p className="client-card__section-subtitle">
-            Your transformation journey in photos
-          </p>
-        </div>
-
-        {isLoading ? (
-          <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>Loading photos...</p>
-        ) : photos.length === 0 ? (
-          <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
-            No photos uploaded yet. Upload your first progress photo above!
-          </p>
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            {photos.map((photo: ProgressPhoto) => (
-              <div
-                key={photo._id}
-                style={{
-                  position: "relative",
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  cursor: "pointer",
-                  transition: "transform 0.2s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-                onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                onClick={() => setSelectedPhoto(photo)}
-              >
-                <Image
-                  src={photo.url}
-                  alt={photo.caption || "Progress photo"}
-                  width={250}
-                  height={250}
-                  style={{
-                    width: "100%",
-                    height: "250px",
-                    objectFit: "cover",
-                  }}
-                />
-                {photo.caption && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      background: "linear-gradient(transparent, rgba(0, 0, 0, 0.7))",
-                      color: "white",
-                      padding: "1rem 0.75rem 0.5rem",
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    {photo.caption}
-                  </div>
-                )}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "8px",
-                    right: "8px",
-                    background: "rgba(0, 0, 0, 0.6)",
-                    borderRadius: "8px",
-                    padding: "0.25rem",
-                  }}
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(photo);
-                    }}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      color: "white",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "0.25rem",
-                    }}
-                    title="Delete photo"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            ))}
           </div>
         )}
       </div>

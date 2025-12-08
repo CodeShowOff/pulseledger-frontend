@@ -246,7 +246,7 @@ export default function CoachProductsPage() {
             }}
           >
             {products.map((p: any) => (
-              <div key={p._id} className="admin-card">
+              <div key={p._id} className="admin-card" style={{ display: "flex", flexDirection: "column" }}>
                 {p.imageUrl && (
                   <div style={{ marginBottom: "0.75rem" }}>
                     <Image
@@ -265,7 +265,7 @@ export default function CoachProductsPage() {
                     />
                   </div>
                 )}
-                <div>
+                <div style={{ flex: 1 }}>
                   <h3 className="admin-card__title">{p.name}</h3>
                   {p.description && (
                     <DescriptionWithToggle text={p.description} />

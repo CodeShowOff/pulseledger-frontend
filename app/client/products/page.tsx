@@ -153,7 +153,7 @@ export default function ProductsPage() {
                   const cartItem = itemsById.get(p._id);
                   const inCart = Boolean(cartItem);
                   return (
-                    <div key={p._id} className="client-card" style={{ boxShadow: "none" }}>
+                    <div key={p._id} className="client-card" style={{ boxShadow: "none", display: "flex", flexDirection: "column" }}>
                       {p.imageUrl && (
                         <div style={{ marginBottom: "0.5rem" }}>
                           <Image
@@ -182,7 +182,7 @@ export default function ProductsPage() {
                           )}
                         </div>
                       </div>
-                      <div className="client-meta-row" style={{ marginTop: 0, flexDirection: "column", alignItems: "flex-start", gap: "0.25rem" }}>
+                      <div className="client-meta-row" style={{ marginTop: 0, flexDirection: "column", alignItems: "flex-start", gap: "0.25rem", flex: 1 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
                           {p.mrp && p.mrp > p.price && (
                             <>

@@ -163,7 +163,7 @@ export default function ClientProgressChart() {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={data}>
+            <AreaChart data={data} margin={{ top: 5, right: 15, left: 0, bottom: 5 }}>
               <defs>
                 <linearGradient id={`gradient-${metric}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={config.color} stopOpacity={0.3} />
@@ -186,6 +186,7 @@ export default function ClientProgressChart() {
               <YAxis 
                 stroke="#64748b"
                 style={{ fontSize: "0.75rem" }}
+                width={35}
               />
               <Tooltip
                 contentStyle={{

@@ -138,14 +138,14 @@ export default function CoachDashboard() {
           gap: "1rem",
         }}
       >
-        <div className="admin-card" style={{ minHeight: "100%" }}>
+        <div className="admin-card" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
           <h2
             className="admin-page-header__title"
             style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}
           >
             💰 Earnings Dashboard
           </h2>
-          <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem" }}>
+          <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem", flex: 1 }}>
             Track your income from subscriptions and product orders.
           </p>
           <a href="/coach/earnings" className="btn btn--primary">
@@ -153,33 +153,33 @@ export default function CoachDashboard() {
           </a>
         </div>
 
-        <div className="admin-card" style={{ minHeight: "100%" }}>
+        <div className="admin-card" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
           <h2
             className="admin-page-header__title"
             style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}
           >
-            Indian Food Nutrition Index
+            🥗 Indian Food Nutrition Index
           </h2>
-          <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem" }}>
+          <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem", flex: 1 }}>
             Search macros and micros for popular Indian dishes.
           </p>
-          <a href="/indian-nutrition-index" className="btn btn--outline">
-            🥗 Open Nutrition Index
+          <a href="/indian-nutrition-index" className="btn btn--primary">
+            Open Nutrition Index
           </a>
         </div>
 
-        <div className="admin-card" style={{ minHeight: "100%" }}>
+        <div className="admin-card" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
           <h2
             className="admin-page-header__title"
             style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}
           >
-            Daily Calorie Calculator
+            🧮 Daily Calorie Calculator
           </h2>
-          <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem" }}>
+          <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem", flex: 1 }}>
             Estimate your daily calorie needs and suggested macros.
           </p>
-          <a href="/calorie-calculator" className="btn btn--outline">
-            🧮 Open Calorie Calculator
+          <a href="/calorie-calculator" className="btn btn--primary">
+            Open Calorie Calculator
           </a>
         </div>
       </section>

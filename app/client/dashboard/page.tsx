@@ -7,6 +7,7 @@ import ClientStats from "@/components/client/ClientStats";
 import dynamic from "next/dynamic";
 const ProgressCharts = dynamic(() => import("@/components/client/ProgressCharts"), { ssr: false });
 import AssignedPlans from "@/components/client/AssignedPlans";
+import WaterIntakeWidget from "@/components/client/WaterIntakeWidget";
 import { useMyCoachQuery } from "@/lib/queries/coach";
 import RoleGuard from "@/components/shared/RoleGuard";
 
@@ -30,47 +31,63 @@ export default function ClientDashboardPage() {
         )}
       </header>
 
+      {/* Water Intake Widget - Full Width */}
+      <WaterIntakeWidget />
+
+      {/* Nutrition Index and Calorie Calculator - Same Row */}
       <div
-        className="client-page__sections"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
           gap: "1rem",
+          marginTop: "1rem",
         }}
       >
-        <div className="client-card client-card--highlight">
-          <div className="client-card__header">
-            <p className="client-card__title">💧 Water Intake Tracker</p>
-            <p className="client-card__subtitle">
-              Track your daily water intake and monitor hydration goals.
-            </p>
-          </div>
-          <Link href="/client/water-intake" className="client-button">
-            Track Water Intake
-          </Link>
-        </div>
-
-        <div className="client-card client-card--highlight">
-          <div className="client-card__header">
-            <p className="client-card__title">Indian Food Nutrition Index</p>
+        <div className="client-card client-card--highlight" style={{ display: "flex", flexDirection: "column" }}>
+          <div className="client-card__header" style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <span style={{ fontSize: "2rem" }}>🥗</span>
+              <p className="client-card__title" style={{ margin: 0 }}>Indian Food Nutrition Index</p>
+            </div>
             <p className="client-card__subtitle">
               Search macros and micros for popular Indian dishes.
             </p>
           </div>
-          <Link href="/indian-nutrition-index" className="client-button">
-            🥗 Open Nutrition Index
+          <Link 
+            href="/indian-nutrition-index" 
+            className="client-button"
+            style={{ 
+              marginTop: "auto",
+              textAlign: "center",
+              padding: "0.65rem 1.5rem",
+              fontSize: "0.9rem"
+            }}
+          >
+            Open Nutrition Index
           </Link>
         </div>
 
-        <div className="client-card client-card--highlight">
-          <div className="client-card__header">
-            <p className="client-card__title">Daily Calorie Calculator</p>
+        <div className="client-card client-card--highlight" style={{ display: "flex", flexDirection: "column" }}>
+          <div className="client-card__header" style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <span style={{ fontSize: "2rem" }}>🧮</span>
+              <p className="client-card__title" style={{ margin: 0 }}>Daily Calorie Calculator</p>
+            </div>
             <p className="client-card__subtitle">
               Estimate your daily calorie needs and suggested macros.
             </p>
           </div>
-          <Link href="/calorie-calculator" className="client-button">
-            🧮 Open Calorie Calculator
+          <Link 
+            href="/calorie-calculator" 
+            className="client-button"
+            style={{ 
+              marginTop: "auto",
+              textAlign: "center",
+              padding: "0.65rem 1.5rem",
+              fontSize: "0.9rem"
+            }}
+          >
+            Open Calorie Calculator
           </Link>
         </div>
       </div>
