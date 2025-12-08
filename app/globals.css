@@ -511,6 +511,10 @@ textarea:focus-visible,
 	justify-content: flex-end;
 }
 
+.home-hero__media-mobile {
+	display: none;
+}
+
 .home-hero__image {
 	width: 100%;
 	max-width: 720px;
@@ -542,11 +546,25 @@ textarea:focus-visible,
 		gap: 1.5rem;
 		padding-left: 0.75rem;
 		padding-right: 0.75rem;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.home-hero__media {
+		display: none;
+	}
+
+	.home-hero__media-mobile {
+		display: flex;
+		justify-content: center;
+		margin: 0.75rem 0 0.5rem 0;
+		width: 100%;
 	}
 
 	.home-hero__inner {
 		text-align: center;
 		padding-right: 0;
+		order: 1;
 	}
 
 	.home-hero__title-small {
@@ -557,15 +575,17 @@ textarea:focus-visible,
 	.home-hero__title-brand {
 		font-size: 3rem;
 		letter-spacing: -0.5px;
+		margin-bottom: 0.5rem;
 	}
 
 	.home-hero__subtitle {
-		font-size: 1.05rem;
+		font-size: 0.9rem;
+		margin-top: 0;
 	}
 
 	.home-hero__actions {
 		justify-content: center;
-		margin-top: 1.25rem;
+		margin-top: 0.5rem;
 	}
 
 	.home-hero__quote {
@@ -587,12 +607,8 @@ textarea:focus-visible,
 		font-size: 0.8rem;
 	}
 
-	.home-hero__media {
-		justify-content: center;
-	}
-
-	.home-hero__image {
-		max-width: 85%;
+	.home-hero__media-mobile .home-hero__image {
+		max-width: 100%;
 		border-radius: 0.75rem;
 		box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
 	}
@@ -1323,9 +1339,9 @@ textarea:focus-visible,
 .auth-shell {
 	min-height: calc(100vh - 56px - 56px);
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	justify-content: center;
-	padding: 2.5rem 1.25rem;
+	padding: 2rem 1.25rem;
 	background: linear-gradient(135deg, #eff6ff, #ffffff);
 }
 
@@ -1387,6 +1403,28 @@ textarea:focus-visible,
 	margin-top: 0.2rem;
 	font-size: 0.75rem;
 	color: #dc2626;
+}
+
+.auth-form__forgot {
+	display: flex;
+	justify-content: center;
+	margin-bottom: 0.5rem;
+}
+
+.auth-form__forgot-link {
+	font-size: 0.85rem;
+	color: #2563eb;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+	font-weight: 500;
+	transition: color 0.2s ease;
+}
+
+.auth-form__forgot-link:hover {
+	color: #1d4ed8;
+	text-decoration: underline;
 }
 
 .auth-form__submit {

@@ -98,11 +98,11 @@ export const LoginForm: React.FC = () => {
         )}
       </div>
 
-      <div className="flex justify-end mb-2">
+      <div className="auth-form__forgot">
         <button
           type="button"
           onClick={() => router.push("/auth/forgot-password")}
-          className="text-sm text-primary-600 hover:underline"
+          className="auth-form__forgot-link"
         >
           Forgot password?
         </button>

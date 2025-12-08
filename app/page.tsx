@@ -59,6 +59,21 @@ export default function HomePage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="home-hero__media-mobile"
+            aria-hidden="true"
+          >
+            <img
+              className="home-hero__image"
+              src="/hero.jpg"
+              alt="Healthy lifestyle illustration"
+              loading="lazy"
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
             className="home-hero__actions"
           >
@@ -67,14 +82,9 @@ export default function HomePage() {
                 Go to Dashboard
               </Link>
             ) : (
-              <>
-                <Link href="/auth/register" className="home-hero__primary">
-                  Get Started Free
-                </Link>
-                <Link href="/auth/login" className="home-hero__secondary">
-                  Sign In
-                </Link>
-              </>
+              <Link href="/auth/register" className="home-hero__primary">
+                Get Started Free
+              </Link>
             )}
           </motion.div>
 
