@@ -29,6 +29,7 @@ export default function AdminDashboardPage() {
 
   const queryClient = useQueryClient();
   const [purgeLoading, setPurgeLoading] = useState(false);
+  const [cleanupLoading, setCleanupLoading] = useState(false);
 
   const purgeMutation = useMutation({
     mutationFn: async () => {
@@ -46,6 +47,24 @@ export default function AdminDashboardPage() {
     },
     onSettled: () => {
       setPurgeLoading(false);
+    },
+  });
+
+  const cleanupMutation = useMutation({
+    mutationFn: async () => {
+      setCleanupLoading(true);
+      const res = await api.post("/admin/chat-cleanup");
+      return res.data?.data as { deleted?: number };
+    },
+    onSuccess: (result) => {
+      const count = result?.deleted ?? 0;
+      toast.success(`Deleted ${count} old chat message${count === 1 ? "" : "s"} (older than 7 days).`);
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to cleanup old messages");
+    },
+    onSettled: () => {
+      setCleanupLoading(false);
     },
   });
 
@@ -77,12 +96,21 @@ export default function AdminDashboardPage() {
             className="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-60"
           >
             <Trash2 className="h-4 w-4" />
-            {purgeLoading ? "Purging unverified users..." : "Purge stale unverified users"}
+            {purgeLoading ? "Purging..." : "Purge unverified users"}
           </button>
-          <p className="text-xs text-slate-500">
-            Removes accounts that never verified their email and whose verification code has expired.
-          </p>
+          <button
+            type="button"
+            onClick={() => cleanupMutation.mutate()}
+            disabled={cleanupLoading}
+            className="inline-flex items-center gap-2 rounded-md border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-700 hover:bg-orange-100 disabled:opacity-60"
+          >
+            <MessageSquare className="h-4 w-4" />
+            {cleanupLoading ? "Cleaning..." : "Delete old messages"}
+          </button>
         </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Purge removes unverified accounts. Delete old messages removes chat messages older than 7 days.
+        </p>
       </header>
 
       <section className="admin-card-grid admin-card-grid--stats">

@@ -7,7 +7,7 @@ import api from "@/lib/axios";
 import { useCoachPendingPlanRequests, COACH_PENDING_PLAN_REQUESTS_KEY } from "@/lib/queries/planRequests";
 import Link from "next/link";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
-import { User, Mail, Activity, FileText, Clock, MessageCircle, ChevronLeft, ChevronRight, Check, X } from "lucide-react";
+import { User, Mail, Activity, FileText, Clock, MessageCircle, ChevronLeft, ChevronRight, Check, X, MessageSquare } from "lucide-react";
 
 type Client = {
   _id: string;
@@ -218,6 +218,23 @@ export default function CoachClients() {
                     )}
                   </div>
                 </div>
+
+                {/* WhatsApp Number Display */}
+                {c.whatsappNumber && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", minWidth: "120px" }}>
+                    <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>📱 {c.whatsappNumber}</span>
+                  </div>
+                )}
+
+                {/* Chat Button */}
+                <Link
+                  href={`/coach/chat?clientId=${c._id}`}
+                  className="btn btn--primary"
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", padding: "0.35rem 0.65rem", flexShrink: 0 }}
+                >
+                  <MessageSquare size={14} />
+                  Chat
+                </Link>
 
                 {/* View Profile Button - in same row on desktop */}
                 <Link

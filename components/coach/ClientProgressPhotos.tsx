@@ -103,6 +103,7 @@ export default function ClientProgressPhotos({ clientId, clientName }: ClientPro
                   height: "280px",
                   objectFit: "cover",
                 }}
+                loading="lazy"
               />
               <div
                 style={{
@@ -193,9 +194,12 @@ export default function ClientProgressPhotos({ clientId, clientName }: ClientPro
               style={{
                 maxWidth: "100%",
                 maxHeight: "85vh",
+                width: "auto",
+                height: "auto",
                 borderRadius: "12px",
                 objectFit: "contain",
               }}
+              priority
             />
             {selectedPhoto.caption && (
               <div

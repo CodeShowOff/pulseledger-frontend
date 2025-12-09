@@ -325,7 +325,7 @@ export default function ProfilePage() {
           <div style={{ display: "flex", alignItems: "center", gap: "1rem", justifyContent: "space-between", flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.9rem" }}>
               {(storeAvatar || data?.avatarUrl) ? (
-                <Image src={storeAvatar || data?.avatarUrl || ""} alt="Avatar" width={72} height={72} style={{ width: 72, height: 72, borderRadius: 999, objectFit: "cover", filter: "brightness(1.2)" }} />
+                <Image src={storeAvatar || data?.avatarUrl || ""} alt="Avatar" width={72} height={72} style={{ width: 72, height: 72, borderRadius: 999, objectFit: "cover", filter: "brightness(1.2)" }} priority />
               ) : (
                 <div className="client-profile-avatar" style={{ width: 72, height: 72, fontSize: 22 }}>
                   {data?.fullName?.[0]?.toUpperCase() || "U"}
@@ -715,7 +715,7 @@ export default function ProfilePage() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
                   {data.awards?.slice(awardsPage * ITEMS_PER_PAGE, (awardsPage + 1) * ITEMS_PER_PAGE).map((award) => (
                     <div key={award.publicId} style={{ position: "relative", borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                      <Image src={award.url} alt="Award" width={200} height={200} style={{ width: "100%", height: "200px", objectFit: "cover", filter: "brightness(1.2)" }} />
+                      <Image src={award.url} alt="Award" width={200} height={200} style={{ width: "100%", height: "200px", objectFit: "cover", filter: "brightness(1.2)" }} loading="lazy" />
                       <button
                         type="button"
                         className="btn btn--ghost"
@@ -822,7 +822,7 @@ export default function ProfilePage() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
                   {data.transformations?.slice(transformationsPage * ITEMS_PER_PAGE, (transformationsPage + 1) * ITEMS_PER_PAGE).map((transformation) => (
                     <div key={transformation.publicId} style={{ position: "relative", borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                      <Image src={transformation.url} alt="Transformation" width={200} height={200} style={{ width: "100%", height: "200px", objectFit: "cover", filter: "brightness(1.2)" }} />
+                      <Image src={transformation.url} alt="Transformation" width={200} height={200} style={{ width: "100%", height: "200px", objectFit: "cover", filter: "brightness(1.2)" }} loading="lazy" />
                       <button
                         type="button"
                         className="btn btn--ghost"

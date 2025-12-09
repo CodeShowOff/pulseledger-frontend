@@ -17,18 +17,18 @@ export default function ClientDashboardPage() {
   return (
     <div className="client-page__sections">
       <RoleGuard role="client" />
-      <header className="client-page__header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
-        <div style={{ flex: 1 }}>
+      <header className="client-page__header">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
           <h1 className="client-page__title">Your Dashboard</h1>
-          <p className="client-page__subtitle">
-            Keep an eye on your current plan, recent progress and coach.
-          </p>
+          {!isLoading && coach && (
+            <Link href="/client/coach" className="client-button" style={{ whiteSpace: "nowrap" }}>
+              View Coach Profile
+            </Link>
+          )}
         </div>
-        {!isLoading && coach && (
-          <Link href="/client/coach" className="client-button" style={{ whiteSpace: "nowrap", flexShrink: 0, marginTop: "0.5rem" }}>
-            View Coach Profile
-          </Link>
-        )}
+        <p className="client-page__subtitle">
+          Keep an eye on your current plan, recent progress and coach.
+        </p>
       </header>
 
       {/* Water Intake Widget - Full Width */}
@@ -104,17 +104,19 @@ export default function ClientDashboardPage() {
         </div>
       )}
 
+      {/* Your Current Plan */}
+      <div className="client-card">
+        <AssignedPlans />
+      </div>
+
+      {/* Quick Stats */}
       <div className="client-card">
         <ClientStats />
       </div>
 
-      <div className="client-page__sections">
-        <div className="client-card">
-          <ProgressCharts />
-        </div>
-        <div className="client-card">
-          <AssignedPlans />
-        </div>
+      {/* Progress Charts */}
+      <div className="client-card">
+        <ProgressCharts />
       </div>
     </div>
   );

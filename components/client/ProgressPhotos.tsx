@@ -162,6 +162,7 @@ export default function ProgressPhotos() {
                     height: "250px",
                     objectFit: "cover",
                   }}
+                  loading="lazy"
                 />
                 {photo.caption && (
                   <div
@@ -404,9 +405,12 @@ export default function ProgressPhotos() {
               style={{
                 maxWidth: "100%",
                 maxHeight: "85vh",
+                width: "auto",
+                height: "auto",
                 borderRadius: "12px",
                 objectFit: "contain",
               }}
+              priority
             />
             {selectedPhoto.caption && (
               <div

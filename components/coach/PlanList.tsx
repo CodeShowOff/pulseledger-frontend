@@ -8,6 +8,9 @@ import { Edit, Trash2, FileText, Users, Calendar, DollarSign, Target, ChevronLef
 import { toast } from "sonner";
 import { CLIENT_PLANS_KEY } from "@/lib/queries/plans";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+const PlanClientsModal = dynamic(() => import("@/components/coach/PlanClientsModal"), { ssr: false });
 
 type Plan = {
   _id: string;
@@ -46,6 +49,8 @@ function statusClass(status?: string) {
 export default function PlanList() {
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [selectedPlanTitle, setSelectedPlanTitle] = useState<string>("");
   const { data, isLoading } = useQuery({ queryKey: ["coachPlans"], queryFn: fetchPlans });
   const plans: Plan[] = data?.data ?? [];
 
@@ -201,8 +206,34 @@ export default function PlanList() {
                 gap: "0.5rem", 
                 justifyContent: "flex-end",
                 paddingTop: "0.75rem",
-                borderTop: "1px solid #e5e7eb"
+                borderTop: "1px solid #e5e7eb",
+                flexWrap: "wrap"
               }}>
+                {p.isTemplate && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPlanId(p._id);
+                      setSelectedPlanTitle(p.title);
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.35rem",
+                      padding: "0.4rem 0.75rem",
+                      fontSize: "0.8rem",
+                      borderRadius: "6px",
+                      border: "1px solid #dbeafe",
+                      backgroundColor: "#eff6ff",
+                      color: "#2563eb",
+                      cursor: "pointer",
+                      fontWeight: 500,
+                    }}
+                  >
+                    <Users style={{ width: "14px", height: "14px" }} />
+                    View Clients
+                  </button>
+                )}
                 <Link
                   href={`/coach/plans/${p._id}/edit`}
                   style={{
@@ -343,6 +374,18 @@ export default function PlanList() {
             <ChevronRight style={{ width: "18px", height: "18px", color: "#374151" }} />
           </button>
         </div>
+      )}
+
+      {/* Plan Clients Modal */}
+      {selectedPlanId && (
+        <PlanClientsModal
+          planId={selectedPlanId}
+          planTitle={selectedPlanTitle}
+          onClose={() => {
+            setSelectedPlanId(null);
+            setSelectedPlanTitle("");
+          }}
+        />
       )}
     </div>
   );

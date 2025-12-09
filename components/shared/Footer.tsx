@@ -27,15 +27,6 @@ const Footer = React.memo(function Footer() {
       >
         <div
           className="site-footer__links"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, auto))',
-            gap: '0.75rem 1rem',
-            justifyContent: 'center',
-            width: '100%',
-            fontSize: '0.9rem',
-            textAlign: 'center',
-          }}
         >
           <Link href="/footer-pages/about" className="site-footer__link">About</Link>
           <Link href="/footer-pages/contact" className="site-footer__link">Contact</Link>

@@ -187,16 +187,21 @@ export default function CoachDashboard() {
       {user?.role === "coach" && (
         <section style={{ marginTop: "1.25rem" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" }}>
-            <div className="admin-card" style={{ borderLeft: "4px solid var(--admin-color-primary)" }}>
-              <p className="admin-card__label">Your Referral Code</p>
-              <p className="admin-card__value" style={{ color: "var(--admin-color-primary-dark)", fontSize: "1.1rem" }}>
+            <div className="admin-card" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
+              <h2
+                className="admin-page-header__title"
+                style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}
+              >
+                🔗 Your Referral Code
+              </h2>
+              <p className="admin-card__value" style={{ color: "var(--admin-color-primary-dark)", fontSize: "1.1rem", marginBottom: "0.5rem" }}>
                 {user.referralCode || "Generating..."}
               </p>
-              <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginTop: "0.35rem" }}>
+              <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem", flex: 1 }}>
                 Share this code with clients so they automatically link to you during registration.
               </p>
               {publicProfileUrl && (
-                <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                   <button
                     type="button"
                     className="btn btn--outline"
@@ -219,16 +224,18 @@ export default function CoachDashboard() {
                   >
                     Visit Public Profile
                   </a>
-                  <span style={{ fontSize: "0.75rem", color: "var(--admin-color-muted)" }}>
-                    {publicProfileUrl}
-                  </span>
                 </div>
               )}
             </div>
 
-            <div className="admin-card" style={{ borderLeft: "4px solid #10b981" }}>
-              <p className="admin-card__label">Platform Fee Management</p>
-              <p className="admin-card__value" style={{ color: "#10b981", fontSize: "1.1rem" }}>
+            <div className="admin-card" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
+              <h2
+                className="admin-page-header__title"
+                style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}
+              >
+                💳 Platform Fee Management
+              </h2>
+              <p className="admin-card__value" style={{ color: "#10b981", fontSize: "1.1rem", marginBottom: "0.5rem" }}>
                 {subscription ? (
                   <>
                     {subscription.daysRemaining} Day{subscription.daysRemaining !== 1 ? "s" : ""} Left
@@ -237,23 +244,20 @@ export default function CoachDashboard() {
                   "Loading..."
                 )}
               </p>
-              <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginTop: "0.35rem" }}>
+              <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem", flex: 1 }}>
                 Track your platform subscription payments, history, and renewal dates.
               </p>
-              <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                <Link
-                  href="/coach/platform-fee"
-                  className="btn btn--primary"
-                  style={{ backgroundColor: "#10b981", borderColor: "#10b981" }}
-                >
-                  💳 Manage Platform Fee
-                </Link>
-                {subscription && subscription.totalPaid > 0 && (
-                  <span style={{ fontSize: "0.75rem", color: "var(--admin-color-muted)", alignSelf: "center" }}>
-                    Total Paid: ₹{subscription.totalPaid}
-                  </span>
-                )}
-              </div>
+              {subscription && subscription.totalPaid > 0 && (
+                <p style={{ fontSize: "0.875rem", color: "var(--admin-color-muted)", marginBottom: "0.5rem" }}>
+                  Total Paid: ₹{subscription.totalPaid}
+                </p>
+              )}
+              <Link
+                href="/coach/platform-fee"
+                className="btn btn--primary"
+              >
+                Manage Platform Fee
+              </Link>
             </div>
           </div>
         </section>

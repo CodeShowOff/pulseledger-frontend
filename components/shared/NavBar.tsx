@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import NotificationBell from "@/components/shared/NotificationBell";
+import { useUnreadChatCount } from "@/lib/queries/chat";
 import {
   Home,
   LayoutDashboard,
@@ -15,7 +16,9 @@ import {
   Users,
   ClipboardList,
   Info,
-  Mail, BookOpen
+  Mail,
+  BookOpen,
+  MessagesSquare,
 } from "lucide-react";
 
 const Navbar = React.memo(function Navbar() {
@@ -24,6 +27,7 @@ const Navbar = React.memo(function Navbar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const avatarUrl = useAuthStore((s) => s.user?.avatarUrl);
+  const { data: unreadCount = 0 } = useUnreadChatCount();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -58,17 +62,17 @@ const Navbar = React.memo(function Navbar() {
 
   const clientLinks = [
     { label: "Dashboard", href: "/client/dashboard", icon: LayoutDashboard },
+    { label: "Chat", href: "/client/chat", icon: MessagesSquare },
     { label: "Progress", href: "/client/progress", icon: TrendingUp },
-    { label: "Subscriptions", href: "/client/subscriptions", icon: CreditCard },
     { label: "Products", href: "/client/products", icon: Package },
   ];
 
   const coachLinks = [
     { label: "Dashboard", href: "/coach/dashboard", icon: LayoutDashboard },
+    { label: "Chat", href: "/coach/chat", icon: MessagesSquare },
     { label: "Clients", href: "/coach/clients", icon: Users },
     { label: "Products", href: "/coach/products", icon: Package },
     { label: "My Plans", href: "/coach/plans", icon: ClipboardList },
-    { label: "Subscriptions", href: "/coach/subscriptions", icon: CreditCard },
   ];
 
   const adminLinks = [
@@ -225,8 +229,8 @@ const Navbar = React.memo(function Navbar() {
         </div>
       </div>
 
-      {/* secondary nav row - Hide on home page when not logged in */}
-      {(pathname !== "/" || user) && (
+      {/* secondary nav row - Hide on home page when not logged in AND hide on chat pages */}
+      {(pathname !== "/" || user) && !pathname?.includes("/chat") && (
         <div
           className="site-navbar__inner"
           style={{
@@ -247,9 +251,11 @@ const Navbar = React.memo(function Navbar() {
         >
           {links.map((link) => {
             const Icon = link.icon;
+            const isChatLink = link.href === "/coach/chat" || link.href === "/client/chat";
+            const showBadge = isChatLink && unreadCount > 0;
 
             return (
-              <div key={link.href} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div key={link.href} style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
                 <Link
                   href={link.href}
                   className={
@@ -262,17 +268,57 @@ const Navbar = React.memo(function Navbar() {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "0.5rem",
+                    position: "relative",
                   }}
                 >
                   {/* Mobile: icon only */}
                   {Icon && (
-                    <span className="mobile-icon">
+                    <span className="mobile-icon" style={{ position: "relative" }}>
                       <Icon size={18} strokeWidth={2} />
+                      {showBadge && (
+                        <span style={{
+                          position: "absolute",
+                          top: "-6px",
+                          right: "-6px",
+                          minWidth: "16px",
+                          height: "16px",
+                          padding: "0 4px",
+                          backgroundColor: "#ef4444",
+                          color: "white",
+                          fontSize: "9px",
+                          fontWeight: 700,
+                          borderRadius: "999px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                        }}>
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
                     </span>
                   )}
 
                   {/* Desktop: text only */}
                   <span className="desktop-label">{link.label}</span>
+                  {showBadge && (
+                    <span className="desktop-label chat-badge-desktop" style={{
+                      minWidth: "20px",
+                      height: "20px",
+                      padding: "0 6px",
+                      backgroundColor: "#ef4444",
+                      color: "white",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      borderRadius: "999px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginLeft: "0.25rem",
+                    }}>
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
                 </Link>
                 {/* Label below icon for mobile */}
                 <span

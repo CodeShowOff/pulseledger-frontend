@@ -7,6 +7,7 @@ import { useCoachClientPlanRequests, COACH_CLIENT_PLAN_REQUESTS_KEY, COACH_PENDI
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { MessageSquare } from "lucide-react";
 import ClientProgressPhotos from "@/components/coach/ClientProgressPhotos";
 import DetailedProgressCharts from "@/components/client/DetailedProgressCharts";
 
@@ -183,34 +184,20 @@ export default function ClientDetailPage() {
             <p className="admin-page-header__subtitle">{client.email}</p>
             <p className="admin-page-header__subtitle">Phone: {client.phone || "-"}</p>
             {client.whatsappNumber && (
-              <div
-                style={{
-                  marginTop: "0.5rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                }}
-              >
-                <span
-                  className="admin-page-header__subtitle"
-                  style={{ fontSize: "0.8rem" }}
-                >
-                  {client.whatsappNumber}
-                </span>
-                <button
-                  type="button"
-                  style={{ background: "transparent", border: "none", cursor: "pointer", padding: "0.2rem" }}
-                  onClick={() => {
-                    const phone = String(client.whatsappNumber).replace(/\D/g, "");
-                    if (!phone) return;
-                    const url = `https://wa.me/${phone}`;
-                    window.open(url, "_blank");
-                  }}
-                >
-                  <Image src="/whatsapp.png" alt="WhatsApp" width={32} height={32} style={{ flexShrink: 0 }} />
-                </button>
-              </div>
+              <p className="admin-page-header__subtitle">
+                📱 WhatsApp: {client.whatsappNumber}
+              </p>
             )}
+            <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <Link
+                href={`/coach/chat?clientId=${id}`}
+                className="btn btn--primary"
+                style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", padding: "0.5rem 1rem" }}
+              >
+                <MessageSquare size={16} />
+                Chat with Client
+              </Link>
+            </div>
             <p className="admin-page-header__subtitle" style={{ marginTop: "0.5rem", fontSize: "0.85rem" }}>
               Member since: {formatDate(client.createdAt)}
             </p>

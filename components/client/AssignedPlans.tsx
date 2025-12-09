@@ -2,9 +2,11 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "sonner";
+import { CreditCard } from "lucide-react";
 import { CLIENT_PROGRESS_QUERY_KEY } from "@/lib/queries/clientProgress";
 
 type Task = {
@@ -191,6 +193,24 @@ export default function AssignedPlans() {
           </ul>
         </div>
       )}
+
+      {/* My Subscriptions button at the bottom */}
+      <div style={{ marginTop: "1rem" }}>
+        <Link
+          href="/client/subscriptions"
+          className="client-button"
+          style={{ 
+            display: "inline-flex", 
+            alignItems: "center", 
+            gap: "0.5rem", 
+            padding: "0.65rem 1.5rem",
+            fontSize: "0.9rem",
+            textAlign: "center"
+          }}
+        >
+          <CreditCard className="h-4 w-4" /> My Subscriptions
+        </Link>
+      </div>
     </div>
   );
 }
