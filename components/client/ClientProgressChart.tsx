@@ -73,7 +73,7 @@ export default function ClientProgressChart() {
     }
   }, [metric]);
 
-  const { data, isLoading } = useQuery({
+  const { data: allData, isLoading } = useQuery({
     queryKey: CLIENT_PROGRESS_QUERY_KEY,
     queryFn: () => fetchClientProgressEntries(),
     select: (response): ChartPoint[] => {
@@ -100,9 +100,20 @@ export default function ClientProgressChart() {
     },
   });
 
+  // Filter data to only show points where the current metric has a value
+  const filteredData = useMemo(() => {
+    if (!allData) return [];
+    return allData.filter((point) => point[config.dataKey] != null);
+  }, [allData, config.dataKey]);
+
+  // Show only last 7 entries for cleaner dashboard view
+  const data = useMemo(() => {
+    return filteredData.slice(-7);
+  }, [filteredData]);
+
   const hasData = useMemo(
-    () => data && data.some((point) => point[config.dataKey] != null),
-    [data, config.dataKey]
+    () => filteredData && filteredData.length > 0,
+    [filteredData]
   );
 
   if (isLoading) return <p>Loading progress...</p>;
@@ -210,7 +221,6 @@ export default function ClientProgressChart() {
                 stroke={config.color}
                 strokeWidth={3}
                 fill={`url(#gradient-${metric})`}
-                connectNulls
                 dot={{ fill: config.color, r: 4 }}
                 activeDot={{ r: 6, strokeWidth: 2, stroke: "#ffffff" }}
               />

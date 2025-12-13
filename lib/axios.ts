@@ -28,10 +28,10 @@ api.interceptors.response.use(
     // Handle subscription expired error (403 with specific error code)
     if (status === 403) {
       const msg = String(error.response?.data?.message || '').toLowerCase();
-      const errorCode = error.response?.data?.error;
+      const errorCode = error.response?.data?.error || error.response?.data?.code;
       
       // Redirect to subscription payment page if subscription expired
-      if (errorCode === "SUBSCRIPTION_EXPIRED" || /subscription.*expired|expired.*subscription/i.test(msg)) {
+      if (errorCode === "SUBSCRIPTION_EXPIRED") {
         if (typeof window !== "undefined") {
           const currentPath = window.location.pathname;
           window.location.href = `/coach/platform-subscription?returnUrl=${encodeURIComponent(currentPath)}`;
@@ -39,9 +39,9 @@ api.interceptors.response.use(
         return Promise.reject(error);
       }
       
-      // Logout only on account deactivation
-      const shouldLogout = /account is deactivated|deactivated/.test(msg);
-      if (shouldLogout) {
+      // Logout only on account deactivation (check error code first, then message as fallback)
+      const isAccountDeactivated = errorCode === "ACCOUNT_DEACTIVATED" || /account is deactivated|deactivated/.test(msg);
+      if (isAccountDeactivated) {
         useAuthStore.getState().logout();
       }
       return Promise.reject(error);
@@ -59,8 +59,14 @@ api.interceptors.response.use(
       try {
         const refreshRes = await api.post("/auth/refresh");
         const newToken = refreshRes.data.accessToken;
+        const userData = refreshRes.data.user;
 
         useAuthStore.getState().setAccessToken(newToken);
+        
+        // Update user data if provided (keeps state in sync)
+        if (userData) {
+          useAuthStore.getState().setUser(userData);
+        }
 
         // ✅ Update short-lived cookie so Next.js middleware can read it
         document.cookie = `accessToken=${newToken}; path=/; max-age=900;`;

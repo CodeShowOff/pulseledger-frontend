@@ -115,7 +115,7 @@ export default function AdminUsersPage() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Name</th>
+                  <th>User</th>
                   <th>Email</th>
                   <th>Status</th>
                   <th>Action</th>
@@ -131,7 +131,23 @@ export default function AdminUsersPage() {
                 )}
                 {coaches.map((u) => (
                   <tr key={u._id}>
-                    <td>{u.fullName}</td>
+                    <td>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                        <div style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "50%",
+                          backgroundColor: "#dbeafe",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0
+                        }}>
+                          <UserCheck size={20} style={{ color: "#2563eb" }} />
+                        </div>
+                        <span>{u.fullName}</span>
+                      </div>
+                    </td>
                     <td style={{ color: "#6b7280" }}>{u.email}</td>
                     <td>
                       <span className={u.isActive ? "badge badge--success" : "badge badge--danger"}>
@@ -197,7 +213,7 @@ export default function AdminUsersPage() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Name</th>
+                  <th>User</th>
                   <th>Email</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -213,7 +229,23 @@ export default function AdminUsersPage() {
                 )}
                 {clients.map((u) => (
                   <tr key={u._id}>
-                    <td>{u.fullName}</td>
+                    <td>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                        <div style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "50%",
+                          backgroundColor: "#e0f2fe",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0
+                        }}>
+                          <Users size={20} style={{ color: "#0284c7" }} />
+                        </div>
+                        <span>{u.fullName}</span>
+                      </div>
+                    </td>
                     <td style={{ color: "#6b7280" }}>{u.email}</td>
                     <td>
                       <span className={u.isActive ? "badge badge--success" : "badge badge--danger"}>

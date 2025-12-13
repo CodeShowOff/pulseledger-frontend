@@ -426,7 +426,7 @@ export default function WaterIntakeTracker() {
                     </p>
                     {entry.createdAt && (
                       <p style={{ fontSize: "0.7rem", color: "#6b7280", marginTop: "0.25rem" }}>
-                        {new Date(new Date(entry.createdAt).getTime() + (5.5 * 60 * 60 * 1000)).toLocaleTimeString('en-IN', { 
+                        {new Date(entry.createdAt).toLocaleTimeString('en-IN', { 
                           hour: '2-digit', 
                           minute: '2-digit',
                           timeZone: 'Asia/Kolkata'

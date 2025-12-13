@@ -9,6 +9,32 @@ import Link from "next/link";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import { User, Mail, Activity, FileText, Clock, MessageCircle, ChevronLeft, ChevronRight, Check, X, MessageSquare } from "lucide-react";
 
+// Mobile responsive styles
+const mobileStyles = `
+  @media (max-width: 640px) {
+    .hide-on-mobile {
+      display: none !important;
+    }
+    .action-buttons {
+      flex-direction: row;
+      justify-content: flex-start;
+      width: 100% !important;
+    }
+    .action-buttons a {
+      flex: 1;
+      justify-content: center;
+    }
+    .action-buttons span {
+      display: none;
+    }
+  }
+  @media (min-width: 641px) {
+    .action-buttons {
+      width: auto !important;
+    }
+  }
+`;
+
 type Client = {
   _id: string;
   fullName: string;
@@ -109,15 +135,17 @@ export default function CoachClients() {
   }
 
   return (
-    <div className="admin-card">
-      <div className="admin-page-header" style={{ padding: 0, marginBottom: "0.75rem" }}>
-        <h3 className="admin-page-header__title" style={{ fontSize: "1.05rem" }}>
-          Assigned Clients
-        </h3>
-        <p className="admin-page-header__subtitle" style={{ fontSize: "0.85rem" }}>
-          Overview of all clients linked to your coaching account.
-        </p>
-      </div>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: mobileStyles }} />
+      <div>
+        <div className="admin-page-header" style={{ padding: 0, marginBottom: "0.75rem" }}>
+          <h3 className="admin-page-header__title" style={{ fontSize: "1.05rem" }}>
+            Assigned Clients
+          </h3>
+          <p className="admin-page-header__subtitle" style={{ fontSize: "0.85rem" }}>
+            Overview of all clients linked to your coaching account.
+          </p>
+        </div>
 
       <div style={{ marginBottom: "0.75rem", maxWidth: 320, position: "relative" }}>
         <input
@@ -160,91 +188,150 @@ export default function CoachClients() {
                 boxShadow: "var(--admin-shadow-soft, 0 1px 3px rgba(0,0,0,0.1))",
               }}
             >
-              {/* Main Row: Name, Email, BMI, Plan, View Profile - Responsive */}
+              {/* First Row: Avatar, Name, Email, Phone, Actions */}
               <div 
                 style={{ 
                   display: "flex", 
-                  flexWrap: "wrap",
                   alignItems: "center", 
                   gap: "1rem",
-                  marginBottom: clientPending.length > 0 ? "0.75rem" : "0"
+                  marginBottom: "0.75rem",
+                  flexWrap: "wrap"
                 }}
               >
-                {/* Name & Email */}
-                <div style={{ flex: "1 1 200px", minWidth: "180px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.2rem" }}>
-                    <User size={16} style={{ color: "#6b7280" }} />
-                    <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>{c.fullName}</span>
+                {/* Avatar + Name & Email */}
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flex: "1 1 auto", minWidth: "220px" }}>
+                  <div style={{
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "50%",
+                    backgroundColor: "#e0f2fe",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0
+                  }}>
+                    <User size={24} style={{ color: "#0284c7" }} />
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <Mail size={12} style={{ color: "#9ca3af" }} />
-                    <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>{c.email}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: "0.95rem", marginBottom: "0.25rem" }}>
+                      {c.fullName}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.75rem", color: "#6b7280" }}>
+                      <Mail size={12} style={{ flexShrink: 0 }} />
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {c.email}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
+                {/* WhatsApp Number - Hidden on mobile */}
+                <div className="hide-on-mobile" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  {c.whatsappNumber ? (
+                    <div style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: "0.4rem",
+                      fontSize: "0.85rem",
+                      color: "#059669",
+                      padding: "0.35rem 0.65rem",
+                      backgroundColor: "#d1fae5",
+                      borderRadius: "0.375rem"
+                    }}>
+                      <span>📱</span>
+                      <span style={{ fontWeight: 500 }}>{c.whatsappNumber}</span>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: "0.8rem", color: "#9ca3af" }}>No phone</div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }} className="action-buttons">
+                  <Link
+                    href={`/coach/chat?clientId=${c._id}`}
+                    className="btn btn--primary"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.85rem", padding: "0.5rem 1rem" }}
+                  >
+                    <MessageSquare size={16} />
+                    <span>Chat</span>
+                  </Link>
+                  <Link
+                    href={`/coach/clients/${c._id}`}
+                    className="btn btn--outline"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.85rem", padding: "0.5rem 1rem" }}
+                  >
+                    <User size={16} />
+                    <span>View Profile</span>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Second Row: BMI, Plan - Hidden on mobile */}
+              <div className="hide-on-mobile" style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "1rem",
+                flexWrap: "wrap",
+                paddingTop: "0.75rem",
+                borderTop: "1px solid #f3f4f6"
+              }}>
                 {/* BMI */}
-                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", minWidth: "80px" }}>
-                  <Activity size={14} style={{ color: "#6b7280" }} />
-                  <span style={{ fontSize: "0.85rem" }}>
-                    <strong>BMI:</strong> {c.latestProgress?.bmi ?? "-"}
-                  </span>
+                <div style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: "0.5rem",
+                  padding: "0.5rem 0.75rem",
+                  backgroundColor: "#f0fdf4",
+                  borderRadius: "0.5rem",
+                  border: "1px solid #bbf7d0",
+                  minWidth: "120px"
+                }}>
+                  <Activity size={16} style={{ color: "#16a34a" }} />
+                  <div>
+                    <div style={{ fontSize: "0.7rem", color: "#6b7280", fontWeight: 500 }}>BMI</div>
+                    <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#16a34a" }}>
+                      {c.latestProgress?.bmi ?? "-"}
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Plan Info */}
-                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flex: "1 1 180px", minWidth: "150px" }}>
-                  <FileText size={14} style={{ color: "#6b7280", flexShrink: 0 }} />
-                  <div>
+                <div style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: "0.5rem",
+                  flex: "0 1 auto",
+                  maxWidth: "400px",
+                  padding: "0.5rem 0.75rem",
+                  backgroundColor: "#faf5ff",
+                  borderRadius: "0.5rem",
+                  border: "1px solid #e9d5ff"
+                }}>
+                  <FileText size={16} style={{ color: "#9333ea", flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     {c.planSummary?.current ? (
-                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem" }}>
-                        <span style={{ fontSize: "0.85rem", fontWeight: 500 }}>
+                      <>
+                        <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "#581c87", marginBottom: "0.1rem" }}>
                           {c.planSummary.current.planTitle || "Plan"}
-                          {c.planSummary.current.type === "default" ? " (Default)" : ""}
-                        </span>
+                          {c.planSummary.current.type === "default" && " (Default)"}
+                        </div>
                         {c.planSummary.current.type === "subscription" && formatDate(c.planSummary.current.endDate) && (
-                          <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                            <Clock size={12} style={{ color: "#9ca3af" }} />
-                            <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
-                              Ends {formatDate(c.planSummary.current.endDate)}
-                            </span>
-                          </span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.7rem", color: "#6b7280" }}>
+                            <Clock size={11} />
+                            <span>Ends {formatDate(c.planSummary.current.endDate)}</span>
+                          </div>
                         )}
-                      </div>
+                      </>
                     ) : c.planSummary?.defaultPlan ? (
-                      <span style={{ fontSize: "0.85rem", color: "#4b5563" }}>
+                      <div style={{ fontSize: "0.85rem", color: "#581c87" }}>
                         {c.planSummary.defaultPlan.title || "Default plan"}
-                      </span>
+                      </div>
                     ) : (
-                      <span style={{ fontSize: "0.85rem", color: "#9ca3af" }}>No plan</span>
+                      <div style={{ fontSize: "0.85rem", color: "#9ca3af" }}>No plan</div>
                     )}
                   </div>
                 </div>
-
-                {/* WhatsApp Number Display */}
-                {c.whatsappNumber && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", minWidth: "120px" }}>
-                    <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>📱 {c.whatsappNumber}</span>
-                  </div>
-                )}
-
-                {/* Chat Button */}
-                <Link
-                  href={`/coach/chat?clientId=${c._id}`}
-                  className="btn btn--primary"
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", padding: "0.35rem 0.65rem", flexShrink: 0 }}
-                >
-                  <MessageSquare size={14} />
-                  Chat
-                </Link>
-
-                {/* View Profile Button - in same row on desktop */}
-                <Link
-                  href={`/coach/clients/${c._id}`}
-                  className="btn btn--outline"
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", padding: "0.35rem 0.65rem", flexShrink: 0 }}
-                >
-                  <User size={14} />
-                  View Profile
-                </Link>
               </div>
 
               {/* Pending Requests */}
@@ -341,6 +428,7 @@ export default function CoachClients() {
           </span>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

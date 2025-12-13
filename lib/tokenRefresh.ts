@@ -35,8 +35,14 @@ async function refreshOnce(setAccessToken: SetAccessToken): Promise<string | nul
       ch?.postMessage({ type: "refresh-start" });
       const res = await api.post("/auth/refresh");
       const newToken: string | undefined = res.data?.accessToken;
+      const userData = res.data?.user;
       if (newToken) {
         setAccessToken(newToken);
+        // Update user data if provided to keep state in sync
+        if (userData && typeof window !== "undefined") {
+          const { useAuthStore } = await import("./store");
+          useAuthStore.getState().setUser(userData);
+        }
         // Also update the short-lived cookie (SSR/proxy)
         if (typeof document !== "undefined") {
           document.cookie = `accessToken=${newToken}; path=/; max-age=900;`;

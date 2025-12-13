@@ -21,7 +21,8 @@ export default function ProgressDataCards() {
 
   // State for Basic Info
   const [basicInfo, setBasicInfo] = useState({
-    age: undefined as number | undefined,
+    age: undefined as number | null | undefined,
+    dateOfBirth: "" as string,
     gender: "",
     weight: undefined as number | undefined,
     height: undefined as number | undefined,
@@ -61,8 +62,31 @@ export default function ProgressDataCards() {
     bloodPressureDiastolic: undefined as number | undefined,
   });
 
+  // Store original values when entering edit mode to track changes
+  const [originalBasicInfo, setOriginalBasicInfo] = useState(basicInfo);
+  const [originalSmartScale, setOriginalSmartScale] = useState(smartScale);
+  const [originalLifestyle, setOriginalLifestyle] = useState(lifestyle);
+  const [originalHealthHistory, setOriginalHealthHistory] = useState(healthHistory);
+  const [originalVitals, setOriginalVitals] = useState(vitals);
+
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState("basic");
+
+  // Helper function to calculate age from date of birth (fallback if backend doesn't send it)
+  const calculateAge = (dateOfBirth: string | undefined | null): number | null => {
+    if (!dateOfBirth) return null;
+    
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
 
   // Load data from response
   useEffect(() => {
@@ -85,8 +109,12 @@ export default function ProgressDataCards() {
       };
 
       // Load profile data (non-tracking) and latest tracking data for basic info
+      // Calculate age from dateOfBirth if backend doesn't send it
+      const displayAge = profile.age ?? calculateAge(profile.dateOfBirth);
+      
       setBasicInfo({
-        age: profile.age ?? undefined,
+        age: displayAge,
+        dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : "",
         gender: profile.gender || "",
         weight: getLatestValue('weight'),
         height: getLatestValue('height'),
@@ -126,6 +154,22 @@ export default function ProgressDataCards() {
     }
   }, [response]);
 
+  // Handler to enter edit mode and capture original values
+  const handleEdit = useCallback((section: string) => {
+    if (section === "basic") {
+      setOriginalBasicInfo({ ...basicInfo });
+    } else if (section === "scale") {
+      setOriginalSmartScale({ ...smartScale });
+    } else if (section === "lifestyle") {
+      setOriginalLifestyle({ ...lifestyle });
+    } else if (section === "health") {
+      setOriginalHealthHistory({ ...healthHistory });
+    } else if (section === "vitals") {
+      setOriginalVitals({ ...vitals });
+    }
+    setEditingSection(section);
+  }, [basicInfo, smartScale, lifestyle, healthHistory, vitals]);
+
   const handleSave = useCallback(
     async (section: string) => {
       setSaving(true);
@@ -133,42 +177,91 @@ export default function ProgressDataCards() {
         let payload: any = {};
 
         if (section === "basic") {
-          payload = {
-            age: basicInfo.age,
-            gender: basicInfo.gender || undefined,
-            weight: basicInfo.weight,
-            height: basicInfo.height,
-            notes: basicInfo.notes || undefined,
-          };
+          // Only send fields that have changed or are explicitly being updated
+          payload = {};
+          if (basicInfo.dateOfBirth !== originalBasicInfo.dateOfBirth) {
+            payload.dateOfBirth = basicInfo.dateOfBirth || undefined;
+          }
+          if (basicInfo.gender !== originalBasicInfo.gender) {
+            payload.gender = basicInfo.gender || undefined;
+          }
+          if (basicInfo.weight !== originalBasicInfo.weight) {
+            payload.weight = basicInfo.weight;
+          }
+          if (basicInfo.height !== originalBasicInfo.height) {
+            payload.height = basicInfo.height;
+          }
+          if (basicInfo.notes !== originalBasicInfo.notes) {
+            payload.notes = basicInfo.notes || undefined;
+          }
         } else if (section === "scale") {
-          payload = {
-            bodyFatPercentage: smartScale.bodyFatPercentage,
-            visceralFatLevel: smartScale.visceralFatLevel,
-            muscleMass: smartScale.muscleMass,
-            metabolicAge: smartScale.metabolicAge,
-            bodyWaterPercentage: smartScale.bodyWaterPercentage,
-            boneMass: smartScale.boneMass,
-          };
+          // Only send smart scale fields that have changed
+          payload = {};
+          if (smartScale.bodyFatPercentage !== originalSmartScale.bodyFatPercentage) {
+            payload.bodyFatPercentage = smartScale.bodyFatPercentage;
+          }
+          if (smartScale.visceralFatLevel !== originalSmartScale.visceralFatLevel) {
+            payload.visceralFatLevel = smartScale.visceralFatLevel;
+          }
+          if (smartScale.muscleMass !== originalSmartScale.muscleMass) {
+            payload.muscleMass = smartScale.muscleMass;
+          }
+          if (smartScale.metabolicAge !== originalSmartScale.metabolicAge) {
+            payload.metabolicAge = smartScale.metabolicAge;
+          }
+          if (smartScale.bodyWaterPercentage !== originalSmartScale.bodyWaterPercentage) {
+            payload.bodyWaterPercentage = smartScale.bodyWaterPercentage;
+          }
+          if (smartScale.boneMass !== originalSmartScale.boneMass) {
+            payload.boneMass = smartScale.boneMass;
+          }
         } else if (section === "lifestyle") {
-          payload = {
-            dailyActivityLevel: lifestyle.dailyActivityLevel || undefined,
-            hydrationHabits: lifestyle.hydrationHabits || undefined,
-            personalGoals: lifestyle.personalGoals || undefined,
-          };
+          payload = {};
+          if (lifestyle.dailyActivityLevel !== originalLifestyle.dailyActivityLevel) {
+            payload.dailyActivityLevel = lifestyle.dailyActivityLevel || undefined;
+          }
+          if (lifestyle.hydrationHabits !== originalLifestyle.hydrationHabits) {
+            payload.hydrationHabits = lifestyle.hydrationHabits || undefined;
+          }
+          if (lifestyle.personalGoals !== originalLifestyle.personalGoals) {
+            payload.personalGoals = lifestyle.personalGoals || undefined;
+          }
         } else if (section === "health") {
-          payload = {
-            healthConditions: healthHistory.healthConditions || undefined,
-            allergies: healthHistory.allergies || undefined,
-            medications: healthHistory.medications || undefined,
-            pastWeightChanges: healthHistory.pastWeightChanges || undefined,
-          };
+          payload = {};
+          if (healthHistory.healthConditions !== originalHealthHistory.healthConditions) {
+            payload.healthConditions = healthHistory.healthConditions || undefined;
+          }
+          if (healthHistory.allergies !== originalHealthHistory.allergies) {
+            payload.allergies = healthHistory.allergies || undefined;
+          }
+          if (healthHistory.medications !== originalHealthHistory.medications) {
+            payload.medications = healthHistory.medications || undefined;
+          }
+          if (healthHistory.pastWeightChanges !== originalHealthHistory.pastWeightChanges) {
+            payload.pastWeightChanges = healthHistory.pastWeightChanges || undefined;
+          }
         } else if (section === "vitals") {
-          payload = {
-            bloodSugarFasting: vitals.bloodSugarFasting,
-            bloodSugarRandom: vitals.bloodSugarRandom,
-            bloodPressureSystolic: vitals.bloodPressureSystolic,
-            bloodPressureDiastolic: vitals.bloodPressureDiastolic,
-          };
+          payload = {};
+          if (vitals.bloodSugarFasting !== originalVitals.bloodSugarFasting) {
+            payload.bloodSugarFasting = vitals.bloodSugarFasting;
+          }
+          if (vitals.bloodSugarRandom !== originalVitals.bloodSugarRandom) {
+            payload.bloodSugarRandom = vitals.bloodSugarRandom;
+          }
+          if (vitals.bloodPressureSystolic !== originalVitals.bloodPressureSystolic) {
+            payload.bloodPressureSystolic = vitals.bloodPressureSystolic;
+          }
+          if (vitals.bloodPressureDiastolic !== originalVitals.bloodPressureDiastolic) {
+            payload.bloodPressureDiastolic = vitals.bloodPressureDiastolic;
+          }
+        }
+
+        // Only make API call if there are changes
+        if (Object.keys(payload).length === 0) {
+          toast.info("No changes detected");
+          setEditingSection(null);
+          setSaving(false);
+          return;
         }
 
         await api.post("/progress", payload);
@@ -190,7 +283,7 @@ export default function ProgressDataCards() {
         setSaving(false);
       }
     },
-    [basicInfo, smartScale, lifestyle, healthHistory, vitals, queryClient]
+    [basicInfo, smartScale, lifestyle, healthHistory, vitals, originalBasicInfo, originalSmartScale, originalLifestyle, originalHealthHistory, originalVitals, queryClient]
   );
 
   const handleCancel = useCallback(
@@ -214,8 +307,10 @@ export default function ProgressDataCards() {
         };
 
         if (section === "basic") {
+          const displayAge = profile.age ?? calculateAge(profile.dateOfBirth);
           setBasicInfo({
-            age: profile.age ?? undefined,
+            age: displayAge,
+            dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : "",
             gender: profile.gender || "",
             weight: getLatestValue('weight'),
             height: getLatestValue('height'),
@@ -299,7 +394,7 @@ export default function ProgressDataCards() {
               type="button"
               className="btn btn--outline"
               style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
-              onClick={() => setEditingSection("basic")}
+              onClick={() => handleEdit("basic")}
             >
               Edit
             </button>
@@ -333,13 +428,13 @@ export default function ProgressDataCards() {
           <div>
             <div className="client-form" style={{ gap: 8 }}>
               <div className="client-form__row">
-                <label className="client-form__label">Age</label>
+                <label className="client-form__label">Date of Birth</label>
                 <input
-                  type="number"
+                  type="date"
                   className="client-form__control"
-                  placeholder="e.g. 25"
-                  value={basicInfo.age ?? ""}
-                  onChange={(e) => setBasicInfo({ ...basicInfo, age: e.target.value ? Number(e.target.value) : undefined })}
+                  value={basicInfo.dateOfBirth}
+                  max={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setBasicInfo({ ...basicInfo, dateOfBirth: e.target.value })}
                 />
               </div>
               <div className="client-form__row">
@@ -421,7 +516,7 @@ export default function ProgressDataCards() {
               type="button"
               className="btn btn--outline"
               style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
-              onClick={() => setEditingSection("scale")}
+              onClick={() => handleEdit("scale")}
             >
               Edit
             </button>
@@ -557,7 +652,7 @@ export default function ProgressDataCards() {
               type="button"
               className="btn btn--outline"
               style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
-              onClick={() => setEditingSection("lifestyle")}
+              onClick={() => handleEdit("lifestyle")}
             >
               Edit
             </button>
@@ -657,7 +752,7 @@ export default function ProgressDataCards() {
               type="button"
               className="btn btn--outline"
               style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
-              onClick={() => setEditingSection("health")}
+              onClick={() => handleEdit("health")}
             >
               Edit
             </button>
@@ -760,7 +855,7 @@ export default function ProgressDataCards() {
               type="button"
               className="btn btn--outline"
               style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
-              onClick={() => setEditingSection("vitals")}
+              onClick={() => handleEdit("vitals")}
             >
               Edit
             </button>

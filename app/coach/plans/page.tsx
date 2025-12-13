@@ -14,7 +14,7 @@ export default function CoachPlansPage() {
   return (
     <div>
       <section className="admin-page-header">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "1rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem", flexWrap: "wrap", gap: "1rem" }}>
           <h1 className="admin-page-header__title coach-page-header__title">My Plans</h1>
           <Link
             href="/coach/subscriptions"

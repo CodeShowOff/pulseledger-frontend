@@ -121,8 +121,8 @@ export default function CoachDashboard() {
         </div>
       )}
 
-      <section className="admin-page-header">
-        <h1 className="admin-page-header__title coach-page-header__title">
+      <section className="admin-page-header" style={{ marginBottom: "0.5rem" }}>
+        <h1 className="admin-page-header__title coach-page-header__title" style={{ marginBottom: "0.5rem" }}>
           Coach Dashboard
         </h1>
         <p className="admin-page-header__subtitle coach-page-header__subtitle">

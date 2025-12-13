@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import { getAllowedBasePath } from "@/lib/auth";
+import api from "@/lib/axios";
 
 type Role = "client" | "coach" | "admin";
 
@@ -16,6 +17,7 @@ export default function RoleGuard({ role }: { role: Role }) {
   const setAccessToken = useAuthStore((s) => s.setAccessToken);
 
   const triedBootstrapRef = useRef(false);
+  const triedRefreshRef = useRef(false);
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -50,7 +52,35 @@ export default function RoleGuard({ role }: { role: Role }) {
       }
     }
 
-    // If still no token after bootstrap attempt, delay redirect slightly to allow any async refresh logic.
+    // If still no token, try to refresh before redirecting to login
+    if (!accessToken && !triedRefreshRef.current) {
+      triedRefreshRef.current = true;
+      
+      // Attempt refresh from httpOnly cookie
+      api.post("/auth/refresh")
+        .then((res) => {
+          const newToken = res.data?.accessToken;
+          const userData = res.data?.user;
+          if (newToken) {
+            setAccessToken(newToken);
+            // Update user data if provided
+            if (userData) {
+              useAuthStore.getState().setUser(userData);
+            }
+            if (typeof document !== "undefined") {
+              document.cookie = `accessToken=${newToken}; path=/; max-age=900;`;
+            }
+          }
+        })
+        .catch(() => {
+          // Refresh failed, redirect to login
+          const redirect = encodeURIComponent(pathname || "/");
+          router.replace(`/auth/login?redirect=${redirect}`);
+        });
+      return;
+    }
+
+    // If still no token after all attempts, redirect to login
     if (!accessToken) {
       if (!redirectTimerRef.current) {
         redirectTimerRef.current = setTimeout(() => {

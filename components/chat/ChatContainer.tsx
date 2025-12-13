@@ -298,12 +298,6 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
               <span>Dashboard</span>
             </Link>
           </div>
-          {!isConnected && (
-            <div className={styles.connectionStatus}>
-              <div className={styles.connectionDot} />
-              Connecting...
-            </div>
-          )}
         </div>
 
         {/* Conversation List */}

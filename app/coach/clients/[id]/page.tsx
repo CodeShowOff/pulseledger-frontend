@@ -518,11 +518,8 @@ export default function ClientDetailPage() {
       </div>
 
       {/* Progress History - Charts */}
-      <div className="admin-card" style={{ marginTop: "1.5rem" }}>
-        <h3 className="admin-card__title" style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>
-          Progress Tracking
-        </h3>
-        <DetailedProgressCharts clientId={id} />
+      <div style={{ marginTop: "1.5rem" }}>
+        <DetailedProgressCharts clientId={id} viewerRole="coach" />
       </div>
     </div>
   );

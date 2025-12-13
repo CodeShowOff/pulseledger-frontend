@@ -50,6 +50,9 @@ export default function ProductsPage() {
   const userCoachId = useAuthStore((state) => state.user?.coachId ?? null);
   const role = useAuthStore((state) => state.user?.role);
 
+  // Calculate number of unique item types in cart
+  const cartItemsCount = items.length;
+
   const itemsById = useMemo(() => {
     const map = new Map<string, (typeof items)[number]>();
     items.forEach((item) => map.set(item.productId, item));
@@ -130,8 +133,34 @@ export default function ProductsPage() {
                 </p>
               </div>
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                <Link href="/client/cart" className="client-button">
-                  View My Cart
+                <Link 
+                  href="/client/cart" 
+                  className="client-button"
+                  style={{ position: "relative" }}
+                >
+                  My Cart
+                  {cartItemsCount > 0 && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "-8px",
+                        right: "-8px",
+                        backgroundColor: "#dc2626",
+                        color: "white",
+                        borderRadius: "50%",
+                        width: "24px",
+                        height: "24px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.75rem",
+                        fontWeight: "600",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                      }}
+                    >
+                      {cartItemsCount > 99 ? "99+" : cartItemsCount}
+                    </span>
+                  )}
                 </Link>
                 {/* Voucher selection moved to My Cart page */}
                 {role === "client" && (

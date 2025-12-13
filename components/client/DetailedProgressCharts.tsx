@@ -26,9 +26,10 @@ type ChartPoint = {
 
 interface DetailedProgressChartsProps {
   clientId?: string; // Optional: for coach/admin view
+  viewerRole?: "client" | "coach" | "admin"; // Role of the viewer
 }
 
-export default function DetailedProgressCharts({ clientId }: DetailedProgressChartsProps = {}) {
+export default function DetailedProgressCharts({ clientId, viewerRole = "client" }: DetailedProgressChartsProps = {}) {
   const [activeChart, setActiveChart] = useState<string>("weight");
 
   const charts = useMemo(
@@ -36,11 +37,11 @@ export default function DetailedProgressCharts({ clientId }: DetailedProgressCha
       { id: "weight", label: "Weight", unit: "kg", color: "#3b82f6", dataKey: "weight" },
       { id: "height", label: "Height", unit: "cm", color: "#8b5cf6", dataKey: "height" },
       { id: "bmi", label: "BMI", unit: "", color: "#10b981", dataKey: "bmi" },
-      { id: "bodyFat", label: "Body Fat %", unit: "%", color: "#ef4444", dataKey: "bodyFatPercentage" },
+      { id: "bodyFat", label: "Body Fat %", unit: "", color: "#ef4444", dataKey: "bodyFatPercentage" },
       { id: "visceralFat", label: "Visceral Fat", unit: "", color: "#f97316", dataKey: "visceralFatLevel" },
       { id: "muscleMass", label: "Muscle Mass", unit: "kg", color: "#06b6d4", dataKey: "muscleMass" },
       { id: "metabolicAge", label: "Metabolic Age", unit: "years", color: "#a855f7", dataKey: "metabolicAge" },
-      { id: "bodyWater", label: "Body Water %", unit: "%", color: "#0ea5e9", dataKey: "bodyWaterPercentage" },
+      { id: "bodyWater", label: "Body Water %", unit: "", color: "#0ea5e9", dataKey: "bodyWaterPercentage" },
       { id: "boneMass", label: "Bone Mass", unit: "kg", color: "#64748b", dataKey: "boneMass" },
       { id: "bloodSugarFasting", label: "Blood Sugar (Fasting)", unit: "mg/dL", color: "#dc2626", dataKey: "bloodSugarFasting" },
       { id: "bloodSugarRandom", label: "Blood Sugar (Random)", unit: "mg/dL", color: "#f59e0b", dataKey: "bloodSugarRandom" },
@@ -55,7 +56,7 @@ export default function DetailedProgressCharts({ clientId }: DetailedProgressCha
     [charts, activeChart]
   );
 
-  const { data, isLoading } = useQuery({
+  const { data: allData, isLoading } = useQuery({
     queryKey: clientId ? ["clientProgress", clientId] : CLIENT_PROGRESS_QUERY_KEY,
     queryFn: async () => {
       if (clientId) {
@@ -94,11 +95,41 @@ export default function DetailedProgressCharts({ clientId }: DetailedProgressCha
     },
   });
 
+  // Filter data to only show points where the current chart's field has a value
+  const filteredData = useMemo(() => {
+    if (!allData) return [];
+    return allData.filter((point) => point[currentChart.dataKey] != null);
+  }, [allData, currentChart.dataKey]);
+
+  // Show only last 7 entries for preview
+  const data = useMemo(() => {
+    if (!filteredData) return [];
+    return filteredData.slice(-7);
+  }, [filteredData]);
+
   // Check if current chart has any data
   const hasData = useMemo(
-    () => data ? data.some((point) => point[currentChart.dataKey] != null) : false,
-    [data, currentChart.dataKey]
+    () => filteredData && filteredData.length > 0,
+    [filteredData]
   );
+
+  const handleViewFullChart = () => {
+    // Navigate to full chart view with the current chart type
+    // Route based on viewer role
+    let url: string;
+    if (clientId) {
+      // Coach or admin viewing client data
+      if (viewerRole === "admin") {
+        url = `/admin/clients/${clientId}/detailed?chart=${activeChart}`;
+      } else {
+        url = `/coach/clients/${clientId}/detailed?chart=${activeChart}`;
+      }
+    } else {
+      // Client viewing own data
+      url = `/client/progress/detailed?chart=${activeChart}`;
+    }
+    window.location.href = url;
+  };
 
   if (isLoading) {
     return (
@@ -118,9 +149,21 @@ export default function DetailedProgressCharts({ clientId }: DetailedProgressCha
 
   return (
     <div className="client-card">
-      <div style={{ marginBottom: "1rem" }}>
-        <h2 className="client-card__section-title">Progress Charts</h2>
-        <p className="client-card__section-subtitle">Visual representation of your health metrics over time</p>
+      <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.5rem" }}>
+        <div>
+          <h2 className="client-card__section-title">Progress Charts</h2>
+          <p className="client-card__section-subtitle">Visual representation of your health metrics over time (Last 7 entries)</p>
+        </div>
+        {hasData && filteredData.length > 7 && (
+          <button
+            type="button"
+            className="btn btn--outline"
+            onClick={handleViewFullChart}
+            style={{ fontSize: "0.85rem" }}
+          >
+            View Full Chart
+          </button>
+        )}
       </div>
 
       {/* Chart Selector Buttons */}
@@ -197,7 +240,6 @@ export default function DetailedProgressCharts({ clientId }: DetailedProgressCha
                 stroke={currentChart.color}
                 strokeWidth={3}
                 fill={`url(#gradient-${currentChart.id})`}
-                connectNulls
                 dot={{ fill: currentChart.color, r: 4 }}
                 activeDot={{ r: 6, strokeWidth: 2, stroke: "#ffffff" }}
               />
@@ -210,26 +252,19 @@ export default function DetailedProgressCharts({ clientId }: DetailedProgressCha
             <div style={{ display: "flex", justifyContent: "space-around", fontSize: "0.875rem", color: "#64748b" }}>
               <div style={{ textAlign: "center" }}>
                 <p style={{ fontWeight: "600", color: "#1e293b", fontSize: "1.125rem" }}>
-                  {data.filter((d) => d[currentChart.dataKey] != null).length}
+                  {filteredData.length}
                 </p>
-                <p>Entries</p>
+                <p>Total Entries</p>
               </div>
               <div style={{ textAlign: "center" }}>
                 <p style={{ fontWeight: "600", color: "#1e293b", fontSize: "1.125rem" }}>
                   {(() => {
-                    // Find newest by isoDate among non-null values
-                    let latest: { isoDate: string; value: any } | null = null;
-                    for (const point of data) {
-                      const value = point[currentChart.dataKey];
-                      if (value != null) {
-                        const fullDate = (point.isoDate || point.date) as string;
-                        if (!latest || new Date(fullDate) > new Date(latest.isoDate)) {
-                          latest = { isoDate: fullDate, value };
-                        }
-                      }
-                    }
-                    if (!latest) return "-";
-                    return typeof latest.value === "number" ? latest.value.toFixed(1) : latest.value;
+                    // Data is already filtered to only include non-null values for this field
+                    // Get the last entry (most recent)
+                    if (data.length === 0) return "-";
+                    const latestPoint = data[data.length - 1];
+                    const value = latestPoint[currentChart.dataKey];
+                    return typeof value === "number" ? value.toFixed(1) : value || "-";
                   })()}
                 </p>
                 <p>Latest</p>
@@ -237,7 +272,7 @@ export default function DetailedProgressCharts({ clientId }: DetailedProgressCha
               <div style={{ textAlign: "center" }}>
                 <p style={{ fontWeight: "600", color: "#1e293b", fontSize: "1.125rem" }}>
                   {(() => {
-                    const values = data
+                    const values = filteredData
                       .map((d) => d[currentChart.dataKey])
                       .filter((v) => v != null && typeof v === "number") as number[];
                     if (values.length === 0) return "-";
@@ -245,7 +280,7 @@ export default function DetailedProgressCharts({ clientId }: DetailedProgressCha
                     return avg.toFixed(1);
                   })()}
                 </p>
-                <p>Average</p>
+                <p>Overall Average</p>
               </div>
             </div>
           </div>

@@ -4,9 +4,29 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
-import { fetchClientProgressEntries } from "@/lib/queries/clientProgress";
+import { fetchClientProgressEntries, CLIENT_PROGRESS_QUERY_KEY } from "@/lib/queries/clientProgress";
 import { Scale, Target, TrendingDown, TrendingUp, Edit2, X, Check } from "lucide-react";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const WeightEditSchema = z.object({
+  weight: z
+    .number({ invalid_type_error: "Weight must be a number" })
+    .min(20, "Weight too low")
+    .max(500, "Weight too high")
+    .optional()
+    .or(z.nan().transform(() => undefined)),
+  goalWeight: z
+    .number({ invalid_type_error: "Goal weight must be a number" })
+    .min(20, "Weight too low")
+    .max(500, "Weight too high")
+    .optional()
+    .or(z.nan().transform(() => undefined)),
+});
+
+type WeightEditFormData = z.infer<typeof WeightEditSchema>;
 
 const fetchGoalWeight = async (): Promise<number | null> => {
   try {
@@ -20,7 +40,6 @@ const fetchGoalWeight = async (): Promise<number | null> => {
 export default function GoalWeightWidget() {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const [goalValue, setGoalValue] = useState("");
 
   const { data: goalWeight } = useQuery({
     queryKey: ["goalWeight"],
@@ -34,6 +53,32 @@ export default function GoalWeightWidget() {
     staleTime: 60 * 1000,
   });
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<WeightEditFormData>({
+    resolver: zodResolver(WeightEditSchema),
+    defaultValues: {
+      weight: undefined,
+      goalWeight: undefined,
+    },
+  });
+
+  const updateWeightMutation = useMutation({
+    mutationFn: async (payload: { weight?: number }) => {
+      const res = await api.post("/progress", { weight: payload.weight });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CLIENT_PROGRESS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ["clientProgressEntries"] });
+      queryClient.invalidateQueries({ queryKey: ["myPlans"] });
+      queryClient.invalidateQueries({ queryKey: ["clientSummary"] });
+    },
+  });
+
   const updateGoalMutation = useMutation({
     mutationFn: async (weight: number) => {
       const res = await api.put("/progress/goal-weight", { goalWeight: weight });
@@ -41,27 +86,49 @@ export default function GoalWeightWidget() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goalWeight"] });
-      toast.success("Goal weight updated successfully");
-      setIsEditing(false);
-      setGoalValue("");
-    },
-    onError: () => {
-      toast.error("Failed to update goal weight");
     },
   });
 
-  const handleSaveGoal = () => {
-    const weight = parseFloat(goalValue);
-    if (isNaN(weight) || weight <= 0 || weight > 500) {
-      toast.error("Please enter a valid weight (1-500 kg)");
-      return;
+  const onSubmit = async (data: WeightEditFormData) => {
+    try {
+      const promises = [];
+      
+      // Update current weight if provided
+      if (data.weight !== undefined && !isNaN(data.weight)) {
+        promises.push(updateWeightMutation.mutateAsync({ weight: data.weight }));
+      }
+      
+      // Update goal weight if provided
+      if (data.goalWeight !== undefined && !isNaN(data.goalWeight)) {
+        promises.push(updateGoalMutation.mutateAsync(data.goalWeight));
+      }
+      
+      if (promises.length === 0) {
+        toast.error("Please enter at least one weight value");
+        return;
+      }
+      
+      await Promise.all(promises);
+      
+      toast.success("Weight updated successfully");
+      setIsEditing(false);
+      reset();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to update weight");
     }
-    updateGoalMutation.mutate(weight);
   };
 
   const handleStartEdit = () => {
-    setGoalValue(goalWeight?.toString() || "");
+    reset({
+      weight: undefined,
+      goalWeight: goalWeight || undefined,
+    });
     setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    reset();
   };
 
   // Calculate progress
@@ -238,29 +305,27 @@ export default function GoalWeightWidget() {
         )}
       </div>
 
-      {/* Goal Weight Input */}
+      {/* Weight Edit Form */}
       {isEditing && (
-        <div style={{
+        <form onSubmit={handleSubmit(onSubmit)} style={{
           background: "#ffffff",
           padding: "0.75rem",
           borderRadius: "0.5rem",
           border: "1px solid #e0f2fe",
           marginBottom: "1rem"
         }}>
-          <label style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.35rem", display: "block", fontWeight: "500" }}>
-            Set Your Goal Weight (kg)
-          </label>
-          <div style={{ display: "flex", gap: "0.4rem" }}>
+          <div style={{ marginBottom: "0.75rem" }}>
+            <label style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.35rem", display: "block", fontWeight: "500" }}>
+              Current Weight (kg)
+            </label>
             <input
               type="number"
-              value={goalValue}
-              onChange={(e) => setGoalValue(e.target.value)}
-              placeholder="e.g., 70"
-              min="1"
-              max="500"
               step="0.1"
+              {...register("weight", { valueAsNumber: true })}
+              placeholder="e.g., 75.5"
+              className="client-form__control"
               style={{
-                flex: 1,
+                width: "100%",
                 padding: "0.625rem 0.875rem",
                 borderRadius: "0.5rem",
                 border: "1px solid #e5e7eb",
@@ -270,50 +335,81 @@ export default function GoalWeightWidget() {
               onFocus={(e) => e.target.style.borderColor = "#3b82f6"}
               onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
             />
-            <button
-              onClick={handleSaveGoal}
-              disabled={updateGoalMutation.isPending}
+            {errors.weight && <p style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: "0.25rem" }}>{errors.weight.message}</p>}
+          </div>
+          
+          <div style={{ marginBottom: "0.75rem" }}>
+            <label style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.35rem", display: "block", fontWeight: "500" }}>
+              Goal Weight (kg)
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              {...register("goalWeight", { valueAsNumber: true })}
+              placeholder="e.g., 70"
+              className="client-form__control"
               style={{
+                width: "100%",
+                padding: "0.625rem 0.875rem",
+                borderRadius: "0.5rem",
+                border: "1px solid #e5e7eb",
+                fontSize: "0.9375rem",
+                outline: "none"
+              }}
+              onFocus={(e) => e.target.style.borderColor = "#3b82f6"}
+              onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+            />
+            {errors.goalWeight && <p style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: "0.25rem" }}>{errors.goalWeight.message}</p>}
+          </div>
+          
+          <div style={{ display: "flex", gap: "0.4rem" }}>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              style={{
+                flex: 1,
                 padding: "0.625rem 1rem",
                 background: "#0ea5e9",
                 color: "#ffffff",
                 border: "none",
                 borderRadius: "0.5rem",
-                cursor: "pointer",
+                cursor: isSubmitting ? "not-allowed" : "pointer",
                 fontSize: "0.875rem",
                 fontWeight: "500",
                 display: "flex",
                 alignItems: "center",
-                gap: "0.35rem"
+                justifyContent: "center",
+                gap: "0.35rem",
+                opacity: isSubmitting ? 0.6 : 1
               }}
             >
               <Check style={{ width: "1rem", height: "1rem" }} />
-              Save
+              {isSubmitting ? "Saving..." : "Save"}
             </button>
             <button
-              onClick={() => {
-                setIsEditing(false);
-                setGoalValue("");
-              }}
+              type="button"
+              onClick={handleCancelEdit}
+              disabled={isSubmitting}
               style={{
                 padding: "0.625rem 1rem",
                 background: "#f3f4f6",
                 color: "#6b7280",
                 border: "1px solid #e5e7eb",
                 borderRadius: "0.5rem",
-                cursor: "pointer",
+                cursor: isSubmitting ? "not-allowed" : "pointer",
                 fontSize: "0.875rem",
                 fontWeight: "500",
                 display: "flex",
                 alignItems: "center",
-                gap: "0.35rem"
+                gap: "0.35rem",
+                opacity: isSubmitting ? 0.6 : 1
               }}
             >
               <X style={{ width: "1rem", height: "1rem" }} />
               Cancel
             </button>
           </div>
-        </div>
+        </form>
       )}
 
       {/* Progress Circle */}

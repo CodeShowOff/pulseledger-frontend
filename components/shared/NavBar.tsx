@@ -15,7 +15,6 @@ import {
   Package,
   Users,
   ClipboardList,
-  Info,
   Mail,
   BookOpen,
   MessagesSquare,
@@ -71,8 +70,8 @@ const Navbar = React.memo(function Navbar() {
     { label: "Dashboard", href: "/coach/dashboard", icon: LayoutDashboard },
     { label: "Chat", href: "/coach/chat", icon: MessagesSquare },
     { label: "Clients", href: "/coach/clients", icon: Users },
+    { label: "Plans", href: "/coach/plans", icon: ClipboardList },
     { label: "Products", href: "/coach/products", icon: Package },
-    { label: "My Plans", href: "/coach/plans", icon: ClipboardList },
   ];
 
   const adminLinks = [
@@ -121,7 +120,7 @@ const Navbar = React.memo(function Navbar() {
             className="site-navbar__brand"
             style={{ fontSize: "1.5rem" }}
           >
-            <span>PulseLedger</span>
+            <span style={{ fontWeight: "bold" }}>PulseLedger</span>
           </Link>
         </div>
 

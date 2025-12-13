@@ -1080,12 +1080,29 @@ export default function ProfilePage() {
         {/* Coach-only payment QR uploader */}
         {data?.role === "coach" && <PaymentQrUploader />}
 
-        <div className="profile-card" style={{ marginTop: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-          <div style={{ flex: "1 1 300px" }}>
-            <h2 className="profile-header__title" style={{ fontSize: "1rem", marginBottom: 8 }}>
+        <section style={{ marginTop: "1.5rem", display: "flex", gap: "1.5rem", flexWrap: "wrap", alignItems: "stretch" }}>
+          {/* Security Section */}
+          <div className="profile-card" style={{ 
+            flex: "1 1 320px", 
+            padding: "1.75rem",
+            display: "flex",
+            flexDirection: "column"
+          }}>
+            <h2 style={{ 
+              fontSize: "1.125rem", 
+              marginBottom: "0.5rem", 
+              fontWeight: 600,
+              color: "#1e293b"
+            }}>
               Security
             </h2>
-            <p className="profile-header__subtitle" style={{ marginBottom: 12 }}>
+            <p style={{ 
+              marginBottom: "1.25rem", 
+              lineHeight: "1.6",
+              color: "#64748b",
+              fontSize: "0.9rem",
+              flex: 1
+            }}>
               Log out from all your devices and browsers.
             </p>
             <button
@@ -1103,31 +1120,70 @@ export default function ProfilePage() {
                   router.replace("/auth/login");
                 }
               }}
+              style={{ 
+                width: "100%", 
+                justifyContent: "center",
+                padding: "0.75rem 1.25rem",
+                fontSize: "0.95rem",
+                fontWeight: 500
+              }}
             >
               Logout from everywhere
             </button>
           </div>
 
+          {/* Danger Zone */}
           {(data?.role === "client" || data?.role === "coach") && (
-            <div style={{ flex: "1 1 300px", borderLeft: "1px solid #e5e7eb", paddingLeft: "1rem" }}>
-              <h2 className="profile-header__title" style={{ fontSize: "1rem", marginBottom: 8, color: "#dc2626" }}>
+            <div className="profile-card" style={{ 
+              flex: "1 1 320px",
+              padding: "1.75rem",
+              border: "2px solid #fecaca",
+              background: "linear-gradient(135deg, rgba(254, 202, 202, 0.1) 0%, rgba(252, 165, 165, 0.05) 100%)",
+              display: "flex",
+              flexDirection: "column"
+            }}>
+              <h2 style={{ 
+                fontSize: "1.125rem", 
+                marginBottom: "0.5rem", 
+                color: "#dc2626",
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem"
+              }}>
+                <span style={{ fontSize: "1.25rem" }}>⚠️</span>
                 Danger Zone
               </h2>
-              <p className="profile-header__subtitle" style={{ marginBottom: 12 }}>
+              <p style={{ 
+                marginBottom: "1.25rem", 
+                lineHeight: "1.6",
+                color: "#991b1b",
+                fontSize: "0.9rem",
+                flex: 1
+              }}>
                 Request permanent deletion of your account and all associated data. This action requires admin approval and cannot be undone once processed.
               </p>
               <button
                 type="button"
                 className="btn btn--danger"
                 onClick={() => setShowDeletionDialog(true)}
-                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+                style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center",
+                  gap: "0.5rem",
+                  width: "100%",
+                  padding: "0.75rem 1.25rem",
+                  fontSize: "0.95rem",
+                  fontWeight: 500
+                }}
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 style={{ width: "18px", height: "18px" }} />
                 Request Account Deletion
               </button>
             </div>
           )}
-        </div>
+        </section>
 
         {/* Deletion Request Dialog */}
         {showDeletionDialog && (

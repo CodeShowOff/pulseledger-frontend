@@ -27,12 +27,14 @@ const ProgressSchema = z.object({
   notes: z.string().optional(),
   
   // Basic Info
-  age: z
-    .number({ invalid_type_error: "Age must be a number" })
-    .min(5, "Age too low")
-    .max(120, "Age too high")
-    .optional()
-    .or(z.nan().transform(() => undefined)),
+  dateOfBirth: z.string().optional().refine(
+    (val) => {
+      if (!val) return true; // Optional field
+      const date = new Date(val);
+      return date <= new Date(); // Cannot be in the future
+    },
+    { message: "Date of birth cannot be in the future" }
+  ),
   gender: z.string().optional(),
   
   // Smart Scale Measurements
@@ -128,7 +130,7 @@ export default function ProgressForm() {
       weight: undefined,
       heightCm: undefined,
       notes: "",
-      age: undefined,
+      dateOfBirth: "",
       gender: "",
       bodyFatPercentage: undefined,
       visceralFatLevel: undefined,
@@ -152,30 +154,79 @@ export default function ProgressForm() {
 
   const mutation = useMutation({
     mutationFn: async (payload: ProgressFormData) => {
-      const body: any = {
-        weight: payload.weight,
-        height: payload.heightCm,
-        notes: payload.notes,
-        age: payload.age,
-        gender: payload.gender || undefined,
-        bodyFatPercentage: payload.bodyFatPercentage,
-        visceralFatLevel: payload.visceralFatLevel,
-        muscleMass: payload.muscleMass,
-        metabolicAge: payload.metabolicAge,
-        bodyWaterPercentage: payload.bodyWaterPercentage,
-        boneMass: payload.boneMass,
-        dailyActivityLevel: payload.dailyActivityLevel || undefined,
-        hydrationHabits: payload.hydrationHabits || undefined,
-        personalGoals: payload.personalGoals || undefined,
-        healthConditions: payload.healthConditions || undefined,
-        allergies: payload.allergies || undefined,
-        medications: payload.medications || undefined,
-        pastWeightChanges: payload.pastWeightChanges || undefined,
-        bloodSugarFasting: payload.bloodSugarFasting,
-        bloodSugarRandom: payload.bloodSugarRandom,
-        bloodPressureSystolic: payload.bloodPressureSystolic,
-        bloodPressureDiastolic: payload.bloodPressureDiastolic,
-      };
+      // Only include fields that have actual values (not undefined, null, or empty strings)
+      const body: any = {};
+      
+      // Numeric fields - only include if defined and not NaN
+      if (payload.weight !== undefined && !isNaN(payload.weight as number)) {
+        body.weight = payload.weight;
+      }
+      if (payload.heightCm !== undefined && !isNaN(payload.heightCm as number)) {
+        body.height = payload.heightCm;
+      }
+      if (payload.bodyFatPercentage !== undefined && !isNaN(payload.bodyFatPercentage as number)) {
+        body.bodyFatPercentage = payload.bodyFatPercentage;
+      }
+      if (payload.visceralFatLevel !== undefined && !isNaN(payload.visceralFatLevel as number)) {
+        body.visceralFatLevel = payload.visceralFatLevel;
+      }
+      if (payload.muscleMass !== undefined && !isNaN(payload.muscleMass as number)) {
+        body.muscleMass = payload.muscleMass;
+      }
+      if (payload.metabolicAge !== undefined && !isNaN(payload.metabolicAge as number)) {
+        body.metabolicAge = payload.metabolicAge;
+      }
+      if (payload.bodyWaterPercentage !== undefined && !isNaN(payload.bodyWaterPercentage as number)) {
+        body.bodyWaterPercentage = payload.bodyWaterPercentage;
+      }
+      if (payload.boneMass !== undefined && !isNaN(payload.boneMass as number)) {
+        body.boneMass = payload.boneMass;
+      }
+      if (payload.bloodSugarFasting !== undefined && !isNaN(payload.bloodSugarFasting as number)) {
+        body.bloodSugarFasting = payload.bloodSugarFasting;
+      }
+      if (payload.bloodSugarRandom !== undefined && !isNaN(payload.bloodSugarRandom as number)) {
+        body.bloodSugarRandom = payload.bloodSugarRandom;
+      }
+      if (payload.bloodPressureSystolic !== undefined && !isNaN(payload.bloodPressureSystolic as number)) {
+        body.bloodPressureSystolic = payload.bloodPressureSystolic;
+      }
+      if (payload.bloodPressureDiastolic !== undefined && !isNaN(payload.bloodPressureDiastolic as number)) {
+        body.bloodPressureDiastolic = payload.bloodPressureDiastolic;
+      }
+      
+      // String fields - only include if not empty
+      if (payload.notes && payload.notes.trim()) {
+        body.notes = payload.notes;
+      }
+      if (payload.dateOfBirth && payload.dateOfBirth.trim()) {
+        body.dateOfBirth = payload.dateOfBirth;
+      }
+      if (payload.gender && payload.gender.trim()) {
+        body.gender = payload.gender;
+      }
+      if (payload.dailyActivityLevel && payload.dailyActivityLevel.trim()) {
+        body.dailyActivityLevel = payload.dailyActivityLevel;
+      }
+      if (payload.hydrationHabits && payload.hydrationHabits.trim()) {
+        body.hydrationHabits = payload.hydrationHabits;
+      }
+      if (payload.personalGoals && payload.personalGoals.trim()) {
+        body.personalGoals = payload.personalGoals;
+      }
+      if (payload.healthConditions && payload.healthConditions.trim()) {
+        body.healthConditions = payload.healthConditions;
+      }
+      if (payload.allergies && payload.allergies.trim()) {
+        body.allergies = payload.allergies;
+      }
+      if (payload.medications && payload.medications.trim()) {
+        body.medications = payload.medications;
+      }
+      if (payload.pastWeightChanges && payload.pastWeightChanges.trim()) {
+        body.pastWeightChanges = payload.pastWeightChanges;
+      }
+      
       return await api.post("/progress", body);
     },
     onSuccess: () => {
@@ -254,14 +305,14 @@ export default function ProgressForm() {
         {activeTab === "basic" && (
           <>
             <div className="client-form__row">
-              <label className="client-form__label">Age</label>
+              <label className="client-form__label">Date of Birth</label>
               <input
-                type="number"
-                {...register("age", { valueAsNumber: true })}
+                type="date"
+                {...register("dateOfBirth")}
                 className="client-form__control"
-                placeholder="e.g. 25"
+                max={new Date().toISOString().split('T')[0]}
               />
-              {errors.age && <p className="client-form__error">{errors.age.message}</p>}
+              {errors.dateOfBirth && <p className="client-form__error">{errors.dateOfBirth.message}</p>}
             </div>
             <div className="client-form__row">
               <label className="client-form__label">Gender</label>

@@ -26,6 +26,7 @@ export type ClientProgressEntry = {
 
 export type ClientProgressProfile = {
   age?: number | null;
+  dateOfBirth?: string | null;
   gender?: string | null;
   dailyActivityLevel?: string | null;
   hydrationHabits?: string | null;

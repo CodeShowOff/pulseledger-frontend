@@ -354,7 +354,7 @@ export default function AdminClientDetailPage() {
       {/* Progress Charts */}
       {client.coachId && (
         <div style={{ marginTop: "1.5rem" }}>
-          <DetailedProgressCharts clientId={id} />
+          <DetailedProgressCharts clientId={id} viewerRole="admin" />
         </div>
       )}
 

@@ -110,7 +110,8 @@ export default function IndianNutritionIndexPage() {
           gap: "0.125rem",
           alignItems: "center",
           textAlign: "center",
-          marginBottom: "0.25rem",
+          marginTop: "1.5rem",
+          marginBottom: "1rem",
         }}
       >
           <h1
@@ -132,58 +133,101 @@ export default function IndianNutritionIndexPage() {
         style={{
           display: "flex",
           flexWrap: "wrap",
-          gap: "0.5rem",
+          gap: "1rem",
           alignItems: "flex-end",
-          padding: "0.75rem 1rem",
+          padding: "1.25rem 1.5rem",
         }}
       >
-        <div style={{ minWidth: 200, flex: "1 1 200px" }}>
-          <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.25rem" }}>Search</label>
+        <div style={{ minWidth: 220, flex: "1 1 220px" }}>
+          <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.35rem" }}>SEARCH</label>
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Dish or category"
             className="auth-form__input"
-            style={{ padding: "0.5rem 0.75rem", fontSize: "0.9rem" }}
+            style={{ padding: "0.6rem 0.85rem", fontSize: "0.9rem" }}
           />
         </div>
 
-        <div style={{ minWidth: 140, flex: "0 1 140px" }}>
-          <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.25rem" }}>Type</label>
-          <select
-            value={vegFilter}
-            onChange={(e) => setVegFilter(e.target.value as any)}
-            className="auth-form__input"
-            style={{ padding: "0.5rem 0.75rem", fontSize: "0.9rem" }}
-          >
-            <option value="all">All</option>
-            <option value="veg">Veg only</option>
-            <option value="nonveg">Non-veg only</option>
-          </select>
-        </div>
+        <div style={{ display: "flex", gap: "1rem", alignItems: "flex-end", flexWrap: "nowrap" }}>
+          <div style={{ minWidth: 110, width: 110 }}>
+            <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.35rem" }}>TYPE</label>
+            <select
+              value={vegFilter}
+              onChange={(e) => setVegFilter(e.target.value as any)}
+              className="auth-form__input"
+              style={{ padding: "0.6rem 0.5rem", fontSize: "0.9rem", width: "100%" }}
+            >
+              <option value="all">All</option>
+              <option value="veg">Veg only</option>
+              <option value="nonveg">Non-veg only</option>
+            </select>
+          </div>
 
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", paddingBottom: "0.25rem" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.85rem", whiteSpace: "nowrap" }}>
-            <input
-              id="highProtein"
-              type="checkbox"
-              checked={highProtein}
-              onChange={(e) => setHighProtein(e.target.checked)}
-              style={{ margin: 0 }}
-            />
-            <span>High Protein</span>
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.85rem", whiteSpace: "nowrap" }}>
-            <input
-              id="lowCalorie"
-              type="checkbox"
-              checked={lowCalorie}
-              onChange={(e) => setLowCalorie(e.target.checked)}
-              style={{ margin: 0 }}
-            />
-            <span>Low Calorie</span>
-          </label>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.35rem" }}>HIGH PROTEIN</label>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center",
+              fontSize: "0.875rem", 
+              cursor: "pointer", 
+              padding: "0.6rem 0.85rem",
+              border: highProtein ? "2px solid #3b82f6" : "2px solid #e2e8f0",
+              borderRadius: "8px",
+              background: highProtein ? "#eff6ff" : "#ffffff",
+              transition: "all 0.2s ease",
+              width: "100%",
+              minHeight: "38px",
+            }}>
+              <input
+                id="highProtein"
+                type="checkbox"
+                checked={highProtein}
+                onChange={(e) => setHighProtein(e.target.checked)}
+                style={{ 
+                  margin: 0,
+                  width: "18px",
+                  height: "18px",
+                  cursor: "pointer",
+                  accentColor: "#3b82f6",
+                }}
+              />
+            </label>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.35rem" }}>LOW CALORIE</label>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center",
+              fontSize: "0.875rem", 
+              cursor: "pointer", 
+              padding: "0.6rem 0.85rem",
+              border: lowCalorie ? "2px solid #10b981" : "2px solid #e2e8f0",
+              borderRadius: "8px",
+              background: lowCalorie ? "#ecfdf5" : "#ffffff",
+              transition: "all 0.2s ease",
+              width: "100%",
+              minHeight: "38px",
+            }}>
+              <input
+                id="lowCalorie"
+                type="checkbox"
+                checked={lowCalorie}
+                onChange={(e) => setLowCalorie(e.target.checked)}
+                style={{ 
+                  margin: 0,
+                  width: "18px",
+                  height: "18px",
+                  cursor: "pointer",
+                  accentColor: "#10b981",
+                }}
+              />
+            </label>
+          </div>
         </div>
       </section>
 
