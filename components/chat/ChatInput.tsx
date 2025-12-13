@@ -144,10 +144,6 @@ export default function ChatInput({
         onCancelReply?.();
       } finally {
         setIsSubmitting(false);
-        // Refocus textarea after sending
-        setTimeout(() => {
-          textareaRef.current?.focus();
-        }, 50);
       }
       return;
     }
@@ -167,10 +163,6 @@ export default function ChatInput({
         onCancelReply?.();
       } finally {
         setIsSubmitting(false);
-        // Refocus textarea after sending
-        setTimeout(() => {
-          textareaRef.current?.focus();
-        }, 50);
       }
       return;
     }
@@ -193,12 +185,6 @@ export default function ChatInput({
         setMessage(messageToSend);
       } finally {
         setIsSubmitting(false);
-        // Refocus textarea after sending - use setTimeout for better reliability
-        setTimeout(() => {
-          if (textareaRef.current) {
-            textareaRef.current.focus();
-          }
-        }, 50);
       }
     }
   };
@@ -370,6 +356,8 @@ export default function ChatInput({
         <button
           type="button"
           onClick={handleSubmit}
+          onMouseDown={(e) => e.preventDefault()}
+          onTouchStart={(e) => e.preventDefault()}
           disabled={isSubmitting || !canSubmit}
           className={styles.sendButton}
           style={{ opacity: canSubmit && !isSubmitting ? 1 : 0.5 }}

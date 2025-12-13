@@ -1407,6 +1407,13 @@
   -ms-overflow-style: none; /* IE and Edge */
 }
 
+.textarea:focus {
+  background: #ffffff;
+  border: 1px solid #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 .textarea::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }

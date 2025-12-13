@@ -86,14 +86,6 @@ export default function NotificationsPage() {
             >
               Unread
             </button>
-            {(role === "admin" || role === "coach") && (
-              <Link
-                href={role === "admin" ? "/admin/notifications" : "/coach/notifications"}
-                className="client-button client-button--outline notification-chip-row__cta"
-              >
-                Send notification
-              </Link>
-            )}
             <button
               className="client-button client-button--outline notification-chip-row__cta"
               onClick={() => markAll.mutate()}
@@ -102,6 +94,15 @@ export default function NotificationsPage() {
             >
               {markAll.isPending ? "Marking..." : "Mark all as read"}
             </button>
+            {(role === "admin" || role === "coach") && (
+              <Link
+                href={role === "admin" ? "/admin/notifications" : "/coach/notifications"}
+                className="client-button client-button--outline notification-chip-row__cta"
+                style={{ marginLeft: 'auto', backgroundColor: '#22c55e', color: 'white', borderColor: '#22c55e' }}
+              >
+                Send notification
+              </Link>
+            )}
           </div>
         </div>
 
@@ -136,7 +137,10 @@ export default function NotificationsPage() {
         {data && list.length > 0 && (
           <section className="client-page__sections">
             {list.map((n) => (
-              <div key={n._id} className="client-card">
+              <div 
+                key={n._id} 
+                className="client-card"
+              >
                 <div className="flex items-start gap-3">
                   <div className="shrink-0 h-9 w-9 grid place-items-center rounded-full client-pill--info" style={{ background: "#e0f2fe", color: "#075985" }}>
                     {n.type === "order" ? "🛒" : n.type === "plan" ? "📄" : n.type === "system" ? "⚙️" : "🔔"}
@@ -160,6 +164,7 @@ export default function NotificationsPage() {
                           className="client-button client-button--ghost"
                           onClick={() => markOne.mutate(n._id)}
                           type="button"
+                          style={{ backgroundColor: '#22c55e', color: 'white', borderColor: '#22c55e' }}
                         >
                           Mark as read
                         </button>

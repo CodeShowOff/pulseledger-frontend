@@ -185,7 +185,7 @@ export default function ClientDetailPage() {
             <p className="admin-page-header__subtitle">Phone: {client.phone || "-"}</p>
             {client.whatsappNumber && (
               <p className="admin-page-header__subtitle">
-                📱 WhatsApp: {client.whatsappNumber}
+                WhatsApp: {client.whatsappNumber}
               </p>
             )}
             <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -436,7 +436,7 @@ export default function ClientDetailPage() {
               <table className="admin-table" style={{ width: "100%", minWidth: "600px" }}>
                 <thead>
                   <tr>
-                    <th>Order ID</th>
+                    {/* <th>Order ID</th> */}
                     <th>Items</th>
                     <th>Amount</th>
                     <th>Payment</th>
@@ -447,9 +447,9 @@ export default function ClientDetailPage() {
                 <tbody>
                   {orders.map((order: any) => (
                     <tr key={order._id}>
-                      <td style={{ fontFamily: "monospace", fontSize: "0.85rem" }}>
+                      {/* <td style={{ fontFamily: "monospace", fontSize: "0.85rem" }}>
                         #{order._id.slice(-6)}
-                      </td>
+                      </td> */}
                       <td>
                         {order.items?.length || 0} item(s)
                         {order.items && order.items.length > 0 && (

@@ -16,8 +16,6 @@ type Plan = {
   _id: string;
   title: string;
   description?: string;
-  clientId?: { _id: string; fullName?: string } | null;
-  isTemplate?: boolean;
   status?: string;
   createdAt?: string;
   price?: number;
@@ -134,7 +132,7 @@ export default function PlanList() {
                     )}
                   </div>
                   <p style={{ fontSize: "0.75rem", color: "#6b7280", margin: "0.25rem 0 0 0" }}>
-                    {p.isTemplate ? "📢 Available to All Clients" : "👤 Assigned to Client"}
+                    Available to All Clients
                   </p>
                 </div>
                 <span style={{
@@ -157,16 +155,6 @@ export default function PlanList() {
                 gap: "0.75rem",
                 marginBottom: "0.75rem"
               }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <Users style={{ width: "14px", height: "14px", color: "#6b7280" }} />
-                  <div>
-                    <span style={{ fontSize: "0.7rem", color: "#9ca3af", display: "block" }}>Client</span>
-                    <span style={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500 }}>
-                      {p.isTemplate ? "All Clients" : (p.clientId?.fullName ?? "—")}
-                    </span>
-                  </div>
-                </div>
-                
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                   <DollarSign style={{ width: "14px", height: "14px", color: "#6b7280" }} />
                   <div>
@@ -209,14 +197,13 @@ export default function PlanList() {
                 borderTop: "1px solid #e5e7eb",
                 flexWrap: "wrap"
               }}>
-                {p.isTemplate && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedPlanId(p._id);
-                      setSelectedPlanTitle(p.title);
-                    }}
-                    style={{
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPlanId(p._id);
+                    setSelectedPlanTitle(p.title);
+                  }}
+                  style={{
                       display: "flex",
                       alignItems: "center",
                       gap: "0.35rem",
@@ -233,7 +220,6 @@ export default function PlanList() {
                     <Users style={{ width: "14px", height: "14px" }} />
                     View Clients
                   </button>
-                )}
                 <Link
                   href={`/coach/plans/${p._id}/edit`}
                   style={{

@@ -58,7 +58,7 @@ export default function CoachDashboard() {
       <SubscriptionWarningPopup />
 
       {/* Subscription Status Banner */}
-      {subscription && (subscription.daysRemaining <= 28 || subscription.status === "expired") && (
+      {subscription && (subscription.status === "expired" || subscription.status === "trial" || (subscription.status === "active" && subscription.daysRemaining <= 3)) && (
         <div
           style={{
             marginBottom: "1.5rem",

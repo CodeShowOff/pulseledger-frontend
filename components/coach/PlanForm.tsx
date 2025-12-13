@@ -11,21 +11,12 @@ import { toast } from "sonner";
 import { CLIENT_PLANS_KEY } from "@/lib/queries/plans";
 
 const planSchema = z.object({
-  clientId: z.string().nullable().optional(),
   title: z.string().min(3),
   description: z.string().optional().nullable(),
   goal: z.string().max(100).optional().nullable(),
   price: z.coerce.number().min(0).optional(),
   durationWeeks: z.coerce.number().min(1).max(52).optional(),
-  isTemplate: z.boolean().optional(),
   isDefault: z.boolean().optional(),
-  tasks: z.array(
-    z.object({
-      title: z.string().min(1),
-      description: z.string().optional().nullable(),
-      date: z.string().optional().nullable(),
-    })
-  ).optional(),
 });
 
 type PlanFormType = z.infer<typeof planSchema>;
@@ -33,80 +24,34 @@ type PlanFormType = z.infer<typeof planSchema>;
 export default function PlanForm({ plan, onClose, variant = "modal" }: { plan?: any; onClose: () => void; variant?: "modal" | "page" }) {
   const queryClient = useQueryClient();
 
-  // Fetch coach's clients to choose assignment
-  const { data: clientsData } = useQuery({
-    // Use a distinct key to avoid cache shape conflicts with CoachClients list query
-    queryKey: ["coachClientsOptions"],
-    queryFn: async () => {
-      const res = await api.get("/coach/clients?limit=100");
-      return res.data.data || [];
-    },
-  });
-
   const { register, control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<PlanFormType>({
     resolver: zodResolver(planSchema),
     defaultValues: {
-      clientId: "",
       title: "",
       description: "",
       goal: "",
       price: 0,
       durationWeeks: 4,
-      isTemplate: true,
       isDefault: false,
-      tasks: [],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({ name: "tasks", control });
-
-  const watchClientId = watch("clientId");
   const watchIsDefault = watch("isDefault");
-  const watchIsTemplate = watch("isTemplate");
   const watchPrice = watch("price");
 
   useEffect(() => {
     if (plan) {
       // populate for edit
       reset({
-        clientId: plan.clientId?._id ?? "",
         title: plan.title,
         description: plan.description ?? "",
         goal: plan.goal ?? "",
         price: typeof plan.price === "number" ? plan.price : 0,
         durationWeeks: plan.durationWeeks ?? 4,
-        isTemplate: !!plan.isTemplate,
         isDefault: !!plan.isDefault,
-        tasks: plan.tasks?.map((t: any) => ({
-          title: t.title,
-          description: t.description ?? "",
-          date: t.date ? new Date(t.date).toISOString().slice(0, 10) : "",
-        })) ?? [],
       });
     }
   }, [plan, reset]);
-
-  useEffect(() => {
-    if (watchClientId) {
-      if (watchIsTemplate) {
-        setValue("isTemplate", false, { shouldDirty: true });
-      }
-      if (watchIsDefault) {
-        setValue("isDefault", false, { shouldDirty: true });
-      }
-    } else if (!watchIsDefault && !watchIsTemplate) {
-      setValue("isTemplate", true, { shouldDirty: true });
-    }
-  }, [watchClientId, watchIsDefault, watchIsTemplate, setValue]);
-
-  useEffect(() => {
-    if (watchIsDefault) {
-      setValue("clientId", "", { shouldDirty: true });
-      if (!watchIsTemplate) {
-        setValue("isTemplate", true, { shouldDirty: true });
-      }
-    }
-  }, [watchIsDefault, watchIsTemplate, setValue]);
 
   const createMutation = useMutation({
     mutationFn: (payload: any) => api.post("/plans", payload),
@@ -133,29 +78,11 @@ export default function PlanForm({ plan, onClose, variant = "modal" }: { plan?: 
   const onSubmit = (data: PlanFormType) => {
     const payload = {
       ...data,
-      // convert empty string clientId to null
-      clientId: data.clientId || null,
       price: typeof data.price === "number" ? data.price : 0,
-      tasks: (data.tasks || []).map((t) => ({
-        ...t,
-        date: t.date ? new Date(t.date).toISOString() : undefined,
-      })),
     };
 
-    if (payload.isDefault) {
-      payload.clientId = null;
-      payload.isTemplate = true;
-    }
-
-    if (payload.clientId) {
-      payload.isTemplate = false;
-      payload.isDefault = false;
-    }
-
     if (plan) {
-      // Remove clientId from update payload - clientId cannot be changed after creation
-      const { clientId: _, ...updatePayload } = payload;
-      updateMutation.mutate({ id: plan._id, payload: updatePayload });
+      updateMutation.mutate({ id: plan._id, payload });
     } else {
       createMutation.mutate(payload);
     }
@@ -254,98 +181,6 @@ export default function PlanForm({ plan, onClose, variant = "modal" }: { plan?: 
               )}
             </div>
           </div>
-
-          <div className="coach-plan-form__row coach-plan-form__row--assign">
-            <div className="auth-form__field">
-              <label className="auth-form__label">Assign to client</label>
-              <select
-                {...register("clientId")}
-                disabled={watchIsDefault}
-                className="auth-form__input auth-form__input--select"
-              >
-                <option value="">Available to all clients</option>
-                {Array.isArray(clientsData) &&
-                  clientsData.map((c: any) => (
-                    <option key={c._id} value={c._id}>
-                      {c.fullName} ({c.email})
-                    </option>
-                  ))}
-              </select>
-              <p className="coach-plan-form__hint">
-                Leave blank to make this plan available to all your clients.
-              </p>
-            </div>
-
-            <div className="coach-plan-form__info">
-              Plans available to all clients can be requested by any of your clients. Assigning a
-              plan makes it private to that specific client only.
-            </div>
-          </div>
-
-          <input type="hidden" {...register("isTemplate")} />
-        </div>
-
-        <div className="coach-plan-form__section coach-plan-form__section--tasks">
-          <div className="coach-plan-form__tasks-header">
-            <div>
-              <h2 className="coach-plan-form__tasks-title">Tasks</h2>
-              <p className="coach-plan-form__hint">
-                {!watchClientId 
-                  ? "Tasks can only be added to plans assigned to specific clients."
-                  : "Break the plan into workouts, check-ins, and milestones."}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => append({ title: "", description: "", date: "" })}
-              className="btn btn--outline btn--sm"
-              disabled={!watchClientId}
-              title={!watchClientId ? "Select a specific client to add tasks" : ""}
-            >
-              Add Task
-            </button>
-          </div>
-
-          {fields.length === 0 && (
-            <p className="coach-plan-form__tasks-empty">
-              {!watchClientId 
-                ? "Tasks are only available for plans assigned to specific clients. Please select a client above to add tasks."
-                : "No tasks yet. Start by adding your first week."}
-            </p>
-          )}
-
-          <div className="coach-plan-form__tasks-list">
-            {fields.map((f, idx) => (
-              <div key={f.id} className="coach-plan-form__task-card">
-                <div className="coach-plan-form__task-grid">
-                  <input
-                    className="auth-form__input coach-plan-form__task-input coach-plan-form__task-input--title"
-                    placeholder="Task title"
-                    {...register(`tasks.${idx}.title`)}
-                  />
-                  <input
-                    className="auth-form__input coach-plan-form__task-input coach-plan-form__task-input--description"
-                    placeholder="Task description (optional)"
-                    {...register(`tasks.${idx}.description`)}
-                  />
-                  <input
-                    type="date"
-                    className="auth-form__input coach-plan-form__task-input coach-plan-form__task-input--date"
-                    {...register(`tasks.${idx}.date`)}
-                  />
-                </div>
-                <div className="coach-plan-form__task-footer">
-                  <button
-                    type="button"
-                    onClick={() => remove(idx)}
-                    className="btn btn--text btn--danger-text btn--sm"
-                  >
-                    Remove task
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="coach-plan-form__actions">
@@ -365,7 +200,7 @@ export default function PlanForm({ plan, onClose, variant = "modal" }: { plan?: 
               ? "Saving..."
               : plan
               ? "Save changes"
-              : "Create plan"}
+              : "Create subscription plan"}
           </button>
         </div>
       </form>
@@ -438,93 +273,6 @@ export default function PlanForm({ plan, onClose, variant = "modal" }: { plan?: 
                 {errors.price && <p className="text-sm text-red-600">{errors.price.message}</p>}
               </div>
             </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Assign to client</label>
-                <select
-                  {...register("clientId")}
-                  disabled={watchIsDefault}
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 disabled:bg-gray-100"
-                >
-                  <option value="">Available to all clients</option>
-                  {Array.isArray(clientsData) && clientsData.map((c: any) => (
-                    <option key={c._id} value={c._id}>{c.fullName} ({c.email})</option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-gray-500">
-                  Leave blank to make this plan available to all your clients.
-                </p>
-              </div>
-              <div className="rounded-md border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700">
-                Plans available to all clients can be requested by any of your clients. Assigning a plan makes it private to that specific client only.
-              </div>
-            </div>
-
-            <input type="hidden" {...register("isTemplate")} />
-
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700">Tasks</label>
-                  <p className="text-xs text-gray-500">
-                    {!watchClientId 
-                      ? "Tasks can only be added to plans assigned to specific clients."
-                      : "Break the plan into manageable tasks, workouts, or milestones."}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => append({ title: "", description: "", date: "" })}
-                  className="rounded-md border border-gray-200 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!watchClientId}
-                  title={!watchClientId ? "Select a specific client to add tasks" : ""}
-                >
-                  Add Task
-                </button>
-              </div>
-
-              {fields.length === 0 && (
-                <p className="rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-500">
-                  {!watchClientId 
-                    ? "Tasks are only available for plans assigned to specific clients. Please select a client above to add tasks."
-                    : "No tasks yet. Click \"Add Task\" to start building the weekly checklist."}
-                </p>
-              )}
-
-              <div className="space-y-3">
-                {fields.map((f, idx) => (
-                  <div key={f.id} className="rounded-md border border-gray-200 p-3">
-                    <div className="grid grid-cols-1 gap-2 md:grid-cols-12">
-                      <input
-                        className="md:col-span-4 rounded-md border border-gray-300 p-2"
-                        placeholder="Task title"
-                        {...register(`tasks.${idx}.title`)}
-                      />
-                      <input
-                        className="md:col-span-5 rounded-md border border-gray-300 p-2"
-                        placeholder="Task description"
-                        {...register(`tasks.${idx}.description`)}
-                      />
-                      <input
-                        type="date"
-                        className="md:col-span-3 rounded-md border border-gray-300 p-2"
-                        {...register(`tasks.${idx}.date`)}
-                      />
-                    </div>
-                    <div className="mt-2 flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => remove(idx)}
-                        className="text-sm font-medium text-red-600 hover:text-red-700"
-                      >
-                        Remove task
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           <div className="flex items-center justify-end gap-3 border-t px-6 py-4 bg-white">
@@ -532,7 +280,7 @@ export default function PlanForm({ plan, onClose, variant = "modal" }: { plan?: 
               Cancel
             </button>
             <button type="submit" disabled={isSubmitting} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
-              {isSubmitting ? "Saving..." : plan ? "Save Changes" : "Create Plan"}
+              {isSubmitting ? "Saving..." : plan ? "Save Changes" : "Create Subscription Plan"}
             </button>
           </div>
         </form>

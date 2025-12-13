@@ -13,7 +13,6 @@ type Plan = {
   price?: number;
   durationWeeks?: number;
   status: string;
-  isTemplate?: boolean;
   coachId?: { _id: string; fullName: string; email: string };
   createdAt: string;
 };

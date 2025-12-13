@@ -25,15 +25,9 @@ export default function MyPlanPage() {
 
   // One-click request: removing modal state
 
-  const templates = useMemo(
-    () => plans.filter((plan) => plan.isTemplate),
-    [plans]
-  );
+  const templates = plans; // All plans are subscription plans
 
-  const personalPlans = useMemo(
-    () => plans.filter((plan) => !plan.isTemplate),
-    [plans]
-  );
+  const personalPlans: typeof plans = []; // No more personal plans
 
   const selectedPlan = null; // modal removed
 

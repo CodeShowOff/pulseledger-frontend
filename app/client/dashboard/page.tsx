@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 const ProgressCharts = dynamic(() => import("@/components/client/ProgressCharts"), { ssr: false });
 import AssignedPlans from "@/components/client/AssignedPlans";
 import WaterIntakeWidget from "@/components/client/WaterIntakeWidget";
+import GoalWeightWidget from "@/components/client/GoalWeightWidget";
 import { useMyCoachQuery } from "@/lib/queries/coach";
 import RoleGuard from "@/components/shared/RoleGuard";
 
@@ -26,13 +27,20 @@ export default function ClientDashboardPage() {
             </Link>
           )}
         </div>
-        <p className="client-page__subtitle">
-          Keep an eye on your current plan, recent progress and coach.
-        </p>
       </header>
 
-      {/* Water Intake Widget - Full Width */}
-      <WaterIntakeWidget />
+      {/* Water Intake and Goal Weight Widgets - Same Row */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gap: "1rem",
+          marginTop: "1rem",
+        }}
+      >
+        <WaterIntakeWidget />
+        <GoalWeightWidget />
+      </div>
 
       {/* Nutrition Index and Calorie Calculator - Same Row */}
       <div
@@ -105,9 +113,7 @@ export default function ClientDashboardPage() {
       )}
 
       {/* Your Current Plan */}
-      <div className="client-card">
-        <AssignedPlans />
-      </div>
+      <AssignedPlans />
 
       {/* Quick Stats */}
       <div className="client-card">

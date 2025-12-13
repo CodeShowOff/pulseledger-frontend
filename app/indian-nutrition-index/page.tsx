@@ -34,7 +34,17 @@ export default function IndianNutritionIndexPage() {
   const [vegFilter, setVegFilter] = useState<"all" | "veg" | "nonveg">("all");
   const [highProtein, setHighProtein] = useState(false);
   const [lowCalorie, setLowCalorie] = useState(false);
-  const [expandedDishes, setExpandedDishes] = useState<{ [key: string]: { vitamins: boolean; minerals: boolean } }>({});
+  const [expandedDishes, setExpandedDishes] = useState<{ [key: string]: { nutrition: boolean; vitamins: boolean; minerals: boolean } }>({});
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,7 +81,7 @@ export default function IndianNutritionIndexPage() {
   const isHighProteinDish = useCallback((dish: IndianDish) => dish.protein_g >= 15, []);
   const isLowCalorieDish = useCallback((dish: IndianDish) => dish.calories_kcal <= 250, []);
 
-  const toggleSection = (dishName: string, section: 'vitamins' | 'minerals') => {
+  const toggleSection = (dishName: string, section: 'nutrition' | 'vitamins' | 'minerals') => {
     setExpandedDishes(prev => ({
       ...prev,
       [dishName]: {
@@ -86,10 +96,10 @@ export default function IndianNutritionIndexPage() {
       style={{
         maxWidth: "1200px",
         margin: "0 auto",
-        padding: "1.5rem 1rem",
+        padding: "0.5rem 1rem 1.5rem",
         display: "flex",
         flexDirection: "column",
-        gap: "1rem",
+        gap: "0.75rem",
         fontSize: "0.95rem",
       }}
     >
@@ -97,20 +107,21 @@ export default function IndianNutritionIndexPage() {
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: "0.25rem",
+          gap: "0.125rem",
           alignItems: "center",
           textAlign: "center",
+          marginBottom: "0.25rem",
         }}
       >
           <h1
             className="profile-header__title"
-            style={{ fontSize: "1.8rem", fontWeight: 700 }}
+            style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0 }}
           >
             Indian Food Nutrition Index
           </h1>
           <p
             className="profile-header__subtitle"
-            style={{ fontSize: "0.95rem" }}
+            style={{ fontSize: "0.85rem", margin: 0 }}
           >
           Search and explore nutrition facts for popular Indian dishes.
         </p>
@@ -121,27 +132,30 @@ export default function IndianNutritionIndexPage() {
         style={{
           display: "flex",
           flexWrap: "wrap",
-          gap: "0.75rem 1rem",
+          gap: "0.5rem",
           alignItems: "flex-end",
+          padding: "0.75rem 1rem",
         }}
       >
-        <div style={{ minWidth: 220, flex: 1 }}>
-          <label className="profile-field__label">Search</label>
+        <div style={{ minWidth: 200, flex: "1 1 200px" }}>
+          <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.25rem" }}>Search</label>
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Dish or category"
             className="auth-form__input"
+            style={{ padding: "0.5rem 0.75rem", fontSize: "0.9rem" }}
           />
         </div>
 
-        <div style={{ minWidth: 180 }}>
-          <label className="profile-field__label">Veg / Non-veg</label>
+        <div style={{ minWidth: 140, flex: "0 1 140px" }}>
+          <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.25rem" }}>Type</label>
           <select
             value={vegFilter}
             onChange={(e) => setVegFilter(e.target.value as any)}
             className="auth-form__input"
+            style={{ padding: "0.5rem 0.75rem", fontSize: "0.9rem" }}
           >
             <option value="all">All</option>
             <option value="veg">Veg only</option>
@@ -149,28 +163,27 @@ export default function IndianNutritionIndexPage() {
           </select>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <span className="profile-field__label">Highlight</span>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <input
-                id="highProtein"
-                type="checkbox"
-                checked={highProtein}
-                onChange={(e) => setHighProtein(e.target.checked)}
-              />
-              <span className="profile-field__value">High Protein (15g+)</span>
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <input
-                id="lowCalorie"
-                type="checkbox"
-                checked={lowCalorie}
-                onChange={(e) => setLowCalorie(e.target.checked)}
-              />
-              <span className="profile-field__value">Low Calorie (≤ 250 kcal)</span>
-            </label>
-          </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", paddingBottom: "0.25rem" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+            <input
+              id="highProtein"
+              type="checkbox"
+              checked={highProtein}
+              onChange={(e) => setHighProtein(e.target.checked)}
+              style={{ margin: 0 }}
+            />
+            <span>High Protein</span>
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+            <input
+              id="lowCalorie"
+              type="checkbox"
+              checked={lowCalorie}
+              onChange={(e) => setLowCalorie(e.target.checked)}
+              style={{ margin: 0 }}
+            />
+            <span>Low Calorie</span>
+          </label>
         </div>
       </section>
 
@@ -181,6 +194,7 @@ export default function IndianNutritionIndexPage() {
           </p>
         ) : (
           filtered.map((dish) => {
+            const isNutritionExpanded = expandedDishes[dish.name]?.nutrition || false;
             const isVitaminsExpanded = expandedDishes[dish.name]?.vitamins || false;
             const isMineralsExpanded = expandedDishes[dish.name]?.minerals || false;
 
@@ -193,10 +207,9 @@ export default function IndianNutritionIndexPage() {
                   display: "flex",
                   flexDirection: "column",
                   gap: "1rem",
-                  borderLeft: dish.vegetarian
-                    ? "4px solid #10b981"
-                    : "4px solid #ef4444",
-                  background: "white",
+                  background: dish.vegetarian
+                    ? "linear-gradient(to right, rgba(16, 185, 129, 0.1), white)"
+                    : "linear-gradient(to right, rgba(239, 68, 68, 0.1), white)",
                   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
                 }}
               >
@@ -266,247 +279,529 @@ export default function IndianNutritionIndexPage() {
                   </div>
                 </div>
 
-                {/* Main Nutrition Grid */}
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-                    gap: "1rem",
-                    padding: "1rem",
-                    background: "linear-gradient(to bottom, #f8fafc, #ffffff)",
-                    borderRadius: "8px",
-                    border: "1px solid #e2e8f0",
-                  }}
-                >
-                  {/* Calories */}
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
-                      CALORIES
-                    </div>
-                    <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#0ea5e9" }}>
-                      {dish.calories_kcal}
-                    </div>
-                    <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>kcal</div>
-                  </div>
-
-                  {/* Protein */}
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
-                      PROTEIN
-                    </div>
-                    <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#10b981" }}>
-                      {dish.protein_g}
-                    </div>
-                    <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
-                  </div>
-
-                  {/* Carbs */}
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
-                      CARBS
-                    </div>
-                    <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#f59e0b" }}>
-                      {dish.carbs_g}
-                    </div>
-                    <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
-                  </div>
-
-                  {/* Fats */}
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
-                      FATS
-                    </div>
-                    <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#8b5cf6" }}>
-                      {dish.fat_g}
-                    </div>
-                    <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
-                  </div>
-
-                  {/* Fiber */}
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
-                      FIBER
-                    </div>
-                    <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#06b6d4" }}>
-                      {dish.fiber_g}
-                    </div>
-                    <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
-                  </div>
-
-                  {/* Sugar */}
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
-                      SUGAR
-                    </div>
-                    <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#ec4899" }}>
-                      {dish.sugar_g}
-                    </div>
-                    <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
-                  </div>
-                </div>
-
-                {/* Vitamins Dropdown */}
-                <div
-                  style={{
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                  }}
-                >
-                  <button
-                    onClick={() => toggleSection(dish.name, 'vitamins')}
-                    style={{
-                      width: "100%",
-                      padding: "0.75rem 1rem",
-                      background: "#fef3c7",
-                      border: "none",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      transition: "background 0.2s",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#fde68a")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "#fef3c7")}
-                  >
-                    <span style={{ fontSize: "0.95rem", fontWeight: "600", color: "#92400e" }}>
-                      💊 Vitamins
-                    </span>
-                    {isVitaminsExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                  </button>
-                  {isVitaminsExpanded && (
+                {/* Main Nutrition Grid - Dropdown on Mobile, Always Visible on Desktop */}
+                {isMobile ? (
+                  <>
+                    {/* Mobile: Compact Buttons Row */}
                     <div
                       style={{
-                        padding: "1rem",
-                        background: "#fffbeb",
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-                        gap: "0.75rem",
+                        display: "flex",
+                        gap: "0.5rem",
+                        flexWrap: "wrap",
                       }}
                     >
-                      <div>
-                        <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin A</div>
-                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
-                          {dish.vitamin_A_ug} μg
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>B-Complex</div>
-                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
-                          {dish.vitamin_B_mg} mg
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin C</div>
-                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
-                          {dish.vitamin_C_mg} mg
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin D</div>
-                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
-                          {dish.vitamin_D_IU} IU
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin E</div>
-                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
-                          {dish.vitamin_E_mg} mg
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin K</div>
-                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
-                          {dish.vitamin_K_ug} μg
-                        </div>
-                      </div>
+                      <button
+                        onClick={() => toggleSection(dish.name, 'nutrition')}
+                        style={{
+                          flex: "1",
+                          minWidth: "90px",
+                          padding: "0.5rem 0.75rem",
+                          background: "#f0fdf4",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "8px",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: "0.25rem",
+                          cursor: "pointer",
+                          transition: "background 0.2s",
+                          fontSize: "0.8rem",
+                          fontWeight: "600",
+                          color: "#166534",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#dcfce7")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "#f0fdf4")}
+                      >
+                        {/* <span>📊</span> */}
+                        <span>Nutrition</span>
+                        {isNutritionExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
+                      
+                      <button
+                        onClick={() => toggleSection(dish.name, 'vitamins')}
+                        style={{
+                          flex: "1",
+                          minWidth: "90px",
+                          padding: "0.5rem 0.75rem",
+                          background: "#fef3c7",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "8px",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: "0.25rem",
+                          cursor: "pointer",
+                          transition: "background 0.2s",
+                          fontSize: "0.8rem",
+                          fontWeight: "600",
+                          color: "#92400e",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#fde68a")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "#fef3c7")}
+                      >
+                        {/* <span>💊</span> */}
+                        <span>Vitamins</span>
+                        {isVitaminsExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
+                      
+                      <button
+                        onClick={() => toggleSection(dish.name, 'minerals')}
+                        style={{
+                          flex: "1",
+                          minWidth: "90px",
+                          padding: "0.5rem 0.75rem",
+                          background: "#dbeafe",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "8px",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: "0.25rem",
+                          cursor: "pointer",
+                          transition: "background 0.2s",
+                          fontSize: "0.8rem",
+                          fontWeight: "600",
+                          color: "#1e3a8a",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#bfdbfe")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "#dbeafe")}
+                      >
+                        {/* <span>⚡</span> */}
+                        <span>Minerals</span>
+                        {isMineralsExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
                     </div>
-                  )}
-                </div>
 
-                {/* Minerals Dropdown */}
-                <div
-                  style={{
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                  }}
-                >
-                  <button
-                    onClick={() => toggleSection(dish.name, 'minerals')}
-                    style={{
-                      width: "100%",
-                      padding: "0.75rem 1rem",
-                      background: "#dbeafe",
-                      border: "none",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      transition: "background 0.2s",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#bfdbfe")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "#dbeafe")}
-                  >
-                    <span style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e3a8a" }}>
-                      ⚡ Minerals
-                    </span>
-                    {isMineralsExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                  </button>
-                  {isMineralsExpanded && (
+                    {/* Expandable Content Sections */}
+                    {isNutritionExpanded && (
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                          gap: "1rem",
+                          padding: "1rem",
+                          background: "linear-gradient(to bottom, #f8fafc, #ffffff)",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "8px",
+                          marginTop: "0.5rem",
+                        }}
+                      >
+                        {/* Calories */}
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
+                            CALORIES
+                          </div>
+                          <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#0ea5e9" }}>
+                            {dish.calories_kcal}
+                          </div>
+                          <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>kcal</div>
+                        </div>
+
+                        {/* Protein */}
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
+                            PROTEIN
+                          </div>
+                          <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#10b981" }}>
+                            {dish.protein_g}
+                          </div>
+                          <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
+                        </div>
+
+                        {/* Carbs */}
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
+                            CARBS
+                          </div>
+                          <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#f59e0b" }}>
+                            {dish.carbs_g}
+                          </div>
+                          <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
+                        </div>
+
+                        {/* Fats */}
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
+                            FATS
+                          </div>
+                          <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#8b5cf6" }}>
+                            {dish.fat_g}
+                          </div>
+                          <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
+                        </div>
+
+                        {/* Fiber */}
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
+                            FIBER
+                          </div>
+                          <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#06b6d4" }}>
+                            {dish.fiber_g}
+                          </div>
+                          <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
+                        </div>
+
+                        {/* Sugar */}
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
+                            SUGAR
+                          </div>
+                          <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#ec4899" }}>
+                            {dish.sugar_g}
+                          </div>
+                          <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {isVitaminsExpanded && (
+                      <div
+                        style={{
+                          padding: "1rem",
+                          background: "#fffbeb",
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                          gap: "0.75rem",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "8px",
+                          marginTop: "0.5rem",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin A</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
+                            {dish.vitamin_A_ug} μg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>B-Complex</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
+                            {dish.vitamin_B_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin C</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
+                            {dish.vitamin_C_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin D</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
+                            {dish.vitamin_D_IU} IU
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin E</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
+                            {dish.vitamin_E_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin K</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
+                            {dish.vitamin_K_ug} μg
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {isMineralsExpanded && (
+                      <div
+                        style={{
+                          padding: "1rem",
+                          background: "#eff6ff",
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                          gap: "0.75rem",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "8px",
+                          marginTop: "0.5rem",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Iron</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
+                            {dish.iron_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Calcium</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
+                            {dish.calcium_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Magnesium</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
+                            {dish.magnesium_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Potassium</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
+                            {dish.potassium_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Sodium</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
+                            {dish.sodium_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Zinc</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
+                            {dish.zinc_mg} mg
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
                     <div
-                      style={{
-                        padding: "1rem",
-                        background: "#eff6ff",
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-                        gap: "0.75rem",
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Iron</div>
-                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
-                          {dish.iron_mg} mg
-                        </div>
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                      gap: "1rem",
+                      padding: "1rem",
+                      background: "linear-gradient(to bottom, #f8fafc, #ffffff)",
+                      borderRadius: "8px",
+                      border: "1px solid #e2e8f0",
+                    }}
+                  >
+                    {/* Calories */}
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
+                        CALORIES
                       </div>
-                      <div>
-                        <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Calcium</div>
-                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
-                          {dish.calcium_mg} mg
-                        </div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#0ea5e9" }}>
+                        {dish.calories_kcal}
                       </div>
-                      <div>
-                        <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Magnesium</div>
-                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
-                          {dish.magnesium_mg} mg
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Potassium</div>
-                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
-                          {dish.potassium_mg} mg
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Sodium</div>
-                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
-                          {dish.sodium_mg} mg
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Zinc</div>
-                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
-                          {dish.zinc_mg} mg
-                        </div>
-                      </div>
+                      <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>kcal</div>
                     </div>
-                  )}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </section>
-    </div>
-  );
+
+                    {/* Protein */}
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
+                        PROTEIN
+                      </div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#10b981" }}>
+                        {dish.protein_g}
+                      </div>
+                      <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
+                    </div>
+
+                    {/* Carbs */}
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
+                        CARBS
+                      </div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#f59e0b" }}>
+                        {dish.carbs_g}
+                      </div>
+                      <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
+                    </div>
+
+                    {/* Fats */}
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
+                        FATS
+                      </div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#8b5cf6" }}>
+                        {dish.fat_g}
+                      </div>
+                      <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
+                    </div>
+
+                    {/* Fiber */}
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
+                        FIBER
+                      </div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#06b6d4" }}>
+                        {dish.fiber_g}
+                      </div>
+                      <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
+                    </div>
+
+                    {/* Sugar */}
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem", fontWeight: "500" }}>
+                        SUGAR
+                      </div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#ec4899" }}>
+                        {dish.sugar_g}
+                      </div>
+                      <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>grams</div>
+                    </div>
+                  </div>
+
+                  {/* Vitamins Dropdown */}
+                  <div
+                    style={{
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <button
+                      onClick={() => toggleSection(dish.name, 'vitamins')}
+                      style={{
+                        width: "100%",
+                        padding: "0.75rem 1rem",
+                        background: "#fef3c7",
+                        border: "none",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        cursor: "pointer",
+                        transition: "background 0.2s",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#fde68a")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#fef3c7")}
+                    >
+                      <span style={{ fontSize: "0.95rem", fontWeight: "600", color: "#92400e" }}>
+                        💊 Vitamins
+                      </span>
+                      {isVitaminsExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    </button>
+                    {isVitaminsExpanded && (
+                      <div
+                        style={{
+                          padding: "1rem",
+                          background: "#fffbeb",
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                          gap: "0.75rem",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin A</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
+                            {dish.vitamin_A_ug} μg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>B-Complex</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
+                            {dish.vitamin_B_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin C</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
+                            {dish.vitamin_C_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin D</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
+                            {dish.vitamin_D_IU} IU
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin E</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
+                            {dish.vitamin_E_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: "500" }}>Vitamin K</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#44403c" }}>
+                            {dish.vitamin_K_ug} μg
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Minerals Dropdown */}
+                  <div
+                    style={{
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <button
+                      onClick={() => toggleSection(dish.name, 'minerals')}
+                      style={{
+                        width: "100%",
+                        padding: "0.75rem 1rem",
+                        background: "#dbeafe",
+                        border: "none",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        cursor: "pointer",
+                        transition: "background 0.2s",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#bfdbfe")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#dbeafe")}
+                    >
+                      <span style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e3a8a" }}>
+                        ⚡ Minerals
+                      </span>
+                      {isMineralsExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    </button>
+                    {isMineralsExpanded && (
+                      <div
+                        style={{
+                          padding: "1rem",
+                          background: "#eff6ff",
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                          gap: "0.75rem",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Iron</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
+                            {dish.iron_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Calcium</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
+                            {dish.calcium_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Magnesium</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
+                            {dish.magnesium_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Potassium</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
+                            {dish.potassium_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Sodium</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
+                            {dish.sodium_mg} mg
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>Zinc</div>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b" }}>
+                            {dish.zinc_mg} mg
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })
+      )}
+    </section>
+  </div>
+);
 }

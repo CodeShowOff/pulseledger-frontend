@@ -7,8 +7,6 @@ import { toast } from "sonner";
 import {
   LineChart,
   Line,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -20,8 +18,6 @@ import {
 interface WaterIntakeEntry {
   _id: string;
   amountLiters: number;
-  date: string;
-  goal: number;
   notes?: string;
   createdAt?: string;
 }
@@ -57,19 +53,19 @@ interface AnalyticsData {
   }>;
 }
 
-type Period = "day" | "week" | "month" | "year";
-
 export default function WaterIntakeTracker() {
-  const [period, setPeriod] = useState<Period>("month");
-  // Get local date string properly
-  const getLocalDateString = () => {
+  // Get Indian timezone date string (IST - UTC+5:30)
+  const getIndianDateString = () => {
     const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
+    // Convert to IST by adding 5 hours 30 minutes
+    const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+    const istTime = new Date(now.getTime() + istOffset);
+    const year = istTime.getUTCFullYear();
+    const month = String(istTime.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(istTime.getUTCDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
-  const [selectedDate, setSelectedDate] = useState(getLocalDateString());
+  const [selectedDate, setSelectedDate] = useState(getIndianDateString());
   const [amountInput, setAmountInput] = useState("");
   const [goalInput, setGoalInput] = useState("");
   const [notesInput, setNotesInput] = useState("");
@@ -101,12 +97,12 @@ export default function WaterIntakeTracker() {
     },
   });
 
-  // Fetch analytics based on period
+  // Fetch analytics for the week
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
-    queryKey: ["waterIntakeAnalytics", period, selectedDate],
+    queryKey: ["waterIntakeAnalytics", "week", selectedDate],
     queryFn: async () => {
       const res = await api.get("/water-intake/analytics", {
-        params: { period, date: selectedDate },
+        params: { period: "week", date: selectedDate },
       });
       return res.data as AnalyticsData;
     },
@@ -430,9 +426,10 @@ export default function WaterIntakeTracker() {
                     </p>
                     {entry.createdAt && (
                       <p style={{ fontSize: "0.7rem", color: "#6b7280", marginTop: "0.25rem" }}>
-                        {new Date(entry.createdAt).toLocaleTimeString('en-US', { 
+                        {new Date(new Date(entry.createdAt).getTime() + (5.5 * 60 * 60 * 1000)).toLocaleTimeString('en-IN', { 
                           hour: '2-digit', 
-                          minute: '2-digit' 
+                          minute: '2-digit',
+                          timeZone: 'Asia/Kolkata'
                         })}
                       </p>
                     )}
@@ -444,128 +441,18 @@ export default function WaterIntakeTracker() {
         </div>
       </section>
 
-      {/* Period Selector */}
-      <section style={{ marginTop: "1.25rem" }}>
-        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
-          {(["day", "week", "month", "year"] as Period[]).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setPeriod(p)}
-              className={`btn ${period === p ? "btn--primary" : "btn--outline"}`}
-              style={{ textTransform: "capitalize", fontSize: "0.9rem" }}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-      </section>
 
-      {/* Analytics Cards */}
-      {!analyticsLoading && (
-        <section
-          style={{
-            marginTop: "1.25rem",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "1rem",
-          }}
-        >
-          <div className="admin-card" style={{ borderLeft: "4px solid #0ea5e9" }}>
-            <p className="admin-card__label">Total Amount</p>
-            <p className="admin-card__value" style={{ color: "#0ea5e9", fontSize: "1.8rem" }}>
-              {summary.totalAmount}L
-            </p>
-            <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginTop: "0.35rem" }}>
-              Tracked in {period}
-            </p>
-          </div>
 
-          <div className="admin-card" style={{ borderLeft: "4px solid #10b981" }}>
-            <p className="admin-card__label">Average Goal</p>
-            <p className="admin-card__value" style={{ color: "#10b981", fontSize: "1.8rem" }}>
-              {summary.averageGoal}L
-            </p>
-            <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginTop: "0.35rem" }}>
-              Daily target
-            </p>
-          </div>
-
-          <div className="admin-card" style={{ borderLeft: "4px solid #8b5cf6" }}>
-            <p className="admin-card__label">Days Tracked</p>
-            <p className="admin-card__value" style={{ color: "#8b5cf6", fontSize: "1.8rem" }}>
-              {summary.daysTracked}
-            </p>
-            <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginTop: "0.35rem" }}>
-              Days with entries
-            </p>
-          </div>
-
-          <div className="admin-card" style={{ borderLeft: "4px solid #f59e0b" }}>
-            <p className="admin-card__label">Average Per Day</p>
-            <p className="admin-card__value" style={{ color: "#f59e0b", fontSize: "1.8rem" }}>
-              {summary.averagePerDay}L
-            </p>
-            <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginTop: "0.35rem" }}>
-              Daily average
-            </p>
-          </div>
-        </section>
-      )}
-
-      {/* Chart */}
+      {/* Weekly Chart */}
       {!analyticsLoading && analytics.length > 0 && (
         <section style={{ marginTop: "1.5rem" }}>
           <div className="admin-card">
             <h2 className="admin-page-header__title" style={{ fontSize: "1rem", marginBottom: "1rem" }}>
-              Water Intake Trend
+              Weekly Water Intake Trend
             </h2>
             
-            {/* Show individual entries for day view */}
-            {period === "day" && analytics[0]?.entries && analytics[0].entries.length > 0 && (
-              <div style={{ marginBottom: "1.5rem" }}>
-                <h3 style={{ fontSize: "0.9rem", fontWeight: "600", marginBottom: "0.75rem", color: "#374151" }}>
-                  All Entries on {analytics[0].date} ({analytics[0].entries.length})
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  {analytics[0].entries.map((entry) => (
-                    <div
-                      key={entry._id}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "0.75rem",
-                        backgroundColor: "#f0f9ff",
-                        borderRadius: "6px",
-                        border: "1px solid #bae6fd",
-                      }}
-                    >
-                      <div>
-                        <p style={{ fontSize: "0.9rem", fontWeight: "600", color: "#0ea5e9" }}>
-                          {entry.amount}L
-                        </p>
-                        <p style={{ fontSize: "0.75rem", color: "#6b7280", marginTop: "0.25rem" }}>
-                          {new Date(entry.time).toLocaleTimeString('en-US', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                        </p>
-                      </div>
-                      {entry.notes && (
-                        <p style={{ fontSize: "0.8rem", color: "#6b7280", fontStyle: "italic", maxWidth: "60%" }}>
-                          {entry.notes}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {period !== "day" && (
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={analytics} margin={{ bottom: 60, left: 0, right: 0 }}>
+            <ResponsiveContainer width="100%" height={350}>
+                <LineChart data={analytics} margin={{ bottom: 60, left: 0, right: 10, top: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis
                     dataKey="date"
@@ -573,27 +460,13 @@ export default function WaterIntakeTracker() {
                     textAnchor="end"
                     height={80}
                     style={{ fontSize: "0.7rem" }}
-                    interval={period === "month" ? "preserveStartEnd" : 0}
+                    interval={0}
                     tick={{ fontSize: 10 }}
                     tickFormatter={(value) => {
-                      // Format dates based on period for better mobile display
-                      if (period === "month" || period === "week") {
-                        // Show day number only (e.g., "1", "15", "30")
-                        const date = new Date(value);
-                        if (isNaN(date.getTime())) return value;
-                        return date.getDate().toString();
-                      } else if (period === "year") {
-                        // Show month abbreviation (e.g., "Jan", "Feb")
-                        const parts = value.split('-');
-                        if (parts.length !== 2) return value;
-                        const year = parseInt(parts[0]);
-                        const month = parseInt(parts[1]);
-                        if (isNaN(year) || isNaN(month)) return value;
-                        const date = new Date(year, month - 1, 1);
-                        if (isNaN(date.getTime())) return value;
-                        return date.toLocaleDateString('en-US', { month: 'short' });
-                      }
-                      return value;
+                      // Show day name for week view (e.g., "Mon", "Tue")
+                      const date = new Date(value);
+                      if (isNaN(date.getTime())) return value;
+                      return date.toLocaleDateString('en-US', { weekday: 'short' });
                     }}
                   />
                   <YAxis stroke="#6b7280" style={{ fontSize: "0.75rem" }} />
@@ -605,32 +478,38 @@ export default function WaterIntakeTracker() {
                     }}
                     formatter={(value: any) => `${value}L`}
                     labelFormatter={(label) => {
-                      // Full date in tooltip
-                      if (period === "year") {
-                        const parts = label.split('-');
-                        if (parts.length !== 2) return label;
-                        const year = parseInt(parts[0]);
-                        const month = parseInt(parts[1]);
-                        if (isNaN(year) || isNaN(month)) return label;
-                        const date = new Date(year, month - 1, 1);
-                        if (isNaN(date.getTime())) return label;
-                        return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-                      }
+                      // Full date in tooltip for week view
                       const date = new Date(label);
                       if (isNaN(date.getTime())) return label;
                       return date.toLocaleDateString('en-US', { 
+                        weekday: 'long',
                         month: 'short', 
-                        day: 'numeric',
-                        year: 'numeric'
+                        day: 'numeric'
                       });
                     }}
                   />
                   <Legend wrapperStyle={{ fontSize: "0.85rem" }} />
-                  <Bar dataKey="amount" fill="#0ea5e9" name="Amount (L)" />
-                  <Bar dataKey="goal" fill="#10b981" name="Goal (L)" />
-                </BarChart>
+                  <Line 
+                    type="monotone" 
+                    dataKey="amount" 
+                    stroke="#0ea5e9" 
+                    strokeWidth={2}
+                    dot={{ fill: "#0ea5e9", r: 4 }}
+                    activeDot={{ r: 6 }}
+                    name="Amount (L)" 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="goal" 
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    dot={{ fill: "#10b981", r: 4 }}
+                    activeDot={{ r: 6 }}
+                    name="Goal (L)" 
+                  />
+                </LineChart>
               </ResponsiveContainer>
-            )}
           </div>
         </section>
       )}
@@ -640,7 +519,7 @@ export default function WaterIntakeTracker() {
         <section style={{ marginTop: "1.5rem" }}>
           <div className="admin-card" style={{ textAlign: "center", padding: "2rem" }}>
             <p style={{ fontSize: "1rem", color: "#6b7280" }}>
-              No water intake data for this {period}. Start tracking to see your analytics!
+              No water intake data for this week. Start tracking to see your analytics!
             </p>
           </div>
         </section>

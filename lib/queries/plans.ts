@@ -10,7 +10,6 @@ export type CoachPlan = {
   durationWeeks?: number;
   price?: number;
   goal?: string;
-  isTemplate?: boolean;
   isDefault?: boolean;
   coachId?: {
     _id: string;
@@ -18,12 +17,6 @@ export type CoachPlan = {
   } | null;
   status?: string;
   startDate?: string;
-  tasks?: Array<{
-    title: string;
-    description?: string;
-    date?: string;
-    completedByClient?: boolean;
-  }>;
 };
 
 const fetchClientPlans = async (): Promise<CoachPlan[]> => {
