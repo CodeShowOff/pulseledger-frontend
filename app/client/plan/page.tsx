@@ -131,25 +131,6 @@ export default function MyPlanPage() {
                     <span>Start: {new Date(plan.startDate).toLocaleDateString()}</span>
                   )}
                 </div>
-                {plan.tasks?.length ? (
-                  <div style={{ marginTop: "0.75rem" }}>
-                    <p className="client-section-title" style={{ fontSize: "0.8rem" }}>
-                      Tasks Overview
-                    </p>
-                    <ul style={{ marginTop: "0.3rem", paddingLeft: "1rem" }}>
-                      {plan.tasks.slice(0, 3).map((task, index) => (
-                        <li key={`${plan._id}-task-${index}`} className="client-card__subtitle">
-                          - {task.title}
-                        </li>
-                      ))}
-                      {plan.tasks.length > 3 && (
-                        <li className="client-card__subtitle" style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
-                          +{plan.tasks.length - 3} more tasks
-                        </li>
-                      )}
-                    </ul>
-                  </div>
-                ) : null}
               </div>
             ))}
           </section>
