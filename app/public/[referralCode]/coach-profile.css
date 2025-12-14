@@ -114,17 +114,54 @@
   padding: 2rem;
 }
 
-.cpp-error__content {
-  text-align: center;
-  max-width: 400px;
-}
+  .cpp-hero__content {
+    transform: translateY(-96px); /* increased overlap so avatar covers more of banner */
+    padding: 0 0.75rem;
+    gap: 0.6rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
 
-.cpp-error__content h1 {
-  font-size: 3rem;
-  font-weight: 700;
-  color: var(--cpp-gray-800);
-  margin-bottom: 0.5rem;
-}
+  .cpp-hero__avatar-wrapper {
+    flex: 0 0 auto;
+    margin-right: 1rem;
+  }
+
+  .cpp-hero__avatar {
+    width: 112px;
+    height: 112px;
+  }
+
+  .cpp-hero__info {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center; /* center text vertically next to avatar */
+  }
+
+  /* Move buttons into a full-width row below avatar + info */
+  .cpp-hero__actions {
+    order: 2;
+    width: 100%;
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    justify-content: flex-start;
+  }
+
+  .cpp-hero__actions .cpp-btn {
+    flex: 1 1 48%;
+    min-width: 0;
+  }
+
+  /* Social links below buttons */
+  .cpp-hero__social {
+    order: 3;
+    width: 100%;
+    margin-top: 0.5rem;
+    justify-content: flex-start;
+  }
 
 .cpp-error__content p {
   font-size: 1.125rem;
@@ -133,220 +170,245 @@
 }
 
 /* ========================================
-   Hero Section
+   Hero / LinkedIn-like Header
    ======================================== */
 .cpp-hero {
   position: relative;
-  min-height: 520px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem 5rem;
-  overflow: hidden;
+  padding: 0 0 0.5rem; /* reduce bottom gap so CTA sits directly below hero */
+  overflow: visible;
+  background: transparent;
 }
 
 .cpp-hero__bg {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
   z-index: 0;
+  overflow: hidden;
 }
 
 .cpp-hero__gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 40%, #0ea5e9 100%);
+  background: linear-gradient(135deg, #eef2ff 0%, #e6f6ff 40%, #f8fafc 100%);
 }
 
 .cpp-hero__pattern {
   position: absolute;
   inset: 0;
-  background-image: 
-    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(255,255,255,0.05) 0%, transparent 30%);
-  animation: cpp-float 20s ease-in-out infinite;
+  opacity: 0.06;
+  background-image: radial-gradient(circle at 20% 80%, rgba(0,0,0,0.04) 0%, transparent 50%);
 }
 
-@keyframes cpp-float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-20px) scale(1.02); }
+/* Placeholder element for banner/cover image */
+.cpp-hero__cover {
+  height: 200px;
+  width: 100%;
+  position: relative;
+  z-index: 0;
+}
+
+/* Large translucent watermark text inside the banner */
+.cpp-hero__cover::after {
+  content: "PulseLedger";
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(48px, 12vw, 160px);
+  font-weight: 800;
+  color: rgba(17,24,39,0.06); /* subtle dark watermark */
+  letter-spacing: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1; /* sits below hero content (which is z-index:2) */
+}
+
+@media (max-width: 768px) {
+  .cpp-hero__cover::after {
+    transform: translate(-50%, -50%);
+    font-size: clamp(28px, 18vw, 80px);
+    letter-spacing: 2px;
+  }
+}
+
+/* Smaller watermark on narrow mobile screens to avoid clipping */
+@media (max-width: 420px) {
+  .cpp-hero__cover::after {
+    top: 25%;
+    font-size: clamp(25px, 14vw, 60px);
+    letter-spacing: 1px;
+    transform: translate(-50%, -50%);
+  }
 }
 
 .cpp-hero__content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  max-width: 900px; /* match stats width */
+  margin: 0 auto;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  text-align: center;
-  gap: 2rem;
-  max-width: 800px;
-  width: 100%;
-  animation: cpp-fadeInUp 0.8s ease-out;
-}
-
-@keyframes cpp-fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  gap: 2.5rem; /* more horizontal space between avatar and text */
+  padding: 0 2rem;
+  transform: translateY(-110px); /* increased overlap so avatar covers more of banner */
 }
 
 .cpp-hero__avatar-wrapper {
   position: relative;
-  display: inline-block;
+  flex: 0 0 auto;
+  margin-left: 0;
 }
 
 .cpp-hero__avatar {
-  width: 180px;
-  height: 180px;
-  border-radius: var(--cpp-radius-xl);
+  width: 220px;
+  height: 220px;
+  border-radius: var(--cpp-radius-full);
   object-fit: cover;
-  border: 4px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.2),
-    0 0 0 8px rgba(255, 255, 255, 0.1);
+  border: 8px solid var(--cpp-white);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
   transition: var(--cpp-transition);
-}
-
-.cpp-hero__avatar:hover {
-  transform: scale(1.05);
-  box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.25),
-    0 0 0 12px rgba(255, 255, 255, 0.15);
+  background: var(--cpp-white);
 }
 
 .cpp-hero__avatar--placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--cpp-primary-dark) 0%, var(--cpp-primary) 100%);
-  color: var(--cpp-white);
-  font-size: 4rem;
+  background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
+  color: var(--cpp-gray-700);
+  font-size: 2.25rem;
   font-weight: 700;
 }
 
 .cpp-hero__verified {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
-  width: 40px;
-  height: 40px;
+  /* sit on the avatar edge */
+  bottom: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
   background: var(--cpp-success);
   border-radius: var(--cpp-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--cpp-white);
-  border: 3px solid var(--cpp-white);
-  box-shadow: var(--cpp-shadow-md);
-  animation: cpp-pulse 2s ease-in-out infinite;
+  border: none; /* remove inner white circle */
+  box-shadow: none; /* remove shadow as requested */
+  z-index: 6;
 }
 
-@keyframes cpp-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+.cpp-hero__verified svg {
+  width: 24px; /* larger checkmark */
+  height: 24px;
+  stroke-width: 3; /* ensure thicker stroke for the tick */
 }
 
 .cpp-hero__info {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+  align-items: flex-start;
+  justify-content: center; /* vertically center info block next to avatar */
+  gap: 0.35rem;
+  text-align: left;
 }
 
 .cpp-hero__badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
+  gap: 0.45rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--cpp-white);
   border-radius: var(--cpp-radius-full);
-  color: var(--cpp-white);
-  font-size: 0.875rem;
+  color: var(--cpp-gray-700);
+  font-size: 0.85rem;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--cpp-gray-100);
 }
 
 .cpp-hero__badge svg {
-  color: #fbbf24;
+  color: #f59e0b;
 }
 
 .cpp-hero__name {
-  font-size: 3rem;
+  font-size: 2.25rem;
   font-weight: 800;
-  color: var(--cpp-white);
+  color: var(--cpp-gray-900);
   margin: 0;
-  letter-spacing: -0.02em;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  line-height: 1.1;
+  line-height: 1.05;
+}
+
+/* Make secondary button visible on the light banner background */
+.cpp-hero .cpp-btn--secondary {
+  background: var(--cpp-white);
+  color: var(--cpp-gray-800);
+  border: 1px solid var(--cpp-gray-200);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.cpp-hero .cpp-btn--secondary:hover {
+  transform: translateY(-2px);
 }
 
 .cpp-hero__tagline {
-  font-size: 1.25rem;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  color: var(--cpp-gray-600);
   margin: 0;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .cpp-hero__meta {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-top: 0.5rem;
+  gap: 1rem;
+  margin-top: 0.25rem;
 }
 
 .cpp-hero__meta-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--cpp-gray-600);
   font-size: 0.95rem;
   font-weight: 500;
 }
 
 .cpp-hero__meta-item svg {
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .cpp-hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.cpp-hero__social {
   display: flex;
   gap: 0.75rem;
   margin-top: 0.5rem;
 }
 
+.cpp-hero__social {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
 .cpp-social-link {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: var(--cpp-radius);
-  color: var(--cpp-white);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--cpp-white);
+  border-radius: 8px;
+  color: var(--cpp-gray-700);
+  border: 1px solid var(--cpp-gray-100);
   transition: var(--cpp-transition);
 }
 
 .cpp-social-link:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: var(--cpp-shadow-sm);
 }
 
 /* ========================================
@@ -456,8 +518,66 @@
 .cpp-stats {
   position: relative;
   z-index: 10;
-  margin-top: -40px;
+  margin-top: 0; /* remove heavy negative margin to prevent overlap */
   padding: 0 2rem;
+}
+
+/* CTA Row between hero and stats */
+.cpp-cta {
+  position: relative;
+  z-index: 11;
+  margin-top: -80px; /* pulled up so CTA sits closer to hero */
+  margin-bottom: 1rem; /* tightened space before stats */
+  padding: 0 1rem; /* reduce side padding to avoid overflow on narrow screens */
+}
+
+.cpp-cta__container {
+  max-width: 900px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: flex-start;
+  background: var(--cpp-white);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--cpp-radius-lg);
+  box-shadow: 0 12px 30px rgba(15,23,42,0.06);
+  border: 1px solid var(--cpp-gray-100);
+}
+
+.cpp-cta__container .cpp-btn {
+  box-shadow: 0 8px 24px rgba(15,23,42,0.06);
+  flex: 1 1 50%; /* each button fills half the CTA container */
+  min-width: 0; /* allow shrinking on narrow screens */
+}
+/* Ensure secondary CTA is visible on white CTA card */
+.cpp-cta__container .cpp-btn--secondary {
+  background: var(--cpp-white);
+  color: var(--cpp-gray-800);
+  border: 1px solid var(--cpp-gray-200);
+}
+
+@media (max-width: 480px) {
+  .cpp-cta__container {
+    flex-direction: row;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+  /* Make each button take exactly half the container width (minus gap) */
+  .cpp-cta__container .cpp-btn {
+    flex: 0 0 calc(50% - 0.5rem);
+    padding: 0.75rem 0.5rem;
+    font-size: 0.95rem;
+  }
+  .cpp-cta__container .cpp-btn--secondary {
+    background: var(--cpp-white);
+    color: var(--cpp-gray-800);
+    border: 1px solid var(--cpp-gray-200);
+  }
 }
 
 .cpp-stats__container {
@@ -525,7 +645,7 @@
    Main Content Area
    ======================================== */
 .cpp-main {
-  max-width: 1200px;
+  max-width: 900px; /* unify container width across sections */
   margin: 0 auto;
   padding: 0;
   display: flex;
@@ -689,16 +809,15 @@
 
 .cpp-gallery__image {
   width: 100%;
-  height: 400px;
-  object-fit: cover;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  object-fit: contain; /* show full original image without cropping */
+  background: var(--cpp-gray-100);
   border-radius: var(--cpp-radius-lg);
 }
 
 .cpp-gallery__dots {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
+  display: none !important; /* hide dot indicators entirely per request */
 }
 
 .cpp-gallery__dot {
@@ -717,7 +836,112 @@
 
 .cpp-gallery__dot--active {
   background: var(--cpp-primary);
-  width: 28px;
+  width: 10px; /* keep active dot circular instead of pill */
+  height: 10px;
+}
+
+/* Pager (Previous / Page X of Y / Next) */
+.cpp-gallery__pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 1rem;
+  color: var(--cpp-gray-700);
+}
+
+.cpp-gallery__pager--mobile { margin-top: 0.75rem; }
+
+.cpp-gallery__pager-btn {
+  background: transparent;
+  border: none;
+  color: var(--cpp-gray-600);
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+}
+
+.cpp-gallery__pager-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cpp-gallery__pager-info {
+  color: var(--cpp-gray-500);
+  font-weight: 500;
+}
+
+/* Desktop grid for gallery: 3-up */
+.cpp-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* show 3 images per row on desktop */
+  gap: 1.25rem; /* slightly more breathing room so images appear larger */
+  align-items: start;
+}
+
+.cpp-gallery__tile {
+  overflow: hidden;
+  border-radius: var(--cpp-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cpp-gallery__placeholder {
+  background: var(--cpp-gray-100);
+  color: var(--cpp-gray-400);
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cpp-radius-lg);
+  font-size: 0.95rem;
+}
+
+/* Mobile-specific carousel (single item) - hidden on desktop */
+.cpp-gallery__carousel-mobile {
+  display: none;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+.cpp-gallery__viewport-mobile {
+  flex: 1;
+  overflow: hidden;
+  border-radius: var(--cpp-radius-lg);
+}
+
+/* Responsive: show carousel on small screens and hide desktop grid */
+@media (max-width: 768px) {
+  .cpp-gallery__grid { display: none; }
+  /* stack carousel vertically on mobile so the image is on top, controls below */
+  .cpp-gallery__carousel-mobile { display: flex; align-items: stretch; flex-direction: column; }
+  .cpp-gallery__image { /* default smaller screens may still crop for grid, we'll override mobile viewport below */
+    aspect-ratio: 1 / 1;
+    height: auto;
+    max-width: 100%;
+  }
+  .cpp-gallery__nav { width: 40px; height: 40px; display: flex; }
+  /* ensure navs and pager appear below the image */
+  .cpp-gallery__viewport-mobile { order: 1; padding: 0; flex: 1; }
+  .cpp-gallery__carousel-mobile .cpp-gallery__nav { order: 2; margin: 0.5rem auto 0; }
+  .cpp-gallery__pager--mobile { order: 3; margin-top: 0.5rem; }
+  /* make the image respect its original aspect ratio on mobile and avoid cropping */
+  .cpp-gallery__viewport-mobile .cpp-gallery__image {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    aspect-ratio: auto;
+    object-fit: contain; /* show full image without cropping */
+    border-radius: var(--cpp-radius-lg);
+    display: block;
+  }
+  /* hide any leftover switch button markup and ensure pager is used */
+  .cpp-gallery__switch { display: none !important; }
+  .cpp-gallery__pager { display: none; }
+  .cpp-gallery__pager--mobile { display: flex; }
 }
 
 /* ========================================
@@ -1041,12 +1265,12 @@
   }
   
   .cpp-stats__container {
-    max-width: 1000px;
-    padding: 2.5rem 4rem;
+    max-width: 900px;
+    padding: 2.5rem 2.5rem;
   }
   
   .cpp-main {
-    max-width: 1300px;
+    max-width: 900px;
   }
 }
 
@@ -1081,39 +1305,52 @@
 @media (max-width: 768px) {
   .cpp-hero {
     min-height: auto;
-    padding: 3rem 1.5rem 4rem;
+    padding: 1.75rem 1rem 2.25rem;
   }
-  
+
+  .cpp-hero__content {
+    transform: translateY(-90px);
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 1rem;
+  }
+
   .cpp-hero__avatar {
     width: 140px;
     height: 140px;
+    flex: 0 0 auto;
   }
-  
+
+  .cpp-hero__info {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
   .cpp-hero__name {
-    font-size: 2rem;
+    font-size: 1.25rem;
   }
-  
+
   .cpp-hero__tagline {
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
-  
+
   .cpp-hero__meta {
-    gap: 0.75rem 1.25rem;
+    gap: 0.5rem 1rem;
   }
-  
+
   .cpp-hero__meta-item {
     font-size: 0.85rem;
   }
-  
+
   .cpp-hero__actions {
-    flex-direction: column;
-    width: 100%;
-    max-width: 320px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
   }
-  
+
   .cpp-hero__actions .cpp-btn {
-    width: 100%;
-    justify-content: center;
+    min-width: 120px;
   }
   
   .cpp-stats {
@@ -1215,67 +1452,66 @@
 
 /* Mobile */
 @media (max-width: 480px) {
+
   .cpp-hero {
-    padding: 2rem 1rem 3rem;
+    padding: 1.25rem 0.75rem 2rem;
   }
-  
+
+  .cpp-hero__cover,
+  .cpp-hero__bg {
+    height: 140px; /* smaller banner on narrow screens */
+  }
+
+  .cpp-hero__content {
+    transform: translateY(-78px); /* ensure avatar still overlaps banner on narrow screens */
+    padding: 0 0.75rem;
+    gap: 0.6rem;
+  }
+
   .cpp-hero__avatar {
-    width: 120px;
-    height: 120px;
+    width: 112px;
+    height: 112px;
   }
-  
+
   .cpp-hero__verified {
-    width: 32px;
-    height: 32px;
-    bottom: 4px;
-    right: 4px;
+    width: 28px;
+    height: 28px;
+    bottom: 2px;
+    right: 2px;
   }
-  
-  .cpp-hero__verified svg {
-    width: 18px;
-    height: 18px;
-  }
-  
+
   .cpp-hero__name {
-    font-size: 1.65rem;
-    padding: 0 0.5rem;
+    font-size: 1.1rem;
+    padding: 0;
   }
-  
+
   .cpp-hero__tagline {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
-  
+
   .cpp-hero__badge {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.85rem;
+    font-size: 0.72rem;
+    padding: 0.35rem 0.7rem;
   }
-  
+
   .cpp-hero__meta {
-    flex-direction: column;
-    gap: 0.5rem;
+    flex-direction: row;
+    gap: 0.5rem 0.75rem;
+    flex-wrap: wrap;
   }
-  
+
   .cpp-hero__meta-item {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
   }
-  
+
   .cpp-hero__actions {
-    max-width: 280px;
-    gap: 0.75rem;
-  }
-  
-  .cpp-btn--lg {
-    padding: 0.875rem 1.5rem;
-    font-size: 0.9rem;
-  }
-  
-  .cpp-hero__social {
+    width: 100%;
     gap: 0.5rem;
   }
-  
-  .cpp-social-link {
-    width: 40px;
-    height: 40px;
+
+  .cpp-hero__actions .cpp-btn {
+    flex: 1 1 auto;
+    min-width: 0;
   }
   
   .cpp-stats {
@@ -1436,13 +1672,16 @@
   }
   
   .cpp-stats__item {
-    flex: 0 0 100%;
-    justify-content: center;
+    flex: 0 0 48%;
+    justify-content: flex-start;
+    margin-bottom: 0.5rem;
   }
-  
+
   .cpp-stats__container {
-    flex-direction: column;
+    flex-direction: row;
     gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: space-between;
   }
   
   .cpp-section {

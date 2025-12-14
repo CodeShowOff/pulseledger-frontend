@@ -22,6 +22,18 @@
   background: #ffffff;
 }
 
+/* Desktop: constrain chat to app content width and center it (keeps mobile unchanged) */
+@media (min-width: 1024px) {
+  .chatPageFull {
+    max-width: 1200px; /* match other page containers */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 0; /* keep flat look like other pages */
+  }
+}
+
 /* Override client-page__inner and coach-content__inner max-width when containing chat */
 :global(.client-page__inner:has(.chatPageFull)),
 :global(.coach-content__inner:has(.chatPageFull)) {

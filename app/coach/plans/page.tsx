@@ -50,21 +50,20 @@ export default function CoachPlansPage() {
             )}
           </Link>
 
-          <Link href="/coach/plans/create" className="btn btn--primary">
-            <Plus className="btn__icon" /> New Plan
-          </Link>
-
           <Link
             href="/coach/subscriptions"
             className="btn btn--outline"
             style={{
-              marginLeft: "auto",
               display: "inline-flex",
               alignItems: "center",
               gap: "0.5rem",
             }}
           >
             <CreditCard className="btn__icon" /> Client Subscriptions
+          </Link>
+
+          <Link href="/coach/plans/create" className="btn btn--primary" style={{ marginLeft: "auto" }}>
+            <Plus className="btn__icon" /> New Plan
           </Link>
         </div>
       </section>

@@ -9,7 +9,7 @@ import Image from "next/image";
 import { 
   Instagram, Facebook, Twitter, Linkedin, Youtube, Globe, Phone, Mail,
   MapPin, Calendar, Award, Users, FileText, ShoppingBag, Star, 
-  ChevronRight, ChevronLeft, CheckCircle2, Sparkles, TrendingUp,
+  ChevronRight, ChevronLeft, CheckCircle2, Check, Sparkles, TrendingUp,
   Clock, Target, Heart, ArrowRight, Send
 } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
@@ -95,6 +95,10 @@ function PublicCoachProfileContent() {
   const contactFormRef = useRef<HTMLDivElement>(null);
   const [activeGalleryTab, setActiveGalleryTab] = useState<"awards" | "transformations">("transformations");
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [awardsIndex, setAwardsIndex] = useState(0);
+  const [transformsIndex, setTransformsIndex] = useState(0);
+  const [awardsPage, setAwardsPage] = useState(0);
+  const [transformsPage, setTransformsPage] = useState(0);
   const [progressData, setProgressData] = useState<Array<{ week: string; avgBMI: number }>>([]);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -142,6 +146,8 @@ function PublicCoachProfileContent() {
 
     return () => { cancelled = true; };
   }, [referralCode]);
+
+  // NOTE: autoplay removed — carousels advance only via user controls (navs/dots/switch button).
 
   const handleJoinClick = () => {
     const existingParams = new URLSearchParams(searchParams?.toString() || "");
@@ -225,9 +231,12 @@ function PublicCoachProfileContent() {
           <div className="cpp-hero__gradient" />
           <div className="cpp-hero__pattern" />
         </div>
-        
+
+        {/* Cover/banner placeholder - replaceable by actual image */}
+        <div className="cpp-hero__cover" />
+
         <div className="cpp-hero__content">
-          <div className="cpp-hero__avatar-wrapper">
+            <div className="cpp-hero__avatar-wrapper">
             {coach.avatarUrl ? (
               <Image
                 src={coach.avatarUrl}
@@ -243,7 +252,7 @@ function PublicCoachProfileContent() {
               </div>
             )}
             <div className="cpp-hero__verified">
-              <CheckCircle2 size={24} />
+              <Check size={22} strokeWidth={3} />
             </div>
           </div>
 
@@ -254,10 +263,6 @@ function PublicCoachProfileContent() {
             </div>
             
             <h1 className="cpp-hero__name">{coach.fullName}</h1>
-            
-            <p className="cpp-hero__tagline">
-              {coach.specialization || "Fitness & Wellness Coach"}
-            </p>
 
             <div className="cpp-hero__meta">
               {location && (
@@ -280,16 +285,7 @@ function PublicCoachProfileContent() {
               )}
             </div>
 
-            <div className="cpp-hero__actions">
-              <button onClick={scrollToContactForm} className="cpp-btn cpp-btn--primary cpp-btn--lg">
-                <Send size={18} />
-                Get in Touch
-              </button>
-              <button onClick={handleJoinClick} className="cpp-btn cpp-btn--secondary cpp-btn--lg">
-                Join with {coach.fullName.split(" ")[0]}
-                <ArrowRight size={18} />
-              </button>
-            </div>
+            {/* actions moved below into the CTA row located above the stats section */}
 
             {hasSocialLinks && (
               <div className="cpp-hero__social">
@@ -328,6 +324,20 @@ function PublicCoachProfileContent() {
           </div>
         </div>
       </section>
+
+      {/* CTA Row (buttons moved out of hero) */}
+      <div className="cpp-cta">
+        <div className="cpp-cta__container">
+          <button onClick={scrollToContactForm} className="cpp-btn cpp-btn--primary cpp-btn--lg">
+            <Send size={18} />
+            Get in Touch
+          </button>
+          <button onClick={handleJoinClick} className="cpp-btn cpp-btn--secondary cpp-btn--lg">
+            Join with {coach.fullName?.split(" ")?.[0] || "Coach"}
+            <ArrowRight size={18} />
+          </button>
+        </div>
+      </div>
 
       {/* Stats Bar */}
       <section className="cpp-stats">
@@ -404,67 +414,131 @@ function PublicCoachProfileContent() {
           </section>
         )}
 
-        {/* Gallery Section - Awards & Transformations */}
-        {hasGalleryItems && (
-          <section className="cpp-section cpp-gallery">
+        {/* Achievements Section (Awards) */}
+        {(coach.awards?.length || 0) > 0 && (
+          <section className="cpp-section cpp-gallery cpp-gallery--awards">
             <div className="cpp-section__header">
               <h2 className="cpp-section__title">
-                <Star size={24} />
-                Achievements & Results
+                <Award size={24} />
+                Achievements
               </h2>
-              <div className="cpp-gallery__tabs">
-                {(coach.transformations?.length || 0) > 0 && (
-                  <button
-                    className={`cpp-gallery__tab ${activeGalleryTab === 'transformations' ? 'cpp-gallery__tab--active' : ''}`}
-                    onClick={() => { setActiveGalleryTab('transformations'); setGalleryIndex(0); }}
-                  >
-                    <TrendingUp size={18} />
-                    Transformations
-                  </button>
-                )}
-                {(coach.awards?.length || 0) > 0 && (
-                  <button
-                    className={`cpp-gallery__tab ${activeGalleryTab === 'awards' ? 'cpp-gallery__tab--active' : ''}`}
-                    onClick={() => { setActiveGalleryTab('awards'); setGalleryIndex(0); }}
-                  >
-                    <Award size={18} />
-                    Awards
-                  </button>
+            </div>
+
+            {/* Desktop grid (3 items) */}
+            <div className="cpp-gallery__grid">
+              {((coach.awards || []).slice(awardsPage * 3, awardsPage * 3 + 3)).map((a, idx) => (
+                <div key={a.publicId || idx} className="cpp-gallery__tile">
+                  {a?.url ? (
+                    <Image src={a.url} alt={`Award ${awardsPage * 4 + idx + 1}`} width={360} height={360} className="cpp-gallery__image" />
+                  ) : (
+                    <div className="cpp-gallery__placeholder">No image</div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop pager */}
+            {((coach.awards?.length || 0) > 3) && (
+              <div className="cpp-gallery__pager">
+                <button className="cpp-gallery__pager-btn" disabled={awardsPage <= 0} onClick={() => setAwardsPage(p => Math.max(0, p - 1))}>Previous</button>
+                <div className="cpp-gallery__pager-info">Page {awardsPage + 1} of {Math.ceil((coach.awards?.length || 0) / 3)}</div>
+                <button className="cpp-gallery__pager-btn" disabled={awardsPage >= Math.ceil((coach.awards?.length || 0) / 3) - 1} onClick={() => setAwardsPage(p => Math.min(Math.ceil((coach.awards?.length || 0) / 3) - 1, p + 1))}>Next</button>
+              </div>
+            )}
+
+            {/* Mobile carousel (1 item) */}
+            <div className="cpp-gallery__carousel-mobile">
+              <button className="cpp-gallery__nav cpp-gallery__nav--prev" disabled={(coach.awards?.length || 0) <= 1} onClick={() => setAwardsIndex((p) => (p - 1 + (coach.awards?.length||1)) % (coach.awards?.length||1))}>
+                <ChevronLeft size={20} />
+              </button>
+              <div className="cpp-gallery__viewport-mobile">
+                {coach.awards?.[awardsIndex]?.url ? (
+                  <Image src={coach.awards[awardsIndex].url} alt={`Award`} width={600} height={600} className="cpp-gallery__image" />
+                ) : (
+                  <div className="cpp-gallery__placeholder" />
                 )}
               </div>
-            </div>
-            
-            <div className="cpp-gallery__carousel">
-              <button className="cpp-gallery__nav cpp-gallery__nav--prev" onClick={prevGallerySlide} disabled={galleryItems.length <= 1}>
-                <ChevronLeft size={24} />
-              </button>
-              
-              <div className="cpp-gallery__viewport">
-                {galleryItems.length > 0 && (
-                  <div className="cpp-gallery__slide">
-                    <Image
-                      src={galleryItems[galleryIndex]?.url}
-                      alt={activeGalleryTab === 'awards' ? 'Award' : 'Transformation'}
-                      width={600}
-                      height={400}
-                      className="cpp-gallery__image"
-                    />
-                  </div>
-                )}
+              {/* mobile pager (shows like: Previous  Page X of Y  Next) */}
+              <div className="cpp-gallery__pager cpp-gallery__pager--mobile">
+                <button className="cpp-gallery__pager-btn" disabled={(coach.awards?.length || 0) <= 1} onClick={() => setAwardsIndex(i => (i - 1 + (coach.awards?.length||1)) % (coach.awards?.length||1))}>Previous</button>
+                <div className="cpp-gallery__pager-info">Page {Math.min(awardsIndex + 1, Math.max(1, coach.awards?.length || 1))} of {Math.max(1, coach.awards?.length || 0)}</div>
+                <button className="cpp-gallery__pager-btn" disabled={(coach.awards?.length || 0) <= 1} onClick={() => setAwardsIndex(i => (i + 1) % Math.max(1, (coach.awards?.length || 1)))}>Next</button>
               </div>
-              
-              <button className="cpp-gallery__nav cpp-gallery__nav--next" onClick={nextGallerySlide} disabled={galleryItems.length <= 1}>
-                <ChevronRight size={24} />
-              </button>
+              {/* prev/next arrows remain (nav may be hidden on very small screens); pager below controls actual navigation */}
             </div>
-            
-            {galleryItems.length > 1 && (
+            {/* Dots for mobile carousel */}
+            {(coach.awards?.length || 0) > 1 && (
               <div className="cpp-gallery__dots">
-                {galleryItems.map((_, idx) => (
+                {coach.awards!.map((_, i) => (
                   <button
-                    key={idx}
-                    className={`cpp-gallery__dot ${idx === galleryIndex ? 'cpp-gallery__dot--active' : ''}`}
-                    onClick={() => setGalleryIndex(idx)}
+                    key={i}
+                    className={`cpp-gallery__dot ${i === awardsIndex ? 'cpp-gallery__dot--active' : ''}`}
+                    onClick={() => setAwardsIndex(i)}
+                    aria-label={`Show award ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Results Section (Transformations) */}
+        {(coach.transformations?.length || 0) > 0 && (
+          <section className="cpp-section cpp-gallery cpp-gallery--results">
+            <div className="cpp-section__header">
+              <h2 className="cpp-section__title">
+                <TrendingUp size={24} />
+                Results
+              </h2>
+            </div>
+
+            <div className="cpp-gallery__grid">
+              {((coach.transformations || []).slice(transformsPage * 3, transformsPage * 3 + 3)).map((t, idx) => (
+                <div key={t.publicId || idx} className="cpp-gallery__tile">
+                  {t?.url ? (
+                    <Image src={t.url} alt={`Result ${transformsPage * 4 + idx + 1}`} width={360} height={360} className="cpp-gallery__image" />
+                  ) : (
+                    <div className="cpp-gallery__placeholder">No image</div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop pager */}
+            {((coach.transformations?.length || 0) > 3) && (
+              <div className="cpp-gallery__pager">
+                <button className="cpp-gallery__pager-btn" disabled={transformsPage <= 0} onClick={() => setTransformsPage(p => Math.max(0, p - 1))}>Previous</button>
+                <div className="cpp-gallery__pager-info">Page {transformsPage + 1} of {Math.ceil((coach.transformations?.length || 0) / 3)}</div>
+                <button className="cpp-gallery__pager-btn" disabled={transformsPage >= Math.ceil((coach.transformations?.length || 0) / 3) - 1} onClick={() => setTransformsPage(p => Math.min(Math.ceil((coach.transformations?.length || 0) / 3) - 1, p + 1))}>Next</button>
+              </div>
+            )}
+
+            <div className="cpp-gallery__carousel-mobile">
+              <button className="cpp-gallery__nav cpp-gallery__nav--prev" disabled={(coach.transformations?.length || 0) <= 1} onClick={() => setTransformsIndex((p) => (p - 1 + (coach.transformations?.length||1)) % (coach.transformations?.length||1))}>
+                <ChevronLeft size={20} />
+              </button>
+              <div className="cpp-gallery__viewport-mobile">
+                {coach.transformations?.[transformsIndex]?.url ? (
+                  <Image src={coach.transformations[transformsIndex].url} alt={`Result`} width={600} height={600} className="cpp-gallery__image" />
+                ) : (
+                  <div className="cpp-gallery__placeholder" />
+                )}
+              </div>
+              <div className="cpp-gallery__pager cpp-gallery__pager--mobile">
+                <button className="cpp-gallery__pager-btn" disabled={(coach.transformations?.length || 0) <= 1} onClick={() => setTransformsIndex(i => (i - 1 + (coach.transformations?.length||1)) % (coach.transformations?.length||1))}>Previous</button>
+                <div className="cpp-gallery__pager-info">Page {Math.min(transformsIndex + 1, Math.max(1, coach.transformations?.length || 1))} of {Math.max(1, coach.transformations?.length || 0)}</div>
+                <button className="cpp-gallery__pager-btn" disabled={(coach.transformations?.length || 0) <= 1} onClick={() => setTransformsIndex(i => (i + 1) % Math.max(1, (coach.transformations?.length || 1)))}>Next</button>
+              </div>
+              {/* prev/next arrows remain (nav may be hidden on very small screens); pager below controls actual navigation */}
+            </div>
+            {(coach.transformations?.length || 0) > 1 && (
+              <div className="cpp-gallery__dots">
+                {coach.transformations!.map((_, i) => (
+                  <button
+                    key={i}
+                    className={`cpp-gallery__dot ${i === transformsIndex ? 'cpp-gallery__dot--active' : ''}`}
+                    onClick={() => setTransformsIndex(i)}
+                    aria-label={`Show result ${i + 1}`}
                   />
                 ))}
               </div>

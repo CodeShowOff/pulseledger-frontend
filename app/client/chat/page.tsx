@@ -27,7 +27,7 @@ export default function ClientChatPage() {
     const siteShell = document.querySelector('.site-shell') as HTMLElement | null;
 
     const updateNavbarHeight = () => {
-      const navbar = document.querySelector('.site-navbar') as HTMLElement | null;
+      const navbar = (document.querySelector('.site-navbar') || document.querySelector('.navbar-modern')) as HTMLElement | null;
       const navHeight = navbar?.offsetHeight ?? 76;
       document.documentElement.style.setProperty('--chat-navbar-height', `${navHeight}px`);
     };
@@ -37,11 +37,20 @@ export default function ClientChatPage() {
     updateNavbarHeight();
     window.addEventListener('resize', updateNavbarHeight);
 
+    // Observe navbar size changes (handles mobile two-row nav, dynamic content)
+    const navbarEl = (document.querySelector('.site-navbar') || document.querySelector('.navbar-modern')) as HTMLElement | null;
+    let resizeObserver: ResizeObserver | null = null;
+    if (navbarEl && typeof window.ResizeObserver === 'function') {
+      resizeObserver = new ResizeObserver(() => updateNavbarHeight());
+      resizeObserver.observe(navbarEl);
+    }
+
     return () => {
       body.classList.remove('chat-page-active');
       siteShell?.classList.remove('chat-page-shell');
       document.documentElement.style.removeProperty('--chat-navbar-height');
       window.removeEventListener('resize', updateNavbarHeight);
+      if (resizeObserver) resizeObserver.disconnect();
     };
   }, []);
 

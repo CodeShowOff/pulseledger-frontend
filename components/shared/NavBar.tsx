@@ -137,7 +137,7 @@ const Navbar = React.memo(function Navbar() {
 
         {/* Desktop Navigation - in center */}
         <div className="navbar-modern__nav">
-          {(pathname !== "/" || user) && !pathname?.includes("/chat") && (
+          {(pathname !== "/" || user) && (
             <div className="navbar-modern__links">
               {links.map((link) => {
                 const isChatLink = link.href === "/coach/chat" || link.href === "/client/chat";
@@ -243,7 +243,7 @@ const Navbar = React.memo(function Navbar() {
       </div>
 
       {/* Secondary Navigation Row - shows on mobile with icons, hidden on desktop */}
-      {(pathname !== "/" || user) && !pathname?.includes("/chat") && (
+      {(pathname !== "/" || user) && (
         <div className="navbar-modern__secondary">
           <div className="navbar-modern__secondary-inner">
             {links.map((link) => {
