@@ -3186,7 +3186,7 @@ body.chat-page-active .coach-content__inner {
 .auth-shell {
   min-height: calc(100vh - 56px - 56px);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: 2rem 1.25rem;
   background: linear-gradient(135deg, #eff6ff, #ffffff);
