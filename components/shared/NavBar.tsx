@@ -29,7 +29,32 @@ const Navbar = React.memo(function Navbar() {
   const { data: unreadCount = 0 } = useUnreadChatCount();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // Hide navbar on scroll down, show on scroll up
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < 10) {
+        setIsVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down
+        setIsVisible(false);
+        setMenuOpen(false); // Close dropdown when hiding
+      } else if (currentScrollY < lastScrollY) {
+        // Scrolling up
+        setIsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -94,7 +119,7 @@ const Navbar = React.memo(function Navbar() {
     try {
       const { default: api } = await import("@/lib/axios");
       await api.post("/auth/logout");
-    } catch (err) {
+    } catch {
       // ignore backend failures
     } finally {
       logout();
@@ -103,95 +128,85 @@ const Navbar = React.memo(function Navbar() {
   }, [logout, router]);
 
   return (
-    <nav
-      className="site-navbar"
-      style={{
-        background: "linear-gradient(90deg, #f3f4f6 0%, #e0f2fe 55%, #ede9fe 100%)",
-        borderBottom: "1px solid #d1d5db",
-        boxShadow: "0 6px 12px rgba(15, 23, 42, 0.08)",
-        top: 0,
-        zIndex: 30,
-      }}
-    >
-      <div className="site-navbar__inner">
-        <div>
-          <Link
-            href="/"
-            className="site-navbar__brand"
-            style={{ fontSize: "1.5rem" }}
-          >
-            <span style={{ fontWeight: "bold" }}>PulseLedger</span>
-          </Link>
+    <nav className={`navbar-modern ${isVisible ? "navbar-modern--visible" : "navbar-modern--hidden"}`}>
+      <div className="navbar-modern__container">
+        {/* Logo */}
+        <Link href="/" className="navbar-modern__logo">
+          <span className="navbar-modern__logo-text">PulseLedger</span>
+        </Link>
+
+        {/* Desktop Navigation - in center */}
+        <div className="navbar-modern__nav">
+          {(pathname !== "/" || user) && !pathname?.includes("/chat") && (
+            <div className="navbar-modern__links">
+              {links.map((link) => {
+                const isChatLink = link.href === "/coach/chat" || link.href === "/client/chat";
+                const showBadge = isChatLink && unreadCount > 0;
+
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`navbar-modern__link ${isActive(link.href) ? "navbar-modern__link--active" : ""}`}
+                  >
+                    {link.label}
+                    {showBadge && (
+                      <span className="navbar-modern__badge">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* right controls */}
-        <div className="site-navbar__actions">
-          {!user && (
+        {/* Right Actions */}
+        <div className="navbar-modern__actions">
+          {!user ? (
             <>
-              <Link href="/auth/login" className="site-navbar__link-button">
-                Login
+              <Link href="/auth/login" className="navbar-modern__btn navbar-modern__btn--ghost">
+                Sign In
               </Link>
-              <Link
-                href="/auth/register"
-                className="site-navbar__link-button site-navbar__link-button--outline"
-              >
-                Register
+              <Link href="/auth/register" className="navbar-modern__btn navbar-modern__btn--primary">
+                Get Started
               </Link>
             </>
-          )}
-
-          {user && (
-            <div className="site-navbar__action-group" ref={menuRef}>
+          ) : (
+            <div className="navbar-modern__user" ref={menuRef}>
               <NotificationBell />
-
+              
               <button
                 type="button"
                 onClick={() => setMenuOpen((open) => !open)}
-                className="site-navbar__avatar-button"
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 999,
-                  overflow: "hidden",
-                  padding: 0,
-                  border: "1px solid #e5e7eb",
-                  background: "transparent",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  marginLeft: 4,
-                }}
+                className="navbar-modern__avatar"
               >
                 {avatarUrl ? (
                   <Image
                     src={avatarUrl}
                     alt="Avatar"
-                    width={40}
-                    height={40}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      display: "block",
-                      filter: "brightness(1.2)",
-                    }}
+                    width={36}
+                    height={36}
+                    className="navbar-modern__avatar-img"
                   />
                 ) : (
-                  <div
-                    className="client-profile-avatar"
-                    style={{ width: "100%", height: "100%", fontSize: 12 }}
-                  >
+                  <div className="navbar-modern__avatar-fallback">
                     {user.fullName?.[0]?.toUpperCase() || "U"}
                   </div>
                 )}
               </button>
 
               {menuOpen && (
-                <div className="site-navbar__menu">
+                <div className="navbar-modern__dropdown">
+                  <div className="navbar-modern__dropdown-header">
+                    <span className="navbar-modern__dropdown-name">{user.fullName}</span>
+                    <span className="navbar-modern__dropdown-role">{user.role}</span>
+                  </div>
+                  <div className="navbar-modern__dropdown-divider" />
                   <button
                     type="button"
-                    className="site-navbar__menu-item"
+                    className="navbar-modern__dropdown-item"
                     onClick={() => {
                       setMenuOpen(false);
                       router.push("/profile");
@@ -199,10 +214,9 @@ const Navbar = React.memo(function Navbar() {
                   >
                     My Profile
                   </button>
-
                   <button
                     type="button"
-                    className="site-navbar__menu-item"
+                    className="navbar-modern__dropdown-item"
                     onClick={() => {
                       setMenuOpen(false);
                       router.push("/notifications");
@@ -210,10 +224,10 @@ const Navbar = React.memo(function Navbar() {
                   >
                     Notifications
                   </button>
-
+                  <div className="navbar-modern__dropdown-divider" />
                   <button
                     type="button"
-                    className="site-navbar__menu-item site-navbar__menu-item--danger"
+                    className="navbar-modern__dropdown-item navbar-modern__dropdown-item--danger"
                     onClick={() => {
                       setMenuOpen(false);
                       handleLogout();
@@ -228,120 +242,35 @@ const Navbar = React.memo(function Navbar() {
         </div>
       </div>
 
-      {/* secondary nav row - Hide on home page when not logged in AND hide on chat pages */}
+      {/* Secondary Navigation Row - shows on mobile with icons, hidden on desktop */}
       {(pathname !== "/" || user) && !pathname?.includes("/chat") && (
-        <div
-          className="site-navbar__inner"
-          style={{
-            borderTop: "1px solid #e5e7eb",
-            paddingTop: "0.35rem",
-            paddingBottom: "0.35rem",
-            justifyContent: "center",
-          }}
-        >
-        <nav
-          className="site-navbar__actions"
-          style={{
-            overflowX: "auto",
-            justifyContent: "center",
-            display: "flex",
-            gap: "1rem",
-          }}
-        >
-          {links.map((link) => {
-            const Icon = link.icon;
-            const isChatLink = link.href === "/coach/chat" || link.href === "/client/chat";
-            const showBadge = isChatLink && unreadCount > 0;
+        <div className="navbar-modern__secondary">
+          <div className="navbar-modern__secondary-inner">
+            {links.map((link) => {
+              const Icon = link.icon;
+              const isChatLink = link.href === "/coach/chat" || link.href === "/client/chat";
+              const showBadge = isChatLink && unreadCount > 0;
 
-            return (
-              <div key={link.href} style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+              return (
                 <Link
+                  key={link.href}
                   href={link.href}
-                  className={
-                    isActive(link.href)
-                      ? "site-navbar__link-button"
-                      : "site-navbar__link-button--outline"
-                  }
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "0.5rem",
-                    position: "relative",
-                  }}
+                  className={`navbar-modern__secondary-link ${isActive(link.href) ? "navbar-modern__secondary-link--active" : ""}`}
                 >
-                  {/* Mobile: icon only */}
-                  {Icon && (
-                    <span className="mobile-icon" style={{ position: "relative" }}>
-                      <Icon size={18} strokeWidth={2} />
-                      {showBadge && (
-                        <span style={{
-                          position: "absolute",
-                          top: "-6px",
-                          right: "-6px",
-                          minWidth: "16px",
-                          height: "16px",
-                          padding: "0 4px",
-                          backgroundColor: "#ef4444",
-                          color: "white",
-                          fontSize: "9px",
-                          fontWeight: 700,
-                          borderRadius: "999px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                        }}>
-                          {unreadCount > 99 ? "99+" : unreadCount}
-                        </span>
-                      )}
-                    </span>
-                  )}
-
-                  {/* Desktop: text only */}
-                  <span className="desktop-label">{link.label}</span>
-                  {showBadge && (
-                    <span className="desktop-label chat-badge-desktop" style={{
-                      minWidth: "20px",
-                      height: "20px",
-                      padding: "0 6px",
-                      backgroundColor: "#ef4444",
-                      color: "white",
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      borderRadius: "999px",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginLeft: "0.25rem",
-                    }}>
-                      {unreadCount > 99 ? "99+" : unreadCount}
-                    </span>
-                  )}
+                  <span className="navbar-modern__secondary-icon">
+                    <Icon size={20} strokeWidth={2} />
+                    {showBadge && (
+                      <span className="navbar-modern__secondary-badge">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </span>
+                  <span className="navbar-modern__secondary-label">{link.label}</span>
                 </Link>
-                {/* Label below icon for mobile */}
-                <span
-                  className="mobile-label"
-                  style={{
-                    fontSize: "0.6rem",
-                    marginTop: "0.25rem",
-                    color: isActive(link.href) ? "#2563eb" : "#6b7280",
-                    fontWeight: isActive(link.href) ? "600" : "400",
-                    textAlign: "center",
-                    lineHeight: "1",
-                    maxWidth: "50px",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {link.label}
-                </span>
-              </div>
-            );
-          })}
-        </nav>
-      </div>
+              );
+            })}
+          </div>
+        </div>
       )}
     </nav>
   );

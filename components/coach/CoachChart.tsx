@@ -15,7 +15,7 @@ export default function CoachChart() {
 
   const CustomTooltip = useMemo(
     () =>
-      ({ active, payload }: any) => {
+      ({ active, payload }: { active?: boolean; payload?: any[] }) => {
         if (active && payload && payload.length) {
           return (
             <div
@@ -28,10 +28,10 @@ export default function CoachChart() {
               }}
             >
               <p style={{ fontSize: "0.85rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                {payload[0].payload.week}
+                {payload[0]?.payload?.week}
               </p>
               <p style={{ fontSize: "1rem", fontWeight: "600", color: "#111827" }}>
-                {payload[0].value != null ? payload[0].value.toFixed(1) : "-"}
+                {payload[0]?.value != null ? payload[0].value.toFixed(1) : "-"}
               </p>
             </div>
           );

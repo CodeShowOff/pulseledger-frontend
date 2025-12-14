@@ -69,7 +69,6 @@ export default function CoachCreateVoucherPage() {
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div>
             <h1 className="admin-page-header__title">Create Voucher</h1>
-            <p className="admin-page-header__subtitle">Send discounts to all or specific clients.</p>
           </div>
           <Link href="/coach/products" className="btn btn--outline">Back</Link>
         </div>

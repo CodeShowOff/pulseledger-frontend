@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
-import { CheckCircle, XCircle, Clock, AlertCircle, Calendar, DollarSign } from "lucide-react";
+import axios from "axios";
+import { CheckCircle, XCircle, Clock, Calendar, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 
 interface PlatformSubscription {
@@ -116,8 +117,15 @@ export default function AdminPlatformSubscriptionsPage() {
           : "Payment rejected successfully"
       );
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to process payment");
+    onError: (error: unknown) => {
+      if (axios.isAxiosError(error)) {
+        const msg = (error as any).response?.data?.message || (error as any).message || "Failed to process payment";
+        toast.error(msg);
+      } else if (error instanceof Error) {
+        toast.error(error.message || "Failed to process payment");
+      } else {
+        toast.error("Failed to process payment");
+      }
     },
   });
 
@@ -133,8 +141,15 @@ export default function AdminPlatformSubscriptionsPage() {
       setExtendDays("30");
       toast.success("Subscription extended successfully");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to extend subscription");
+    onError: (error: unknown) => {
+      if (axios.isAxiosError(error)) {
+        const msg = (error as any).response?.data?.message || (error as any).message || "Failed to extend subscription";
+        toast.error(msg);
+      } else if (error instanceof Error) {
+        toast.error(error.message || "Failed to extend subscription");
+      } else {
+        toast.error("Failed to extend subscription");
+      }
     },
   });
 

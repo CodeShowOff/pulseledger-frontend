@@ -96,25 +96,19 @@ export default function ProductsPage() {
     );
 
   return (
-    <div className="client-page">
-      <div className="client-page__inner">
-        <header className="client-page__header">
-          <h1 className="client-page__title">Products</h1>
-          <p className="client-page__subtitle">
-            Add items from your coach to the cart and submit an order. Your
-            coach will review it from their dashboard.
-          </p>
-          <div style={{ marginTop: "0.75rem", maxWidth: 360 }}>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search products by name or description"
-              className="auth-form__input"
-            />
-          </div>
-        </header>
-        <div className="client-page__sections">
-          <div className="client-card">
+    <div className="client-page__sections">
+      <header className="client-page__header">
+        <h1 className="client-page__title">Products</h1>
+        <div style={{ marginTop: "0.75rem", maxWidth: 360 }}>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products by name or description"
+            className="auth-form__input"
+          />
+        </div>
+      </header>
+      <div className="client-card">
             <div
               className="client-card__header"
               style={{
@@ -128,9 +122,7 @@ export default function ProductsPage() {
             >
               <div style={{ minWidth: 0 }}>
                 <p className="client-card__title">Available Products</p>
-                <p className="client-card__subtitle">
-                  Choose items from your coach and manage quantities in your cart.
-                </p>
+                
               </div>
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                 <Link 
@@ -327,8 +319,7 @@ export default function ProductsPage() {
             )}
           </div>
         </div>
-      </div>
-    </div>
+    // </div>
   );
 }
 

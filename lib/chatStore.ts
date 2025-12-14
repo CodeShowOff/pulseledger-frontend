@@ -223,7 +223,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       process.env.NEXT_PUBLIC_BACKEND_URL ||
       (typeof window !== "undefined" ? "http://localhost:5000" : "");
 
-    console.log("🔌 Connecting to socket:", socketUrl);
+    // console.log("🔌 Connecting to socket:", socketUrl);
 
     const newSocket = io(socketUrl, {
       auth: { token },
@@ -239,17 +239,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     // Connection events
     newSocket.on("connect", () => {
-      console.log("🔌 Socket connected");
+      // console.log("🔌 Socket connected");
       set({ isConnected: true, connectionError: null });
     });
 
     newSocket.on("disconnect", (reason) => {
-      console.log("🔌 Socket disconnected:", reason);
+      // console.log("🔌 Socket disconnected:", reason);
       set({ isConnected: false });
     });
 
     newSocket.on("connect_error", (error) => {
-      console.warn("🔌 Socket connection error:", error.message);
+      // console.warn("🔌 Socket connection error:", error.message);
       // Don't set connection error for transient websocket errors during upgrade
       // Only set error if we've exhausted reconnection attempts or it's a critical error
       const isTransientError = error.message?.includes("websocket error") || 
@@ -411,7 +411,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // Join new conversation
     socket.emit(SOCKET_EVENTS.JOIN_CONVERSATION, { conversationId }, (response: { success: boolean; error?: string }) => {
       if (!response.success) {
-        console.error("Failed to join conversation:", response.error);
+        // console.error("Failed to join conversation:", response.error);
       }
     });
 
@@ -456,7 +456,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
             // Message will be added via NEW_MESSAGE event
             resolve(response.message);
           } else {
-            console.error("Failed to send message:", response.error);
+            // console.error("Failed to send message:", response.error);
             resolve(null);
           }
         }

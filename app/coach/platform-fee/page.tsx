@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import axios from "axios";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {
@@ -99,8 +100,15 @@ export default function PlatformFeeManagementPage() {
       setPreviewUrl(null);
       alert("Payment submitted successfully! Awaiting admin approval.");
     },
-    onError: (error: any) => {
-      alert(error.response?.data?.message || "Failed to submit payment");
+    onError: (error: unknown) => {
+      if (axios.isAxiosError(error)) {
+        const msg = (error as any).response?.data?.message || (error as any).message;
+        alert(msg || "Failed to submit payment");
+      } else if (error instanceof Error) {
+        alert(error.message || "Failed to submit payment");
+      } else {
+        alert(String(error) || "Failed to submit payment");
+      }
     },
   });
 
@@ -274,9 +282,6 @@ export default function PlatformFeeManagementPage() {
       <section className="admin-page-header">
         <div>
           <h1 className="admin-page-header__title">💳 Platform Fee Management</h1>
-          <p className="admin-page-header__subtitle">
-            Track your platform subscription payments, history, and renewal dates
-          </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <div

@@ -8,6 +8,15 @@ import styles from "./coach-notifications.module.css";
 type Client = { _id: string; name?: string; email?: string };
 type CoachNotificationMode = "allClients" | "specific";
 
+function isAxiosError(error: unknown): error is { response?: { data?: { message?: string } } } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof (error as { response?: unknown }).response === "object"
+  );
+}
+
 export default function CoachSendNotificationsPage() {
   const [mode, setMode] = useState<CoachNotificationMode>("allClients");
   const [clients, setClients] = useState<Client[]>([]);
@@ -30,7 +39,7 @@ export default function CoachSendNotificationsPage() {
         setLoadingClients(true);
         const res = await api.get("/coach/clients");
         if (!ignore) setClients(res.data?.data || []);
-      } catch (err) {
+      } catch {
         toast.error("Failed to load clients");
       } finally {
         setLoadingClients(false);
@@ -74,8 +83,12 @@ export default function CoachSendNotificationsPage() {
       setMessage("");
       setTitle("");
       setSelected([]);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to send");
+    } catch (err: unknown) {
+      let errorMessage = "Failed to send";
+      if (isAxiosError(err)) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -88,7 +101,6 @@ export default function CoachSendNotificationsPage() {
     <div className={styles.wrapper}>
       <section className={styles.header}>
         <h1 className={styles.title}>Send Notification</h1>
-        <p className={styles.subtitle}>Notify all clients or choose specific clients.</p>
       </section>
 
       <div className={styles.card}>
@@ -184,7 +196,7 @@ export default function CoachSendNotificationsPage() {
               <select
                 className={styles.select}
                 value={type}
-                onChange={(e) => setType(e.target.value as any)}
+                onChange={(e) => setType(e.target.value as "info" | "order" | "plan" | "system")}
               >
                 <option value="info">Info</option>
                 <option value="order">Order</option>

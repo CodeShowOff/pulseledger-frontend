@@ -100,8 +100,9 @@ export default function PlanPaymentPage() {
       setPaymentProofUrl(data.url);
       toast.success("Payment proof uploaded");
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to upload proof");
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error?.response?.data?.message || "Failed to upload proof");
     },
   });
 
@@ -118,8 +119,9 @@ export default function PlanPaymentPage() {
       queryClient.invalidateQueries({ queryKey: CURRENT_PLAN_KEY });
       router.push("/client/subscriptions");
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to submit plan request");
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error?.response?.data?.message || "Failed to submit plan request");
     },
   });
 
@@ -157,11 +159,9 @@ export default function PlanPaymentPage() {
 
   if (loadingPlan) {
     return (
-      <div className="client-page">
-        <div className="client-page__inner">
-          <div className="client-card">
-            <p className="client-card__subtitle">Loading plan details...</p>
-          </div>
+      <div className="client-page__sections">
+        <div className="client-card">
+          <p className="client-card__subtitle">Loading plan details...</p>
         </div>
       </div>
     );
@@ -169,13 +169,11 @@ export default function PlanPaymentPage() {
 
   if (!plan) {
     return (
-      <div className="client-page">
-        <div className="client-page__inner">
-          <div className="client-card">
-            <p className="client-card__subtitle" style={{ color: "#dc2626" }}>
-              Plan not found
-            </p>
-          </div>
+      <div className="client-page__sections">
+        <div className="client-card">
+          <p className="client-card__subtitle" style={{ color: "#dc2626" }}>
+            Plan not found
+          </p>
         </div>
       </div>
     );
@@ -184,13 +182,9 @@ export default function PlanPaymentPage() {
   const price = typeof plan.price === "number" ? plan.price : Number(plan.price ?? 0);
 
   return (
-    <div className="client-page">
-      <div className="client-page__inner">
+    <div className="client-page__sections">
         <header className="client-page__header">
           <h1 className="client-page__title">Complete Payment</h1>
-          <p className="client-page__subtitle">
-            Complete your payment to submit the plan request to your coach.
-          </p>
         </header>
 
         <section className="client-page__sections">
@@ -346,7 +340,6 @@ export default function PlanPaymentPage() {
               : "Submit Request"}
           </button>
         </div>
-      </div>
     </div>
   );
 }

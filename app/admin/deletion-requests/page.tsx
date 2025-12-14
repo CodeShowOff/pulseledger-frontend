@@ -55,8 +55,9 @@ export default function DeletionRequestsPage() {
       setProcessingId(null);
       setAdminNotes("");
     },
-    onError: (err: any) => {
-      const message = err?.response?.data?.message || "Failed to process request";
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      const message = error?.response?.data?.message || "Failed to process request";
       toast.error(message);
     },
   });

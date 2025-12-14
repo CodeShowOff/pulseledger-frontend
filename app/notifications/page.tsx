@@ -97,8 +97,7 @@ export default function NotificationsPage() {
             {(role === "admin" || role === "coach") && (
               <Link
                 href={role === "admin" ? "/admin/notifications" : "/coach/notifications"}
-                className="client-button client-button--outline notification-chip-row__cta"
-                style={{ marginLeft: 'auto', backgroundColor: '#22c55e', color: 'white', borderColor: '#22c55e' }}
+                className="client-button client-button--outline notification-chip-row__cta notification-chip-row__send"
               >
                 Send notification
               </Link>

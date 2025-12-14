@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "sonner";
-import { GlassWater, Edit2, Check, X, ExternalLink } from "lucide-react";
+import { GlassWater, ExternalLink } from "lucide-react";
 import Link from "next/link";
 
 interface WaterIntakeEntry {
@@ -69,8 +69,9 @@ export default function WaterIntakeWidget() {
       queryClient.invalidateQueries({ queryKey: ["waterIntakeToday"] });
       queryClient.invalidateQueries({ queryKey: ["waterIntakeAnalytics"] });
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to log water intake");
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error.response?.data?.message || "Failed to log water intake");
     },
   });
 

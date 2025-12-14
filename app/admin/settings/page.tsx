@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import api from "@/lib/axios";
+import axios from "axios";
 import { Upload, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,8 +38,15 @@ export default function AdminSettingsPage() {
       setPreviewUrl(null);
       toast.success("Payment QR code uploaded successfully");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to upload QR code");
+    onError: (error: unknown) => {
+      if (axios.isAxiosError(error)) {
+        const msg = (error as any).response?.data?.message || (error as any).message || "Failed to upload QR code";
+        toast.error(msg);
+      } else if (error instanceof Error) {
+        toast.error(error.message || "Failed to upload QR code");
+      } else {
+        toast.error("Failed to upload QR code");
+      }
     },
   });
 

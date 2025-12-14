@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import axios from "axios";
 import { toast } from "sonner";
 import {
   LineChart,
@@ -121,8 +122,15 @@ export default function WaterIntakeTracker() {
       queryClient.invalidateQueries({ queryKey: ["waterIntakeToday"] });
       queryClient.invalidateQueries({ queryKey: ["waterIntakeAnalytics"] });
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to update goal");
+    onError: (error: unknown) => {
+      if (axios.isAxiosError(error)) {
+        const msg = (error as any).response?.data?.message || (error as any).message || "Failed to update goal";
+        toast.error(msg);
+      } else if (error instanceof Error) {
+        toast.error(error.message || "Failed to update goal");
+      } else {
+        toast.error("Failed to update goal");
+      }
     },
   });
 
@@ -155,8 +163,15 @@ export default function WaterIntakeTracker() {
       queryClient.invalidateQueries({ queryKey: ["waterIntakeToday"] });
       queryClient.invalidateQueries({ queryKey: ["waterIntakeAnalytics"] });
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to log water intake");
+    onError: (error: unknown) => {
+      if (axios.isAxiosError(error)) {
+        const msg = (error as any).response?.data?.message || (error as any).message || "Failed to log water intake";
+        toast.error(msg);
+      } else if (error instanceof Error) {
+        toast.error(error.message || "Failed to log water intake");
+      } else {
+        toast.error("Failed to log water intake");
+      }
     },
   });
 
@@ -476,7 +491,7 @@ export default function WaterIntakeTracker() {
                       border: "1px solid #e5e7eb",
                       borderRadius: "8px",
                     }}
-                    formatter={(value: any) => `${value}L`}
+                    formatter={(value: number | string) => `${value}L`}
                     labelFormatter={(label) => {
                       // Full date in tooltip for week view
                       const date = new Date(label);

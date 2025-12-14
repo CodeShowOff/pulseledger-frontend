@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import api from "@/lib/axios";
+import axios from "axios";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -74,8 +75,15 @@ export const RegisterForm: React.FC = () => {
         const email = res.data?.data?.email ?? payload.email;
         toast.success("Verification code sent! Please check your email.");
         router.replace(`/auth/register/verify?email=${encodeURIComponent(email)}`);
-      } catch (err: any) {
-        toast.error(err.response?.data?.message || "Registration failed");
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          const msg = (err as any).response?.data?.message || (err as any).message || "Registration failed";
+          toast.error(msg);
+        } else if (err instanceof Error) {
+          toast.error(err.message || "Registration failed");
+        } else {
+          toast.error("Registration failed");
+        }
       }
     },
     [router]

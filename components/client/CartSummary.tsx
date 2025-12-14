@@ -4,7 +4,6 @@ import React, { useMemo, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCartStore } from "@/lib/cartStore";
 import { toast } from "sonner";
-import clsx from "clsx";
 import { useRouter } from "next/navigation";
 
 const currency = (value: number) => `₹${value.toFixed(2)}`;

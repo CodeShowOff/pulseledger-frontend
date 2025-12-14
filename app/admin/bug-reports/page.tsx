@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "sonner";
-import { Bug, Eye, Trash2, AlertTriangle } from "lucide-react";
+import { Bug, Eye, Trash2 } from "lucide-react";
 import RoleGuard from "@/components/shared/RoleGuard";
 
 type BugReport = {
@@ -20,7 +20,7 @@ type BugReport = {
   deviceInfo: string;
   pageUrl: string;
   status: "open" | "in-progress" | "resolved" | "closed" | "wont-fix";
-  priority: "low" | "medium" | "high" | "urgent";
+  priority: "low" | "medium" | "high" | "critical";
   adminNotes: string | null;
   resolvedAt: string | null;
   createdAt: string;
@@ -453,7 +453,7 @@ export default function AdminBugReportsPage() {
               <label style={{ display: "block", fontWeight: 600, marginBottom: "0.5rem" }}>Status:</label>
               <select
                 value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value as any)}
+                onChange={(e) => setNewStatus(e.target.value as "open" | "in-progress" | "resolved" | "closed")}
                 className="admin-search-input"
                 style={{ width: "100%", padding: "0.5rem 0.75rem" }}
               >
@@ -469,14 +469,14 @@ export default function AdminBugReportsPage() {
               <label style={{ display: "block", fontWeight: 600, marginBottom: "0.5rem" }}>Priority:</label>
               <select
                 value={newPriority}
-                onChange={(e) => setNewPriority(e.target.value as any)}
+                onChange={(e) => setNewPriority(e.target.value as "low" | "medium" | "high" | "critical")}
                 className="admin-search-input"
                 style={{ width: "100%", padding: "0.5rem 0.75rem" }}
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
-                <option value="urgent">Urgent</option>
+                <option value="critical">Critical</option>
               </select>
             </div>
             

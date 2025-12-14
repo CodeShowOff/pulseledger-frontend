@@ -44,8 +44,9 @@ export default function ClientSubscriptionsPage() {
       queryClient.invalidateQueries({ queryKey: CLIENT_SUBSCRIPTIONS_KEY });
       queryClient.invalidateQueries({ queryKey: CURRENT_PLAN_KEY });
     },
-    onError: (err: any) => {
-      const message = err?.response?.data?.message ?? "Unable to cancel subscription";
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      const message = error?.response?.data?.message ?? "Unable to cancel subscription";
       toast.error(message);
     },
     onSettled: () => setCancellingId(null),
@@ -61,11 +62,9 @@ export default function ClientSubscriptionsPage() {
 
   if (loadingCurrent || loadingHistory) {
     return (
-      <div className="client-page">
-        <div className="client-page__inner">
-          <div className="client-card">
-            <p className="client-card__subtitle">Loading subscription details...</p>
-          </div>
+      <div className="client-page__sections">
+        <div className="client-card">
+          <p className="client-card__subtitle">Loading subscription details...</p>
         </div>
       </div>
     );
@@ -73,13 +72,11 @@ export default function ClientSubscriptionsPage() {
 
   if (currentError || historyError) {
     return (
-      <div className="client-page">
-        <div className="client-page__inner">
-          <div className="client-card">
-            <p className="client-card__subtitle" style={{ color: "#dc2626" }}>
-              Failed to load subscription details.
-            </p>
-          </div>
+      <div className="client-page__sections">
+        <div className="client-card">
+          <p className="client-card__subtitle" style={{ color: "#dc2626" }}>
+            Failed to load subscription details.
+          </p>
         </div>
       </div>
     );
@@ -88,8 +85,7 @@ export default function ClientSubscriptionsPage() {
   const hasHistory = history.length > 0;
 
   return (
-    <div className="client-page">
-      <div className="client-page__inner">
+    <div className="client-page__sections">
         <header
           className="client-page__header"
           style={{
@@ -105,9 +101,6 @@ export default function ClientSubscriptionsPage() {
         >
           <div>
             <h1 className="client-page__title">My Subscriptions</h1>
-            <p className="client-page__subtitle">
-              Review your current plan, track pending requests, and view past subscriptions.
-            </p>
           </div>
           <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
             <a
@@ -321,7 +314,6 @@ export default function ClientSubscriptionsPage() {
             </p>
           )}
         </section>
-      </div>
     </div>
   );
 }

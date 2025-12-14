@@ -4,6 +4,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import axios from "axios";
 import { fetchClientProgressEntries, CLIENT_PROGRESS_QUERY_KEY } from "@/lib/queries/clientProgress";
 import { Scale, Target, TrendingDown, TrendingUp, Edit2, X, Check } from "lucide-react";
 import { toast } from "sonner";
@@ -113,8 +114,15 @@ export default function GoalWeightWidget() {
       toast.success("Weight updated successfully");
       setIsEditing(false);
       reset();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to update weight");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const msg = (err as any).response?.data?.message || (err as any).message || "Failed to update weight";
+        toast.error(msg);
+      } else if (err instanceof Error) {
+        toast.error(err.message || "Failed to update weight");
+      } else {
+        toast.error("Failed to update weight");
+      }
     }
   };
 

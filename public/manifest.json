@@ -2,7 +2,7 @@
   "name": "Pulse Ledger",
   "short_name": "Pulse Ledger",
   "description": "Complete health and fitness management platform with progress tracking, meal plans, and coach guidance",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",

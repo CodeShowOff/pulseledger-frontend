@@ -5,6 +5,7 @@ import React, { useState, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import api from "@/lib/axios";
+import axios from "axios";
 import { Download, Package, Calendar, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
 
 type OrderItem = { productId: string; name: string; quantity: number; price: number };
@@ -89,8 +90,9 @@ export default function ClientOrdersTable() {
       queryClient.invalidateQueries({ queryKey: ["myOrders"] });
       queryClient.invalidateQueries({ queryKey: ["coachOrders"] });
     },
-    onError: (err: any) => {
-      const message = err?.response?.data?.message ?? "Failed to update order";
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      const message = error?.response?.data?.message ?? "Failed to update order";
       toast.error(message);
     },
     onSettled: () => setUpdating(null),
@@ -121,9 +123,15 @@ export default function ClientOrdersTable() {
       window.URL.revokeObjectURL(url);
       
       toast.success("Invoice downloaded successfully");
-    } catch (err: any) {
-      const message = err?.response?.data?.message ?? "Failed to download invoice";
-      toast.error(message);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const message = err.response?.data?.message ?? "Failed to download invoice";
+        toast.error(message);
+      } else if (err instanceof Error) {
+        toast.error(err.message || "Failed to download invoice");
+      } else {
+        toast.error("Failed to download invoice");
+      }
     }
   }, []);
 

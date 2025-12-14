@@ -1,15 +1,11 @@
 export default function AboutPage() {
   return (
-    <main className="client-page">
-      <div className="client-page__inner">
-        <header className="client-page__header">
-          <h1 className="client-page__title">About PulseLedger</h1>
-          <p className="client-page__subtitle">
-            Empowering Health Journeys Through Technology and Personalized Coaching
-          </p>
-        </header>
+    <main className="client-page footer-page">
+      <header className="client-page__header">
+        <h1 className="client-page__title">About PulseLedger</h1>
+      </header>
 
-        <section className="client-page__sections">
+      <section className="client-page__sections">
           {/* Section 1: Our Story */}
           <div className="client-card">
             <h2 className="client-card__section-title">Our Story</h2>
@@ -357,7 +353,6 @@ export default function AboutPage() {
             </div>
           </div>
         </section>
-      </div>
     </main>
   );
 }

@@ -1,53 +1,141 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { Heart, Shield, ChevronDown } from "lucide-react";
 
 const Footer = React.memo(function Footer() {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const productLinks = [
+    { href: "/footer-pages/about", label: "About Us" },
+    { href: "/footer-pages/pricing", label: "Pricing" },
+    { href: "/footer-pages/contact", label: "Contact" },
+    { href: "/footer-pages/help-center", label: "Help Center" },
+  ];
+
+  const legalLinks = [
+    { href: "/footer-pages/privacy-policy", label: "Privacy Policy" },
+    { href: "/footer-pages/terms-and-conditions", label: "Terms of Service" },
+    { href: "/footer-pages/refund-policy", label: "Refund Policy" },
+  ];
+
+  const supportLinks = [
+    { href: "/footer-pages/report-bugs", label: "Report Bugs" },
+    { href: "/footer-pages/feedback", label: "Give Feedback" },
+  ];
+
+  const allLinks = [...productLinks, ...legalLinks, ...supportLinks];
+
   return (
-    <footer
-      className="site-footer"
-      style={{
-        background: "linear-gradient(90deg, #f3f4f6 0%, #e0f2fe 55%, #ede9fe 100%)",
-        borderTop: "1px solid #d1d5db",
-        padding: "2rem 0",
-        boxShadow: "0 -6px 12px rgba(15, 23, 42, 0.08)",
-      }}
-    >
-      <div
-        className="site-footer__inner"
-        style={{
-          flexDirection: 'column',
-          alignItems: 'center',
-          maxWidth: 1200,
-          margin: '0 auto',
-          padding: '0 1rem',
-          gap: '1rem',
-        }}
-      >
-        <div
-          className="site-footer__links"
-        >
-          <Link href="/footer-pages/about" className="site-footer__link">About</Link>
-          <Link href="/footer-pages/contact" className="site-footer__link">Contact</Link>
-          <Link href="/footer-pages/privacy-policy" className="site-footer__link">Privacy Policy</Link>
-          <Link href="/footer-pages/terms-and-conditions" className="site-footer__link">Terms & Conditions</Link>
-          <Link href="/footer-pages/refund-policy" className="site-footer__link">Refund Policy</Link>
-          <Link href="/footer-pages/help-center" className="site-footer__link">Help Center</Link>
-          <Link href="/footer-pages/report-bugs" className="site-footer__link">Report Bugs</Link>
-          <Link href="/footer-pages/feedback" className="site-footer__link">Feedback</Link>
+    <footer className="footer-modern">
+      <div className="footer-modern__container">
+        {/* Main Footer Content */}
+        <div className="footer-modern__main">
+          {/* Brand Section */}
+          <div className="footer-modern__brand">
+            <Link href="/" className="footer-modern__logo">
+              <span className="footer-modern__logo-text">PulseLedger</span>
+            </Link>
+            <p className="footer-modern__tagline">
+              The all-in-one platform connecting health coaches and clients.
+              Track progress, manage plans, and achieve wellness goals together.
+            </p>
+            <div className="footer-modern__trust-badges">
+              <div className="footer-modern__trust-badge">
+                <Shield size={14} />
+                <span>HIPAA Compliant</span>
+              </div>
+              <div className="footer-modern__trust-badge">
+                <Heart size={14} />
+                <span>100+ Coaches</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Links Grid - Desktop */}
+          <div className="footer-modern__links-grid">
+            <div className="footer-modern__links-section">
+              <h4 className="footer-modern__links-title">Company</h4>
+              <ul className="footer-modern__links-list">
+                {productLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="footer-modern__link">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="footer-modern__links-section">
+              <h4 className="footer-modern__links-title">Legal</h4>
+              <ul className="footer-modern__links-list">
+                {legalLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="footer-modern__link">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="footer-modern__links-section">
+              <h4 className="footer-modern__links-title">Support</h4>
+              <ul className="footer-modern__links-list">
+                {supportLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="footer-modern__link">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Mobile Dropdown */}
+          <div className="footer-modern__mobile-dropdown">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="footer-modern__dropdown-btn"
+            >
+              <span>Quick Links</span>
+              <ChevronDown
+                size={18}
+                style={{
+                  transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
+                  transition: 'transform 0.2s ease',
+                }}
+              />
+            </button>
+            {isDropdownOpen && (
+              <div className="footer-modern__dropdown-menu">
+                {allLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="footer-modern__dropdown-link"
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-        <div
-          style={{
-            textAlign: 'center',
-            fontSize: '0.9rem',
-            color: '#1f2937',
-            fontWeight: 500,
-            letterSpacing: '0.015em',
-            marginTop: '0.5rem',
-          }}
-        >
-          © {new Date().getFullYear()} PulseLedger. All rights reserved.
+
+        {/* Bottom Bar */}
+        <div className="footer-modern__bottom">
+          <p className="footer-modern__copyright">
+            © {new Date().getFullYear()} PulseLedger. All rights reserved.
+          </p>
+          <div className="footer-modern__bottom-links">
+            <Link href="/footer-pages/privacy-policy">Privacy</Link>
+            <Link href="/footer-pages/terms-and-conditions">Terms</Link>
+          </div>
         </div>
       </div>
     </footer>

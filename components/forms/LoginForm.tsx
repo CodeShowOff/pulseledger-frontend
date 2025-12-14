@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import api from "@/lib/axios";
+import axios from "axios";
 import { useAuthStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -47,24 +48,28 @@ export const LoginForm: React.FC = () => {
         if (user.role === "coach") router.replace("/coach/dashboard");
         else if (user.role === "client") router.replace("/client/dashboard");
         else router.replace("/admin/dashboard");
-      } catch (err: any) {
-        const errorData = err.response?.data;
-        const message = errorData?.message || "Login failed";
-        
-        // If email is not verified, redirect to verification page
-        if (errorData?.requiresVerification && errorData?.email) {
-          toast.info("Verification code sent to your email");
-          router.push(`/auth/register/verify?email=${encodeURIComponent(errorData.email)}`);
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          const errorData = (err as any).response?.data;
+          const message = errorData?.message || (err as any).message || "Login failed";
+          if (errorData?.requiresVerification && errorData?.email) {
+            toast.info("Verification code sent to your email");
+            router.push(`/auth/register/verify?email=${encodeURIComponent(errorData.email)}`);
+            return;
+          }
+          if (String(message).toLowerCase().includes("deactivated")) {
+            setDeactivatedMessage(
+              "Your account has been deactivated by the admin. Please contact admin at mail.pulseledger@gmail.com to reactivate."
+            );
+          }
+          toast.error(message);
+          return;
+        } else if (err instanceof Error) {
+          const message = err.message || "Login failed";
+          toast.error(message);
           return;
         }
-        
-        // If backend indicates deactivated account, show persistent message under button
-        if (message.toLowerCase().includes("deactivated")) {
-          setDeactivatedMessage(
-            "Your account has been deactivated by the admin. Please contact admin at mail.pulseledger@gmail.com to reactivate."
-          );
-        }
-        toast.error(message);
+        toast.error("Login failed");
       }
     },
     [setAccessToken, setUser, router]

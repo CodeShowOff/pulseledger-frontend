@@ -110,9 +110,6 @@ export default function CoachVouchersPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
           <div>
             <h1 className="admin-page-header__title coach-page-header__title">Vouchers</h1>
-            <p className="admin-page-header__subtitle coach-page-header__subtitle">
-              Create and manage vouchers for your clients.
-            </p>
           </div>
           <div>
             <Link href="/coach/vouchers/create" className="btn btn--primary">Create Voucher</Link>

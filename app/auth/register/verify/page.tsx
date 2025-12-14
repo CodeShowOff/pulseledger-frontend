@@ -46,8 +46,12 @@ function VerifyRegistrationContent() {
       if (user.role === "coach") router.replace("/coach/dashboard");
       else if (user.role === "client") router.replace("/client/dashboard");
       else router.replace("/admin/dashboard");
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Verification failed");
+    } catch (err: unknown) {
+      let errorMessage = "Verification failed";
+      if (isAxiosError(err)) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+      toast.error(errorMessage);
     }
   };
 
@@ -107,8 +111,12 @@ function VerifyRegistrationContent() {
               try {
                 await api.post("/auth/register/resend-otp", { email });
                 toast.success("We've sent a new verification code.");
-              } catch (err: any) {
-                toast.error(err?.response?.data?.message || "Failed to resend code");
+              } catch (err: unknown) {
+                let errorMessage = "Failed to resend code";
+                if (isAxiosError(err)) {
+                  errorMessage = err.response?.data?.message || errorMessage;
+                }
+                toast.error(errorMessage);
               }
             }}
           >
@@ -126,5 +134,14 @@ export default function VerifyRegistrationPage() {
     <Suspense fallback={<p className="text-sm text-gray-500">Loading verification form…</p>}>
       <VerifyRegistrationContent />
     </Suspense>
+  );
+}
+
+function isAxiosError(error: unknown): error is { response?: { data?: { message?: string } } } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof (error as { response?: unknown }).response === "object"
   );
 }

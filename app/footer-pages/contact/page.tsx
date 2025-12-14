@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import getErrorMessage from "@/lib/getErrorMessage";
 import { toast } from "sonner";
 
 export default function ContactPage() {
@@ -24,8 +25,8 @@ export default function ContactPage() {
       toast.success("Message sent successfully! We'll get back to you soon.");
       setFormData({ name: "", email: "", message: "" });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to send message");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Failed to send message"));
     },
   });
 
@@ -46,17 +47,13 @@ export default function ContactPage() {
   };
 
   return (
-    <main className="profile-shell">
-      <div className="profile-inner">
-        <section className="profile-card">
-          <header className="profile-header">
-            <div>
-              <h1 className="profile-header__title">Contact Us</h1>
-              <p className="profile-header__subtitle">
-                Need help or have feedback? Reach out to the PulseLedger team.
-              </p>
-            </div>
-          </header>
+    <main className="client-page footer-page">
+      <header className="client-page__header">
+        <h1 className="client-page__title">Contact Us</h1>
+      </header>
+
+      <section className="client-page__sections">
+        <div className="client-card">
 
           <p className="profile-field__value">
             We're here to support your coaching journey and client experience. Choose
@@ -117,8 +114,8 @@ export default function ContactPage() {
               {submitMutation.isPending ? "Sending..." : "Send Message"}
             </button>
           </form>
-        </section>
-      </div>
+        </div>
+      </section>
     </main>
   );
 }

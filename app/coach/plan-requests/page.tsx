@@ -55,8 +55,9 @@ export default function CoachPlanRequestsPage() {
       queryClient.invalidateQueries({ queryKey: COACH_PENDING_PLAN_REQUESTS_KEY });
       queryClient.invalidateQueries({ queryKey: ["coachSubscriptions"] });
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to approve");
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error?.response?.data?.message || "Failed to approve");
     },
   });
 
@@ -69,8 +70,9 @@ export default function CoachPlanRequestsPage() {
       queryClient.invalidateQueries({ queryKey: COACH_PENDING_PLAN_REQUESTS_KEY });
       queryClient.invalidateQueries({ queryKey: ["coachSubscriptions"] });
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to decline");
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error?.response?.data?.message || "Failed to decline");
     },
   });
 
@@ -83,9 +85,6 @@ export default function CoachPlanRequestsPage() {
         <h1 className="admin-page-header__title coach-page-header__title">
           Pending Plan Requests
         </h1>
-        <p className="admin-page-header__subtitle coach-page-header__subtitle">
-          Review client requests for template plans. Approving creates an active subscription.
-        </p>
       </section>
 
       {requests.length ? (

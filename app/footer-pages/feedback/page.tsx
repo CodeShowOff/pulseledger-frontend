@@ -43,9 +43,10 @@ export default function FeedbackPage() {
       // Reset submitted state after 5 seconds
       setTimeout(() => setSubmitted(false), 5000);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
       const message =
-        error?.response?.data?.message || "Failed to submit feedback. Please try again.";
+        err?.response?.data?.message || "Failed to submit feedback. Please try again.";
       toast.error(message);
     },
   });
@@ -87,18 +88,13 @@ export default function FeedbackPage() {
   const ratingLabels = ["Poor", "Fair", "Good", "Very Good", "Excellent"];
 
   return (
-    <main className="client-page">
-      <div className="client-page__inner">
-        {/* Header */}
-        <header className="client-page__header">
-          <h1 className="client-page__title">We Value Your Feedback</h1>
-          <p className="client-page__subtitle">
-            Your opinion matters! Share your thoughts, suggestions, or experiences to help us
-            improve PulseLedger and provide you with the best possible service.
-          </p>
-        </header>
+    <main className="client-page footer-page">
 
-        <section className="client-page__sections">
+      <header className="client-page__header">
+        <h1 className="client-page__title">We Value Your Feedback</h1>
+      </header>
+
+      <section className="client-page__sections">
           {/* Guidelines Section */}
           <div className="client-card" style={{ backgroundColor: "#eff6ff", borderColor: "#bfdbfe" }}>
             <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
@@ -448,7 +444,6 @@ export default function FeedbackPage() {
             </p>
           </div>
         </section>
-      </div>
     </main>
   );
 }

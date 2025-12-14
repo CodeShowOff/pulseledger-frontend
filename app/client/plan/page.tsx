@@ -63,8 +63,9 @@ export default function MyPlanPage() {
       // Redirect to payment page
       window.location.href = `/client/plan-payment/${planId}`;
     },
-    onError: (err: any) => {
-      const message = err?.response?.data?.message ?? "Unable to proceed";
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      const message = error?.response?.data?.message ?? "Unable to proceed";
       toast.error(message);
     },
   });
@@ -77,11 +78,9 @@ export default function MyPlanPage() {
 
   if (isLoading) {
     return (
-      <div className="client-page">
-        <div className="client-page__inner">
-          <div className="client-card">
-            <p className="client-card__subtitle">Loading plans...</p>
-          </div>
+      <div className="client-page__sections">
+        <div className="client-card">
+          <p className="client-card__subtitle">Loading plans...</p>
         </div>
       </div>
     );
@@ -89,30 +88,24 @@ export default function MyPlanPage() {
 
   if (error) {
     return (
-      <div className="client-page">
-        <div className="client-page__inner">
-          <div className="client-card">
-            <p className="client-card__subtitle" style={{ color: "#dc2626" }}>
-              Failed to load available plans.
-            </p>
-          </div>
+      <div className="client-page__sections">
+        <div className="client-card">
+          <p className="client-card__subtitle" style={{ color: "#dc2626" }}>
+            Failed to load available plans.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="client-page">
-      <div className="client-page__inner">
-        <header className="client-page__header">
+    <div className="client-page__sections">
+      <header className="client-page__header">
           <h1 className="client-page__title">Available Plans</h1>
-          <p className="client-page__subtitle">
-            Choose a plan that suits your goals. Requests are reviewed by your coach before activation.
-          </p>
         </header>
 
         {personalPlans.length ? (
-          <section className="client-page__sections">
+        <section>
             <h2 className="client-section-title">My Assigned Plans</h2>
             {personalPlans.map((plan) => (
               <div key={plan._id} className="client-card">
@@ -137,7 +130,7 @@ export default function MyPlanPage() {
         ) : null}
 
         {templates.length ? (
-          <section className="client-page__sections">
+          <section>
             {templates.map((plan) => {
             const price = typeof plan.price === "number" ? plan.price : Number(plan.price ?? 0);
             const isActive = activePlanId === plan._id;
@@ -212,7 +205,7 @@ export default function MyPlanPage() {
 
         {/* Plan request history */}
         {planRequests.length ? (
-          <section className="client-page__sections">
+        <section>
             <h2 className="client-section-title">My Plan Requests</h2>
             {planRequests.map((req) => {
               const statusStyles: Record<string, string> = {
@@ -251,7 +244,6 @@ export default function MyPlanPage() {
         ) : null}
 
         {/* Modal removed for one-click plan requests */}
-      </div>
     </div>
   );
 }

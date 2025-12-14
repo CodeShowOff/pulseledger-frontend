@@ -3,7 +3,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import React, { useState, useEffect } from "react";
-import clsx from "clsx";
 import { useAuthStore } from "@/lib/store";
 import Link from "next/link";
 import Image from "next/image";
@@ -165,9 +164,6 @@ export default function CoachProductsPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
           <div>
             <h1 className="admin-page-header__title coach-page-header__title">My Products</h1>
-            <p className="admin-page-header__subtitle coach-page-header__subtitle">
-              Manage the products you sell to your clients.
-            </p>
           </div>
           <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
             <Link href="/coach/orders" className="btn btn--outline">

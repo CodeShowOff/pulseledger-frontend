@@ -42,8 +42,9 @@ export default function AdminDashboardPage() {
       toast.success(`Purged ${count} stale unverified user${count === 1 ? "" : "s"}.`);
       queryClient.invalidateQueries({ queryKey: ["adminOverview"] });
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to purge unverified users");
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error?.response?.data?.message || "Failed to purge unverified users");
     },
     onSettled: () => {
       setPurgeLoading(false);
@@ -60,8 +61,9 @@ export default function AdminDashboardPage() {
       const count = result?.deleted ?? 0;
       toast.success(`Deleted ${count} old chat message${count === 1 ? "" : "s"} (older than 7 days).`);
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to cleanup old messages");
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error?.response?.data?.message || "Failed to cleanup old messages");
     },
     onSettled: () => {
       setCleanupLoading(false);

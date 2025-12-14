@@ -16,9 +16,6 @@ export default function CoachCreateProductPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
           <div>
             <h1 className="admin-page-header__title coach-page-header__title">Add Product</h1>
-            <p className="admin-page-header__subtitle coach-page-header__subtitle">
-              Create a new product for your clients to purchase.
-            </p>
           </div>
           <div>
             <Link href="/coach/products" className="btn btn--outline">Back to Products</Link>

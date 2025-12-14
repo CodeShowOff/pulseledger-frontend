@@ -37,13 +37,10 @@ function DetailedChartContent() {
 
 export default function DetailedProgressPage() {
   return (
-    <div className="client-dashboard">
-      <div className="client-dashboard__header">
-        <h1 className="client-dashboard__title">Detailed Progress Chart</h1>
-        <p className="client-dashboard__subtitle">
-          Complete historical view of your progress metrics
-        </p>
-      </div>
+    <div className="client-page__sections">
+      <header className="client-page__header">
+        <h1 className="client-page__title">Detailed Progress Chart</h1>
+      </header>
 
       <Suspense fallback={<div className="p-6 text-center">Loading...</div>}>
         <DetailedChartContent />

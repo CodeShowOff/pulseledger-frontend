@@ -116,9 +116,6 @@ export default function ReceivedRequestsPage() {
               <UserPlus className="w-6 h-6" />
               Received Contact Requests
             </h1>
-            <p className="profile-header__subtitle">
-              Manage inquiries from potential clients who contacted you through your public profile.
-            </p>
           </div>
           <div className="profile-header__badge">
             <span />

@@ -5,6 +5,7 @@ import { useCartStore } from "@/lib/cartStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "sonner";
+import getErrorMessage from "@/lib/getErrorMessage";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuthStore } from "@/lib/store";
@@ -47,9 +48,8 @@ export default function ClientCheckoutPage() {
       setPaymentProofUrl(data.url);
       toast.success("Payment proof uploaded");
     },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.message ?? "Failed to upload payment proof";
-      toast.error(msg);
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Failed to upload payment proof"));
     },
   });
 
@@ -71,9 +71,8 @@ export default function ClientCheckoutPage() {
       queryClient.invalidateQueries({ queryKey: ["coachOrders"] });
       router.replace("/client/orders");
     },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.message ?? "Failed to place order";
-      toast.error(msg);
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Failed to place order"));
     },
   });
 
@@ -96,7 +95,7 @@ export default function ClientCheckoutPage() {
 
   if (userRole !== "client") {
     return (
-      <div className="client-page__inner">
+      <div className="client-page__sections">
         <p className="client-card__subtitle">Only clients can access checkout.</p>
       </div>
     );
@@ -104,7 +103,7 @@ export default function ClientCheckoutPage() {
 
   if (!items.length) {
     return (
-      <div className="client-page__inner">
+      <div className="client-page__sections">
         <h1 className="client-page__title">Checkout</h1>
         <p className="client-card__subtitle">Your cart is empty.</p>
       </div>
@@ -112,15 +111,11 @@ export default function ClientCheckoutPage() {
   }
 
   return (
-    <div className="client-page">
+    <div className="client-page__sections">
       {/* Enforce client-only access at component level as an extra guard */}
       <RoleGuard role="client" />
-      <div className="client-page__inner">
         <header className="client-page__header">
           <h1 className="client-page__title">Checkout</h1>
-          <p className="client-page__subtitle">
-            Select a payment method to place your order.
-          </p>
         </header>
         <div className="client-page__sections" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div className="client-card" style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -230,7 +225,6 @@ export default function ClientCheckoutPage() {
           </div>
         </div>
       </div>
-    </div>
   );
 }
 

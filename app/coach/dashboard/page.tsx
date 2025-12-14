@@ -125,86 +125,96 @@ export default function CoachDashboard() {
         <h1 className="admin-page-header__title coach-page-header__title" style={{ marginBottom: "0.5rem" }}>
           Coach Dashboard
         </h1>
-        <p className="admin-page-header__subtitle coach-page-header__subtitle">
-          Overview of your clients, plans, and performance.
-        </p>
       </section>
 
       <section
         style={{
           marginTop: "1.25rem",
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
           gap: "1rem",
         }}
       >
-        <div className="admin-card" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
-          <h2
-            className="admin-page-header__title"
-            style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}
-          >
-            💰 Earnings Dashboard
-          </h2>
-          <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem", flex: 1 }}>
-            Track your income from subscriptions and product orders.
+        <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+            <span style={{ fontSize: "1.5rem" }}>💰</span>
+            <h2
+              className="admin-page-header__title"
+              style={{ fontSize: "1rem", margin: 0 }}
+            >
+              Earnings Dashboard
+            </h2>
+          </div>
+          <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "1rem", flex: 1 }}>
+            Track income from subscriptions and orders.
           </p>
-          <a href="/coach/earnings" className="btn btn--primary">
+          <a href="/coach/earnings" className="btn btn--primary" style={{ padding: "0.65rem 1.25rem" }}>
             View Earnings
           </a>
         </div>
 
-        <div className="admin-card" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
-          <h2
-            className="admin-page-header__title"
-            style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}
-          >
-            🥗 Indian Food Nutrition Index
-          </h2>
-          <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem", flex: 1 }}>
-            Search macros and micros for popular Indian dishes.
+        <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+            <span style={{ fontSize: "1.5rem" }}>🥗</span>
+            <h2
+              className="admin-page-header__title"
+              style={{ fontSize: "1rem", margin: 0 }}
+            >
+              Nutrition Index
+            </h2>
+          </div>
+          <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "1rem", flex: 1 }}>
+            Search macros for Indian dishes.
           </p>
-          <a href="/indian-nutrition-index" className="btn btn--primary">
-            Open Nutrition Index
+          <a href="/indian-nutrition-index" className="btn btn--primary" style={{ padding: "0.65rem 1.25rem" }}>
+            Open Index
           </a>
         </div>
 
-        <div className="admin-card" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
-          <h2
-            className="admin-page-header__title"
-            style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}
-          >
-            🧮 Daily Calorie Calculator
-          </h2>
-          <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem", flex: 1 }}>
-            Estimate your daily calorie needs and suggested macros.
+        <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+            <span style={{ fontSize: "1.5rem" }}>🧮</span>
+            <h2
+              className="admin-page-header__title"
+              style={{ fontSize: "1rem", margin: 0 }}
+            >
+              Calorie Calculator
+            </h2>
+          </div>
+          <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "1rem", flex: 1 }}>
+            Estimate daily calorie needs.
           </p>
-          <a href="/calorie-calculator" className="btn btn--primary">
-            Open Calorie Calculator
+          <a href="/calorie-calculator" className="btn btn--primary" style={{ padding: "0.65rem 1.25rem" }}>
+            Open Calculator
           </a>
         </div>
       </section>
 
       {user?.role === "coach" && (
         <section style={{ marginTop: "1.25rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" }}>
-            <div className="admin-card" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
-              <h2
-                className="admin-page-header__title"
-                style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}
-              >
-                🔗 Your Referral Code
-              </h2>
-              <p className="admin-card__value" style={{ color: "var(--admin-color-primary-dark)", fontSize: "1.1rem", marginBottom: "0.5rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" }}>
+            <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                <span style={{ fontSize: "1.5rem" }}>🔗</span>
+                <h2
+                  className="admin-page-header__title"
+                  style={{ fontSize: "1rem", margin: 0 }}
+                >
+                  Referral Code
+                </h2>
+              </div>
+              <p className="admin-card__value" style={{ color: "var(--admin-color-primary-dark)", fontSize: "1.1rem", marginBottom: "0.5rem", fontWeight: 600 }}>
                 {user.referralCode || "Generating..."}
               </p>
-              <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem", flex: 1 }}>
-                Share this code with clients so they automatically link to you during registration.
+              <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "1rem", flex: 1 }}>
+                Share with clients to link to you.
               </p>
               {publicProfileUrl && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                   <button
                     type="button"
                     className="btn btn--outline"
+                    style={{ padding: "0.65rem 1.25rem" }}
                     onClick={async () => {
                       try {
                         await navigator.clipboard.writeText(publicProfileUrl);
@@ -214,12 +224,13 @@ export default function CoachDashboard() {
                       }
                     }}
                   >
-                    {copied ? "Link copied!" : "Copy public profile link"}
+                    {copied ? "Link copied!" : "Copy profile link"}
                   </button>
                   <a
                     href={publicProfileUrl}
                     rel="noopener noreferrer"
                     className="btn btn--primary"
+                    style={{ padding: "0.65rem 1.25rem" }}
                   >
                     Visit Public Profile
                   </a>
@@ -227,14 +238,17 @@ export default function CoachDashboard() {
               )}
             </div>
 
-            <div className="admin-card" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
-              <h2
-                className="admin-page-header__title"
-                style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}
-              >
-                💳 Platform Fee Management
-              </h2>
-              <p className="admin-card__value" style={{ color: "#10b981", fontSize: "1.1rem", marginBottom: "0.5rem" }}>
+            <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                <span style={{ fontSize: "1.5rem" }}>💳</span>
+                <h2
+                  className="admin-page-header__title"
+                  style={{ fontSize: "1rem", margin: 0 }}
+                >
+                  Platform Fee
+                </h2>
+              </div>
+              <p className="admin-card__value" style={{ color: "#10b981", fontSize: "1.1rem", marginBottom: "0.5rem", fontWeight: 600 }}>
                 {subscription ? (
                   <>
                     {subscription.daysRemaining} Day{subscription.daysRemaining !== 1 ? "s" : ""} Left
@@ -243,19 +257,20 @@ export default function CoachDashboard() {
                   "Loading..."
                 )}
               </p>
-              <p className="admin-page-header__subtitle" style={{ marginBottom: "0.9rem", flex: 1 }}>
-                Track your platform subscription payments, history, and renewal dates.
+              <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "0.5rem", flex: 1 }}>
+                Track subscription & renewals.
               </p>
               {subscription && subscription.totalPaid > 0 && (
-                <p style={{ fontSize: "0.875rem", color: "var(--admin-color-muted)", marginBottom: "0.5rem" }}>
+                <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginBottom: "0.75rem" }}>
                   Total Paid: ₹{subscription.totalPaid}
                 </p>
               )}
               <Link
                 href="/coach/platform-fee"
                 className="btn btn--primary"
+                style={{ padding: "0.65rem 1.25rem" }}
               >
-                Manage Platform Fee
+                Manage Fee
               </Link>
             </div>
           </div>
@@ -266,22 +281,18 @@ export default function CoachDashboard() {
         <h2 className="admin-page-header__title" style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>
           Quick Stats
         </h2>
-        <div className="admin-card-grid admin-card-grid--stats">
-          <CoachStats />
-        </div>
+        <CoachStats />
       </section>
 
       <section style={{ marginTop: "1.5rem" }}>
-        <div className="admin-card-grid">
-          <div className="admin-card coach-card--stat">
-            <h2 className="admin-page-header__title" style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>
-              Client Progress Overview
-            </h2>
-            <CoachChart />
-          </div>
-          <div className="coach-card--stat" style={{ padding: 0 }}>
-            <CoachClientTable />
-          </div>
+        <h2 className="admin-page-header__title" style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>
+          Client Progress Overview
+        </h2>
+        <div className="admin-card" style={{ padding: "1.25rem", marginBottom: "1rem" }}>
+          <CoachChart />
+        </div>
+        <div style={{ padding: 0 }}>
+          <CoachClientTable />
         </div>
       </section>
     </div>

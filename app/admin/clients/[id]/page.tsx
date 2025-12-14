@@ -48,8 +48,8 @@ export default function AdminClientDetailPage() {
   });
 
   // Filter orders for this specific client
-  const clientOrders = allOrdersData?.data?.filter((order: any) => 
-    order.clientId?._id === id || order.clientId === id
+  const clientOrders = allOrdersData?.data?.filter((order: { clientId?: { _id?: string } | string }) => 
+    (typeof order.clientId === 'object' ? order.clientId?._id === id : order.clientId === id)
   ) || [];
   const ordersPerPage = 5;
   const ordersStart = (ordersPage - 1) * ordersPerPage;

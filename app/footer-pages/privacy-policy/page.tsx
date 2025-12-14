@@ -2,17 +2,10 @@ import React from "react";
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="client-page">
-      <div className="client-page__inner">
-        <header className="client-page__header">
-          <h1 className="client-page__title">Privacy Policy</h1>
-          <p className="client-page__subtitle">
-            Last Updated: November 22, 2025
-          </p>
-          <p className="client-page__subtitle">
-            This Privacy Policy describes how PulseLedger ("we," "us," or "our") collects, uses, stores, shares, and protects your personal information when you access or use our health and fitness coaching platform (the "Service"). By using our Service, you agree to the collection and use of information in accordance with this Privacy Policy.
-          </p>
-        </header>
+    <main className="client-page footer-page">
+      <header className="client-page__header">
+        <h1 className="client-page__title">Privacy Policy</h1>
+      </header>
 
         <section className="client-page__sections">
           {/* Section 1: Introduction */}
@@ -844,7 +837,6 @@ export default function PrivacyPolicyPage() {
             </div>
           </div>
         </section>
-      </div>
     </main>
   );
 }

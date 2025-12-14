@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import api from "@/lib/axios";
+import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -30,11 +31,15 @@ export const ForgotPasswordForm: React.FC = () => {
         await api.post("/auth/forgot-password", data);
         toast.success("If an account exists, a reset code has been sent.");
         router.replace(`/auth/reset-password?email=${encodeURIComponent(data.email)}`);
-      } catch (err: any) {
-        toast.error(
-          err.response?.data?.message ||
-            "Failed to request password reset. Please try again."
-        );
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          const msg = (err as any).response?.data?.message || (err as any).message || "Failed to request password reset. Please try again.";
+          toast.error(msg);
+        } else if (err instanceof Error) {
+          toast.error(err.message || "Failed to request password reset. Please try again.");
+        } else {
+          toast.error("Failed to request password reset. Please try again.");
+        }
       }
     },
     [router]

@@ -7,19 +7,15 @@ import axios from "@/lib/axios";
 import {
   MessageSquare,
   Star,
-  Search,
   X,
   Trash2,
   Eye,
   ChevronLeft,
   ChevronRight,
-  Filter,
   Calendar,
   User,
   Mail,
-  FileText,
   TrendingUp,
-  AlertCircle,
 } from "lucide-react";
 
 interface Feedback {
@@ -102,8 +98,9 @@ export default function FeedbackSubmissionsPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-feedback"] });
       setShowDetailModal(false);
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to update feedback");
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err?.response?.data?.message || "Failed to update feedback");
     },
   });
 
@@ -117,8 +114,9 @@ export default function FeedbackSubmissionsPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-feedback"] });
       setShowDetailModal(false);
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to delete feedback");
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err?.response?.data?.message || "Failed to delete feedback");
     },
   });
 

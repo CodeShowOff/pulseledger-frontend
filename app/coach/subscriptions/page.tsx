@@ -180,9 +180,6 @@ export default function CoachSubscriptionsPage() {
     <div>
       <section className="admin-page-header">
         <h1 className="admin-page-header__title coach-page-header__title">Client Subscriptions</h1>
-        <p className="admin-page-header__subtitle coach-page-header__subtitle">
-          Track how many clients are linked to each plan and review recent requests.
-        </p>
         <div className="admin-page-header__actions">
           <Link
             href="/coach/plan-requests"

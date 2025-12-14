@@ -8,6 +8,7 @@ import {
   fetchClientProgressEntries,
 } from "@/lib/queries/clientProgress";
 import api from "@/lib/axios";
+import axios from "axios";
 import { toast } from "sonner";
 
 export default function ProgressDataCards() {
@@ -277,8 +278,15 @@ export default function ProgressDataCards() {
         
         toast.success("Progress updated successfully");
         setEditingSection(null);
-      } catch (err: any) {
-        toast.error(err.response?.data?.message || "Failed to update progress");
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          const msg = (err as any).response?.data?.message || (err as any).message || "Failed to update progress";
+          toast.error(msg);
+        } else if (err instanceof Error) {
+          toast.error(err.message || "Failed to update progress");
+        } else {
+          toast.error("Failed to update progress");
+        }
       } finally {
         setSaving(false);
       }

@@ -3,16 +3,9 @@ import Link from "next/link";
 
 export default function HelpCenterPage() {
   return (
-    <main className="client-page">
-      <div className="client-page__inner">
-        <header className="client-page__header">
-          <h1 className="client-page__title">Help Center</h1>
-          <p className="client-page__subtitle">
-            Last Updated: November 20, 2025
-          </p>
-          <p className="client-page__subtitle">
-            Welcome to the PulseLedger Help Center. Find comprehensive guides, answers to common questions, and support resources to help you get the most out of our health and fitness coaching platform.
-          </p>
+    <main className="client-page footer-page">
+      <header className="client-page__header">
+        <h1 className="client-page__title">Help Center</h1>
         </header>
 
         <section className="client-page__sections">
@@ -861,7 +854,6 @@ export default function HelpCenterPage() {
             </div>
           </div>
         </section>
-      </div>
     </main>
   );
 }

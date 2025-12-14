@@ -2,17 +2,10 @@ import React from "react";
 
 export default function RefundPolicyPage() {
   return (
-    <main className="client-page">
-      <div className="client-page__inner">
-        <header className="client-page__header">
-          <h1 className="client-page__title">Refund & Cancellation Policy</h1>
-          <p className="client-page__subtitle">
-            Last Updated: November 22, 2025
-          </p>
-          <p className="client-page__subtitle">
-            This Refund and Cancellation Policy explains how refunds and cancellations work on PulseLedger. Please read this policy carefully to understand your rights and obligations regarding refunds for subscriptions, products, and services.
-          </p>
-        </header>
+    <main className="client-page footer-page">
+      <header className="client-page__header">
+        <h1 className="client-page__title">Refund & Cancellation Policy</h1>
+      </header>
 
         <section className="client-page__sections">
           {/* Section 1: Platform Role */}
@@ -598,7 +591,6 @@ export default function RefundPolicyPage() {
             </div>
           </div>
         </section>
-      </div>
     </main>
   );
 }

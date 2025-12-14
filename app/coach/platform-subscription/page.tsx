@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import axios from "axios";
 import { motion } from "framer-motion";
-import { AlertCircle, CheckCircle, Clock, Upload, X } from "lucide-react";
+import { AlertCircle, Clock, Upload, X } from "lucide-react";
 
 interface SubscriptionStatus {
   status: "trial" | "active" | "expired" | "suspended";
@@ -84,8 +85,15 @@ export default function PlatformSubscriptionPage() {
       setPreviewUrl(null);
       alert("Payment submitted successfully! Awaiting admin approval.");
     },
-    onError: (error: any) => {
-      alert(error.response?.data?.message || "Failed to submit payment");
+    onError: (error: unknown) => {
+      if (axios.isAxiosError(error)) {
+        const msg = (error as any).response?.data?.message || (error as any).message;
+        alert(msg || "Failed to submit payment");
+      } else if (error instanceof Error) {
+        alert(error.message || "Failed to submit payment");
+      } else {
+        alert(String(error) || "Failed to submit payment");
+      }
     },
   });
 
@@ -198,9 +206,6 @@ export default function PlatformSubscriptionPage() {
       <section className="admin-page-header">
         <div>
           <h1 className="admin-page-header__title">Platform Subscription</h1>
-          <p className="admin-page-header__subtitle">
-            Manage your PulseLedger platform subscription
-          </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>

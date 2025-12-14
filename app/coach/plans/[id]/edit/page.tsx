@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import api from "@/lib/axios";
+import axios from "axios";
 
 const PlanForm = dynamic(() => import("@/components/coach/PlanForm"), {
   loading: () => <div className="p-6 text-center">Loading form...</div>,
@@ -25,8 +26,15 @@ export default function CoachPlanEditPage() {
         const res = await api.get(`/plans/${planId}`);
         if (!active) return;
         setPlan(res.data.data);
-      } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to load plan");
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          const msg = (err as any).response?.data?.message || (err as any).message;
+          setError(msg || "Failed to load plan");
+        } else if (err instanceof Error) {
+          setError(err.message || "Failed to load plan");
+        } else {
+          setError(String(err) || "Failed to load plan");
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -51,9 +59,6 @@ export default function CoachPlanEditPage() {
         <h1 className="admin-page-header__title coach-page-header__title">
           Edit Plan
         </h1>
-        <p className="admin-page-header__subtitle coach-page-header__subtitle">
-          Update details for this plan and save your changes.
-        </p>
       </section>
 
       <div className="admin-card">

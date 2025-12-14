@@ -6,6 +6,7 @@ import Image from "next/image";
 import { User, Upload, Trash2 } from "lucide-react";
 import { useProfileQuery, PROFILE_QUERY_KEY } from "@/lib/queries/profile";
 import api from "@/lib/axios";
+import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
@@ -114,8 +115,8 @@ export default function ProfilePage() {
       const allNull = Object.values(cleanedAddress).every((v) => v === null);
 
       await api.put("/users/profile", { address: allNull ? null : cleanedAddress });
-      queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: any) =>
-        prev ? { ...prev, address: allNull ? null : cleanedAddress } : prev
+      queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: unknown) =>
+        prev ? { ...(prev as Record<string, unknown>), address: allNull ? null : cleanedAddress } : prev
       );
       setAddressEditing(false);
     } catch (err) {
@@ -168,8 +169,8 @@ export default function ProfilePage() {
       else payload.description = null;
 
       await api.put("/users/profile", payload);
-      queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: any) =>
-        prev ? { ...prev, ...payload } : prev
+      queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: unknown) =>
+        prev ? { ...(prev as Record<string, unknown>), ...payload } : prev
       );
       setCoachInfoEditing(false);
     } catch (err) {
@@ -240,8 +241,8 @@ export default function ProfilePage() {
       if (trimmedWebsite && isValidUrl(trimmedWebsite)) cleanedSocialMedia.website = trimmedWebsite;
 
       await api.put("/users/profile", { socialMedia: cleanedSocialMedia });
-      queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: any) =>
-        prev ? { ...prev, socialMedia: cleanedSocialMedia } : prev
+      queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: unknown) =>
+        prev ? { ...(prev as Record<string, unknown>), socialMedia: cleanedSocialMedia } : prev
       );
       setSocialMediaEditing(false);
     } catch (err) {
@@ -263,9 +264,15 @@ export default function ProfilePage() {
       toast.success("Account deletion request submitted. An admin will review your request.");
       setShowDeletionDialog(false);
       setDeletionReason("");
-    } catch (err: any) {
-      const message = err?.response?.data?.message || "Failed to submit deletion request";
-      toast.error(message);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const msg = (err as any).response?.data?.message || (err as any).message;
+        toast.error(msg || "Failed to submit deletion request");
+      } else if (err instanceof Error) {
+        toast.error(err.message || "Failed to submit deletion request");
+      } else {
+        toast.error(String(err) || "Failed to submit deletion request");
+      }
     } finally {
       setSubmittingDeletion(false);
     }
@@ -360,8 +367,8 @@ export default function ProfilePage() {
                         // Update store (persisted) so other pages use cached avatar
                         setAvatarUrl(newUrl);
                         // Update profile query cache locally without refetch
-                        queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: any) =>
-                          prev ? { ...prev, avatarUrl: newUrl } : prev
+                        queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: unknown) =>
+                          prev ? { ...(prev as Record<string, unknown>), avatarUrl: newUrl } : prev
                         );
                       }
                     } catch (err) {

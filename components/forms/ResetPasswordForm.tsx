@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import api from "@/lib/axios";
+import axios from "axios";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -49,11 +50,15 @@ export const ResetPasswordForm: React.FC = () => {
         await api.post("/auth/reset-password", payload);
         toast.success("Password reset successfully. You can now log in.");
         router.replace("/auth/login");
-      } catch (err: any) {
-        toast.error(
-          err.response?.data?.message ||
-            "Failed to reset password. Please try again."
-        );
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          const msg = (err as any).response?.data?.message || (err as any).message || "Failed to reset password. Please try again.";
+          toast.error(msg);
+        } else if (err instanceof Error) {
+          toast.error(err.message || "Failed to reset password. Please try again.");
+        } else {
+          toast.error("Failed to reset password. Please try again.");
+        }
       }
     },
     [router]
@@ -137,10 +142,15 @@ export const ResetPasswordForm: React.FC = () => {
             try {
               await api.post("/auth/forgot-password", { email });
               toast.success("We've sent a new reset code.");
-            } catch (err: any) {
-              toast.error(
-                err.response?.data?.message || "Failed to resend reset code."
-              );
+            } catch (err: unknown) {
+              if (axios.isAxiosError(err)) {
+                const msg = (err as any).response?.data?.message || (err as any).message || "Failed to resend reset code.";
+                toast.error(msg);
+              } else if (err instanceof Error) {
+                toast.error(err.message || "Failed to resend reset code.");
+              } else {
+                toast.error("Failed to resend reset code.");
+              }
             }
           }}
         >

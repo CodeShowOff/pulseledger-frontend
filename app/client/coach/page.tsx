@@ -9,11 +9,9 @@ export default function ClientCoachProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="client-page">
-        <div className="client-page__inner">
-          <div className="client-card">
-            <p className="client-card__subtitle">Loading coach profile...</p>
-          </div>
+      <div className="client-page__sections">
+        <div className="client-card">
+          <p className="client-card__subtitle">Loading coach profile...</p>
         </div>
       </div>
     );
@@ -21,16 +19,14 @@ export default function ClientCoachProfilePage() {
 
   if (error) {
     return (
-      <div className="client-page">
-        <div className="client-page__inner">
-          <div className="client-card">
-            <p className="client-card__subtitle" style={{ color: "#dc2626" }}>
-              Unable to load coach information.
-            </p>
-            <Link href="/client/dashboard" className="client-button client-button--outline" style={{ marginTop: "0.75rem" }}>
-              Back to dashboard
-            </Link>
-          </div>
+      <div className="client-page__sections">
+        <div className="client-card">
+          <p className="client-card__subtitle" style={{ color: "#dc2626" }}>
+            Unable to load coach information.
+          </p>
+          <Link href="/client/dashboard" className="client-button client-button--outline" style={{ marginTop: "0.75rem" }}>
+            Back to dashboard
+          </Link>
         </div>
       </div>
     );
@@ -38,25 +34,21 @@ export default function ClientCoachProfilePage() {
 
   if (!data) {
     return (
-      <div className="client-page">
-        <div className="client-page__inner">
-          <div className="client-card">
-            <p className="client-card__subtitle">You do not have a coach assigned yet.</p>
-            <Link href="/client/dashboard" className="client-button client-button--outline" style={{ marginTop: "0.75rem" }}>
-              Back to dashboard
-            </Link>
-          </div>
+      <div className="client-page__sections">
+        <div className="client-card">
+          <p className="client-card__subtitle">You do not have a coach assigned yet.</p>
+          <Link href="/client/dashboard" className="client-button client-button--outline" style={{ marginTop: "0.75rem" }}>
+            Back to dashboard
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="client-page">
-      <div className="client-page__inner">
+    <div className="client-page__sections">
         <header className="client-page__header">
           <h1 className="client-page__title">My Coach</h1>
-          <p className="client-page__subtitle">Here are the details of your assigned coach.</p>
         </header>
 
         <div className="client-card">
@@ -270,7 +262,6 @@ export default function ClientCoachProfilePage() {
             )}
           </div>
         </div>
-      </div>
     </div>
   );
 }

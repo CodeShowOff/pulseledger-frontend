@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import getErrorMessage from "@/lib/getErrorMessage";
 import { Camera, Trash2, X } from "lucide-react";
 
 interface ProgressPhoto {
@@ -44,9 +45,9 @@ export default function ProgressPhotos() {
       setPreviewUrl(null);
       setUploading(false);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       setUploading(false);
-      alert(error?.response?.data?.message || "Failed to upload photo");
+      alert(getErrorMessage(error, "Failed to upload photo"));
     },
   });
 
@@ -58,8 +59,8 @@ export default function ProgressPhotos() {
       queryClient.invalidateQueries({ queryKey: ["progressPhotos"] });
       setSelectedPhoto(null);
     },
-    onError: (error: any) => {
-      alert(error?.response?.data?.message || "Failed to delete photo");
+    onError: (error: unknown) => {
+      alert(getErrorMessage(error, "Failed to delete photo"));
     },
   });
 

@@ -150,7 +150,7 @@ export default function EarningsDashboard() {
                     border: "1px solid #e5e7eb",
                     borderRadius: "8px",
                   }}
-                  formatter={(value: any) => `₹${typeof value === 'number' ? value.toFixed(2) : value}`}
+                  formatter={(value: number | string) => `₹${typeof value === 'number' ? value.toFixed(2) : value}`}
                 />
                 <Legend />
                 <Bar

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import api from "@/lib/axios";
-import { Download, Package, User, CreditCard, ChevronLeft, ChevronRight, FileText, CheckCircle, XCircle, ExternalLink, ChevronDown, ChevronUp, MapPin, Phone } from "lucide-react";
+import axios from "axios";
+import { Download, Package, User, CreditCard, ChevronLeft, ChevronRight, CheckCircle, XCircle, ExternalLink, ChevronDown, ChevronUp, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 
 type CoachOrderStatus =
@@ -83,6 +84,8 @@ function statusBgColor(status: CoachOrderStatus) {
   }
 }
 
+
+
 export default function CoachOrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
@@ -125,9 +128,15 @@ export default function CoachOrdersPage() {
       queryClient.invalidateQueries({ queryKey: ["coachOrders"] });
       queryClient.invalidateQueries({ queryKey: ["myOrders"] });
     },
-    onError: (err: any) => {
-      const message = err?.response?.data?.message ?? "Failed to update order";
-      toast.error(message);
+    onError: (err: unknown) => {
+      if (axios.isAxiosError(err)) {
+        const msg = (err as any).response?.data?.message || (err as any).message || "Failed to update order";
+        toast.error(msg);
+      } else if (err instanceof Error) {
+        toast.error(err.message || "Failed to update order");
+      } else {
+        toast.error("Failed to update order");
+      }
     },
     onSettled: () => {
       setUpdatingId(null);
@@ -157,9 +166,15 @@ export default function CoachOrdersPage() {
       window.URL.revokeObjectURL(url);
       
       toast.success("Invoice downloaded successfully");
-    } catch (err: any) {
-      const message = err?.response?.data?.message ?? "Failed to download invoice";
-      toast.error(message);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const msg = (err as any).response?.data?.message || (err as any).message || "Failed to download invoice";
+        toast.error(msg);
+      } else if (err instanceof Error) {
+        toast.error(err.message || "Failed to download invoice");
+      } else {
+        toast.error("Failed to download invoice");
+      }
     }
   };
 
@@ -177,9 +192,6 @@ export default function CoachOrdersPage() {
     <div>
       <section className="admin-page-header">
         <h1 className="admin-page-header__title coach-page-header__title">Orders</h1>
-        <p className="admin-page-header__subtitle coach-page-header__subtitle">
-          Manage orders placed by your clients for your products.
-        </p>
       </section>
 
       {orders.length ? (

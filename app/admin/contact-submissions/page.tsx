@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "sonner";
-import { Mail, Check, Eye, Trash2 } from "lucide-react";
+import { Mail, Eye, Trash2 } from "lucide-react";
 import RoleGuard from "@/components/shared/RoleGuard";
 
 type ContactSubmission = {

@@ -121,9 +121,7 @@ export default function ClientDashboardPage() {
       </div>
 
       {/* Progress Charts */}
-      <div className="client-card">
-        <ProgressCharts />
-      </div>
+      <ProgressCharts />
     </div>
   );
 }

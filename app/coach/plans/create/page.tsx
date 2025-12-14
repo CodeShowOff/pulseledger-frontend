@@ -18,9 +18,6 @@ export default function CoachPlanCreatePage() {
         <h1 className="admin-page-header__title coach-page-header__title">
           Create New Plan
         </h1>
-        <p className="admin-page-header__subtitle coach-page-header__subtitle">
-          Set up a new template or client-specific plan.
-        </p>
       </section>
 
       <div className="admin-card">

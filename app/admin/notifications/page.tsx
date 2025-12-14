@@ -6,6 +6,15 @@ import { toast } from "sonner";
 
 type Role = "client" | "coach" | "admin";
 
+function isAxiosError(error: unknown): error is { response?: { data?: { message?: string } } } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof (error as { response?: unknown }).response === "object"
+  );
+}
+
 export default function AdminSendNotificationsPage() {
   const [mode, setMode] = useState<"all" | "role">("all");
   const [role, setRole] = useState<Role>("client");
@@ -30,8 +39,12 @@ export default function AdminSendNotificationsPage() {
       toast.success("Notification sent");
       setMessage("");
       setTitle("");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to send");
+    } catch (err: unknown) {
+      let errorMessage = "Failed to send";
+      if (isAxiosError(err)) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -71,7 +84,7 @@ export default function AdminSendNotificationsPage() {
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-1">Type</label>
-              <select className="w-full border rounded-md px-3 py-2" value={type} onChange={(e) => setType(e.target.value as any)}>
+              <select className="w-full border rounded-md px-3 py-2" value={type} onChange={(e) => setType(e.target.value as "info" | "order" | "plan" | "system")}>
                 <option value="info">Info</option>
                 <option value="order">Order</option>
                 <option value="plan">Plan</option>

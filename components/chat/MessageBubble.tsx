@@ -130,8 +130,8 @@ export default function MessageBubble({
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
-    } catch (error) {
-      console.error("Failed to download image", error);
+    } catch {
+      // console.error("Failed to download image", error);
     }
   };
 
@@ -143,8 +143,8 @@ export default function MessageBubble({
         clearTimeout(copyTimeoutRef.current);
       }
       copyTimeoutRef.current = setTimeout(() => setLinkCopySuccess(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy link", error);
+    } catch {
+      // console.error("Failed to copy link", error);
     }
   };
 

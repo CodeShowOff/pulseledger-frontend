@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError, AxiosRequestHeaders } from "axios";
 import { useAuthStore } from "./store";
 
 // Always prefer same-origin proxy so auth cookies (refreshToken) are set for the frontend domain
@@ -16,7 +16,7 @@ const refreshClient = axios.create({
   withCredentials: true,
 });
 
-let refreshInFlight: Promise<{ accessToken: string; user?: any } | null> | null = null;
+let refreshInFlight: Promise<{ accessToken: string; user?: Record<string, unknown> } | null> | null = null;
 
 async function refreshSingleFlight() {
   if (refreshInFlight) return refreshInFlight;
@@ -34,7 +34,7 @@ async function refreshSingleFlight() {
   return refreshInFlight;
 }
 
-export type RefreshAuthResult = { accessToken: string; user?: any } | null;
+export type RefreshAuthResult = { accessToken: string; user?: Record<string, unknown> } | null;
 
 export async function refreshAuthSingleFlight(): Promise<RefreshAuthResult> {
   return refreshSingleFlight();
@@ -42,26 +42,28 @@ export async function refreshAuthSingleFlight(): Promise<RefreshAuthResult> {
 
 // Axios interceptor for attaching access token
 api.interceptors.request.use(
-  (config: any) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = useAuthStore.getState().accessToken;
     if (token && config.headers)
       config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error: any) => Promise.reject(error)
+  (error: unknown) => Promise.reject(error)
 );
 
 // Auto-refresh interceptor
 api.interceptors.response.use(
-  (res: any) => res,
-  async (error: any) => {
-    const originalRequest = error.config || {};
+  (res: AxiosResponse) => res,
+  async (error: unknown) => {
+    if (!axios.isAxiosError(error)) return Promise.reject(error);
+    const originalRequest = (error.config || {}) as InternalAxiosRequestConfig & { _retry?: boolean };
     const status = error.response?.status;
 
     // Handle subscription expired error (403 with specific error code)
     if (status === 403) {
-      const msg = String(error.response?.data?.message || '').toLowerCase();
-      const errorCode = error.response?.data?.error || error.response?.data?.code;
+      const respData = error.response?.data as any;
+      const msg = String(respData?.message || "").toLowerCase();
+      const errorCode = respData?.error || respData?.code;
       
       // Redirect to subscription payment page if subscription expired
       if (errorCode === "SUBSCRIPTION_EXPIRED") {
@@ -88,7 +90,7 @@ api.interceptors.response.use(
       !originalRequest.url.includes("/auth/refresh") &&
       !originalRequest.url.includes("/auth/login")
     ) {
-      (originalRequest as any)._retry = true;
+      originalRequest._retry = true;
       try {
         const refreshed = await refreshSingleFlight();
         const newToken = refreshed?.accessToken;
@@ -111,8 +113,8 @@ api.interceptors.response.use(
           document.cookie = `accessToken=${newToken}; path=/; max-age=900;`;
         }
 
-        if (!originalRequest.headers) originalRequest.headers = {};
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        if (!originalRequest.headers) originalRequest.headers = {} as AxiosRequestHeaders;
+        (originalRequest.headers as AxiosRequestHeaders).Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         useAuthStore.getState().logout();

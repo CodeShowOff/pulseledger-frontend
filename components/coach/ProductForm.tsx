@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
 import api from "@/lib/axios";
 import { toast } from "sonner";
 
@@ -41,7 +42,7 @@ export default function ProductForm() {
       reset();
       queryClient.invalidateQueries({ queryKey: ["coachProducts"] });
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || "Failed to create product"),
+    onError: (err: AxiosError<{ message?: string }>) => toast.error((err.response?.data as { message?: string })?.message || "Failed to create product"),
   });
 
   const onSubmit = useCallback(

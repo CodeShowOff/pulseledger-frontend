@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import api from "@/lib/axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
 import { toast } from "sonner";
 import { CLIENT_PLANS_KEY } from "@/lib/queries/plans";
 
@@ -54,25 +55,25 @@ export default function PlanForm({ plan, onClose, variant = "modal" }: { plan?: 
   }, [plan, reset]);
 
   const createMutation = useMutation({
-    mutationFn: (payload: any) => api.post("/plans", payload),
+    mutationFn: (payload: Record<string, unknown>) => api.post("/plans", payload),
     onSuccess: () => {
       toast.success("Plan created");
       queryClient.invalidateQueries({ queryKey: ["coachPlans"] });
       queryClient.invalidateQueries({ queryKey: CLIENT_PLANS_KEY });
       onClose();
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || "Create failed"),
+    onError: (err: AxiosError<{ message?: string }>) => toast.error((err.response?.data as { message?: string })?.message || "Create failed"),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: any }) => api.patch(`/plans/${id}`, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: Record<string, unknown> }) => api.patch(`/plans/${id}`, payload),
     onSuccess: () => {
       toast.success("Plan updated");
       queryClient.invalidateQueries({ queryKey: ["coachPlans"] });
       queryClient.invalidateQueries({ queryKey: CLIENT_PLANS_KEY });
       onClose();
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || "Update failed"),
+    onError: (err: AxiosError<{ message?: string }>) => toast.error((err.response?.data as { message?: string })?.message || "Update failed"),
   });
 
   const onSubmit = (data: PlanFormType) => {

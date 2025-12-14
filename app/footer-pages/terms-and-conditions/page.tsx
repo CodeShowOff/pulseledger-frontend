@@ -2,17 +2,10 @@ import React from "react";
 
 export default function TermsAndConditionsPage() {
   return (
-    <main className="client-page">
-      <div className="client-page__inner">
-        <header className="client-page__header">
-          <h1 className="client-page__title">Terms and Conditions</h1>
-          <p className="client-page__subtitle">
-            Last Updated: November 22, 2025
-          </p>
-          <p className="client-page__subtitle">
-            These Terms and Conditions ("Terms", "Agreement") govern your access to and use of PulseLedger ("Service", "Platform", "we", "us", or "our"), a health and fitness coaching platform. By creating an account, accessing, or using our Service, you agree to be bound by these Terms. If you do not agree with any part of these Terms, you must not use our Service.
-          </p>
-        </header>
+    <main className="client-page footer-page">
+      <header className="client-page__header">
+        <h1 className="client-page__title">Terms and Conditions</h1>
+      </header>
 
         <section className="client-page__sections">
           {/* Section 1: Agreement to Terms */}
@@ -1012,7 +1005,6 @@ export default function TermsAndConditionsPage() {
             </div>
           </div>
         </section>
-      </div>
     </main>
   );
 }

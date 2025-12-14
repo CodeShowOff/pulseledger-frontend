@@ -3,10 +3,17 @@
 import { Suspense, useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter, useParams } from "next/navigation";
 import api from "@/lib/axios";
+import getErrorMessage from "@/lib/getErrorMessage";
 import Link from "next/link";
 import Image from "next/image";
-import { Instagram, Facebook, Twitter, Linkedin, Youtube, Globe, Phone, Mail } from "lucide-react";
+import { 
+  Instagram, Facebook, Twitter, Linkedin, Youtube, Globe, Phone, Mail,
+  MapPin, Calendar, Award, Users, FileText, ShoppingBag, Star, 
+  ChevronRight, ChevronLeft, CheckCircle2, Sparkles, TrendingUp,
+  Clock, Target, Heart, ArrowRight, Send
+} from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import "./coach-profile.css";
 
 interface PublicCoachProfileResponse {
   success: boolean;
@@ -71,9 +78,7 @@ function PublicCoachProfileContent() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [profile, setProfile] = useState<PublicCoachProfileResponse["data"] | null>(
-    null
-  );
+  const [profile, setProfile] = useState<PublicCoachProfileResponse["data"] | null>(null);
   const [contactFormData, setContactFormData] = useState({
     firstName: "",
     lastName: "",
@@ -88,11 +93,14 @@ function PublicCoachProfileContent() {
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const contactFormRef = useRef<HTMLDivElement>(null);
-  const [awardsPage, setAwardsPage] = useState(0);
-  const [transformationsPage, setTransformationsPage] = useState(0);
-  const ITEMS_PER_PAGE = 4;
-  const [progressData, setProgressData] = useState<any[]>([]);
-  const [loadingProgress, setLoadingProgress] = useState(false);
+  const [activeGalleryTab, setActiveGalleryTab] = useState<"awards" | "transformations">("transformations");
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const [progressData, setProgressData] = useState<Array<{ week: string; avgBMI: number }>>([]);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,69 +121,42 @@ function PublicCoachProfileContent() {
             setError(res.data.message || "Coach not found");
           } else {
             setProfile(res.data.data);
-            
-            // Fetch progress data for chart
             try {
-              setLoadingProgress(true);
               const progressRes = await api.get(`/coach/public-profile/${encodeURIComponent(referralCode)}/progress`);
               if (progressRes.data && Array.isArray(progressRes.data)) {
                 setProgressData(progressRes.data);
               }
-            } catch (progressErr) {
+            } catch {
               // Progress data not available
-            } finally {
-              setLoadingProgress(false);
             }
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!cancelled) {
-          setError(
-            err?.response?.data?.message || "Unable to load coach profile."
-          );
+          setError(getErrorMessage(err, "Unable to load coach profile."));
         }
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [referralCode]);
 
   const handleJoinClick = () => {
-    const existingParams = new URLSearchParams(
-      searchParams ? searchParams.toString() : ""
-    );
-    existingParams.set("coach", referralCode);
+    const existingParams = new URLSearchParams(searchParams?.toString() || "");
+    existingParams.set("coach", referralCode || "");
     router.push(`/auth/register?${existingParams.toString()}`);
   };
 
   const scrollToContactForm = () => {
-    // Prefer hash navigation for better mobile support within nested scroll containers
-    try {
-      const el = contactFormRef.current || document.getElementById("contact-form");
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-        // Update hash so browser preserves position on mobile
-        if (typeof window !== "undefined") {
-          const url = new URL(window.location.href);
-          url.hash = "contact-form";
-          window.history.replaceState(null, "", url.toString());
-        }
-        return;
-      }
-    } catch {}
-    // Fallback: push hash to trigger default browser jump
-    router.push(`#contact-form`);
+    contactFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleContactFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setSubmitSuccess(false);
-
     try {
       await api.post("/contact-requests", {
         ...contactFormData,
@@ -184,44 +165,46 @@ function PublicCoachProfileContent() {
         age: Number(contactFormData.age),
         referralCode,
       });
-
       setSubmitSuccess(true);
       setContactFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        height: "",
-        weight: "",
-        age: "",
-        gender: "",
-        message: "",
+        firstName: "", lastName: "", email: "", phone: "",
+        height: "", weight: "", age: "", gender: "", message: "",
       });
-    } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to submit contact request. Please try again.");
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, "Failed to submit. Please try again."));
     } finally {
       setSubmitting(false);
     }
   };
 
+  const galleryItems = activeGalleryTab === "awards" 
+    ? (profile?.coach.awards || []) 
+    : (profile?.coach.transformations || []);
+
+  const nextGallerySlide = () => {
+    setGalleryIndex((prev) => (prev + 1) % Math.max(1, galleryItems.length));
+  };
+
+  const prevGallerySlide = () => {
+    setGalleryIndex((prev) => (prev - 1 + galleryItems.length) % Math.max(1, galleryItems.length));
+  };
+
   if (loading) {
     return (
-      <div className="profile-shell">
-        <div className="profile-inner">
-          <p className="profile-header__subtitle">Loading coach profile...</p>
-        </div>
+      <div className="cpp-loading">
+        <div className="cpp-loading__spinner" />
+        <p>Loading profile...</p>
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="profile-shell">
-        <div className="profile-inner">
-          <p className="profile-header__subtitle text-red-600">
-            {error || "Coach not found."}
-          </p>
-          <Link href="/" className="btn btn--secondary" style={{ marginTop: "1rem" }}>
+      <div className="cpp-error">
+        <div className="cpp-error__content">
+          <h1>Oops!</h1>
+          <p>{error || "Coach not found."}</p>
+          <Link href="/" className="cpp-btn cpp-btn--primary">
             Back to Home
           </Link>
         </div>
@@ -230,843 +213,548 @@ function PublicCoachProfileContent() {
   }
 
   const { coach, stats, plans } = profile;
-
-  const location = coach.address?.city || coach.address?.state
-    ? [coach.address.city, coach.address.state].filter(Boolean).join(", ")
-    : null;
+  const location = [coach.address?.city, coach.address?.state].filter(Boolean).join(", ");
+  const hasSocialLinks = coach.socialMedia && Object.values(coach.socialMedia).some(Boolean);
+  const hasGalleryItems = (coach.awards?.length || 0) > 0 || (coach.transformations?.length || 0) > 0;
 
   return (
-    <div className="profile-shell">
-      <div className="profile-inner" style={{ maxWidth: "100%", padding: "10px" }}>
-        <header className="profile-header" style={{ marginBottom: "1rem", marginTop: 0, paddingTop: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", marginLeft: 0 }}>
+    <div className={`cpp ${isVisible ? 'cpp--visible' : ''}`}>
+      {/* Hero Section */}
+      <section className="cpp-hero">
+        <div className="cpp-hero__bg">
+          <div className="cpp-hero__gradient" />
+          <div className="cpp-hero__pattern" />
+        </div>
+        
+        <div className="cpp-hero__content">
+          <div className="cpp-hero__avatar-wrapper">
             {coach.avatarUrl ? (
               <Image
                 src={coach.avatarUrl}
                 alt={coach.fullName}
-                width={160}
-                height={160}
-                style={{
-                  width: 160,
-                  height: 160,
-                  borderRadius: "12px",
-                  objectFit: "cover",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  border: "2px solid #ffffff",
-                  filter: "brightness(1.2)",
-                }}
+                width={180}
+                height={180}
+                className="cpp-hero__avatar"
+                priority
               />
             ) : (
-              <div
-                className="client-profile-avatar"
-                style={{ 
-                  width: 160, 
-                  height: 160, 
-                  fontSize: 64,
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  border: "2px solid #ffffff",
-                }}
-              >
+              <div className="cpp-hero__avatar cpp-hero__avatar--placeholder">
                 {coach.fullName?.[0]?.toUpperCase() || "C"}
               </div>
             )}
-            <div style={{ flex: 1, marginTop: 0, paddingTop: 0 }}>
-              <h1 
-                className="profile-header__title" 
-                style={{ 
-                  fontSize: "2.5rem",
-                  fontWeight: 700,
-                  backgroundImage: "linear-gradient(90deg, #1e3a8a 0%, #1e40af 25%, #3b82f6 50%, #1e40af 75%, #1e3a8a 100%)",
-                  backgroundSize: "200% auto",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  animation: "shine 3s linear infinite",
-                  marginBottom: "0.25rem",
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                {coach.fullName}
-              </h1>
-              <style jsx>{`
-                @keyframes shine {
-                  to {
-                    background-position: 200% center;
-                  }
-                }
-                @keyframes shimmer {
-                  0%, 100% {
-                    opacity: 1;
-                    filter: brightness(1);
-                  }
-                  50% {
-                    opacity: 0.8;
-                    filter: brightness(1.3);
-                  }
-                }
-              `}</style>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.25rem" }}>
-                {location && (
-                  <p className="profile-header__subtitle" style={{ fontSize: "1rem", display: "flex", alignItems: "center", gap: "0.25rem", margin: 0 }}>
-                     {location}
-                  </p>
-                )}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                <div className="profile-header__badge" style={{ display: "inline-flex", fontSize: "0.8rem", alignItems: "center", gap: "0.35rem" }}>
-                  PulseLedger Coach
-                  <Image
-                    src="/tick-ico.png"
-                    alt="Verified"
-                    width={16}
-                    height={16}
-                    style={{ animation: "shimmer 2s ease-in-out infinite", flexShrink: 0 }}
-                  />
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem", flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={scrollToContactForm}
-                  style={{
-                    backgroundColor: "#ffffff",
-                    color: "#3b82f6",
-                    borderColor: "#3b82f6",
-                    border: "2px solid #3b82f6",
-                    fontSize: "0.8rem",
-                    paddingInline: "0.75rem",
-                    paddingBlock: "0.4rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  Contact Me
-                </button>
-                {coach.socialMedia && (
-                  <>
-                  {coach.socialMedia.instagram && (
-                    <a
-                      href={coach.socialMedia.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ 
-                        color: "#6b7280", 
-                        transition: "color 0.2s",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 36,
-                        height: 36,
-                        borderRadius: "8px",
-                        backgroundColor: "rgba(107, 114, 128, 0.1)",
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = "#374151"}
-                      onMouseLeave={(e) => e.currentTarget.style.color = "#6b7280"}
-                      title="Instagram"
-                    >
-                      <Instagram size={20} />
-                    </a>
-                  )}
-                  {coach.socialMedia.facebook && (
-                    <a
-                      href={coach.socialMedia.facebook}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ 
-                        color: "#6b7280", 
-                        transition: "color 0.2s",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 36,
-                        height: 36,
-                        borderRadius: "8px",
-                        backgroundColor: "rgba(107, 114, 128, 0.1)",
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = "#374151"}
-                      onMouseLeave={(e) => e.currentTarget.style.color = "#6b7280"}
-                      title="Facebook"
-                    >
-                      <Facebook size={20} />
-                    </a>
-                  )}
-                  {coach.socialMedia.twitter && (
-                    <a
-                      href={coach.socialMedia.twitter}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ 
-                        color: "#6b7280", 
-                        transition: "color 0.2s",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 36,
-                        height: 36,
-                        borderRadius: "8px",
-                        backgroundColor: "rgba(107, 114, 128, 0.1)",
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = "#374151"}
-                      onMouseLeave={(e) => e.currentTarget.style.color = "#6b7280"}
-                      title="Twitter"
-                    >
-                      <Twitter size={20} />
-                    </a>
-                  )}
-                  {coach.socialMedia.linkedin && (
-                    <a
-                      href={coach.socialMedia.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ 
-                        color: "#6b7280", 
-                        transition: "color 0.2s",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 36,
-                        height: 36,
-                        borderRadius: "8px",
-                        backgroundColor: "rgba(107, 114, 128, 0.1)",
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = "#374151"}
-                      onMouseLeave={(e) => e.currentTarget.style.color = "#6b7280"}
-                      title="LinkedIn"
-                    >
-                      <Linkedin size={20} />
-                    </a>
-                  )}
-                  {coach.socialMedia.youtube && (
-                    <a
-                      href={coach.socialMedia.youtube}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ 
-                        color: "#6b7280", 
-                        transition: "color 0.2s",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 36,
-                        height: 36,
-                        borderRadius: "8px",
-                        backgroundColor: "rgba(107, 114, 128, 0.1)",
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = "#374151"}
-                      onMouseLeave={(e) => e.currentTarget.style.color = "#6b7280"}
-                      title="YouTube"
-                    >
-                      <Youtube size={20} />
-                    </a>
-                  )}
-                  {coach.socialMedia.website && (
-                    <a
-                      href={coach.socialMedia.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ 
-                        color: "#6b7280", 
-                        transition: "color 0.2s",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 36,
-                        height: 36,
-                        borderRadius: "8px",
-                        backgroundColor: "rgba(107, 114, 128, 0.1)",
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = "#374151"}
-                      onMouseLeave={(e) => e.currentTarget.style.color = "#6b7280"}
-                      title="Website"
-                    >
-                      <Globe size={20} />
-                    </a>
-                  )}
-                </>
-              )}
-              </div>
+            <div className="cpp-hero__verified">
+              <CheckCircle2 size={24} />
             </div>
           </div>
-        </header>
 
-        {coach.description && (
-          <div className="profile-card" style={{ marginBottom: "1.25rem" }}>
-            <h2 className="profile-header__title" style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>
-              About {coach.fullName.split(" ")[0]}
-            </h2>
-            <p className="profile-header__subtitle" style={{ lineHeight: "1.7", whiteSpace: "pre-wrap", fontSize: "0.95rem" }}>
-              {coach.description}
+          <div className="cpp-hero__info">
+            <div className="cpp-hero__badge">
+              <Sparkles size={14} />
+              <span>PulseLedger Certified Coach</span>
+            </div>
+            
+            <h1 className="cpp-hero__name">{coach.fullName}</h1>
+            
+            <p className="cpp-hero__tagline">
+              {coach.specialization || "Fitness & Wellness Coach"}
             </p>
-          </div>
-        )}
 
-        {/* Awards & Achievements Gallery */}
-        {coach.awards && coach.awards.length > 0 && (
-          <div className="profile-card" style={{ marginBottom: "1.25rem" }}>
-            <h2 className="profile-header__title" style={{ fontSize: "1.5rem", marginBottom: "1rem", color: "#3b82f6" }}>
-              Awards & Achievements
-            </h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "1rem" }}>
-              {coach.awards
-                .slice(awardsPage * ITEMS_PER_PAGE, (awardsPage + 1) * ITEMS_PER_PAGE)
-                .map((award) => (
-                  <div
-                    key={award.publicId}
-                    style={{
-                      borderRadius: "12px",
-                      overflow: "hidden",
-                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                      cursor: "pointer",
-                      transition: "transform 0.2s",
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-                  >
-                    <Image
-                      src={award.url}
-                      alt="Award"
-                      width={250}
-                      height={250}
-                      style={{
-                        width: "100%",
-                        height: "250px",
-                        objectFit: "cover",
-                        filter: "brightness(1.2)",
-                      }}
-                    />
-                  </div>
-                ))}
-            </div>
-            {coach.awards.length > ITEMS_PER_PAGE && (
-              <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginTop: "1.5rem" }}>
-                <button
-                  className="btn btn--secondary"
-                  onClick={() => setAwardsPage(p => Math.max(0, p - 1))}
-                  disabled={awardsPage === 0}
-                  style={{ fontSize: "0.9rem", paddingInline: "1rem", paddingBlock: "0.5rem" }}
-                >
-                  Previous
-                </button>
-                <span style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", color: "#6b7280" }}>
-                  Page {awardsPage + 1} of {Math.ceil(coach.awards.length / ITEMS_PER_PAGE)}
+            <div className="cpp-hero__meta">
+              {location && (
+                <span className="cpp-hero__meta-item">
+                  <MapPin size={16} />
+                  {location}
                 </span>
-                <button
-                  className="btn btn--secondary"
-                  onClick={() => setAwardsPage(p => Math.min(Math.ceil((coach.awards?.length || 0) / ITEMS_PER_PAGE) - 1, p + 1))}
-                  disabled={awardsPage >= Math.ceil((coach.awards?.length || 0) / ITEMS_PER_PAGE) - 1}
-                  style={{ fontSize: "0.9rem", paddingInline: "1rem", paddingBlock: "0.5rem" }}
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Transformation Results Gallery */}
-        {coach.transformations && coach.transformations.length > 0 && (
-          <div className="profile-card" style={{ marginBottom: "1.25rem" }}>
-            <h2 className="profile-header__title" style={{ fontSize: "1.5rem", marginBottom: "1rem", color: "#3b82f6" }}>
-              Transformation Results
-            </h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "1rem" }}>
-              {coach.transformations
-                .slice(transformationsPage * ITEMS_PER_PAGE, (transformationsPage + 1) * ITEMS_PER_PAGE)
-                .map((transformation) => (
-                  <div
-                    key={transformation.publicId}
-                    style={{
-                      borderRadius: "12px",
-                      overflow: "hidden",
-                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                      cursor: "pointer",
-                      transition: "transform 0.2s",
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-                  >
-                    <Image
-                      src={transformation.url}
-                      alt="Transformation"
-                      width={250}
-                      height={250}
-                      style={{
-                        width: "100%",
-                        height: "250px",
-                        objectFit: "cover",
-                        filter: "brightness(1.2)",
-                      }}
-                    />
-                  </div>
-                ))}
-            </div>
-            {coach.transformations.length > ITEMS_PER_PAGE && (
-              <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginTop: "1.5rem" }}>
-                <button
-                  className="btn btn--secondary"
-                  onClick={() => setTransformationsPage(p => Math.max(0, p - 1))}
-                  disabled={transformationsPage === 0}
-                  style={{ fontSize: "0.9rem", paddingInline: "1rem", paddingBlock: "0.5rem" }}
-                >
-                  Previous
-                </button>
-                <span style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", color: "#6b7280" }}>
-                  Page {transformationsPage + 1} of {Math.ceil(coach.transformations.length / ITEMS_PER_PAGE)}
+              )}
+              {coach.experienceYears && (
+                <span className="cpp-hero__meta-item">
+                  <Clock size={16} />
+                  {coach.experienceYears}+ Years Experience
                 </span>
-                <button
-                  className="btn btn--secondary"
-                  onClick={() => setTransformationsPage(p => Math.min(Math.ceil((coach.transformations?.length || 0) / ITEMS_PER_PAGE) - 1, p + 1))}
-                  disabled={transformationsPage >= Math.ceil((coach.transformations?.length || 0) / ITEMS_PER_PAGE) - 1}
-                  style={{ fontSize: "0.9rem", paddingInline: "1rem", paddingBlock: "0.5rem" }}
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+              {coach.memberSince && (
+                <span className="cpp-hero__meta-item">
+                  <Calendar size={16} />
+                  Member since {new Date(coach.memberSince).getFullYear()}
+                </span>
+              )}
+            </div>
 
-        <div className="profile-card" style={{ marginBottom: "1.25rem" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "1rem",
-              flexWrap: "wrap",
-            }}
-          >
-            <div>
-              <p className="profile-header__subtitle" style={{ marginBottom: 8 }}>
-                Join PulseLedger using this coach's referral link. Your account will be
-                automatically connected to them.
-              </p>
-              <button
-                type="button"
-                className="btn btn--primary"
-                onClick={handleJoinClick}
-              >
-                Join PulseLedger with {coach.fullName}
+            <div className="cpp-hero__actions">
+              <button onClick={scrollToContactForm} className="cpp-btn cpp-btn--primary cpp-btn--lg">
+                <Send size={18} />
+                Get in Touch
+              </button>
+              <button onClick={handleJoinClick} className="cpp-btn cpp-btn--secondary cpp-btn--lg">
+                Join with {coach.fullName.split(" ")[0]}
+                <ArrowRight size={18} />
               </button>
             </div>
-            <div className="profile-header__badge" style={{ alignSelf: "flex-start" }}>
-              Referral Code: {coach.referralCode}
-            </div>
+
+            {hasSocialLinks && (
+              <div className="cpp-hero__social">
+                {coach.socialMedia?.instagram && (
+                  <a href={coach.socialMedia.instagram} target="_blank" rel="noopener noreferrer" className="cpp-social-link" title="Instagram">
+                    <Instagram size={20} />
+                  </a>
+                )}
+                {coach.socialMedia?.facebook && (
+                  <a href={coach.socialMedia.facebook} target="_blank" rel="noopener noreferrer" className="cpp-social-link" title="Facebook">
+                    <Facebook size={20} />
+                  </a>
+                )}
+                {coach.socialMedia?.twitter && (
+                  <a href={coach.socialMedia.twitter} target="_blank" rel="noopener noreferrer" className="cpp-social-link" title="Twitter">
+                    <Twitter size={20} />
+                  </a>
+                )}
+                {coach.socialMedia?.linkedin && (
+                  <a href={coach.socialMedia.linkedin} target="_blank" rel="noopener noreferrer" className="cpp-social-link" title="LinkedIn">
+                    <Linkedin size={20} />
+                  </a>
+                )}
+                {coach.socialMedia?.youtube && (
+                  <a href={coach.socialMedia.youtube} target="_blank" rel="noopener noreferrer" className="cpp-social-link" title="YouTube">
+                    <Youtube size={20} />
+                  </a>
+                )}
+                {coach.socialMedia?.website && (
+                  <a href={coach.socialMedia.website} target="_blank" rel="noopener noreferrer" className="cpp-social-link" title="Website">
+                    <Globe size={20} />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
+      </section>
 
-        {coach.bio && (
-          <div className="profile-card" style={{ marginBottom: "1.25rem" }}>
-            <h2 className="profile-header__title" style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>
-              About
-            </h2>
-            <p className="profile-header__subtitle" style={{ lineHeight: "1.6" }}>
-              {coach.bio}
-            </p>
+      {/* Stats Bar */}
+      <section className="cpp-stats">
+        <div className="cpp-stats__container">
+          <div className="cpp-stats__item">
+            <div className="cpp-stats__icon">
+              <Users size={24} />
+            </div>
+            <div className="cpp-stats__content">
+              <span className="cpp-stats__number">{stats.clientsCount}</span>
+              <span className="cpp-stats__label">Happy Clients</span>
+            </div>
           </div>
+          <div className="cpp-stats__divider" />
+          <div className="cpp-stats__item">
+            <div className="cpp-stats__icon">
+              <FileText size={24} />
+            </div>
+            <div className="cpp-stats__content">
+              <span className="cpp-stats__number">{stats.plansCount}</span>
+              <span className="cpp-stats__label">Custom Plans</span>
+            </div>
+          </div>
+          <div className="cpp-stats__divider" />
+          <div className="cpp-stats__item">
+            <div className="cpp-stats__icon">
+              <ShoppingBag size={24} />
+            </div>
+            <div className="cpp-stats__content">
+              <span className="cpp-stats__number">{stats.productsCount}</span>
+              <span className="cpp-stats__label">Products</span>
+            </div>
+          </div>
+          {coach.experienceYears && (
+            <>
+              <div className="cpp-stats__divider" />
+              <div className="cpp-stats__item">
+                <div className="cpp-stats__icon">
+                  <Award size={24} />
+                </div>
+                <div className="cpp-stats__content">
+                  <span className="cpp-stats__number">{coach.experienceYears}+</span>
+                  <span className="cpp-stats__label">Years Exp.</span>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <main className="cpp-main">
+        {/* About Section */}
+        {(coach.description || coach.bio) && (
+          <section className="cpp-section cpp-about">
+            <div className="cpp-section__header">
+              <h2 className="cpp-section__title">
+                <Heart size={24} />
+                About Me
+              </h2>
+            </div>
+            <div className="cpp-about__content">
+              {coach.description && (
+                <div className="cpp-about__text">
+                  <p>{coach.description}</p>
+                </div>
+              )}
+              {coach.bio && coach.bio !== coach.description && (
+                <div className="cpp-about__text cpp-about__text--secondary">
+                  <p>{coach.bio}</p>
+                </div>
+              )}
+            </div>
+          </section>
         )}
 
-        <section className="profile-grid">
-          <div className="profile-card">
-            <h2 className="profile-header__title" style={{ fontSize: "1rem" }}>
-              Professional Info
-            </h2>
-            <dl className="profile-fields">
-              <div className="profile-field">
-                <dt className="profile-field__label">Specialization</dt>
-                <dd className="profile-field__value">
-                  {coach.specialization || "General Coaching"}
-                </dd>
+        {/* Gallery Section - Awards & Transformations */}
+        {hasGalleryItems && (
+          <section className="cpp-section cpp-gallery">
+            <div className="cpp-section__header">
+              <h2 className="cpp-section__title">
+                <Star size={24} />
+                Achievements & Results
+              </h2>
+              <div className="cpp-gallery__tabs">
+                {(coach.transformations?.length || 0) > 0 && (
+                  <button
+                    className={`cpp-gallery__tab ${activeGalleryTab === 'transformations' ? 'cpp-gallery__tab--active' : ''}`}
+                    onClick={() => { setActiveGalleryTab('transformations'); setGalleryIndex(0); }}
+                  >
+                    <TrendingUp size={18} />
+                    Transformations
+                  </button>
+                )}
+                {(coach.awards?.length || 0) > 0 && (
+                  <button
+                    className={`cpp-gallery__tab ${activeGalleryTab === 'awards' ? 'cpp-gallery__tab--active' : ''}`}
+                    onClick={() => { setActiveGalleryTab('awards'); setGalleryIndex(0); }}
+                  >
+                    <Award size={18} />
+                    Awards
+                  </button>
+                )}
               </div>
-              <div className="profile-field">
-                <dt className="profile-field__label">Experience</dt>
-                <dd className="profile-field__value">
-                  {coach.experienceYears != null
-                    ? `${coach.experienceYears} years`
-                    : "Not specified"}
-                </dd>
+            </div>
+            
+            <div className="cpp-gallery__carousel">
+              <button className="cpp-gallery__nav cpp-gallery__nav--prev" onClick={prevGallerySlide} disabled={galleryItems.length <= 1}>
+                <ChevronLeft size={24} />
+              </button>
+              
+              <div className="cpp-gallery__viewport">
+                {galleryItems.length > 0 && (
+                  <div className="cpp-gallery__slide">
+                    <Image
+                      src={galleryItems[galleryIndex]?.url}
+                      alt={activeGalleryTab === 'awards' ? 'Award' : 'Transformation'}
+                      width={600}
+                      height={400}
+                      className="cpp-gallery__image"
+                    />
+                  </div>
+                )}
               </div>
-              <div className="profile-field">
-                <dt className="profile-field__label">Member Since</dt>
-                <dd className="profile-field__value">
-                  {coach.memberSince
-                    ? new Date(coach.memberSince).toLocaleDateString()
-                    : "N/A"}
-                </dd>
+              
+              <button className="cpp-gallery__nav cpp-gallery__nav--next" onClick={nextGallerySlide} disabled={galleryItems.length <= 1}>
+                <ChevronRight size={24} />
+              </button>
+            </div>
+            
+            {galleryItems.length > 1 && (
+              <div className="cpp-gallery__dots">
+                {galleryItems.map((_, idx) => (
+                  <button
+                    key={idx}
+                    className={`cpp-gallery__dot ${idx === galleryIndex ? 'cpp-gallery__dot--active' : ''}`}
+                    onClick={() => setGalleryIndex(idx)}
+                  />
+                ))}
               </div>
-            </dl>
-          </div>
+            )}
+          </section>
+        )}
 
-          <div className="profile-card">
-            <h2 className="profile-header__title" style={{ fontSize: "1rem" }}>
-              Stats
-            </h2>
-            <dl className="profile-fields">
-              <div className="profile-field">
-                <dt className="profile-field__label">Clients Guided</dt>
-                <dd className="profile-field__value">{stats.clientsCount}</dd>
-              </div>
-              <div className="profile-field">
-                <dt className="profile-field__label">Plans Created</dt>
-                <dd className="profile-field__value">{stats.plansCount}</dd>
-              </div>
-              <div className="profile-field">
-                <dt className="profile-field__label">Products Offered</dt>
-                <dd className="profile-field__value">{stats.productsCount}</dd>
-              </div>
-            </dl>
-          </div>
-        </section>
-
+        {/* Plans Section */}
         {plans && plans.length > 0 && (
-          <div className="profile-card" style={{ marginTop: "1.25rem" }}>
-            <h2 className="profile-header__title" style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>
-              Available Plans
-            </h2>
-            <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
+          <section className="cpp-section cpp-plans">
+            <div className="cpp-section__header">
+              <h2 className="cpp-section__title">
+                <Target size={24} />
+                Training Plans
+              </h2>
+              <p className="cpp-section__subtitle">
+                Personalized programs designed to help you achieve your goals
+              </p>
+            </div>
+            
+            <div className="cpp-plans__grid">
               {plans.map((plan) => (
-                <div
-                  key={plan._id}
-                  style={{
-                    padding: "1rem",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                    backgroundColor: "#f9fafb",
-                  }}
-                >
-                  <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-                    {plan.title}
-                  </h3>
-                  {plan.description && (
-                    <p className="profile-header__subtitle" style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-                      {plan.description}
-                    </p>
-                  )}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.75rem" }}>
+                <div key={plan._id} className="cpp-plan-card">
+                  <div className="cpp-plan-card__header">
+                    <h3 className="cpp-plan-card__title">{plan.title}</h3>
                     {plan.durationWeeks && (
-                      <span className="profile-header__subtitle" style={{ fontSize: "0.85rem" }}>
+                      <span className="cpp-plan-card__duration">
+                        <Clock size={14} />
                         {plan.durationWeeks} weeks
                       </span>
                     )}
+                  </div>
+                  {plan.description && (
+                    <p className="cpp-plan-card__description">{plan.description}</p>
+                  )}
+                  <div className="cpp-plan-card__footer">
                     {plan.price != null && (
-                      <span style={{ fontSize: "1rem", fontWeight: 600, color: "#059669" }}>
-                        ₹{plan.price.toFixed(2)}
-                      </span>
+                      <span className="cpp-plan-card__price">₹{plan.price.toLocaleString()}</span>
                     )}
+                    <button onClick={scrollToContactForm} className="cpp-btn cpp-btn--outline cpp-btn--sm">
+                      Get Started
+                      <ArrowRight size={14} />
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Client Progress Chart */}
+        {/* Progress Chart */}
         {progressData && progressData.length > 0 && (
-          <div className="profile-card" style={{ marginTop: "1.25rem" }}>
-            <h2 className="profile-header__title" style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>
-              Client Progress (Avg BMI)
-            </h2>
-            <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "1rem" }}>
-              Average BMI across all clients, grouped by week
-            </p>
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={progressData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorBMIPublic" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis 
-                  dataKey="week" 
-                  tick={{ fontSize: 12, fill: "#6b7280" }}
-                  axisLine={{ stroke: "#e5e7eb" }}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12, fill: "#6b7280" }}
-                  axisLine={{ stroke: "#e5e7eb" }}
-                  domain={['dataMin - 2', 'dataMax + 2']}
-                />
-                <Tooltip 
-                  content={({ active, payload }: any) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div
-                          style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.98)",
-                            border: "1px solid #e5e7eb",
-                            borderRadius: "8px",
-                            padding: "0.75rem",
-                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                          }}
-                        >
-                          <p style={{ fontSize: "0.85rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                            {payload[0].payload.week}
-                          </p>
-                          <p style={{ fontSize: "1rem", fontWeight: "600", color: "#111827" }}>
-                            {payload[0].value != null ? payload[0].value.toFixed(1) : "-"}
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="avgBMI"
-                  stroke="#3b82f6"
-                  strokeWidth={2.5}
-                  fill="url(#colorBMIPublic)"
-                  dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6, strokeWidth: 2 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <section className="cpp-section cpp-progress">
+            <div className="cpp-section__header">
+              <h2 className="cpp-section__title">
+                <TrendingUp size={24} />
+                Client Progress
+              </h2>
+              <p className="cpp-section__subtitle">
+                Average BMI improvements across all clients
+              </p>
+            </div>
+            
+            <div className="cpp-progress__chart">
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={progressData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorBMIPublic" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="week" tick={{ fontSize: 12, fill: "#6b7280" }} axisLine={{ stroke: "#e5e7eb" }} />
+                  <YAxis tick={{ fontSize: 12, fill: "#6b7280" }} axisLine={{ stroke: "#e5e7eb" }} domain={['dataMin - 2', 'dataMax + 2']} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(255, 255, 255, 0.98)",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "12px",
+                      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="avgBMI"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    fill="url(#colorBMIPublic)"
+                    dot={{ fill: "#3b82f6", strokeWidth: 2, r: 5 }}
+                    activeDot={{ r: 8, strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
         )}
 
-        {/* Contact Form */}
-        <div id="contact-form" ref={contactFormRef} className="profile-card" style={{ marginTop: "2rem", scrollMarginTop: "2rem" }}>
-          <h2 className="profile-header__title" style={{ fontSize: "1.5rem", marginBottom: "1rem", color: "#3b82f6" }}>
-            Contact Me
-          </h2>
-          
-          {submitSuccess && (
-            <div style={{ 
-              padding: "1rem", 
-              backgroundColor: "#dbeafe", 
-              border: "1px solid #3b82f6", 
-              borderRadius: "8px", 
-              marginBottom: "1rem",
-              color: "#1e40af"
-            }}>
-              <strong>Success!</strong> Your message has been sent. {coach.fullName} will reach out to you soon!
-            </div>
-          )}
-
-          <form onSubmit={handleContactFormSubmit}>
-            <div className="client-form" style={{ gap: "1rem" }}>
-              <div className="client-form__row">
-                <label className="client-form__label">First Name *</label>
-                <input
-                  className="client-form__control"
-                  type="text"
-                  required
-                  maxLength={50}
-                  value={contactFormData.firstName}
-                  onChange={(e) => setContactFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                />
-              </div>
-              
-              <div className="client-form__row">
-                <label className="client-form__label">Last Name *</label>
-                <input
-                  className="client-form__control"
-                  type="text"
-                  required
-                  maxLength={50}
-                  value={contactFormData.lastName}
-                  onChange={(e) => setContactFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                />
-              </div>
-
-              <div className="client-form__row">
-                <label className="client-form__label">Email (optional)</label>
-                <input
-                  className="client-form__control"
-                  type="email"
-                  value={contactFormData.email}
-                  onChange={(e) => setContactFormData(prev => ({ ...prev, email: e.target.value }))}
-                />
-              </div>
-
-              <div className="client-form__row">
-                <label className="client-form__label">Phone Number *</label>
-                <input
-                  className="client-form__control"
-                  type="tel"
-                  required
-                  value={contactFormData.phone}
-                  onChange={(e) => setContactFormData(prev => ({ ...prev, phone: e.target.value }))}
-                />
-              </div>
-
-              <div className="client-form__row">
-                <label className="client-form__label">Height (cm, approx)</label>
-                <input
-                  className="client-form__control"
-                  type="number"
-                  min="50"
-                  max="300"
-                  value={contactFormData.height}
-                  onChange={(e) => setContactFormData(prev => ({ ...prev, height: e.target.value }))}
-                />
-              </div>
-
-              <div className="client-form__row">
-                <label className="client-form__label">Weight (kg, approx)</label>
-                <input
-                  className="client-form__control"
-                  type="number"
-                  min="20"
-                  max="500"
-                  value={contactFormData.weight}
-                  onChange={(e) => setContactFormData(prev => ({ ...prev, weight: e.target.value }))}
-                />
-              </div>
-
-              <div className="client-form__row">
-                <label className="client-form__label">Age *</label>
-                <input
-                  className="client-form__control"
-                  type="number"
-                  required
-                  min="10"
-                  max="120"
-                  value={contactFormData.age}
-                  onChange={(e) => setContactFormData(prev => ({ ...prev, age: e.target.value }))}
-                />
-              </div>
-
-              <div className="client-form__row">
-                <label className="client-form__label">Gender *</label>
-                <select
-                  className="client-form__control"
-                  required
-                  value={contactFormData.gender}
-                  onChange={(e) => setContactFormData(prev => ({ ...prev, gender: e.target.value }))}
-                >
-                  <option value="">Select Gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
-              <div className="client-form__row client-form__row--full">
-                <label className="client-form__label">Message *</label>
-                <textarea
-                  className="client-form__control"
-                  required
-                  rows={5}
-                  maxLength={1000}
-                  placeholder="Tell the coach about your fitness goals, health concerns, or any questions you have..."
-                  value={contactFormData.message}
-                  onChange={(e) => setContactFormData(prev => ({ ...prev, message: e.target.value }))}
-                  style={{ resize: "vertical", fontFamily: "inherit" }}
-                />
-                <div style={{ fontSize: "0.85rem", color: "#6b7280", marginTop: "0.25rem" }}>
-                  {contactFormData.message.length}/1000 characters
-                </div>
-              </div>
-
-              <div className="client-form__row client-form__row--full" style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
-                <button
-                  type="submit"
-                  className="btn btn--primary"
-                  disabled={submitting}
-                  style={{ backgroundColor: "#3b82f6", borderColor: "#3b82f6", minWidth: "150px" }}
-                >
-                  {submitting ? "Submitting..." : "Submit Details"}
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-
-        {/* Call Me and Email Me sections */}
-        <div className="profile-grid" style={{ marginTop: "1.5rem" }}>
-          {coach.phone && (
-            <div className="profile-card">
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-                <div style={{ 
-                  width: "40px", 
-                  height: "40px", 
-                  borderRadius: "50%", 
-                  backgroundColor: "#dbeafe", 
-                  display: "flex", 
-                  alignItems: "center", 
-                  justifyContent: "center" 
-                }}>
-                  <Phone size={20} style={{ color: "#3b82f6" }} />
-                </div>
-                <h2 className="profile-header__title" style={{ fontSize: "1.1rem", margin: 0 }}>
-                  Call Me
-                </h2>
-              </div>
-              <p className="profile-header__subtitle" style={{ fontSize: "0.85rem", marginBottom: "0.75rem" }}>
-                Feel free to call me directly for any questions or consultations.
+        {/* Contact Section */}
+        <section ref={contactFormRef} id="contact-form" className="cpp-section cpp-contact">
+          <div className="cpp-contact__wrapper">
+            <div className="cpp-contact__info">
+              <h2 className="cpp-contact__title">Let's Start Your Journey</h2>
+              <p className="cpp-contact__description">
+                Ready to transform your life? Get in touch and let's discuss how I can help you achieve your fitness goals.
               </p>
-              <a 
-                href={`tel:${coach.phone}`}
-                className="btn btn--primary"
-                style={{ 
-                  backgroundColor: "#3b82f6", 
-                  borderColor: "#3b82f6",
-                  width: "100%",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.5rem",
-                  fontSize: "0.95rem"
-                }}
-              >
-                <Phone size={18} />
-                {coach.phone}
-              </a>
-            </div>
-          )}
-
-          <div className="profile-card">
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-              <div style={{ 
-                width: "40px", 
-                height: "40px", 
-                borderRadius: "50%", 
-                backgroundColor: "#dbeafe", 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center" 
-              }}>
-                <Mail size={20} style={{ color: "#3b82f6" }} />
+              
+              <div className="cpp-contact__methods">
+                {coach.phone && (
+                  <a href={`tel:${coach.phone}`} className="cpp-contact__method">
+                    <div className="cpp-contact__method-icon">
+                      <Phone size={24} />
+                    </div>
+                    <div className="cpp-contact__method-info">
+                      <span className="cpp-contact__method-label">Call me</span>
+                      <span className="cpp-contact__method-value">{coach.phone}</span>
+                    </div>
+                  </a>
+                )}
+                <a href={`mailto:${coach.email}`} className="cpp-contact__method">
+                  <div className="cpp-contact__method-icon">
+                    <Mail size={24} />
+                  </div>
+                  <div className="cpp-contact__method-info">
+                    <span className="cpp-contact__method-label">Email me</span>
+                    <span className="cpp-contact__method-value">{coach.email}</span>
+                  </div>
+                </a>
               </div>
-              <h2 className="profile-header__title" style={{ fontSize: "1.1rem", margin: 0 }}>
-                Email Me
-              </h2>
+
+              <div className="cpp-contact__cta">
+                <p>Use my referral code to join:</p>
+                <div className="cpp-contact__referral">
+                  <span>{coach.referralCode}</span>
+                </div>
+              </div>
             </div>
-            <p className="profile-header__subtitle" style={{ fontSize: "0.85rem", marginBottom: "0.75rem" }}>
-              Send me an email and I'll get back to you as soon as possible.
-            </p>
-            <a 
-              href={`mailto:${coach.email}`}
-              className="btn btn--primary"
-              style={{ 
-                backgroundColor: "#3b82f6", 
-                borderColor: "#3b82f6",
-                width: "100%",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem",
-                fontSize: "0.95rem"
-              }}
-            >
-              <Mail size={18} />
-              {coach.email}
-            </a>
+
+            <div className="cpp-contact__form-wrapper">
+              {submitSuccess && (
+                <div className="cpp-alert cpp-alert--success">
+                  <CheckCircle2 size={20} />
+                  <span>Message sent successfully! I'll get back to you soon.</span>
+                </div>
+              )}
+
+              <form onSubmit={handleContactFormSubmit} className="cpp-form">
+                <div className="cpp-form__row">
+                  <div className="cpp-form__group">
+                    <label className="cpp-form__label">First Name *</label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={50}
+                      className="cpp-form__input"
+                      value={contactFormData.firstName}
+                      onChange={(e) => setContactFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                    />
+                  </div>
+                  <div className="cpp-form__group">
+                    <label className="cpp-form__label">Last Name *</label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={50}
+                      className="cpp-form__input"
+                      value={contactFormData.lastName}
+                      onChange={(e) => setContactFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="cpp-form__row">
+                  <div className="cpp-form__group">
+                    <label className="cpp-form__label">Email</label>
+                    <input
+                      type="email"
+                      className="cpp-form__input"
+                      value={contactFormData.email}
+                      onChange={(e) => setContactFormData(prev => ({ ...prev, email: e.target.value }))}
+                    />
+                  </div>
+                  <div className="cpp-form__group">
+                    <label className="cpp-form__label">Phone *</label>
+                    <input
+                      type="tel"
+                      required
+                      className="cpp-form__input"
+                      value={contactFormData.phone}
+                      onChange={(e) => setContactFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="cpp-form__row cpp-form__row--triple">
+                  <div className="cpp-form__group">
+                    <label className="cpp-form__label">Age *</label>
+                    <input
+                      type="number"
+                      required
+                      min="10"
+                      max="120"
+                      className="cpp-form__input"
+                      value={contactFormData.age}
+                      onChange={(e) => setContactFormData(prev => ({ ...prev, age: e.target.value }))}
+                    />
+                  </div>
+                  <div className="cpp-form__group">
+                    <label className="cpp-form__label">Height (cm)</label>
+                    <input
+                      type="number"
+                      min="50"
+                      max="300"
+                      className="cpp-form__input"
+                      value={contactFormData.height}
+                      onChange={(e) => setContactFormData(prev => ({ ...prev, height: e.target.value }))}
+                    />
+                  </div>
+                  <div className="cpp-form__group">
+                    <label className="cpp-form__label">Weight (kg)</label>
+                    <input
+                      type="number"
+                      min="20"
+                      max="500"
+                      className="cpp-form__input"
+                      value={contactFormData.weight}
+                      onChange={(e) => setContactFormData(prev => ({ ...prev, weight: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="cpp-form__group">
+                  <label className="cpp-form__label">Gender *</label>
+                  <select
+                    required
+                    className="cpp-form__input cpp-form__select"
+                    value={contactFormData.gender}
+                    onChange={(e) => setContactFormData(prev => ({ ...prev, gender: e.target.value }))}
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div className="cpp-form__group">
+                  <label className="cpp-form__label">Message *</label>
+                  <textarea
+                    required
+                    rows={4}
+                    maxLength={1000}
+                    className="cpp-form__input cpp-form__textarea"
+                    placeholder="Tell me about your fitness goals..."
+                    value={contactFormData.message}
+                    onChange={(e) => setContactFormData(prev => ({ ...prev, message: e.target.value }))}
+                  />
+                  <span className="cpp-form__char-count">{contactFormData.message.length}/1000</span>
+                </div>
+
+                <button type="submit" className="cpp-btn cpp-btn--primary cpp-btn--full" disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      <span className="cpp-btn__spinner" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={18} />
+                      Send Message
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }
 
 export default function PublicCoachProfilePage() {
   return (
-    <Suspense fallback={<div className="profile-shell"><div className="profile-inner"><p className="profile-header__subtitle">Loading coach profile…</p></div></div>}>
+    <Suspense fallback={
+      <div className="cpp-loading">
+        <div className="cpp-loading__spinner" />
+        <p>Loading profile...</p>
+      </div>
+    }>
       <PublicCoachProfileContent />
     </Suspense>
   );

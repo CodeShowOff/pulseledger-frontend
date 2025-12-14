@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import getErrorMessage from "@/lib/getErrorMessage";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -77,8 +78,8 @@ export default function ReportBugsPage() {
         deviceInfo: formData.deviceInfo,
       });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to submit bug report");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Failed to submit bug report"));
     },
   });
 
@@ -99,19 +100,12 @@ export default function ReportBugsPage() {
   };
 
   return (
-    <main className="client-page">
-      <div className="client-page__inner">
-        <header className="client-page__header">
-          <h1 className="client-page__title">Report a Bug</h1>
-          <p className="client-page__subtitle">
-            Last Updated: November 20, 2025
-          </p>
-          <p className="client-page__subtitle">
-            Found a bug or technical issue? Help us improve PulseLedger by reporting it. Your detailed feedback helps us fix problems quickly and enhance your experience.
-          </p>
-        </header>
+    <main className="client-page footer-page">
+      <header className="client-page__header">
+        <h1 className="client-page__title">Report a Bug</h1>
+      </header>
 
-        <section className="client-page__sections">
+      <section className="client-page__sections">
           {/* Introduction */}
           <div className="client-card">
             <h2 className="client-card__section-title">Why Report Bugs?</h2>
@@ -387,7 +381,6 @@ export default function ReportBugsPage() {
             </div>
           </div>
         </section>
-      </div>
     </main>
   );
 }

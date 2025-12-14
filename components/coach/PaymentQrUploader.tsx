@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import api from "@/lib/axios";
+import axios from "axios";
 import { useProfileQuery, PROFILE_QUERY_KEY } from "@/lib/queries/profile";
 import { useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
@@ -36,10 +37,16 @@ export default function PaymentQrUploader() {
       });
       const newUrl = res.data?.data?.paymentQrUrl as string | undefined;
       if (newUrl) {
-        queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: any) => prev ? { ...prev, paymentQrUrl: newUrl } : prev);
+        queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: unknown) => prev ? { ...(prev as Record<string, unknown>), paymentQrUrl: newUrl } : prev);
       }
-    } catch (e: any) {
-      setError(e?.response?.data?.message || "Upload failed");
+    } catch (e: unknown) {
+      if (axios.isAxiosError(e)) {
+        setError(e.response?.data?.message || "Upload failed");
+      } else if (e instanceof Error) {
+        setError(e.message || "Upload failed");
+      } else {
+        setError("Upload failed");
+      }
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
