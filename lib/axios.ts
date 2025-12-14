@@ -1,27 +1,60 @@
 import axios from "axios";
 import { useAuthStore } from "./store";
 
+// Always prefer same-origin proxy so auth cookies (refreshToken) are set for the frontend domain
+// In production on Vercel, ensure `next.config.js` rewrites `/api/*` to your Render backend.
+// In local development, rewrites also route to localhost backend.
 const api = axios.create({
-  // Prefer same-origin proxy via Next.js rewrites to avoid cross-site cookies in dev
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api/v1",
-  withCredentials: true, // send cookies for refresh/logout
+  baseURL: "/api/v1",
+  withCredentials: true,
 });
+
+// Dedicated client for refreshing (no interceptors) to avoid recursion and to
+// coordinate single-flight refresh across concurrent requests.
+const refreshClient = axios.create({
+  baseURL: "/api/v1",
+  withCredentials: true,
+});
+
+let refreshInFlight: Promise<{ accessToken: string; user?: any } | null> | null = null;
+
+async function refreshSingleFlight() {
+  if (refreshInFlight) return refreshInFlight;
+  refreshInFlight = (async () => {
+    const res = await refreshClient.post("/auth/refresh");
+    const accessToken: string | undefined = res.data?.accessToken;
+    const user = res.data?.user;
+    if (!accessToken) return null;
+    return { accessToken, user };
+  })()
+    .finally(() => {
+      refreshInFlight = null;
+    });
+
+  return refreshInFlight;
+}
+
+export type RefreshAuthResult = { accessToken: string; user?: any } | null;
+
+export async function refreshAuthSingleFlight(): Promise<RefreshAuthResult> {
+  return refreshSingleFlight();
+}
 
 // Axios interceptor for attaching access token
 api.interceptors.request.use(
-  (config) => {
+  (config: any) => {
     const token = useAuthStore.getState().accessToken;
     if (token && config.headers)
       config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => Promise.reject(error)
+  (error: any) => Promise.reject(error)
 );
 
 // Auto-refresh interceptor
 api.interceptors.response.use(
-  (res) => res,
-  async (error) => {
+  (res: any) => res,
+  async (error: any) => {
     const originalRequest = error.config || {};
     const status = error.response?.status;
 
@@ -57,9 +90,14 @@ api.interceptors.response.use(
     ) {
       (originalRequest as any)._retry = true;
       try {
-        const refreshRes = await api.post("/auth/refresh");
-        const newToken = refreshRes.data.accessToken;
-        const userData = refreshRes.data.user;
+        const refreshed = await refreshSingleFlight();
+        const newToken = refreshed?.accessToken;
+        const userData = refreshed?.user;
+
+        if (!newToken) {
+          useAuthStore.getState().logout();
+          return Promise.reject(error);
+        }
 
         useAuthStore.getState().setAccessToken(newToken);
         
@@ -69,7 +107,9 @@ api.interceptors.response.use(
         }
 
         // ✅ Update short-lived cookie so Next.js middleware can read it
-        document.cookie = `accessToken=${newToken}; path=/; max-age=900;`;
+        if (typeof document !== "undefined") {
+          document.cookie = `accessToken=${newToken}; path=/; max-age=900;`;
+        }
 
         if (!originalRequest.headers) originalRequest.headers = {};
         originalRequest.headers.Authorization = `Bearer ${newToken}`;

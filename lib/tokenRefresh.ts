@@ -2,7 +2,7 @@
 // - Schedules a refresh shortly before access token expiry
 // - Uses BroadcastChannel to avoid duplicate refreshes across tabs
 
-import api from "./axios";
+import api, { refreshAuthSingleFlight } from "./axios";
 
 type SetAccessToken = (token: string | null) => void;
 
@@ -33,9 +33,9 @@ async function refreshOnce(setAccessToken: SetAccessToken): Promise<string | nul
   inflight = (async () => {
     try {
       ch?.postMessage({ type: "refresh-start" });
-      const res = await api.post("/auth/refresh");
-      const newToken: string | undefined = res.data?.accessToken;
-      const userData = res.data?.user;
+      const refreshed = await refreshAuthSingleFlight();
+      const newToken: string | undefined = refreshed?.accessToken;
+      const userData = refreshed?.user;
       if (newToken) {
         setAccessToken(newToken);
         // Update user data if provided to keep state in sync
