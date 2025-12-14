@@ -218,7 +218,6 @@ export default function CoachDashboard() {
                   </button>
                   <a
                     href={publicProfileUrl}
-                    target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn--primary"
                   >

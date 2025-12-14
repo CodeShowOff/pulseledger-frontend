@@ -262,7 +262,6 @@ export default function ClientCoachProfilePage() {
             {(data.referralCode || data.coachCode) && (
               <a
                 href={`/public/${encodeURIComponent(data.referralCode || data.coachCode || '')}`}
-                target="_blank"
                 rel="noopener noreferrer"
                 className="client-button"
               >
