@@ -29,13 +29,20 @@ export default function ClientDashboardPage() {
         </div>
       </header>
 
+      {/* Company Name Display */}
+      {!isLoading && (
+        <p style={{ textAlign: "center", fontSize: "1.3rem", color: "var(--text-secondary)", marginTop: "0.25rem", fontWeight: 700 }}>
+          {coach?.companyName || "PulseLedger"}
+        </p>
+      )}
+
       {/* Water Intake and Goal Weight Widgets - Same Row */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
           gap: "1rem",
-          marginTop: "1rem",
+          marginTop: "0.75rem",
         }}
       >
         <WaterIntakeWidget />

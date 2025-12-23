@@ -11,6 +11,7 @@ export interface User {
   referralCode?: string | null;
   coachId?: string | null;
   avatarUrl?: string | null;
+  companyName?: string | null;
 }
 
 type RawUser = Partial<User> & { _id?: string };

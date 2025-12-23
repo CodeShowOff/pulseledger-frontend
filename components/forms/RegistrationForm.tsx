@@ -17,7 +17,8 @@ const RegisterSchema = z
     role: z.enum(["coach", "client"]),
     phone: z.string().min(7),
     whatsappNumber: z.string().min(7),
-    coachId: z.string().optional(), // 👈 add this
+    coachId: z.string().optional(),
+    companyName: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -29,6 +30,18 @@ const RegisterSchema = z
     {
       message: "Coach referral code is required for clients",
       path: ["coachId"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.role === "coach") {
+        return !!data.companyName && data.companyName.length >= 2;
+      }
+      return true;
+    },
+    {
+      message: "Company name is required for coaches",
+      path: ["companyName"],
     }
   );
 
@@ -177,6 +190,20 @@ export const RegisterForm: React.FC = () => {
           <p className="auth-form__error">{errors.role.message}</p>
         )}
       </div>
+      {watch("role") === "coach" && (
+        <div className="auth-form__field">
+          <label htmlFor="companyName">Company Name</label>
+          <input
+            id="companyName"
+            {...register("companyName", { required: "Company name is required" })}
+            placeholder="e.g., FitLife Coaching"
+            className="auth-form__input"
+          />
+          {errors.companyName && (
+            <p className="auth-form__error">{errors.companyName.message}</p>
+          )}
+        </div>
+      )}
       {watch("role") === "client" && (
         <div className="auth-form__field">
           <label htmlFor="coachId">Coach Referral Code</label>

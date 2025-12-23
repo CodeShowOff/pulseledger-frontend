@@ -101,7 +101,7 @@ export default function WaterIntakeWidget() {
   const percentage = goal > 0 ? Math.min((total / goal) * 100, 100) : 0;
   
   // Circular progress values - compact for mobile
-  const strokeWidth = 6;
+  const strokeWidth = 10;
   const size = 140;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;

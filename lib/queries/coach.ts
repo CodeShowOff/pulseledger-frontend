@@ -10,6 +10,7 @@ export type CoachProfile = {
   role: string;
   phone?: string;
   whatsappNumber?: string;
+  companyName?: string;
   specialization?: string;
   experienceYears?: number;
   bio?: string;

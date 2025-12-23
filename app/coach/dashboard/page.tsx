@@ -125,6 +125,9 @@ export default function CoachDashboard() {
         <h1 className="admin-page-header__title coach-page-header__title" style={{ marginBottom: "0.5rem" }}>
           Coach Dashboard
         </h1>
+        <p style={{ textAlign: "center", fontSize: "1.3rem", color: "var(--text-secondary)", marginTop: "0.5rem", fontWeight: 700 }}>
+          {user?.companyName || "PulseLedger"}
+        </p>
       </section>
 
       <section

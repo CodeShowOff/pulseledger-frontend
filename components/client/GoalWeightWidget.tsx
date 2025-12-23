@@ -42,13 +42,13 @@ export default function GoalWeightWidget() {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data: goalWeight } = useQuery({
+  const { data: goalWeight, isLoading: isLoadingGoal } = useQuery({
     queryKey: ["goalWeight"],
     queryFn: fetchGoalWeight,
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: progressData } = useQuery({
+  const { data: progressData, isLoading: isLoadingProgress } = useQuery({
     queryKey: ["clientProgressEntries"],
     queryFn: fetchClientProgressEntries,
     staleTime: 60 * 1000,
@@ -139,106 +139,58 @@ export default function GoalWeightWidget() {
     reset();
   };
 
-  // Calculate progress
-  const entries = progressData?.data || [];
-  
-  // Get latest weight (most recent entry with weight)
-  const getLatestValue = (fieldName: string): number | null => {
-    let latest: { date: string; value: any } | null = null;
-    for (const raw of entries) {
-      const entry = raw as any;
-      if (entry[fieldName] != null) {
-        if (!latest || new Date(entry.date) > new Date(latest.date)) {
-          latest = { date: entry.date, value: entry[fieldName] };
-        }
-      }
-    }
-    return latest ? latest.value : null;
-  };
-  
-  const currentWeight = getLatestValue('weight');
+  // Get latest weight from progress data
+  const progressEntries = progressData?.data || [];
+  const currentWeight = progressEntries.length > 0 
+    ? progressEntries.reduce((latest: any, entry: any) => {
+        if (!entry.weight) return latest;
+        if (!latest) return entry;
+        return new Date(entry.date) > new Date(latest.date) ? entry : latest;
+      }, null)?.weight || null
+    : null;
 
-  // Determine if user is trying to lose or gain weight
+  // Simple calculation using only current and goal weight
   let progressPercentage = 0;
   let remainingKg = 0;
-  let achievedKg = 0;
-  let isWeightLoss = false;
   let isWeightGain = false;
   let progressMessage = "";
 
   if (goalWeight && currentWeight) {
-    const difference = currentWeight - goalWeight;
-    
-    if (difference > 0) {
-      // User needs to LOSE weight (overweight scenario)
-      isWeightLoss = true;
+    if (goalWeight > currentWeight) {
+      // Weight Gain: Need to gain weight
+      isWeightGain = true;
+      progressPercentage = (currentWeight / goalWeight) * 100;
+      remainingKg = goalWeight - currentWeight;
       
-      // Find highest weight (starting point for weight loss)
-      const highestWeight = entries.length > 0 
-        ? entries.reduce((highest, entry) => {
-            if (!entry.weight) return highest;
-            return entry.weight > highest ? entry.weight : highest;
-          }, currentWeight)
-        : currentWeight;
-      
-      // Use the higher of: highest weight ever OR current weight
-      // This ensures if current is at peak, we use current as baseline
-      const startingWeight = Math.max(highestWeight, currentWeight);
-      
-      const totalToLose = startingWeight - goalWeight;
-      const alreadyLost = startingWeight - currentWeight;
-      
-      if (totalToLose > 0) {
-        progressPercentage = Math.min(100, Math.max(0, (alreadyLost / totalToLose) * 100));
-        achievedKg = alreadyLost;
+      if (progressPercentage >= 100) {
+        progressMessage = "Goal achieved 🎯";
+      } else {
+        progressMessage = `You need ${remainingKg.toFixed(1)} kg more.`;
       }
       
-      // If at starting point (0% progress), show total amount to lose
+    } else if (goalWeight < currentWeight) {
+      // Weight Loss: Need to lose weight
+      progressPercentage = (goalWeight / currentWeight) * 100;
       remainingKg = currentWeight - goalWeight;
       
-      progressMessage = achievedKg > 0 
-        ? `You've lost ${achievedKg.toFixed(1)} kg so far!`
-        : `${remainingKg.toFixed(1)} kg to lose to reach your goal!`;
-      
-    } else if (difference < 0) {
-      // User needs to GAIN weight (underweight scenario)
-      isWeightGain = true;
-      
-      // Find lowest weight (starting point for weight gain)
-      const lowestWeight = entries.length > 0 
-        ? entries.reduce((lowest, entry) => {
-            if (!entry.weight) return lowest;
-            return entry.weight < lowest ? entry.weight : lowest;
-          }, currentWeight)
-        : currentWeight;
-      
-      // Use the lower of: lowest weight ever OR current weight
-      const startingWeight = Math.min(lowestWeight, currentWeight);
-      
-      const totalToGain = goalWeight - startingWeight;
-      const alreadyGained = currentWeight - startingWeight;
-      
-      if (totalToGain > 0) {
-        progressPercentage = Math.min(100, Math.max(0, (alreadyGained / totalToGain) * 100));
-        achievedKg = alreadyGained;
+      if (progressPercentage >= 100) {
+        progressMessage = "Goal achieved 🎯";
+      } else {
+        progressMessage = `You need to lose ${remainingKg.toFixed(1)} kg.`;
       }
       
-      remainingKg = Math.abs(difference);
-      
-      progressMessage = achievedKg > 0 
-        ? `You've gained ${achievedKg.toFixed(1)} kg so far!`
-        : `${remainingKg.toFixed(1)} kg to gain to reach your goal!`;
-        
     } else {
-      // User has reached goal weight
+      // Goal achieved: current equals goal
       progressPercentage = 100;
       remainingKg = 0;
-      achievedKg = 0;
-      progressMessage = "🎉 Goal achieved! Congratulations!";
+      progressMessage = "Goal achieved 🎯";
     }
+    
+    // Clamp percentage between 0-100
+    progressPercentage = Math.min(100, Math.max(0, progressPercentage));
   }
 
-  const strokeWidth = 6;
+  const strokeWidth = 10;
   const size = 140;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -247,6 +199,14 @@ export default function GoalWeightWidget() {
   return (
     <>
       <style jsx>{`
+        @keyframes shimmer {
+          0% {
+            background-position: 200% 0;
+          }
+          100% {
+            background-position: -200% 0;
+          }
+        }
         .goal-widget-stats {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -278,7 +238,7 @@ export default function GoalWeightWidget() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-          <Target style={{ width: "1rem", height: "1rem", color: "#0ea5e9" }} />
+          <Target style={{ width: "1rem", height: "1rem", color: isWeightGain ? "#0ea5e9" : "#f97316" }} />
           <h3 style={{ 
             fontSize: "0.95rem", 
             fontWeight: "600", 
@@ -296,8 +256,8 @@ export default function GoalWeightWidget() {
             onClick={handleStartEdit}
             style={{
               padding: "0.4rem",
-              background: "#f0f9ff",
-              border: "1px solid #e0f2fe",
+              background: isWeightGain ? "#f0f9ff" : "#fff7ed",
+              border: isWeightGain ? "1px solid #e0f2fe" : "1px solid #fed7aa",
               borderRadius: "0.4rem",
               cursor: "pointer",
               display: "flex",
@@ -305,10 +265,10 @@ export default function GoalWeightWidget() {
               justifyContent: "center",
               transition: "all 0.2s"
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = "#e0f2fe"}
-            onMouseLeave={(e) => e.currentTarget.style.background = "#f0f9ff"}
+            onMouseEnter={(e) => e.currentTarget.style.background = isWeightGain ? "#e0f2fe" : "#fed7aa"}
+            onMouseLeave={(e) => e.currentTarget.style.background = isWeightGain ? "#f0f9ff" : "#fff7ed"}
           >
-            <Edit2 style={{ width: "0.9rem", height: "0.9rem", color: "#0ea5e9" }} />
+            <Edit2 style={{ width: "0.9rem", height: "0.9rem", color: isWeightGain ? "#0ea5e9" : "#f97316" }} />
           </button>
         )}
       </div>
@@ -420,8 +380,61 @@ export default function GoalWeightWidget() {
         </form>
       )}
 
-      {/* Progress Circle */}
-      {goalWeight && currentWeight ? (
+      {/* Loading State */}
+      {(isLoadingGoal || isLoadingProgress) ? (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", padding: "1rem" }}>
+          {/* Skeleton Circle */}
+          <div style={{
+            width: size,
+            height: size,
+            borderRadius: "50%",
+            background: "linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%)",
+            backgroundSize: "200% 100%",
+            animation: "shimmer 1.5s infinite",
+            position: "relative"
+          }}>
+            <div style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "60%",
+              height: "60%",
+              borderRadius: "50%",
+              background: "#ffffff"
+            }}></div>
+          </div>
+
+          {/* Skeleton Stats Grid */}
+          <div className="goal-widget-stats">
+            {[1, 2, 3].map((i) => (
+              <div key={i} style={{ textAlign: "center", padding: "0.5rem", background: "#f0f9ff", borderRadius: "0.4rem" }}>
+                <div style={{
+                  height: "0.65rem",
+                  width: "60%",
+                  margin: "0 auto 0.15rem",
+                  borderRadius: "0.25rem",
+                  background: "linear-gradient(90deg, #e0f2fe 0%, #bae6fd 50%, #e0f2fe 100%)",
+                  backgroundSize: "200% 100%",
+                  animation: "shimmer 1.5s infinite"
+                }}></div>
+                <div style={{
+                  height: "0.95rem",
+                  width: "80%",
+                  margin: "0 auto",
+                  borderRadius: "0.25rem",
+                  background: "linear-gradient(90deg, #e0f2fe 0%, #bae6fd 50%, #e0f2fe 100%)",
+                  backgroundSize: "200% 100%",
+                  animation: "shimmer 1.5s infinite"
+                }}></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Progress Circle */}
+          {goalWeight && currentWeight ? (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
           {/* SVG Circle */}
           <div style={{ position: "relative", width: size, height: size }}>
@@ -450,8 +463,17 @@ export default function GoalWeightWidget() {
               />
               <defs>
                 <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#0ea5e9" />
-                  <stop offset="100%" stopColor="#06b6d4" />
+                  {isWeightGain ? (
+                    <>
+                      <stop offset="0%" stopColor="#0ea5e9" />
+                      <stop offset="100%" stopColor="#06b6d4" />
+                    </>
+                  ) : (
+                    <>
+                      <stop offset="0%" stopColor="#f97316" />
+                      <stop offset="100%" stopColor="#ef4444" />
+                    </>
+                  )}
                 </linearGradient>
               </defs>
             </svg>
@@ -475,19 +497,19 @@ export default function GoalWeightWidget() {
 
           {/* Stats Grid */}
           <div className="goal-widget-stats">
-            <div style={{ textAlign: "center", padding: "0.5rem", background: "#f0f9ff", borderRadius: "0.4rem" }}>
+            <div style={{ textAlign: "center", padding: "0.5rem", background: isWeightGain ? "#f0f9ff" : "#fff7ed", borderRadius: "0.4rem" }}>
               <div style={{ fontSize: "0.65rem", color: "#6b7280", marginBottom: "0.15rem" }}>Current</div>
-              <div style={{ fontSize: "0.95rem", fontWeight: "700", color: "#0ea5e9" }}>{currentWeight} kg</div>
+              <div style={{ fontSize: "0.95rem", fontWeight: "700", color: isWeightGain ? "#0ea5e9" : "#f97316" }}>{currentWeight} kg</div>
             </div>
-            <div style={{ textAlign: "center", padding: "0.5rem", background: "#f0f9ff", borderRadius: "0.4rem" }}>
+            <div style={{ textAlign: "center", padding: "0.5rem", background: isWeightGain ? "#f0f9ff" : "#fff7ed", borderRadius: "0.4rem" }}>
               <div style={{ fontSize: "0.65rem", color: "#6b7280", marginBottom: "0.15rem" }}>Goal</div>
-              <div style={{ fontSize: "0.95rem", fontWeight: "700", color: "#0284c7" }}>{goalWeight} kg</div>
+              <div style={{ fontSize: "0.95rem", fontWeight: "700", color: isWeightGain ? "#0284c7" : "#ea580c" }}>{goalWeight} kg</div>
             </div>
-            <div style={{ textAlign: "center", padding: "0.5rem", background: "#f0f9ff", borderRadius: "0.4rem" }}>
+            <div style={{ textAlign: "center", padding: "0.5rem", background: isWeightGain ? "#f0f9ff" : "#fff7ed", borderRadius: "0.4rem" }}>
               <div style={{ fontSize: "0.65rem", color: "#6b7280", marginBottom: "0.15rem" }}>
                 {progressPercentage === 100 ? "Done!" : isWeightGain ? "To Gain" : "To Lose"}
               </div>
-              <div style={{ fontSize: "0.95rem", fontWeight: "700", color: "#0369a1" }}>
+              <div style={{ fontSize: "0.95rem", fontWeight: "700", color: isWeightGain ? "#0369a1" : "#c2410c" }}>
                 {progressPercentage === 100 ? "✓" : `${remainingKg.toFixed(1)} kg`}
               </div>
             </div>
@@ -500,7 +522,7 @@ export default function GoalWeightWidget() {
               padding: "0.65rem 0.75rem",
               background: isWeightGain 
                 ? "linear-gradient(135deg, #dbeafe, #bfdbfe)" 
-                : "linear-gradient(135deg, #dcfce7, #bbf7d0)",
+                : "linear-gradient(135deg, #fed7aa, #fdba74)",
               borderRadius: "0.5rem",
               alignItems: "center",
               gap: "0.5rem"
@@ -508,13 +530,13 @@ export default function GoalWeightWidget() {
               {isWeightGain ? (
                 <TrendingUp style={{ width: "1.15rem", height: "1.15rem", color: "#1e40af" }} />
               ) : (
-                <TrendingDown style={{ width: "1.15rem", height: "1.15rem", color: "#15803d" }} />
+                <TrendingDown style={{ width: "1.15rem", height: "1.15rem", color: "#c2410c" }} />
               )}
               <div>
-                <div style={{ fontSize: "0.75rem", fontWeight: "600", color: isWeightGain ? "#1e40af" : "#15803d" }}>
+                <div style={{ fontSize: "0.75rem", fontWeight: "600", color: isWeightGain ? "#1e40af" : "#c2410c" }}>
                   {progressMessage}
                 </div>
-                <div style={{ fontSize: "0.65rem", color: isWeightGain ? "#1e3a8a" : "#166534", marginTop: "0.1rem" }}>
+                <div style={{ fontSize: "0.65rem", color: isWeightGain ? "#1e3a8a" : "#9a3412", marginTop: "0.1rem" }}>
                   Keep up the great work! 💪
                 </div>
               </div>
@@ -559,6 +581,8 @@ export default function GoalWeightWidget() {
             </button>
           )}
         </div>
+      )}
+        </>
       )}
       </div>
     </>
