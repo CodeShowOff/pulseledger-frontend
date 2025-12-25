@@ -125,9 +125,11 @@ export default function CoachDashboard() {
         <h1 className="admin-page-header__title coach-page-header__title" style={{ marginBottom: "0.5rem" }}>
           Coach Dashboard
         </h1>
-        <p style={{ textAlign: "center", fontSize: "1.3rem", color: "var(--text-secondary)", marginTop: "0.5rem", fontWeight: 700 }}>
-          {user?.companyName || "PulseLedger"}
-        </p>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: "0.5rem" }}>
+          <span className="navbar-modern__logo-text" style={{ fontSize: "1.3rem" }}>
+            {user?.companyName || "PulseLedger"}
+          </span>
+        </div>
       </section>
 
       <section
@@ -138,147 +140,134 @@ export default function CoachDashboard() {
           gap: "1rem",
         }}
       >
-        <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column" }}>
+        {/* Earnings Dashboard */}
+        <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column", minHeight: "200px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
             <span style={{ fontSize: "1.5rem" }}>💰</span>
-            <h2
-              className="admin-page-header__title"
-              style={{ fontSize: "1rem", margin: 0 }}
-            >
+            <h2 className="admin-page-header__title" style={{ fontSize: "1rem", margin: 0 }}>
               Earnings Dashboard
             </h2>
           </div>
           <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "1rem", flex: 1 }}>
             Track income from subscriptions and orders.
           </p>
-          <a href="/coach/earnings" className="btn btn--primary" style={{ padding: "0.65rem 1.25rem" }}>
+          <a href="/coach/earnings" className="btn btn--primary" style={{ padding: "0.65rem 1.25rem", marginTop: "auto" }}>
             View Earnings
           </a>
         </div>
 
-        <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-            <span style={{ fontSize: "1.5rem" }}>🥗</span>
-            <h2
-              className="admin-page-header__title"
-              style={{ fontSize: "1rem", margin: 0 }}
+        {/* Referral Code */}
+        <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column", minHeight: "200px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem", marginBottom: "0.5rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span style={{ fontSize: "1.5rem" }}>🔗</span>
+              <h2 className="admin-page-header__title" style={{ fontSize: "1rem", margin: 0 }}>
+                Referral Code
+              </h2>
+            </div>
+            {publicProfileUrl && (
+              <button
+                type="button"
+                className="btn btn--outline"
+                style={{ padding: "0.4rem 0.75rem", fontSize: "0.8rem", whiteSpace: "nowrap" }}
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(publicProfileUrl);
+                    setCopied(true);
+                  } catch {
+                    setCopied(false);
+                  }
+                }}
+              >
+                {copied ? "Copied!" : "Copy Link"}
+              </button>
+            )}
+          </div>
+          <p className="admin-card__value" style={{ color: "var(--admin-color-primary-dark)", fontSize: "1.1rem", marginBottom: "0.5rem", fontWeight: 600 }}>
+            {user?.referralCode || "Generating..."}
+          </p>
+          <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "1rem", flex: 1 }}>
+            Share with clients to link to you.
+          </p>
+          {publicProfileUrl && (
+            <a
+              href={publicProfileUrl}
+              rel="noopener noreferrer"
+              className="btn btn--primary"
+              style={{ padding: "0.65rem 1.25rem", marginTop: "auto" }}
             >
-              Nutrition Index
+              Visit Public Profile
+            </a>
+          )}
+        </div>
+
+        {/* Platform Fee */}
+        <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column", minHeight: "200px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+            <span style={{ fontSize: "1.5rem" }}>💳</span>
+            <h2 className="admin-page-header__title" style={{ fontSize: "1rem", margin: 0 }}>
+              Platform Fee
+            </h2>
+          </div>
+          <p className="admin-card__value" style={{ color: "#10b981", fontSize: "1.1rem", marginBottom: "0.5rem", fontWeight: 600 }}>
+            {subscription ? (
+              <>
+                {subscription.daysRemaining} Day{subscription.daysRemaining !== 1 ? "s" : ""} Left
+              </>
+            ) : (
+              "Loading..."
+            )}
+          </p>
+          <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "0.5rem", flex: 1 }}>
+            Track subscription & renewals.
+          </p>
+          {subscription && subscription.totalPaid > 0 && (
+            <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginBottom: "0.75rem" }}>
+              Total Paid: ₹{subscription.totalPaid}
+            </p>
+          )}
+          <Link
+            href="/coach/platform-fee"
+            className="btn btn--primary"
+            style={{ padding: "0.65rem 1.25rem", marginTop: "auto" }}
+          >
+            Manage Fee
+          </Link>
+        </div>
+
+
+        {/* Workout Plans */}
+        <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column", minHeight: "200px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+            <span style={{ fontSize: "1.5rem" }}>🏋️</span>
+            <h2 className="admin-page-header__title" style={{ fontSize: "1rem", margin: 0 }}>
+              Workout Plans
             </h2>
           </div>
           <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "1rem", flex: 1 }}>
-            Search macros for Indian dishes.
+            Create and manage workout plans for your clients.
           </p>
-          <a href="/indian-nutrition-index" className="btn btn--primary" style={{ padding: "0.65rem 1.25rem" }}>
-            Open Index
+          <a href="/coach/workout-plans" className="btn btn--primary" style={{ padding: "0.65rem 1.25rem", marginTop: "auto" }}>
+            Manage Workouts
           </a>
         </div>
 
-        <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column" }}>
+        {/* Diet Plans */}
+        <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column", minHeight: "200px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-            <span style={{ fontSize: "1.5rem" }}>🧮</span>
-            <h2
-              className="admin-page-header__title"
-              style={{ fontSize: "1rem", margin: 0 }}
-            >
-              Calorie Calculator
+            <span style={{ fontSize: "1.5rem" }}>🥗</span>
+            <h2 className="admin-page-header__title" style={{ fontSize: "1rem", margin: 0 }}>
+              Diet Plans
             </h2>
           </div>
           <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "1rem", flex: 1 }}>
-            Estimate daily calorie needs.
+            Create and manage nutrition plans for your clients.
           </p>
-          <a href="/calorie-calculator" className="btn btn--primary" style={{ padding: "0.65rem 1.25rem" }}>
-            Open Calculator
+          <a href="/coach/diet-plans" className="btn btn--primary" style={{ padding: "0.65rem 1.25rem", marginTop: "auto" }}>
+            Manage Diet Plans
           </a>
         </div>
       </section>
-
-      {user?.role === "coach" && (
-        <section style={{ marginTop: "1.25rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" }}>
-            <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                <span style={{ fontSize: "1.5rem" }}>🔗</span>
-                <h2
-                  className="admin-page-header__title"
-                  style={{ fontSize: "1rem", margin: 0 }}
-                >
-                  Referral Code
-                </h2>
-              </div>
-              <p className="admin-card__value" style={{ color: "var(--admin-color-primary-dark)", fontSize: "1.1rem", marginBottom: "0.5rem", fontWeight: 600 }}>
-                {user.referralCode || "Generating..."}
-              </p>
-              <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "1rem", flex: 1 }}>
-                Share with clients to link to you.
-              </p>
-              {publicProfileUrl && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  <button
-                    type="button"
-                    className="btn btn--outline"
-                    style={{ padding: "0.65rem 1.25rem" }}
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(publicProfileUrl);
-                        setCopied(true);
-                      } catch {
-                        setCopied(false);
-                      }
-                    }}
-                  >
-                    {copied ? "Link copied!" : "Copy profile link"}
-                  </button>
-                  <a
-                    href={publicProfileUrl}
-                    rel="noopener noreferrer"
-                    className="btn btn--primary"
-                    style={{ padding: "0.65rem 1.25rem" }}
-                  >
-                    Visit Public Profile
-                  </a>
-                </div>
-              )}
-            </div>
-
-            <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                <span style={{ fontSize: "1.5rem" }}>💳</span>
-                <h2
-                  className="admin-page-header__title"
-                  style={{ fontSize: "1rem", margin: 0 }}
-                >
-                  Platform Fee
-                </h2>
-              </div>
-              <p className="admin-card__value" style={{ color: "#10b981", fontSize: "1.1rem", marginBottom: "0.5rem", fontWeight: 600 }}>
-                {subscription ? (
-                  <>
-                    {subscription.daysRemaining} Day{subscription.daysRemaining !== 1 ? "s" : ""} Left
-                  </>
-                ) : (
-                  "Loading..."
-                )}
-              </p>
-              <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "0.5rem", flex: 1 }}>
-                Track subscription & renewals.
-              </p>
-              {subscription && subscription.totalPaid > 0 && (
-                <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginBottom: "0.75rem" }}>
-                  Total Paid: ₹{subscription.totalPaid}
-                </p>
-              )}
-              <Link
-                href="/coach/platform-fee"
-                className="btn btn--primary"
-                style={{ padding: "0.65rem 1.25rem" }}
-              >
-                Manage Fee
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
 
       <section style={{ marginTop: "1.5rem" }}>
         <h2 className="admin-page-header__title" style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>

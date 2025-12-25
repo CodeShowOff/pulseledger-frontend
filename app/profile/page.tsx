@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { User, Upload, Trash2 } from "lucide-react";
 import { useProfileQuery, PROFILE_QUERY_KEY } from "@/lib/queries/profile";
+import { useMyDocumentsQuery } from "@/lib/queries/documents";
 import api from "@/lib/axios";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
@@ -66,6 +67,7 @@ export default function ProfilePage() {
   const storeAvatar = useAuthStore((s) => s.user?.avatarUrl);
   const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
+  const { data: myDocuments, isLoading: docsLoading } = useMyDocumentsQuery();
 
   const currentAddress = data?.address || null;
 
@@ -385,6 +387,78 @@ export default function ProfilePage() {
         </div>
 
         <section className="profile-grid">
+          {data?.role === "client" && (
+            <div
+              className="profile-card"
+              style={{ display: "flex", flexDirection: "column" }}
+            >
+              <h2
+                className="profile-header__title"
+                style={{ fontSize: "1rem" }}
+              >
+                My Documents
+              </h2>
+              <p
+                className="profile-header__subtitle"
+                style={{ marginTop: 4, marginBottom: 12, fontSize: "0.85rem" }}
+              >
+                Upload and manage your medical reports, lab results, and other health documents in one place.
+              </p>
+              <div style={{ marginBottom: 12, flex: 1 }}>
+                {docsLoading ? (
+                  <p className="profile-header__subtitle" style={{ fontSize: "0.8rem" }}>
+                    Loading your documents...
+                  </p>
+                ) : myDocuments && myDocuments.length > 0 ? (
+                  <ul style={{ fontSize: "0.8rem", color: "#4b5563", paddingLeft: "1rem", marginBottom: 4 }}>
+                    {myDocuments.slice(0, 3).map((doc) => (
+                      <li key={doc._id} style={{ listStyle: "disc", marginBottom: 4 }}>
+                        <button
+                          type="button"
+                          onClick={() => window.open(doc.url, "_blank")}
+                          style={{
+                            border: "none",
+                            background: "none",
+                            padding: 0,
+                            margin: 0,
+                            cursor: "pointer",
+                            color: "#2563eb",
+                            textDecoration: "underline",
+                            fontSize: "0.8rem",
+                          }}
+                        >
+                          {doc.name || doc.originalName}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="profile-header__subtitle" style={{ fontSize: "0.8rem" }}>
+                    You haven&apos;t uploaded any documents yet.
+                  </p>
+                )}
+                {myDocuments && myDocuments.length > 3 && (
+                  <p className="profile-header__subtitle" style={{ fontSize: "0.8rem", marginTop: 2 }}>
+                    and {myDocuments.length - 3} more...
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => router.push("/client/documents")}
+                style={{
+                  marginTop: "auto",
+                  fontSize: "0.9rem",
+                  paddingInline: "1rem",
+                  paddingBlock: "0.5rem",
+                }}
+              >
+                Go to My Documents
+              </button>
+            </div>
+          )}
+
           <div className="profile-card">
             <h2 className="profile-header__title" style={{ fontSize: "1rem" }}>
               Basic Info

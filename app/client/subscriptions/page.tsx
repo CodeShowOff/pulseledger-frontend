@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import {
   CLIENT_SUBSCRIPTIONS_KEY,
   CURRENT_PLAN_KEY,
@@ -112,6 +113,64 @@ export default function ClientSubscriptionsPage() {
             </a>
           </div>
         </header>
+
+        {/* Workout and Diet Quick Access - Same Row */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "1rem",
+            marginTop: "1rem",
+          }}
+        >
+          <div className="client-card client-card--highlight" style={{ display: "flex", flexDirection: "column" }}>
+            <div className="client-card__header" style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                <span style={{ fontSize: "2rem" }}>💪</span>
+                <p className="client-card__title" style={{ margin: 0 }}>My Workouts</p>
+              </div>
+              <p className="client-card__subtitle">
+                View your assigned workout plans and track your progress.
+              </p>
+            </div>
+            <Link 
+              href="/client/workouts" 
+              className="client-button"
+              style={{ 
+                marginTop: "auto",
+                textAlign: "center",
+                padding: "0.65rem 1.5rem",
+                fontSize: "0.9rem"
+              }}
+            >
+              View Workouts
+            </Link>
+          </div>
+
+          <div className="client-card client-card--highlight" style={{ display: "flex", flexDirection: "column" }}>
+            <div className="client-card__header" style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                <span style={{ fontSize: "2rem" }}>🥗</span>
+                <p className="client-card__title" style={{ margin: 0 }}>My Nutrition</p>
+              </div>
+              <p className="client-card__subtitle">
+                Track your meals and stay on top of your nutrition goals.
+              </p>
+            </div>
+            <Link 
+              href="/client/diet" 
+              className="client-button"
+              style={{ 
+                marginTop: "auto",
+                textAlign: "center",
+                padding: "0.65rem 1.5rem",
+                fontSize: "0.9rem"
+              }}
+            >
+              View Nutrition
+            </Link>
+          </div>
+        </div>
 
         <section className="client-page__sections">
           <h2 className="client-section-title">Current Plan</h2>

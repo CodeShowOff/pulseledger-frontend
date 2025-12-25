@@ -4,7 +4,7 @@
 import React from "react";
 import Link from "next/link";
 import PlanList from "@/components/coach/PlanList";
-import { Plus, CreditCard, ClipboardList } from "lucide-react";
+import { Plus, CreditCard, ClipboardList, Dumbbell, Utensils } from "lucide-react";
 import { useCoachPendingPlanRequests } from "@/lib/queries/planRequests";
 
 export default function CoachPlansPage() {
@@ -70,6 +70,79 @@ export default function CoachPlansPage() {
 
       <div className="admin-card">
         <PlanList />
+      </div>
+
+      {/* Custom Exercises and Food Items */}
+      <section className="admin-page-header" style={{ marginTop: "2rem" }}>
+        <h2 className="admin-page-header__title coach-page-header__title" style={{ fontSize: "1.5rem" }}>
+          Custom Library
+        </h2>
+      </section>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem" }}>
+        <Link
+          href="/coach/exercises"
+          className="admin-card"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "2rem",
+            textDecoration: "none",
+            transition: "all 0.3s ease",
+            cursor: "pointer",
+            border: "2px solid transparent",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "#8b5cf6";
+            e.currentTarget.style.transform = "translateY(-4px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "transparent";
+            e.currentTarget.style.transform = "translateY(0)";
+          }}
+        >
+          <Dumbbell size={48} style={{ color: "#8b5cf6", marginBottom: "1rem" }} />
+          <h3 style={{ fontSize: "1.25rem", fontWeight: "600", marginBottom: "0.5rem", color: "inherit" }}>
+            Custom Exercises
+          </h3>
+          <p style={{ color: "#666", textAlign: "center", fontSize: "0.9rem" }}>
+            Create and manage your own custom exercises
+          </p>
+        </Link>
+
+        <Link
+          href="/coach/food-items"
+          className="admin-card"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "2rem",
+            textDecoration: "none",
+            transition: "all 0.3s ease",
+            cursor: "pointer",
+            border: "2px solid transparent",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "#8b5cf6";
+            e.currentTarget.style.transform = "translateY(-4px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "transparent";
+            e.currentTarget.style.transform = "translateY(0)";
+          }}
+        >
+          <Utensils size={48} style={{ color: "#8b5cf6", marginBottom: "1rem" }} />
+          <h3 style={{ fontSize: "1.25rem", fontWeight: "600", marginBottom: "0.5rem", color: "inherit" }}>
+            Custom Food Items
+          </h3>
+          <p style={{ color: "#666", textAlign: "center", fontSize: "0.9rem" }}>
+            Create and manage your own custom food items
+          </p>
+        </Link>
       </div>
     </div>
   );

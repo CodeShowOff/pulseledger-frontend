@@ -21,19 +21,23 @@ export default function ClientDashboardPage() {
       <header className="client-page__header">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
           <h1 className="client-page__title">Your Dashboard</h1>
-          {!isLoading && coach && (
-            <Link href="/client/coach" className="client-button" style={{ whiteSpace: "nowrap" }}>
-              View Coach Profile
-            </Link>
-          )}
+          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+            {!isLoading && coach && (
+              <Link href="/client/coach" className="client-button" style={{ whiteSpace: "nowrap" }}>
+                View Coach Profile
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Company Name Display */}
       {!isLoading && (
-        <p style={{ textAlign: "center", fontSize: "1.3rem", color: "var(--text-secondary)", marginTop: "0.25rem", fontWeight: 700 }}>
-          {coach?.companyName || "PulseLedger"}
-        </p>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: "0.25rem" }}>
+          <span className="navbar-modern__logo-text" style={{ fontSize: "1.3rem" }}>
+            {coach?.companyName || "PulseLedger"}
+          </span>
+        </div>
       )}
 
       {/* Water Intake and Goal Weight Widgets - Same Row */}
@@ -49,6 +53,64 @@ export default function ClientDashboardPage() {
         <GoalWeightWidget />
       </div>
 
+      {/* Workout and Diet Quick Access - Same Row */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: "1rem",
+          marginTop: "1rem",
+        }}
+      >
+        <div className="client-card client-card--highlight" style={{ display: "flex", flexDirection: "column" }}>
+          <div className="client-card__header" style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <span style={{ fontSize: "2rem" }}>💪</span>
+              <p className="client-card__title" style={{ margin: 0 }}>Today's Workout</p>
+            </div>
+            <p className="client-card__subtitle">
+              View today's workout plan and track your progress.
+            </p>
+          </div>
+          <Link 
+            href="/client/workouts/today" 
+            className="client-button"
+            style={{ 
+              marginTop: "auto",
+              textAlign: "center",
+              padding: "0.65rem 1.5rem",
+              fontSize: "0.9rem"
+            }}
+          >
+            View Today's Workout
+          </Link>
+        </div>
+
+        <div className="client-card client-card--highlight" style={{ display: "flex", flexDirection: "column" }}>
+          <div className="client-card__header" style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <span style={{ fontSize: "2rem" }}>🥗</span>
+              <p className="client-card__title" style={{ margin: 0 }}>Today's Nutrition</p>
+            </div>
+            <p className="client-card__subtitle">
+              Track today's meals and stay on top of your nutrition goals.
+            </p>
+          </div>
+          <Link 
+            href="/client/diet/today" 
+            className="client-button"
+            style={{ 
+              marginTop: "auto",
+              textAlign: "center",
+              padding: "0.65rem 1.5rem",
+              fontSize: "0.9rem"
+            }}
+          >
+            View Today's Nutrition
+          </Link>
+        </div>
+      </div>
+
       {/* Nutrition Index and Calorie Calculator - Same Row */}
       <div
         style={{
@@ -61,7 +123,7 @@ export default function ClientDashboardPage() {
         <div className="client-card client-card--highlight" style={{ display: "flex", flexDirection: "column" }}>
           <div className="client-card__header" style={{ flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-              <span style={{ fontSize: "2rem" }}>🥗</span>
+              <span style={{ fontSize: "2rem" }}>📊</span>
               <p className="client-card__title" style={{ margin: 0 }}>Indian Food Nutrition Index</p>
             </div>
             <p className="client-card__subtitle">

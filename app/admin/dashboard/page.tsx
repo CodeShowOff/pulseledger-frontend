@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
-import { Users, UserCheck, User, Package, ClipboardList, CreditCard, Trash2, Mail, Bug, MessageSquare, UserX, DollarSign, Settings } from "lucide-react";
+import { Users, UserCheck, User, Package, ClipboardList, CreditCard, Trash2, Mail, Bug, MessageSquare, UserX, DollarSign, Settings, Dumbbell, Utensils } from "lucide-react";
 import RoleGuard from "@/components/shared/RoleGuard";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -146,6 +146,30 @@ export default function AdminDashboardPage() {
                 <p style={{ fontSize: "0.875rem", opacity: 0.9 }}>Upload payment QR code & configure platform</p>
               </div>
               <Settings className="h-12 w-12" style={{ opacity: 0.8 }} />
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      <section className="mt-6">
+        <h2 className="text-lg font-semibold mb-3">Content Libraries</h2>
+        <div className="admin-card-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", marginBottom: "2rem" }}>
+          <Link href="/admin/exercises" className="admin-card" style={{ textDecoration: "none", cursor: "pointer", background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)", color: "white", border: "none" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ fontSize: "1.125rem", fontWeight: 600, marginBottom: "0.5rem" }}>Exercise Library</div>
+                <p style={{ fontSize: "0.875rem", opacity: 0.9 }}>Manage exercises for workout plans</p>
+              </div>
+              <Dumbbell className="h-12 w-12" style={{ opacity: 0.8 }} />
+            </div>
+          </Link>
+          <Link href="/admin/food-items" className="admin-card" style={{ textDecoration: "none", cursor: "pointer", background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)", color: "white", border: "none" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ fontSize: "1.125rem", fontWeight: 600, marginBottom: "0.5rem" }}>Food Items Library</div>
+                <p style={{ fontSize: "0.875rem", opacity: 0.9 }}>Manage food database for diet plans</p>
+              </div>
+              <Utensils className="h-12 w-12" style={{ opacity: 0.8 }} />
             </div>
           </Link>
         </div>

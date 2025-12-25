@@ -1,0 +1,228 @@
+// app/coach/diet-plans/templates/page.tsx
+"use client";
+
+import React, { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FileText, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import {
+  useDietTemplates,
+  useCreateFromDietTemplate,
+  type DietTemplate,
+} from "@/lib/queries/diet";
+import getErrorMessage from "@/lib/getErrorMessage";
+
+const PER_PAGE = 10;
+
+export default function CoachDietTemplatesPage() {
+  const router = useRouter();
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [goal, setGoal] = useState<string>("");
+  const [dietaryType, setDietaryType] = useState<string>("");
+
+  const params = useMemo(
+    () => ({
+      page,
+      limit: PER_PAGE,
+      search: search || undefined,
+      goal: goal || undefined,
+      dietaryType: dietaryType || undefined,
+      isActive: true,
+    }),
+    [page, search, goal, dietaryType]
+  );
+
+  const { data, isLoading } = useDietTemplates(params);
+  const createFromTemplate = useCreateFromDietTemplate();
+
+  const templates: DietTemplate[] = data?.data ?? [];
+  const pagination =
+    data?.pagination ??
+    ({ total: 0, page: 1, totalPages: 1, limit: PER_PAGE } as const);
+
+  const onUseTemplate = (templateId: string) => {
+    createFromTemplate.mutate(
+      { templateId, data: {} },
+      {
+        onSuccess: (res) => {
+          const planId = (res as { data?: { _id?: string } })?.data?._id;
+          toast.success("Diet plan created from template");
+          if (planId) router.push(`/coach/diet-plans/${planId}/edit`);
+          else router.push("/coach/diet-plans");
+        },
+        onError: (e: unknown) => toast.error(getErrorMessage(e, "Failed to create plan")),
+      }
+    );
+  };
+
+  return (
+    <div>
+      <section className="admin-page-header">
+        <div>
+          <h1 className="admin-page-header__title coach-page-header__title">
+            Browse Templates
+          </h1>
+          <p className="admin-page-header__subtitle coach-page-header__subtitle">
+            Clone an admin diet template into your own plan
+          </p>
+        </div>
+        <div className="admin-page-header__actions">
+          <Link
+            href="/coach/diet-plans"
+            className="btn btn--outline"
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+          >
+            <ArrowLeft style={{ width: 16, height: 16 }} />
+            Back
+          </Link>
+        </div>
+      </section>
+
+      <section className="admin-card" style={{ marginTop: "1.5rem" }}>
+        <div className="admin-filters">
+          <input
+            className="admin-search-input"
+            placeholder="Search templates..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+          <input
+            className="admin-search-input"
+            placeholder="Goal (e.g. weight_loss)"
+            value={goal}
+            onChange={(e) => {
+              setGoal(e.target.value);
+              setPage(1);
+            }}
+          />
+          <input
+            className="admin-search-input"
+            placeholder="Dietary type (e.g. vegetarian)"
+            value={dietaryType}
+            onChange={(e) => {
+              setDietaryType(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
+
+        <div className="admin-table-wrapper">
+          <div className="admin-table-scroll">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Template</th>
+                  <th>Goal</th>
+                  <th>Dietary</th>
+                  <th>Meals/day</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      style={{
+                        padding: "0.75rem",
+                        textAlign: "center",
+                        color: "var(--admin-color-muted)",
+                      }}
+                    >
+                      Loading templates...
+                    </td>
+                  </tr>
+                ) : templates.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      style={{
+                        padding: "0.75rem",
+                        textAlign: "center",
+                        color: "var(--admin-color-muted)",
+                      }}
+                    >
+                      No templates found.
+                    </td>
+                  </tr>
+                ) : (
+                  templates.map((t) => (
+                    <tr key={t._id}>
+                      <td>
+                        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                          <FileText
+                            style={{ width: 16, height: 16, color: "var(--admin-color-muted)" }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 600 }}>{t.name}</div>
+                            {t.description ? (
+                              <div
+                                style={{
+                                  color: "var(--admin-color-muted)",
+                                  fontSize: "var(--admin-font-size-xs)",
+                                }}
+                              >
+                                {t.description}
+                              </div>
+                            ) : null}
+                            {t.isFeatured ? (
+                              <div style={{ marginTop: "0.25rem" }}>
+                                <span className="badge badge--success">Featured</span>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ color: "var(--admin-color-muted)" }}>{t.goal || "—"}</td>
+                      <td style={{ color: "var(--admin-color-muted)" }}>{t.dietaryType || "—"}</td>
+                      <td style={{ color: "var(--admin-color-muted)" }}>{t.mealsPerDay ?? "—"}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn btn--primary"
+                          onClick={() => onUseTemplate(t._id)}
+                          disabled={createFromTemplate.isPending}
+                        >
+                          Use Template
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="admin-pagination">
+          <div>
+            Page {pagination.page} of {pagination.totalPages} (total {pagination.total})
+          </div>
+          <div className="admin-pagination__actions">
+            <button
+              type="button"
+              className="btn btn--outline"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              className="btn btn--outline"
+              onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+              disabled={page >= pagination.totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

@@ -411,6 +411,42 @@
   gap: var(--admin-space-sm);
 }
 
+/* Inputs (shared across admin/coach pages) */
+.admin-search-input {
+  width: 100%;
+  min-width: 200px;
+  max-width: 360px;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid var(--admin-color-border);
+  background: var(--admin-color-surface);
+  font-size: var(--admin-font-size-sm);
+  color: #111827;
+}
+
+/* Backwards-compatible alias used across existing pages */
+.admin-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid var(--admin-color-border);
+  background: var(--admin-color-surface);
+  font-size: var(--admin-font-size-sm);
+  color: #111827;
+}
+
+.admin-search-input::placeholder {
+  color: var(--admin-color-muted-soft);
+}
+
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--admin-space-sm);
+  align-items: center;
+  margin-bottom: var(--admin-space-lg);
+}
+
 /* Cards */
 .admin-card-grid {
   display: grid;

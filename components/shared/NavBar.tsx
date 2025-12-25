@@ -86,6 +86,7 @@ const Navbar = React.memo(function Navbar() {
 
   const clientLinks = [
     { label: "Dashboard", href: "/client/dashboard", icon: LayoutDashboard },
+    { label: "Plan", href: "/client/subscriptions", icon: CreditCard },
     { label: "Chat", href: "/client/chat", icon: MessagesSquare },
     { label: "Progress", href: "/client/progress", icon: TrendingUp },
     { label: "Products", href: "/client/products", icon: Package },
@@ -214,6 +215,20 @@ const Navbar = React.memo(function Navbar() {
                   >
                     My Profile
                   </button>
+
+                  {user.role === "client" && (
+                    <button
+                      type="button"
+                      className="navbar-modern__dropdown-item"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        router.push("/client/documents");
+                      }}
+                    >
+                      My Documents
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     className="navbar-modern__dropdown-item"
