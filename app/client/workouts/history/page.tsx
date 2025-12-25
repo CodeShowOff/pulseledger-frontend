@@ -355,9 +355,9 @@ export default function WorkoutHistoryPage() {
                 alignItems: "center",
                 justifyContent: "center",
                 background: dayData?.isToday
-                  ? "var(--brand-primary)"
+                  ? "#16a34a"
                   : selectedDate === dayData?.date
-                  ? "var(--brand-primary-light)"
+                  ? "#dcfce7"
                   : dayData?.log
                   ? `${getStatusColor(dayData.log.status)}20`
                   : "transparent",

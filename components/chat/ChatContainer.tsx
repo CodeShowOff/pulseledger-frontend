@@ -194,7 +194,6 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
           });
         }
       } catch (error) {
-        console.error("Failed to send message:", error);
         toast.error("Failed to send message");
       }
     },

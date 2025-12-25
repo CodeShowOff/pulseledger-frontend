@@ -63,6 +63,7 @@ interface Exercise {
 export default function ClientWorkoutsPage() {
   const queryClient = useQueryClient();
   const [view, setView] = useState<"today" | "plans" | "history">("today");
+  const [selectedTodayPlanId, setSelectedTodayPlanId] = useState<string | null>(null);
   
   // Workout execution state
   const [isWorkoutStarted, setIsWorkoutStarted] = useState(false);
@@ -79,16 +80,28 @@ export default function ClientWorkoutsPage() {
   const { data: plans = [], isLoading: plansLoading } = useClientWorkoutPlans();
 
   // Fetch today's workout
-  const { data: todayWorkout, isLoading: todayLoading } = useClientTodayWorkout();
+  const { data: todayWorkouts = [], isLoading: todayLoading } = useClientTodayWorkout();
 
   // Fetch workout stats
   const { data: stats } = useClientWorkoutStats();
 
   const today = new Date();
-  const dayOfWeek = today.getDay();
+  const dayOfWeek = today.getUTCDay();
+
+  useEffect(() => {
+    if (selectedTodayPlanId) return;
+    if (!todayWorkouts || todayWorkouts.length === 0) return;
+    const first = todayWorkouts[0];
+    setSelectedTodayPlanId((first.workoutPlanId || first.planId) ?? null);
+  }, [todayWorkouts, selectedTodayPlanId]);
+
+  const selectedTodayWorkout =
+    todayWorkouts.find((w: any) => (w.workoutPlanId || w.planId) === selectedTodayPlanId) ||
+    todayWorkouts[0] ||
+    null;
 
   // Get exercises from today's workout
-  const exercises: Exercise[] = todayWorkout?.exercises || [];
+  const exercises: Exercise[] = selectedTodayWorkout?.exercises || [];
   const currentExercise = exercises[currentExerciseIndex];
 
   // Get exercise details
@@ -121,8 +134,8 @@ export default function ClientWorkoutsPage() {
       }));
 
       // Use the log ID from today's workout
-      if (todayWorkout?._id) {
-        const res = await api.post(`/client/workouts/${todayWorkout._id}/complete`, {
+      if (selectedTodayWorkout?._id) {
+        const res = await api.post(`/client/workouts/${selectedTodayWorkout._id}/complete`, {
           exerciseLogs,
           actualDuration: duration,
           clientNotes: `Completed ${completedExercises.size} of ${exercises.length} exercises`,
@@ -143,7 +156,6 @@ export default function ClientWorkoutsPage() {
       setWorkoutStartTime(null);
     },
     onError: (error: any) => {
-      console.error("Failed to complete workout:", error);
       toast.error(error?.response?.data?.message || "Failed to complete workout. Please try again.");
     },
   });
@@ -702,7 +714,7 @@ export default function ClientWorkoutsPage() {
               {DAYS[dayOfWeek]}, {today.toLocaleDateString()}
             </p>
             <h2 style={{ fontSize: "1.25rem", fontWeight: 700 }}>
-              {todayWorkout?.focus || "Today's Workout"}
+              {selectedTodayWorkout?.focus || "Today's Workout"}
             </h2>
             {exercises.length > 0 && (
               <p style={{ fontSize: "0.75rem", opacity: 0.8, marginTop: "0.25rem" }}>
@@ -710,7 +722,7 @@ export default function ClientWorkoutsPage() {
               </p>
             )}
           </div>
-          {todayWorkout?.completed ? (
+          {selectedTodayWorkout?.completed ? (
             <CheckCircle2 style={{ width: 28, height: 28 }} />
           ) : (
             <Dumbbell style={{ width: 28, height: 28 }} />
@@ -719,7 +731,7 @@ export default function ClientWorkoutsPage() {
       </div>
 
       <div style={{ padding: "1rem" }}>
-        {todayWorkout?.isRestDay ? (
+        {selectedTodayWorkout?.isRestDay ? (
           <div style={{ textAlign: "center", padding: "2rem 1rem" }}>
             <p style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🧘</p>
             <h3 style={{ fontSize: "1.1rem", fontWeight: 600 }}>Rest Day</h3>
@@ -793,7 +805,7 @@ export default function ClientWorkoutsPage() {
               }}
             >
               <Play style={{ width: 18, height: 18 }} />
-              {todayWorkout?.completed ? "Redo Workout" : "Start Workout"}
+              {selectedTodayWorkout?.completed ? "Redo Workout" : "Start Workout"}
             </button>
           </>
         ) : (
@@ -966,8 +978,59 @@ export default function ClientWorkoutsPage() {
             >
               Loading today&apos;s workout...
             </div>
-          ) : todayWorkout ? (
-            isWorkoutStarted ? renderActiveWorkout() : renderWorkoutPreview()
+          ) : selectedTodayWorkout ? (
+            <>
+              {todayWorkouts.length > 1 && !isWorkoutStarted && (
+                <div
+                  className="client-card"
+                  style={{ padding: "1rem", marginBottom: "1rem" }}
+                >
+                  <h3 style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: "0.75rem" }}>
+                    Today&apos;s Workouts
+                  </h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    {todayWorkouts.map((w: any) => {
+                      const id = (w.workoutPlanId || w.planId) as string | undefined;
+                      const selected = !!id && id === selectedTodayPlanId;
+                      return (
+                        <button
+                          key={id}
+                          onClick={() => setSelectedTodayPlanId(id ?? null)}
+                          style={{
+                            textAlign: "left",
+                            padding: "0.75rem",
+                            borderRadius: "10px",
+                            border: selected ? "2px solid var(--brand-primary)" : "1px solid #e5e7eb",
+                            background: "transparent",
+                            cursor: "pointer",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "0.75rem",
+                          }}
+                        >
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontWeight: 600, fontSize: "0.95rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {w.planName || w.workoutPlanName || "Workout Plan"}
+                            </div>
+                            <div style={{ fontSize: "0.8rem", color: "#6b7280" }}>
+                              {w.isRestDay ? "Rest day" : `${(w.exercises?.length || 0)} exercises`}
+                            </div>
+                          </div>
+                          {w.completed ? (
+                            <CheckCircle2 style={{ width: 18, height: 18, color: "var(--brand-primary)" }} />
+                          ) : (
+                            <ChevronRight style={{ width: 18, height: 18, color: "#9ca3af" }} />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {isWorkoutStarted ? renderActiveWorkout() : renderWorkoutPreview()}
+            </>
           ) : (
             <div
               className="client-card"

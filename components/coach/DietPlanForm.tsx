@@ -122,6 +122,32 @@ type Props = {
   onSuccess?: () => void;
 };
 
+type SubscriptionPlan = {
+  _id: string;
+  title: string;
+};
+
+function normalizeSubscriptionPlans(payload: unknown): SubscriptionPlan[] {
+  if (Array.isArray(payload)) return payload as SubscriptionPlan[];
+
+  if (payload && typeof payload === "object") {
+    const obj = payload as Record<string, unknown>;
+
+    const direct = obj["data"];
+    if (Array.isArray(direct)) return direct as SubscriptionPlan[];
+
+    if (direct && typeof direct === "object") {
+      const nested = direct as Record<string, unknown>;
+      if (Array.isArray(nested["data"])) return nested["data"] as SubscriptionPlan[];
+      if (Array.isArray(nested["plans"])) return nested["plans"] as SubscriptionPlan[];
+    }
+
+    if (Array.isArray(obj["plans"])) return obj["plans"] as SubscriptionPlan[];
+  }
+
+  return [];
+}
+
 const DAYS_OF_WEEK = [
   { value: 0, label: "Sunday" },
   { value: 1, label: "Monday" },
@@ -134,9 +160,6 @@ const DAYS_OF_WEEK = [
 
 export default function DietPlanForm({ plan, onSuccess }: Props) {
   const router = useRouter();
-  const [planMode, setPlanMode] = useState<"template" | "weekly">(
-    plan?.weeklySchedule && plan.weeklySchedule.length > 0 ? "weekly" : "template"
-  );
   const [expandedMeals, setExpandedMeals] = useState<number[]>([0]);
   const [expandedDays, setExpandedDays] = useState<number[]>([0]);
   const [foodSearch, setFoodSearch] = useState("");
@@ -153,10 +176,10 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
     queryKey: ["coachPlans"],
     queryFn: async () => {
       const res = await api.get("/plans?limit=100");
-      return res.data.data;
+      return res.data;
     },
   });
-  const subscriptionPlans = coachPlansData ?? [];
+  const subscriptionPlans = normalizeSubscriptionPlans(coachPlansData);
 
   // Fetch food items for picker
   const { data: foodItemsData } = useFoodItems({
@@ -272,7 +295,7 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
       fat: food.nutrition.fat,
     };
 
-    if (planMode === "weekly" && dayIndex !== undefined) {
+    if (dayIndex !== undefined) {
       const currentSchedule = [...watchWeeklySchedule];
       const day = currentSchedule[dayIndex];
       if (day.meals) {
@@ -280,11 +303,6 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
         meal.foods = [...(meal.foods || []), newFood];
         setValue("weeklySchedule", currentSchedule);
       }
-    } else {
-      const currentMeals = [...watchMeals];
-      const meal = currentMeals[mealIndex];
-      meal.foods = [...(meal.foods || []), newFood];
-      setValue("meals", currentMeals);
     }
 
     setShowFoodPicker(null);
@@ -292,7 +310,7 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
   };
 
   const removeFoodFromMeal = (mealIndex: number, foodIndex: number, dayIndex?: number) => {
-    if (planMode === "weekly" && dayIndex !== undefined) {
+    if (dayIndex !== undefined) {
       const currentSchedule = [...watchWeeklySchedule];
       const day = currentSchedule[dayIndex];
       if (day.meals) {
@@ -301,12 +319,6 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
         day.meals[mealIndex].foods = foods;
         setValue("weeklySchedule", currentSchedule);
       }
-    } else {
-      const currentMeals = [...watchMeals];
-      const foods = [...(currentMeals[mealIndex].foods || [])];
-      foods.splice(foodIndex, 1);
-      currentMeals[mealIndex].foods = foods;
-      setValue("meals", currentMeals);
     }
   };
 
@@ -317,7 +329,7 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
     value: any,
     dayIndex?: number
   ) => {
-    if (planMode === "weekly" && dayIndex !== undefined) {
+    if (dayIndex !== undefined) {
       const currentSchedule = [...watchWeeklySchedule];
       const day = currentSchedule[dayIndex];
       if (day.meals) {
@@ -326,12 +338,6 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
         day.meals[mealIndex].foods = foods;
         setValue("weeklySchedule", currentSchedule);
       }
-    } else {
-      const currentMeals = [...watchMeals];
-      const foods = [...(currentMeals[mealIndex].foods || [])];
-      foods[foodIndex] = { ...foods[foodIndex], [field]: value };
-      currentMeals[mealIndex].foods = foods;
-      setValue("meals", currentMeals);
     }
   };
 
@@ -591,510 +597,18 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
           }}
         >
           <h2 style={{ fontSize: "1rem", fontWeight: 600, margin: 0 }}>
-            Meal Plan
+            Weekly Meal Plan
           </h2>
-          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            {/* Mode Toggle */}
-            <div
-              style={{
-                display: "inline-flex",
-                border: "1px solid #e5e7eb",
-                borderRadius: "6px",
-                overflow: "hidden",
-                fontSize: "0.75rem",
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setPlanMode("template")}
-                style={{
-                  padding: "0.4rem 0.75rem",
-                  backgroundColor: planMode === "template" ? "#16a34a" : "#fff",
-                  color: planMode === "template" ? "#fff" : "#6b7280",
-                  border: "none",
-                  cursor: "pointer",
-                  fontWeight: planMode === "template" ? 600 : 400,
-                }}
-              >
-                Single Day Template
-              </button>
-              <button
-                type="button"
-                onClick={() => setPlanMode("weekly")}
-                style={{
-                  padding: "0.4rem 0.75rem",
-                  backgroundColor: planMode === "weekly" ? "#16a34a" : "#fff",
-                  color: planMode === "weekly" ? "#fff" : "#6b7280",
-                  border: "none",
-                  borderLeft: "1px solid #e5e7eb",
-                  cursor: "pointer",
-                  fontWeight: planMode === "weekly" ? 600 : 400,
-                }}
-              >
-                Weekly Schedule (Day-wise)
-              </button>
-            </div>
-            {planMode === "template" && (
-              <button
-                type="button"
-                onClick={addMeal}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.35rem",
-                  padding: "0.4rem 0.75rem",
-                  fontSize: "0.8rem",
-                  backgroundColor: "#f0fdf4",
-                  border: "1px solid #dcfce7",
-                  borderRadius: "6px",
-                  color: "#16a34a",
-                  cursor: "pointer",
-                }}
-              >
-                <Plus style={{ width: 14, height: 14 }} />
-                Add Meal
-              </button>
-            )}
-          </div>
         </div>
 
         {/* Description */}
         <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "1rem" }}>
-          {planMode === "template"
-            ? "Create a single-day meal template that will repeat daily for clients."
-            : "Create a detailed week-long meal plan with different meals for each day."}
+          Create a detailed week-long meal plan with different meals for each day.
         </p>
 
-        {/* Template Mode - Single Day */}
-        {planMode === "template" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-          {watchMeals.map((meal, mealIndex) => {
-            const isExpanded = expandedMeals.includes(mealIndex);
-
-            return (
-              <div
-                key={mealIndex}
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                }}
-              >
-                {/* Meal Header */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "0.75rem 1rem",
-                    cursor: "pointer",
-                    borderBottom: isExpanded ? "1px solid #e5e7eb" : "none",
-                  }}
-                  onClick={() => toggleMeal(mealIndex)}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.75rem",
-                    }}
-                  >
-                    <Utensils
-                      style={{ width: 16, height: 16, color: "#16a34a" }}
-                    />
-                    <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>
-                      {meal.name || MEAL_TYPES.find((m) => m.value === meal.mealType)?.label || "Meal"}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "0.7rem",
-                        padding: "0.15rem 0.5rem",
-                        borderRadius: "999px",
-                        backgroundColor: "#f0fdf4",
-                        color: "#16a34a",
-                      }}
-                    >
-                      {meal.foods?.length || 0} foods
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    {mealIndex > 0 && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeMeal(mealIndex);
-                        }}
-                        style={{
-                          padding: "0.25rem",
-                          backgroundColor: "#fee2e2",
-                          border: "none",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <Trash2
-                          style={{ width: 14, height: 14, color: "#dc2626" }}
-                        />
-                      </button>
-                    )}
-                    {isExpanded ? (
-                      <ChevronUp
-                        style={{ width: 18, height: 18, color: "#6b7280" }}
-                      />
-                    ) : (
-                      <ChevronDown
-                        style={{ width: 18, height: 18, color: "#6b7280" }}
-                      />
-                    )}
-                  </div>
-                </div>
-
-                {/* Meal Content */}
-                {isExpanded && (
-                  <div style={{ padding: "1rem" }}>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr 1fr",
-                        gap: "0.75rem",
-                        marginBottom: "1rem",
-                      }}
-                    >
-                      <div>
-                        <label
-                          style={{
-                            fontSize: "0.75rem",
-                            color: "#6b7280",
-                            display: "block",
-                            marginBottom: "0.25rem",
-                          }}
-                        >
-                          Meal Type
-                        </label>
-                        <select
-                          value={meal.mealType}
-                          onChange={(e) =>
-                            updateMeal(mealIndex, "mealType", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "0.4rem 0.5rem",
-                            fontSize: "0.85rem",
-                            border: "1px solid #e5e7eb",
-                            borderRadius: "6px",
-                          }}
-                        >
-                          {MEAL_TYPES.map((mt) => (
-                            <option key={mt.value} value={mt.value}>
-                              {mt.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label
-                          style={{
-                            fontSize: "0.75rem",
-                            color: "#6b7280",
-                            display: "block",
-                            marginBottom: "0.25rem",
-                          }}
-                        >
-                          Name
-                        </label>
-                        <input
-                          type="text"
-                          value={meal.name || ""}
-                          onChange={(e) =>
-                            updateMeal(mealIndex, "name", e.target.value)
-                          }
-                          placeholder="e.g., Power Breakfast"
-                          style={{
-                            width: "100%",
-                            padding: "0.4rem 0.5rem",
-                            fontSize: "0.85rem",
-                            border: "1px solid #e5e7eb",
-                            borderRadius: "6px",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          style={{
-                            fontSize: "0.75rem",
-                            color: "#6b7280",
-                            display: "block",
-                            marginBottom: "0.25rem",
-                          }}
-                        >
-                          Time
-                        </label>
-                        <input
-                          type="time"
-                          value={meal.time || ""}
-                          onChange={(e) =>
-                            updateMeal(mealIndex, "time", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "0.4rem 0.5rem",
-                            fontSize: "0.85rem",
-                            border: "1px solid #e5e7eb",
-                            borderRadius: "6px",
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Foods List */}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.5rem",
-                        marginBottom: "1rem",
-                      }}
-                    >
-                      {meal.foods?.map((food, foodIndex) => (
-                        <div
-                          key={foodIndex}
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "2fr 1fr 80px 80px 80px auto",
-                            gap: "0.5rem",
-                            alignItems: "center",
-                            padding: "0.5rem",
-                            backgroundColor: "#f9fafb",
-                            borderRadius: "6px",
-                          }}
-                        >
-                          <span style={{ fontSize: "0.85rem", fontWeight: 500 }}>
-                            {food.foodName}
-                          </span>
-                          <input
-                            type="number"
-                            value={food.quantity}
-                            onChange={(e) =>
-                              updateFoodInMeal(
-                                mealIndex,
-                                foodIndex,
-                                "quantity",
-                                parseFloat(e.target.value) || 0
-                              )
-                            }
-                            style={{
-                              padding: "0.35rem",
-                              fontSize: "0.8rem",
-                              border: "1px solid #e5e7eb",
-                              borderRadius: "4px",
-                            }}
-                          />
-                          <span
-                            style={{
-                              fontSize: "0.75rem",
-                              color: "#6b7280",
-                              textAlign: "center",
-                            }}
-                          >
-                            {food.calories || 0} kcal
-                          </span>
-                          <span
-                            style={{
-                              fontSize: "0.75rem",
-                              color: "#6b7280",
-                              textAlign: "center",
-                            }}
-                          >
-                            {food.protein || 0}g P
-                          </span>
-                          <span
-                            style={{
-                              fontSize: "0.75rem",
-                              color: "#6b7280",
-                              textAlign: "center",
-                            }}
-                          >
-                            {food.carbs || 0}g C
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              removeFoodFromMeal(mealIndex, foodIndex)
-                            }
-                            style={{
-                              padding: "0.35rem",
-                              backgroundColor: "#fee2e2",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                            }}
-                          >
-                            <Trash2
-                              style={{ width: 14, height: 14, color: "#dc2626" }}
-                            />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Add Food Button / Picker */}
-                    {showFoodPicker?.mealIndex === mealIndex ? (
-                      <div
-                        style={{
-                          border: "1px solid #e5e7eb",
-                          borderRadius: "8px",
-                          padding: "0.75rem",
-                          backgroundColor: "#fff",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.5rem",
-                            marginBottom: "0.75rem",
-                          }}
-                        >
-                          <Search
-                            style={{ width: 16, height: 16, color: "#9ca3af" }}
-                          />
-                          <input
-                            type="text"
-                            placeholder="Search foods..."
-                            value={foodSearch}
-                            onChange={(e) => setFoodSearch(e.target.value)}
-                            style={{
-                              flex: 1,
-                              padding: "0.4rem",
-                              fontSize: "0.85rem",
-                              border: "1px solid #e5e7eb",
-                              borderRadius: "6px",
-                            }}
-                            autoFocus
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowFoodPicker(null);
-                              setFoodSearch("");
-                            }}
-                            style={{
-                              padding: "0.4rem 0.75rem",
-                              fontSize: "0.8rem",
-                              backgroundColor: "#f3f4f6",
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                        <div
-                          style={{
-                            maxHeight: "200px",
-                            overflowY: "auto",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "0.25rem",
-                          }}
-                        >
-                          {foodItems.map((food) => (
-                            <button
-                              key={food._id}
-                              type="button"
-                              onClick={() => addFoodToMeal(mealIndex, food)}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                gap: "0.5rem",
-                                padding: "0.5rem 0.75rem",
-                                fontSize: "0.85rem",
-                                backgroundColor: "#f9fafb",
-                                border: "none",
-                                borderRadius: "6px",
-                                cursor: "pointer",
-                                textAlign: "left",
-                              }}
-                            >
-                              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                <span>{food.name}</span>
-                                {food.isCustom && (
-                                  <span
-                                    style={{
-                                      fontSize: "0.6rem",
-                                      padding: "0.1rem 0.35rem",
-                                      backgroundColor: "#f3e8ff",
-                                      color: "#8b5cf6",
-                                      borderRadius: "999px",
-                                      fontWeight: 600,
-                                    }}
-                                  >
-                                    CUSTOM
-                                  </span>
-                                )}
-                              </div>
-                              <span
-                                style={{
-                                  fontSize: "0.7rem",
-                                  color: "#9ca3af",
-                                }}
-                              >
-                                {food.nutrition.calories} kcal |{" "}
-                                {food.nutrition.protein}g P
-                              </span>
-                            </button>
-                          ))}
-                          {foodItems.length === 0 && (
-                            <p
-                              style={{
-                                padding: "1rem",
-                                textAlign: "center",
-                                color: "#6b7280",
-                                fontSize: "0.85rem",
-                              }}
-                            >
-                              No foods found. Admin needs to add food items to
-                              the library.
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setShowFoodPicker({ mealIndex })}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem",
-                          padding: "0.5rem 1rem",
-                          fontSize: "0.85rem",
-                          backgroundColor: "#f0fdf4",
-                          border: "1px solid #dcfce7",
-                          borderRadius: "6px",
-                          color: "#16a34a",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <Plus style={{ width: 16, height: 16 }} />
-                        Add Food
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        )}
-
-        {/* Weekly Schedule Mode - Day-wise */}
-        {planMode === "weekly" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            {watchWeeklySchedule.map((day, dayIndex) => {
+        {/* Weekly Schedule - Day-wise */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {watchWeeklySchedule.map((day, dayIndex) => {
               const isDayExpanded = expandedDays.includes(dayIndex);
 
               return (
@@ -1459,8 +973,7 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
               );
             })}
           </div>
-        )}
-      </div>
+        </div>
 
       {/* Additional Instructions */}
       <div className="coach-plan-form__section">

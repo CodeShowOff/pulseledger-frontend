@@ -1,7 +1,7 @@
 // app/client/diet/plan/[id]/page.tsx
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -16,6 +16,8 @@ import {
   Sun,
   Moon,
   Dumbbell,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useClientDietPlan } from "@/lib/queries/diet";
 
@@ -46,8 +48,17 @@ const MEAL_COLORS: Record<string, string> = {
 export default function ClientDietPlanDetailPage() {
   const params = useParams();
   const planId = params.id as string;
+  const [expandedDays, setExpandedDays] = useState<number[]>([]);
 
   const { data: plan, isLoading, error } = useClientDietPlan(planId);
+
+  const toggleDay = (dayIndex: number) => {
+    setExpandedDays(prev => 
+      prev.includes(dayIndex) 
+        ? prev.filter(i => i !== dayIndex)
+        : [...prev, dayIndex]
+    );
+  };
 
   if (isLoading) {
     return (
@@ -260,8 +271,173 @@ export default function ClientDietPlanDetailPage() {
         </div>
       )}
 
-      {/* Meals */}
-      {plan.meals && plan.meals.length > 0 && (
+      {/* Weekly Schedule */}
+      {plan.weeklySchedule && plan.weeklySchedule.length > 0 ? (
+        <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
+          <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
+            📅 Weekly Meal Plan
+          </h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {plan.weeklySchedule.map((day, dayIndex) => {
+              const dayName = day.dayName || ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][day.dayOfWeek] || `Day ${dayIndex + 1}`;
+              const isExpanded = expandedDays.includes(dayIndex);
+              
+              return (
+                <div
+                  key={dayIndex}
+                  style={{
+                    border: "2px solid #e5e7eb",
+                    borderRadius: "12px",
+                    background: "#fff",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    onClick={() => toggleDay(dayIndex)}
+                    style={{
+                      padding: "1rem",
+                      background: "#f9fafb",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      borderBottom: isExpanded ? "2px solid #e5e7eb" : "none",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <h4 style={{ fontSize: "0.95rem", fontWeight: 600, color: "#1f2937", margin: 0 }}>
+                        {dayName}
+                      </h4>
+                      <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                        ({day.meals?.length || 0} meals)
+                      </span>
+                    </div>
+                    {isExpanded ? (
+                      <ChevronUp style={{ width: 20, height: 20, color: "#6b7280" }} />
+                    ) : (
+                      <ChevronDown style={{ width: 20, height: 20, color: "#6b7280" }} />
+                    )}
+                  </div>
+                  
+                  {isExpanded && (
+                    <div style={{ padding: "1rem" }}>
+                  {day.notes && (
+                    <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem", fontStyle: "italic" }}>
+                      💡 {day.notes}
+                    </p>
+                  )}
+                  {day.meals && day.meals.length > 0 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                      {day.meals.map((meal, mealIndex) => {
+                        const Icon = MEAL_ICONS[meal.mealType] || Utensils;
+                        const color = MEAL_COLORS[meal.mealType] || "#6b7280";
+
+                        return (
+                          <div
+                            key={mealIndex}
+                            style={{
+                              padding: "1rem",
+                              border: `2px solid ${color}20`,
+                              borderRadius: "12px",
+                              background: `${color}08`,
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                marginBottom: "0.5rem",
+                              }}
+                            >
+                              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                <Icon style={{ width: 20, height: 20, color }} />
+                                <span style={{ fontWeight: 600, textTransform: "capitalize" }}>
+                                  {meal.mealType.replace(/_/g, " ")}
+                                </span>
+                              </div>
+                              {meal.time && (
+                                <span
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.25rem",
+                                    fontSize: "0.75rem",
+                                    color: "var(--text-secondary)",
+                                  }}
+                                >
+                                  <Clock style={{ width: 14, height: 14 }} />
+                                  {meal.time}
+                                </span>
+                              )}
+                            </div>
+
+                            {meal.name && (
+                              <p style={{ fontSize: "0.9rem", fontWeight: 500, marginBottom: "0.5rem" }}>
+                                {meal.name}
+                              </p>
+                            )}
+
+                            {meal.foods && meal.foods.length > 0 && (
+                              <div style={{ marginTop: "0.5rem" }}>
+                                {meal.foods.map((food, foodIndex) => (
+                                  <div
+                                    key={foodIndex}
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      padding: "0.5rem 0",
+                                      borderBottom:
+                                        foodIndex < meal.foods!.length - 1
+                                          ? "1px solid var(--border-color)"
+                                          : "none",
+                                    }}
+                                  >
+                                    <div>
+                                      <p style={{ fontSize: "0.85rem" }}>{food.foodName}</p>
+                                      <p style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
+                                        {food.quantity} {food.unit}
+                                      </p>
+                                    </div>
+                                    {food.calories && (
+                                      <span style={{ fontSize: "0.75rem", color: "#f97316", fontWeight: 500 }}>
+                                        {food.calories} kcal
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {meal.notes && (
+                              <p
+                                style={{
+                                  marginTop: "0.5rem",
+                                  padding: "0.5rem",
+                                  background: "white",
+                                  borderRadius: "6px",
+                                  fontSize: "0.8rem",
+                                  color: "var(--text-secondary)",
+                                  fontStyle: "italic",
+                                }}
+                              >
+                                💡 {meal.notes}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : plan.meals && plan.meals.length > 0 ? (
         <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
           <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
             Planned Meals ({plan.mealsPerDay || plan.meals.length}/day)
@@ -369,7 +545,7 @@ export default function ClientDietPlanDetailPage() {
             })}
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Foods to Avoid */}
       {plan.foodsToAvoid && plan.foodsToAvoid.length > 0 && (
@@ -428,6 +604,25 @@ export default function ClientDietPlanDetailPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Allergy Notes */}
+      {plan.allergyNotes && (
+        <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem", backgroundColor: "#fef2f2", border: "2px solid #fecaca" }}>
+          <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem", color: "#dc2626" }}>
+            ⚠️ Allergy Notes
+          </h3>
+          <p
+            style={{
+              fontSize: "0.85rem",
+              color: "#991b1b",
+              lineHeight: 1.6,
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {plan.allergyNotes}
+          </p>
         </div>
       )}
 

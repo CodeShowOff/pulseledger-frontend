@@ -78,14 +78,17 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function defaultSchedule(): WorkoutTemplateDay[] {
+type TemplateExerciseInput = z.infer<typeof templateExerciseSchema>;
+type TemplateDayInput = z.infer<typeof templateDaySchema>;
+
+function defaultSchedule(): TemplateDayInput[] {
   return DAYS.map((d) => ({
     dayNumber: d.dayNumber,
     dayName: d.dayName,
     isRestDay: d.dayNumber === 6 || d.dayNumber === 7,
     focusArea: "",
     estimatedDuration: undefined,
-    exercises: [],
+    exercises: [] as TemplateExerciseInput[],
   }));
 }
 
@@ -112,7 +115,7 @@ export default function WorkoutTemplateForm({ template }: Props) {
 
   const exercises: Exercise[] = exercisesData?.data ?? [];
 
-  const initialSchedule: WorkoutTemplateDay[] = useMemo(() => {
+  const initialSchedule: TemplateDayInput[] = useMemo(() => {
     if (!template?.weeklySchedule || template.weeklySchedule.length === 0) return defaultSchedule();
 
     // Ensure all 7 days exist in form
@@ -161,9 +164,13 @@ export default function WorkoutTemplateForm({ template }: Props) {
       targetAudience: template?.targetAudience || "",
       equipmentRequired: (template?.equipmentRequired || []).join(", "),
       tags: (template?.tags || []).join(", "),
-      weeklySchedule: initialSchedule as any,
+      weeklySchedule: initialSchedule,
     },
   });
+
+  const setPathValue = (path: string, value: unknown) => {
+    setValue(path as never, value as never, { shouldDirty: true });
+  };
 
   const weeklySchedule = watch("weeklySchedule") || [];
 
@@ -185,7 +192,7 @@ export default function WorkoutTemplateForm({ template }: Props) {
       },
     ];
 
-    setValue(`weeklySchedule.${dayIndex}.exercises` as any, next as any, { shouldDirty: true });
+    setPathValue(`weeklySchedule.${dayIndex}.exercises`, next);
     setDayPickerOpen(null);
     setExerciseSearch("");
   };
@@ -195,7 +202,7 @@ export default function WorkoutTemplateForm({ template }: Props) {
     const current = [...(day?.exercises || [])];
     current.splice(exIndex, 1);
     current.forEach((e, i) => (e.order = i + 1));
-    setValue(`weeklySchedule.${dayIndex}.exercises` as any, current as any, { shouldDirty: true });
+    setPathValue(`weeklySchedule.${dayIndex}.exercises`, current);
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -252,8 +259,12 @@ export default function WorkoutTemplateForm({ template }: Props) {
         toast.success("Workout template created");
       }
       router.push("/admin/workout-templates");
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Failed to save template");
+    } catch (e: unknown) {
+      const message =
+        typeof e === "object" && e && "response" in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      toast.error(message || "Failed to save template");
     }
   };
 
@@ -382,9 +393,9 @@ export default function WorkoutTemplateForm({ template }: Props) {
                   type="checkbox"
                   checked={!!day.isRestDay}
                   onChange={(e) => {
-                    setValue(`weeklySchedule.${dayIndex}.isRestDay` as any, e.target.checked as any, { shouldDirty: true });
+                    setPathValue(`weeklySchedule.${dayIndex}.isRestDay`, e.target.checked);
                     if (e.target.checked) {
-                      setValue(`weeklySchedule.${dayIndex}.exercises` as any, [] as any, { shouldDirty: true });
+                      setPathValue(`weeklySchedule.${dayIndex}.exercises`, []);
                     }
                   }}
                 />
@@ -400,7 +411,7 @@ export default function WorkoutTemplateForm({ template }: Props) {
                     <input
                       className="admin-input"
                       value={day.focusArea || ""}
-                      onChange={(e) => setValue(`weeklySchedule.${dayIndex}.focusArea` as any, e.target.value as any, { shouldDirty: true })}
+                      onChange={(e) => setPathValue(`weeklySchedule.${dayIndex}.focusArea`, e.target.value)}
                       placeholder="e.g. Upper Body"
                     />
                   </div>
@@ -410,7 +421,7 @@ export default function WorkoutTemplateForm({ template }: Props) {
                       className="admin-input"
                       type="number"
                       value={day.estimatedDuration ?? ""}
-                      onChange={(e) => setValue(`weeklySchedule.${dayIndex}.estimatedDuration` as any, e.target.value as any, { shouldDirty: true })}
+                      onChange={(e) => setPathValue(`weeklySchedule.${dayIndex}.estimatedDuration`, Number(e.target.value))}
                       placeholder="45"
                     />
                   </div>
@@ -461,9 +472,15 @@ export default function WorkoutTemplateForm({ template }: Props) {
                   {(day.exercises || []).length === 0 ? (
                     <div style={{ color: "var(--admin-color-muted)", fontSize: "0.85rem" }}>No exercises added.</div>
                   ) : (
-                    (day.exercises || []).map((ex, exIndex) => (
+                    (day.exercises || []).map((ex, exIndex) => {
+                      // Find the exercise name from the exercises list
+                      const exerciseIdStr = ex.exerciseId;
+                      const exerciseDetails = exercises.find(e => e._id === exerciseIdStr);
+                      const exerciseName = exerciseDetails?.name || exerciseIdStr || 'Unknown Exercise';
+                      
+                      return (
                       <div
-                        key={`${ex.exerciseId}-${ex.order}`}
+                        key={`${exerciseIdStr}-${ex.order}`}
                         style={{
                           border: "1px solid var(--admin-color-border)",
                           borderRadius: 10,
@@ -471,7 +488,7 @@ export default function WorkoutTemplateForm({ template }: Props) {
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center" }}>
-                          <div style={{ fontWeight: 600 }}>#{ex.order} · {ex.exerciseId}</div>
+                          <div style={{ fontWeight: 600 }}>#{ex.order} · {exerciseName}</div>
                           <button
                             type="button"
                             className="btn btn--outline"
@@ -488,7 +505,12 @@ export default function WorkoutTemplateForm({ template }: Props) {
                               className="admin-input"
                               type="number"
                               value={ex.sets ?? ""}
-                              onChange={(e) => setValue(`weeklySchedule.${dayIndex}.exercises.${exIndex}.sets` as any, e.target.value as any, { shouldDirty: true })}
+                              onChange={(e) =>
+                                setPathValue(
+                                  `weeklySchedule.${dayIndex}.exercises.${exIndex}.sets`,
+                                  Number(e.target.value)
+                                )
+                              }
                             />
                           </div>
                           <div>
@@ -497,7 +519,12 @@ export default function WorkoutTemplateForm({ template }: Props) {
                               className="admin-input"
                               type="number"
                               value={ex.reps ?? ""}
-                              onChange={(e) => setValue(`weeklySchedule.${dayIndex}.exercises.${exIndex}.reps` as any, e.target.value as any, { shouldDirty: true })}
+                              onChange={(e) =>
+                                setPathValue(
+                                  `weeklySchedule.${dayIndex}.exercises.${exIndex}.reps`,
+                                  Number(e.target.value)
+                                )
+                              }
                             />
                           </div>
                           <div>
@@ -506,7 +533,12 @@ export default function WorkoutTemplateForm({ template }: Props) {
                               className="admin-input"
                               type="number"
                               value={ex.duration ?? ""}
-                              onChange={(e) => setValue(`weeklySchedule.${dayIndex}.exercises.${exIndex}.duration` as any, e.target.value as any, { shouldDirty: true })}
+                              onChange={(e) =>
+                                setPathValue(
+                                  `weeklySchedule.${dayIndex}.exercises.${exIndex}.duration`,
+                                  Number(e.target.value)
+                                )
+                              }
                             />
                           </div>
                           <div>
@@ -515,7 +547,12 @@ export default function WorkoutTemplateForm({ template }: Props) {
                               className="admin-input"
                               type="number"
                               value={ex.restSeconds ?? ""}
-                              onChange={(e) => setValue(`weeklySchedule.${dayIndex}.exercises.${exIndex}.restSeconds` as any, e.target.value as any, { shouldDirty: true })}
+                              onChange={(e) =>
+                                setPathValue(
+                                  `weeklySchedule.${dayIndex}.exercises.${exIndex}.restSeconds`,
+                                  Number(e.target.value)
+                                )
+                              }
                             />
                           </div>
                         </div>
@@ -525,11 +562,17 @@ export default function WorkoutTemplateForm({ template }: Props) {
                           <input
                             className="admin-input"
                             value={ex.notes || ""}
-                            onChange={(e) => setValue(`weeklySchedule.${dayIndex}.exercises.${exIndex}.notes` as any, e.target.value as any, { shouldDirty: true })}
+                            onChange={(e) =>
+                              setPathValue(
+                                `weeklySchedule.${dayIndex}.exercises.${exIndex}.notes`,
+                                e.target.value
+                              )
+                            }
                           />
                         </div>
                       </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </>

@@ -12,6 +12,7 @@ import {
   Clock,
   Play,
   SkipForward,
+  ChevronRight,
   ChevronDown,
   ChevronUp,
   Trophy,
@@ -58,19 +59,23 @@ interface Exercise {
 
 interface TodayWorkout {
   _id?: string;
-  planId: string;
-  planName: string;
-  dayOfWeek: number;
-  dayName: string;
+  planId?: string;
+  planName?: string;
+  workoutPlanId?: string;
+  workoutPlanName?: string;
+  dayOfWeek?: number;
+  dayName?: string;
   focus?: string;
-  isRestDay: boolean;
-  exercises: Exercise[];
-  completed: boolean;
+  isRestDay?: boolean;
+  exercises?: Exercise[];
+  completed?: boolean;
 }
 
 export default function ClientTodayWorkoutPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  const [selectedTodayPlanId, setSelectedTodayPlanId] = useState<string | null>(null);
 
   // Workout state
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -87,13 +92,42 @@ export default function ClientTodayWorkoutPage() {
   const [workoutNotes, setWorkoutNotes] = useState("");
 
   // Fetch today's workout
-  const { data: todayWorkout, isLoading, error } = useQuery({
+  const { data: todayWorkouts = [], isLoading, error } = useQuery({
     queryKey: CLIENT_TODAY_WORKOUT_KEY,
     queryFn: async () => {
       const res = await api.get("/client/workouts/today");
-      return res.data.data as TodayWorkout | null;
+      const data = res.data.data;
+      return Array.isArray(data) ? (data as TodayWorkout[]) : [];
     },
   });
+
+  useEffect(() => {
+    if (selectedTodayPlanId) return;
+    if (!todayWorkouts || todayWorkouts.length === 0) return;
+    const first = todayWorkouts[0];
+    setSelectedTodayPlanId((first.workoutPlanId || first.planId) ?? null);
+  }, [todayWorkouts, selectedTodayPlanId]);
+
+  const selectedTodayWorkout =
+    todayWorkouts.find((w: any) => (w.workoutPlanId || w.planId) === selectedTodayPlanId) ||
+    todayWorkouts[0] ||
+    null;
+
+  // Reset per-workout state when switching plans
+  useEffect(() => {
+    setCurrentExerciseIndex(0);
+    setCompletedExercises(new Set());
+    setIsResting(false);
+    setRestTimeLeft(0);
+    setShowInstructions(false);
+    setWorkoutStartTime(null);
+    setIsWorkoutStarted(false);
+    setIsExerciseTimerRunning(false);
+    setExerciseTimeLeft(20);
+    setShowMoodDialog(false);
+    setSelectedMood(null);
+    setWorkoutNotes("");
+  }, [selectedTodayPlanId]);
 
   // Complete workout mutation
   const completeWorkoutMutation = useMutation({
@@ -103,7 +137,7 @@ export default function ClientTodayWorkoutPage() {
         : 0;
       
       // Build exercise logs from completed exercises
-      const exerciseLogs = todayWorkout?.exercises.map((ex, index) => ({
+      const exerciseLogs = selectedTodayWorkout?.exercises?.map((ex, index) => ({
         exerciseId: typeof ex.exerciseId === "string" ? ex.exerciseId : ex.exerciseId?._id,
         exerciseName:
           (typeof ex.exerciseId === "string" ? undefined : ex.exerciseId?.name) ||
@@ -113,12 +147,14 @@ export default function ClientTodayWorkoutPage() {
       })) || [];
 
       // Use the log ID from today's workout if available
-      if (todayWorkout?._id) {
-        const res = await api.post(`/client/workouts/${todayWorkout._id}/complete`, {
+      if (selectedTodayWorkout?._id) {
+        const res = await api.post(`/client/workouts/${selectedTodayWorkout._id}/complete`, {
           exerciseLogs,
           actualDuration: duration,
           moodAfter: selectedMood,
-          clientNotes: workoutNotes || `Completed ${completedExercises.size} of ${todayWorkout?.exercises.length} exercises`,
+          clientNotes:
+            workoutNotes ||
+            `Completed ${completedExercises.size} of ${selectedTodayWorkout?.exercises?.length || 0} exercises`,
         });
         return res.data;
       } else {
@@ -138,7 +174,7 @@ export default function ClientTodayWorkoutPage() {
     },
   });
 
-  const exercises = todayWorkout?.exercises || [];
+  const exercises = selectedTodayWorkout?.exercises || [];
   const currentExercise = exercises[currentExerciseIndex];
   const exerciseData = currentExercise?.exerciseId;
   const exerciseName = (typeof exerciseData === 'object' && exerciseData?.name) || currentExercise?.exerciseName || "Exercise";
@@ -276,7 +312,7 @@ export default function ClientTodayWorkoutPage() {
     );
   }
 
-  if (error || !todayWorkout) {
+  if (error || !selectedTodayWorkout) {
     return (
       <div className="client-page__sections">
         <header style={{ marginBottom: "1rem" }}>
@@ -308,8 +344,63 @@ export default function ClientTodayWorkoutPage() {
     );
   }
 
+  const planSelector =
+    todayWorkouts.length > 1 ? (
+      <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
+        <h3 style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: "0.75rem" }}>
+          Today&apos;s Workouts
+        </h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          {todayWorkouts.map((w: any) => {
+            const id = (w.workoutPlanId || w.planId) as string | undefined;
+            const selected = !!id && id === selectedTodayPlanId;
+            return (
+              <button
+                key={id}
+                onClick={() => setSelectedTodayPlanId(id ?? null)}
+                style={{
+                  textAlign: "left",
+                  padding: "0.75rem",
+                  borderRadius: "10px",
+                  border: selected ? "2px solid var(--brand-primary)" : "1px solid #e5e7eb",
+                  background: "transparent",
+                  cursor: "pointer",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: "0.95rem",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {w.planName || w.workoutPlanName || "Workout Plan"}
+                  </div>
+                  <div style={{ fontSize: "0.8rem", color: "#6b7280" }}>
+                    {w.isRestDay ? "Rest day" : `${(w.exercises?.length || 0)} exercises`}
+                  </div>
+                </div>
+                {w.completed ? (
+                  <CheckCircle2 style={{ width: 18, height: 18, color: "var(--brand-primary)" }} />
+                ) : (
+                  <ChevronRight style={{ width: 18, height: 18, color: "#9ca3af" }} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    ) : null;
+
   // Rest Day
-  if (todayWorkout.isRestDay) {
+  if (selectedTodayWorkout.isRestDay) {
     return (
       <div className="client-page__sections">
         <header style={{ marginBottom: "1rem" }}>
@@ -328,6 +419,8 @@ export default function ClientTodayWorkoutPage() {
             Back to Workouts
           </Link>
         </header>
+
+        {planSelector}
         <div
           className="client-card"
           style={{
@@ -387,6 +480,8 @@ export default function ClientTodayWorkoutPage() {
           </Link>
         </header>
 
+        {planSelector}
+
         <div
           className="client-card"
           style={{
@@ -397,9 +492,11 @@ export default function ClientTodayWorkoutPage() {
           }}
         >
           <h1 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: "0.25rem" }}>
-            {todayWorkout.dayName}&apos;s Workout
+            {(selectedTodayWorkout.dayName || "Today")}&apos;s Workout
           </h1>
-          <p style={{ opacity: 0.9 }}>{todayWorkout.focus || todayWorkout.planName}</p>
+          <p style={{ opacity: 0.9 }}>
+            {selectedTodayWorkout.focus || selectedTodayWorkout.planName || selectedTodayWorkout.workoutPlanName}
+          </p>
           <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", fontSize: "0.85rem" }}>
             <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
               <Dumbbell style={{ width: 16, height: 16 }} />

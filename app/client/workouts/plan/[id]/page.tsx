@@ -167,6 +167,7 @@ export default function ClientWorkoutPlanDetailPage() {
   }
 
   const todayDayIndex = getTodayDayIndex();
+  const todayDayNumber = todayDayIndex === 0 ? 7 : todayDayIndex;
 
   return (
     <div className="client-page__sections">
@@ -281,10 +282,14 @@ export default function ClientWorkoutPlanDetailPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {plan.weeklySchedule?.map((day, dayIndex) => {
             const scheduleDayIndex =
-              day.dayOfWeek ?? (day.dayNumber ? day.dayNumber - 1 : 0);
+              typeof day.dayOfWeek === "number"
+                ? day.dayOfWeek
+                : typeof day.dayNumber === "number"
+                  ? day.dayNumber % 7
+                  : 0;
             const isToday =
-              day.dayOfWeek === todayDayIndex ||
-              day.dayNumber === todayDayIndex + 1;
+              (typeof day.dayOfWeek === "number" && day.dayOfWeek === todayDayIndex) ||
+              (typeof day.dayNumber === "number" && day.dayNumber === todayDayNumber);
             const isExpanded = expandedDays.includes(dayIndex);
             const allExercises = day.workouts?.flatMap((w) => w.exercises || []) || [];
             const totalExercises = allExercises.length;

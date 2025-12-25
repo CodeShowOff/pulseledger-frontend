@@ -68,6 +68,8 @@ export default function PricingPage() {
               {[
                 "Full platform access",
                 "Unlimited clients",
+                "Custom workout plans",
+                "Custom diet plans",
                 "All coaching features",
                 "Progress tracking",
                 "No payment required",
@@ -179,6 +181,9 @@ export default function PricingPage() {
             <ul style={{ listStyle: "none", padding: 0, marginBottom: "2rem" }}>
               {[
                 "Everything in Free Trial",
+                "Workout plan builder",
+                "Diet plan builder",
+                "Plan templates library",
                 "Continuous platform access",
                 "Priority support",
                 "Regular feature updates",
@@ -250,7 +255,7 @@ export default function PricingPage() {
               {
                 step: "2",
                 title: "Build Your Coaching",
-                description: "Add clients, create plans, track progress, and grow your coaching business.",
+                description: "Add clients, create workout & diet plans, track progress, and grow your coaching business.",
               },
               {
                 step: "3",

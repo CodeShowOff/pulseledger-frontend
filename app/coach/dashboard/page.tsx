@@ -108,7 +108,7 @@ export default function CoachDashboard() {
             </div>
           </div>
           <Link
-            href="/coach/platform-subscription"
+            href="/coach/platform-fee"
             className="btn btn--primary"
             style={{
               backgroundColor: subscription.status === "expired" || subscription.daysRemaining <= 3 ? "#dc2626" : subscription.daysRemaining <= 7 ? "#d97706" : "#2563eb",
@@ -265,6 +265,22 @@ export default function CoachDashboard() {
           </p>
           <a href="/coach/diet-plans" className="btn btn--primary" style={{ padding: "0.65rem 1.25rem", marginTop: "auto" }}>
             Manage Diet Plans
+          </a>
+        </div>
+
+        {/* Client Reviews */}
+        <div className="admin-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column", minHeight: "200px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+            <span style={{ fontSize: "1.5rem" }}>⭐</span>
+            <h2 className="admin-page-header__title" style={{ fontSize: "1rem", margin: 0 }}>
+              Client Reviews
+            </h2>
+          </div>
+          <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "1rem", flex: 1 }}>
+            See what clients say and choose which reviews appear on your public profile.
+          </p>
+          <a href="/coach/reviews" className="btn btn--primary" style={{ padding: "0.65rem 1.25rem", marginTop: "auto" }}>
+            Manage Reviews
           </a>
         </div>
       </section>

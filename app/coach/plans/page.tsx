@@ -72,6 +72,56 @@ export default function CoachPlansPage() {
         <PlanList />
       </div>
 
+      <section style={{ marginTop: "1.5rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
+          {/* Workout Plans */}
+          <div
+            className="admin-card"
+            style={{ padding: "1.25rem", display: "flex", flexDirection: "column", minHeight: "200px" }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <span style={{ fontSize: "1.5rem" }}>🏋️</span>
+              <h2 className="admin-page-header__title" style={{ fontSize: "1rem", margin: 0 }}>
+                Workout Plans
+              </h2>
+            </div>
+            <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "1rem", flex: 1 }}>
+              Create and manage workout plans for your clients.
+            </p>
+            <Link
+              href="/coach/workout-plans"
+              className="btn btn--primary"
+              style={{ padding: "0.65rem 1.25rem", marginTop: "auto", width: "fit-content" }}
+            >
+              Manage Workouts
+            </Link>
+          </div>
+
+          {/* Diet Plans */}
+          <div
+            className="admin-card"
+            style={{ padding: "1.25rem", display: "flex", flexDirection: "column", minHeight: "200px" }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <span style={{ fontSize: "1.5rem" }}>🥗</span>
+              <h2 className="admin-page-header__title" style={{ fontSize: "1rem", margin: 0 }}>
+                Diet Plans
+              </h2>
+            </div>
+            <p className="admin-page-header__subtitle" style={{ fontSize: "0.875rem", marginBottom: "1rem", flex: 1 }}>
+              Create and manage nutrition plans for your clients.
+            </p>
+            <Link
+              href="/coach/diet-plans"
+              className="btn btn--primary"
+              style={{ padding: "0.65rem 1.25rem", marginTop: "auto", width: "fit-content" }}
+            >
+              Manage Diet Plans
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Custom Exercises and Food Items */}
       <section className="admin-page-header" style={{ marginTop: "2rem" }}>
         <h2 className="admin-page-header__title coach-page-header__title" style={{ fontSize: "1.5rem" }}>

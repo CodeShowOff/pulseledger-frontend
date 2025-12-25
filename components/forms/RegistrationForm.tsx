@@ -19,6 +19,7 @@ const RegisterSchema = z
     whatsappNumber: z.string().min(7),
     coachId: z.string().optional(),
     companyName: z.string().optional(),
+    coachReferralCode: z.string().optional(), // For coach-to-coach referrals
   })
   .refine(
     (data) => {
@@ -81,8 +82,15 @@ export const RegisterForm: React.FC = () => {
       try {
         // Ensure coachId is only sent for clients. If role is coach, drop empty coachId to avoid backend Joi "not allowed to be empty" error.
         const payload: any = { ...data };
-        if (payload.role === "coach" && !payload.coachId) {
+        if (payload.role === "coach") {
           delete payload.coachId;
+          // Keep coachReferralCode only if it has a value
+          if (!payload.coachReferralCode?.trim()) {
+            delete payload.coachReferralCode;
+          }
+        } else {
+          // For clients, remove coachReferralCode as it's not applicable
+          delete payload.coachReferralCode;
         }
         const res = await api.post("/auth/register", payload);
         const email = res.data?.data?.email ?? payload.email;
@@ -191,18 +199,35 @@ export const RegisterForm: React.FC = () => {
         )}
       </div>
       {watch("role") === "coach" && (
-        <div className="auth-form__field">
-          <label htmlFor="companyName">Company Name</label>
-          <input
-            id="companyName"
-            {...register("companyName", { required: "Company name is required" })}
-            placeholder="e.g., FitLife Coaching"
-            className="auth-form__input"
-          />
-          {errors.companyName && (
-            <p className="auth-form__error">{errors.companyName.message}</p>
-          )}
-        </div>
+        <>
+          <div className="auth-form__field">
+            <label htmlFor="companyName">Company Name</label>
+            <input
+              id="companyName"
+              {...register("companyName", { required: "Company name is required" })}
+              placeholder="e.g., FitLife Coaching"
+              className="auth-form__input"
+            />
+            {errors.companyName && (
+              <p className="auth-form__error">{errors.companyName.message}</p>
+            )}
+          </div>
+          <div className="auth-form__field">
+            <label htmlFor="coachReferralCode">Referral Code (Optional)</label>
+            <input
+              id="coachReferralCode"
+              {...register("coachReferralCode")}
+              placeholder="e.g., AB-4J7XZ2"
+              className="auth-form__input"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Have a referral code from another coach? Enter it here.
+            </p>
+            {errors.coachReferralCode && (
+              <p className="auth-form__error">{errors.coachReferralCode.message}</p>
+            )}
+          </div>
+        </>
       )}
       {watch("role") === "client" && (
         <div className="auth-form__field">

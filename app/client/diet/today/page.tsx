@@ -415,14 +415,18 @@ export default function ClientDietTodayPage() {
             const hasSuggestedFoods = meal.foods && meal.foods.length > 0;
 
             return (
-              <div
+              <Link
                 key={index}
+                href={`/client/diet/log?meal=${meal.mealType}`}
                 className="client-card"
                 style={{
                   borderLeft: isLogged
                     ? `4px solid ${mealColor}`
                     : "4px solid #e5e7eb",
                   overflow: "hidden",
+                  display: "block",
+                  textDecoration: "none",
+                  color: "inherit",
                 }}
               >
                 <div
@@ -431,7 +435,7 @@ export default function ClientDietTodayPage() {
                     justifyContent: "space-between",
                     alignItems: "center",
                     padding: "1rem",
-                    cursor: "default",
+                    cursor: "pointer",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -456,28 +460,7 @@ export default function ClientDietTodayPage() {
                       </p>
                     </div>
                   </div>
-                  {hasSuggestedFoods && !isLogged ? (
-                    <ChevronDown
-                      style={{
-                        width: 20,
-                        height: 20,
-                        color: "#9ca3af",
-                      }}
-                    />
-                  ) : (
-                    <Link
-                      href={`/client/diet/log?meal=${meal.mealType}`}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        color: "#6b7280",
-                        textDecoration: "none",
-                      }}
-                    >
-                      <ChevronRight style={{ width: 20, height: 20 }} />
-                    </Link>
-                  )}
+                  <ChevronRight style={{ width: 20, height: 20, color: "#9ca3af" }} />
                 </div>
 
                 {/* Assigned (Planned) Foods */}
@@ -525,7 +508,7 @@ export default function ClientDietTodayPage() {
                     </div>
                   </div>
                 )}
-              </div>
+              </Link>
             );
           })}
         </div>

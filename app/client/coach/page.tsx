@@ -1,11 +1,73 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useMyCoachQuery } from "@/lib/queries/coach";
+import api from "@/lib/axios";
+import getErrorMessage from "@/lib/getErrorMessage";
 
 export default function ClientCoachProfilePage() {
   const { data, isLoading, error } = useMyCoachQuery();
+
+  const [hasReviewed, setHasReviewed] = useState(false);
+  const [checkingReview, setCheckingReview] = useState(true);
+  const [reviewFormData, setReviewFormData] = useState({ review: "" });
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  useEffect(() => {
+    if (!data?._id) return;
+
+    let cancelled = false;
+
+    const checkReview = async () => {
+      try {
+        const res = await api.get(`/coach-reviews/check/${data._id}`);
+        if (!cancelled) {
+          setHasReviewed(res.data.data?.hasReviewed ?? false);
+        }
+      } catch {
+        if (!cancelled) {
+          setHasReviewed(false);
+        }
+      } finally {
+        if (!cancelled) {
+          setCheckingReview(false);
+        }
+      }
+    };
+
+    checkReview();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [data?._id]);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!data?._id) return;
+
+    const trimmedReview = reviewFormData.review.trim();
+    if (trimmedReview.length < 10) {
+      alert("Please write at least 10 characters in your feedback.");
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      await api.post("/coach-reviews", {
+        coachId: data._id,
+        review: trimmedReview,
+      });
+      alert("Feedback submitted successfully! Your coach can choose to show it on their public profile.");
+      setHasReviewed(true);
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, "Failed to submit feedback"));
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -238,6 +300,72 @@ export default function ClientCoachProfilePage() {
                 </div>
               </section>
             )}
+
+            <section>
+              <p className="client-section-title">Feedback for Your Coach</p>
+              <p
+                className="client-card__subtitle"
+                style={{ marginTop: "0.5rem", fontSize: "0.9rem", lineHeight: 1.6 }}
+              >
+                Share a short review about your coaching experience. Your coach can approve it to show
+                on their public profile.
+              </p>
+
+              {checkingReview ? (
+                <p className="client-card__subtitle" style={{ marginTop: "0.5rem" }}>
+                  Checking if you&apos;ve already given feedback...
+                </p>
+              ) : hasReviewed ? (
+                <p className="client-card__subtitle" style={{ marginTop: "0.5rem" }}>
+                  You have already submitted feedback for this coach. Thank you!
+                </p>
+              ) : (
+                <form
+                  onSubmit={handleReviewSubmit}
+                  style={{ marginTop: "0.75rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}
+                >
+                  <div>
+                    <p className="client-profile-field__label">Feedback</p>
+                    <textarea
+                      value={reviewFormData.review}
+                      onChange={(e) =>
+                        setReviewFormData((prev) => ({ ...prev, review: e.target.value }))
+                      }
+                      minLength={10}
+                      maxLength={1000}
+                      required
+                      style={{
+                        marginTop: "0.35rem",
+                        width: "100%",
+                        minHeight: "90px",
+                        padding: "0.6rem 0.75rem",
+                        borderRadius: "0.5rem",
+                        border: "1px solid #e5e7eb",
+                        fontSize: "0.9rem",
+                        resize: "vertical",
+                      }}
+                      placeholder="Write a few lines about how your coach has helped you..."
+                    />
+                    <p
+                      className="client-card__subtitle"
+                      style={{ marginTop: "0.25rem", fontSize: "0.8rem", color: "#6b7280" }}
+                    >
+                      Minimum 10 characters. Your feedback may appear publicly after your coach approves it.
+                    </p>
+                  </div>
+
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                    <button
+                      type="submit"
+                      className="client-button"
+                      disabled={submittingReview}
+                    >
+                      {submittingReview ? "Submitting..." : "Submit Feedback"}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </section>
           </div>
 
           <div

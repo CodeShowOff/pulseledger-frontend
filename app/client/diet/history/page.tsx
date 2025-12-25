@@ -10,7 +10,6 @@ import {
   ChevronRight,
   ChevronLeft,
   TrendingUp,
-  Droplets,
 } from "lucide-react";
 import { useClientDietLogs, useClientDietStats, ClientDietLog } from "@/lib/queries/diet";
 
@@ -144,7 +143,7 @@ export default function DietHistoryPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(2, 1fr)",
           gap: "0.75rem",
           marginBottom: "1.5rem",
         }}
@@ -177,21 +176,6 @@ export default function DietHistoryPage() {
             {stats?.averageAdherence || 0}%
           </p>
           <p style={{ fontSize: "0.65rem", color: "#6b7280" }}>Avg Adherence</p>
-        </div>
-
-        <div
-          className="client-card"
-          style={{
-            padding: "0.75rem",
-            textAlign: "center",
-            background: "linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)",
-          }}
-        >
-          <Droplets style={{ width: 20, height: 20, color: "#0ea5e9", margin: "0 auto 0.25rem" }} />
-          <p style={{ fontSize: "1.25rem", fontWeight: 700, color: "#0ea5e9" }}>
-            {stats?.averageWaterIntake?.toFixed(1) || 0}L
-          </p>
-          <p style={{ fontSize: "0.65rem", color: "#6b7280" }}>Avg Water</p>
         </div>
       </div>
 

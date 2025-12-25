@@ -69,7 +69,7 @@ api.interceptors.response.use(
       if (errorCode === "SUBSCRIPTION_EXPIRED") {
         if (typeof window !== "undefined") {
           const currentPath = window.location.pathname;
-          window.location.href = `/coach/platform-subscription?returnUrl=${encodeURIComponent(currentPath)}`;
+          window.location.href = `/coach/platform-fee?returnUrl=${encodeURIComponent(currentPath)}`;
         }
         return Promise.reject(error);
       }

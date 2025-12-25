@@ -8,9 +8,11 @@ import {
   Activity,
   ArrowRight,
   BarChart3,
+  Bell,
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
+  Dumbbell,
   Heart,
   LineChart,
   Lock,
@@ -20,6 +22,7 @@ import {
   Sparkles,
   Target,
   TrendingUp,
+  Utensils,
   UserCheck,
   Users,
   Zap,
@@ -62,6 +65,18 @@ export default function HomePage() {
 
   const features = [
     {
+      icon: Dumbbell,
+      title: "Workout Plans",
+      description: "Create customized workout routines with exercises, sets, reps, and rest times.",
+      gradient: "from-orange-500 to-red-500",
+    },
+    {
+      icon: Utensils,
+      title: "Diet Plans",
+      description: "Design personalized nutrition plans with meal schedules and macro tracking.",
+      gradient: "from-green-500 to-emerald-500",
+    },
+    {
       icon: TrendingUp,
       title: "Progress Tracking",
       description: "Track weight, BMI, and vital metrics with beautiful charts and insights.",
@@ -96,6 +111,12 @@ export default function HomePage() {
       title: "Secure & Private",
       description: "Enterprise-grade security with encrypted data and HIPAA compliance.",
       gradient: "from-indigo-500 to-blue-500",
+    },
+    {
+      icon: Bell,
+      title: "Smart Notifications",
+      description: "Stay on track with timely reminders for workouts, meals, and check-ins.",
+      gradient: "from-yellow-500 to-orange-500",
     },
   ];
 
@@ -397,6 +418,7 @@ export default function HomePage() {
               </p>
               <ul className="landing-role-card__list">
                 <li><CheckCircle2 size={18} /> Unlimited client profiles</li>
+                <li><CheckCircle2 size={18} /> Custom workout & diet plans</li>
                 <li><CheckCircle2 size={18} /> Plan templates & customization</li>
                 <li><CheckCircle2 size={18} /> Revenue & subscription tracking</li>
                 <li><CheckCircle2 size={18} /> Real-time progress monitoring</li>
@@ -425,7 +447,8 @@ export default function HomePage() {
                 with expert support.
               </p>
               <ul className="landing-role-card__list">
-                <li><CheckCircle2 size={18} /> Custom fitness & nutrition plans</li>
+                <li><CheckCircle2 size={18} /> Personalized workout routines</li>
+                <li><CheckCircle2 size={18} /> Customized diet & meal plans</li>
                 <li><CheckCircle2 size={18} /> Progress logs & visual charts</li>
                 <li><CheckCircle2 size={18} /> Direct chat with your coach</li>
                 <li><CheckCircle2 size={18} /> Task completion tracking</li>

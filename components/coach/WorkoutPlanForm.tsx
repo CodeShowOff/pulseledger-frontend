@@ -1,7 +1,7 @@
 // components/coach/WorkoutPlanForm.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -94,6 +94,32 @@ type Props = {
   onSuccess?: () => void;
 };
 
+type SubscriptionPlan = {
+  _id: string;
+  title: string;
+};
+
+function normalizeSubscriptionPlans(payload: unknown): SubscriptionPlan[] {
+  if (Array.isArray(payload)) return payload as SubscriptionPlan[];
+
+  if (payload && typeof payload === "object") {
+    const obj = payload as Record<string, unknown>;
+
+    const direct = obj["data"];
+    if (Array.isArray(direct)) return direct as SubscriptionPlan[];
+
+    if (direct && typeof direct === "object") {
+      const nested = direct as Record<string, unknown>;
+      if (Array.isArray(nested["data"])) return nested["data"] as SubscriptionPlan[];
+      if (Array.isArray(nested["plans"])) return nested["plans"] as SubscriptionPlan[];
+    }
+
+    if (Array.isArray(obj["plans"])) return obj["plans"] as SubscriptionPlan[];
+  }
+
+  return [];
+}
+
 export default function WorkoutPlanForm({ plan, onSuccess }: Props) {
   const router = useRouter();
   const [expandedDays, setExpandedDays] = useState<number[]>([1]); // Monday expanded by default
@@ -110,10 +136,10 @@ export default function WorkoutPlanForm({ plan, onSuccess }: Props) {
     queryKey: ["coachPlans"],
     queryFn: async () => {
       const res = await api.get("/plans?limit=100");
-      return res.data.data;
+      return res.data;
     },
   });
-  const subscriptionPlans = coachPlansData ?? [];
+  const subscriptionPlans = normalizeSubscriptionPlans(coachPlansData);
 
   // Fetch exercises for picker
   const { data: exercisesData } = useExercises({
@@ -142,17 +168,25 @@ export default function WorkoutPlanForm({ plan, onSuccess }: Props) {
         "",
       sessionName: day.focusArea || day.workouts?.[0]?.name || "",
       isRestDay: day.isRestDay,
-      exercises: day.workouts?.flatMap(w => w.exercises || []).map((ex, idx) => ({
-        exerciseId: ex.exerciseId,
-        exerciseName: ex.exerciseName || "",
-        sets: ex.sets,
-        reps: ex.reps?.toString() || "",
-        weight: ex.weight || "",
-        duration: ex.duration?.toString() || "",
-        restSeconds: ex.restSeconds,
-        notes: ex.notes || "",
-        order: idx + 1,
-      })) || [],
+      exercises: day.workouts?.flatMap(w => w.exercises || []).map((ex, idx) => {
+        // Handle exerciseId being either a string or an object with _id
+        const exerciseId = typeof ex.exerciseId === "string" ? ex.exerciseId : ex.exerciseId?._id;
+        const exerciseName = typeof ex.exerciseId === 'object' && ex.exerciseId?.name
+          ? ex.exerciseId.name
+          : ex.exerciseName || "";
+        
+        return {
+          exerciseId,
+          exerciseName,
+          sets: ex.sets,
+          reps: ex.reps?.toString() || "",
+          weight: ex.weight || "",
+          duration: ex.duration?.toString() || "",
+          restSeconds: ex.restSeconds,
+          notes: ex.notes || "",
+          order: idx + 1,
+        };
+      }) || [],
     }));
   };
 

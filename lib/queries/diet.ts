@@ -40,6 +40,14 @@ export type FoodItem = {
   createdBy?: { _id: string; name: string };
 };
 
+export type DietDay = {
+  dayOfWeek?: number;
+  dayNumber?: number;
+  dayName?: string;
+  meals?: Meal[];
+  notes?: string;
+};
+
 export type DietTemplate = {
   _id: string;
   name: string;
@@ -49,6 +57,8 @@ export type DietTemplate = {
   dailyTargets?: DailyTargets;
   mealsPerDay?: number;
   sampleMeals?: Meal[];
+  weeklySchedule?: DietDay[];
+  daysPerWeek?: number;
   foodsToAvoid?: string[];
   guidelines?: string[];
   recommendedFoods?: Array<string | FoodItem>;

@@ -119,7 +119,7 @@ export type WorkoutSession = {
 
 export type PlanExercise = {
   _id?: string;
-  exerciseId?: string;
+  exerciseId?: string | Exercise;
   exerciseName?: string;
   exerciseAnimationUrl?: string;
   order: number;
@@ -413,11 +413,12 @@ export function useClientWorkoutPlan(id: string) {
 }
 
 export function useClientTodayWorkout() {
-  return useQuery<ClientTodayWorkout | null>({
+  return useQuery<ClientTodayWorkout[]>({
     queryKey: CLIENT_TODAY_WORKOUT_KEY,
     queryFn: async () => {
       const res = await api.get("/client/workouts/today");
-      return res.data.data as ClientTodayWorkout | null;
+      const data = res.data.data;
+      return Array.isArray(data) ? (data as ClientTodayWorkout[]) : [];
     },
   });
 }

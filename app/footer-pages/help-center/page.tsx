@@ -140,6 +140,24 @@ export default function HelpCenterPage() {
                 <li><strong>Historical Data:</strong> View trends with charts showing progress over weeks/months</li>
               </ul>
 
+              <p><strong>Workout Tracking:</strong></p>
+              <ul className="client-list">
+                <li><strong>View Workout Plans:</strong> Access your personalized workout routines assigned by your coach</li>
+                <li><strong>Daily Workouts:</strong> See today's exercises with sets, reps, and rest times</li>
+                <li><strong>Exercise Details:</strong> Review exercise instructions, techniques, and demonstration videos</li>
+                <li><strong>Track Completion:</strong> Mark exercises and workouts as completed</li>
+                <li><strong>Workout History:</strong> View past workouts and your performance over time</li>
+              </ul>
+
+              <p><strong>Diet Plan Tracking:</strong></p>
+              <ul className="client-list">
+                <li><strong>Meal Plans:</strong> Access your personalized diet plans created by your coach</li>
+                <li><strong>Daily Meals:</strong> View meal schedules with breakfast, lunch, dinner, and snacks</li>
+                <li><strong>Nutritional Info:</strong> See calorie counts, macros (protein, carbs, fats) for each meal</li>
+                <li><strong>Food Suggestions:</strong> Get recommended food items and portion sizes</li>
+                <li><strong>Meal Logging:</strong> Track adherence to your diet plan</li>
+              </ul>
+
               <p><strong>Progress Photos:</strong></p>
               <ul className="client-list">
                 <li>Upload progress photos to visually track your transformation</li>
@@ -154,7 +172,8 @@ export default function HelpCenterPage() {
                 <li>Navigate to your Client Dashboard</li>
                 <li>Click on "Progress" or "Track Progress"</li>
                 <li>View interactive charts showing weight, BMI, and water intake trends</li>
-                <li>Access your progress photo gallery</li>
+                <li>Access your workout and diet plan sections</li>
+                <li>Check your progress photo gallery</li>
                 <li>Generate progress reports to share with your coach</li>
               </ol>
 
@@ -238,13 +257,32 @@ export default function HelpCenterPage() {
                 <li>Edit or delete plans as needed</li>
               </ol>
 
+              <p><strong>Workout Plan Creation:</strong></p>
+              <ul className="client-list">
+                <li><strong>Build Templates:</strong> Create reusable workout plan templates with exercises, sets, reps, and rest times</li>
+                <li><strong>Exercise Library:</strong> Select from a comprehensive exercise database or add custom exercises</li>
+                <li><strong>Schedule Workouts:</strong> Assign specific workouts to different days of the week</li>
+                <li><strong>Customize for Clients:</strong> Tailor workout intensity, volume, and exercises based on client fitness level</li>
+                <li><strong>Track Progress:</strong> Monitor client workout completion and performance metrics</li>
+              </ul>
+
+              <p><strong>Diet Plan Creation:</strong></p>
+              <ul className="client-list">
+                <li><strong>Build Templates:</strong> Create diet plan templates with meal schedules and nutritional targets</li>
+                <li><strong>Food Database:</strong> Access extensive food item database with nutritional information</li>
+                <li><strong>Meal Planning:</strong> Design breakfast, lunch, dinner, and snack recommendations</li>
+                <li><strong>Macro Tracking:</strong> Set protein, carbohydrate, and fat targets for clients</li>
+                <li><strong>Customize Diets:</strong> Adapt plans for dietary restrictions, allergies, and preferences</li>
+              </ul>
+
               <p><strong>Best Practices:</strong></p>
               <ul className="client-list">
                 <li>Offer plans of varying durations (4 weeks, 12 weeks, 24 weeks, etc.)</li>
+                <li>Include both workout and diet components for comprehensive programs</li>
                 <li>Price competitively based on your experience and market rates</li>
                 <li>Clearly list what's included and what's not</li>
                 <li>Create beginner, intermediate, and advanced level plans</li>
-                <li>Update plans regularly based on client feedback</li>
+                <li>Update plans regularly based on client feedback and results</li>
               </ul>
 
               <h3 className="client-card__subsection-title">3.4 Managing Client Subscriptions</h3>

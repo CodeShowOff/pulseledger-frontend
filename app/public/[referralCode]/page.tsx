@@ -57,6 +57,7 @@ interface PublicCoachProfileResponse {
       clientsCount: number;
       plansCount: number;
       productsCount: number;
+      totalReviews: number;
     };
     plans: Array<{
       _id: string;
@@ -65,6 +66,15 @@ interface PublicCoachProfileResponse {
       durationWeeks?: number;
       price?: number;
       createdAt?: string;
+    }>;
+    reviews: Array<{
+      _id: string;
+      client: {
+        fullName: string;
+        avatarUrl?: string;
+      };
+      review: string;
+      createdAt: string;
     }>;
   };
   message?: string;
@@ -101,6 +111,9 @@ function PublicCoachProfileContent() {
   const [transformsPage, setTransformsPage] = useState(0);
   const [progressData, setProgressData] = useState<Array<{ week: string; avgBMI: number }>>([]);
   const [isVisible, setIsVisible] = useState(false);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [allReviews, setAllReviews] = useState<any[]>([]);
+  const [reviewsPagination, setReviewsPagination] = useState<any>(null);
 
   useEffect(() => {
     setIsVisible(true);
@@ -182,6 +195,27 @@ function PublicCoachProfileContent() {
       setSubmitting(false);
     }
   };
+
+  // Fetch all reviews with pagination
+  const fetchAllReviews = async (page: number) => {
+    if (!profile?.coach.id) return;
+    try {
+      const res = await api.get(`/coach-reviews/coach/${profile.coach.id}`, {
+        params: { page, limit: 4 },
+      });
+      setAllReviews(res.data.data.reviews);
+      setReviewsPagination(res.data.data.pagination);
+    } catch (err) {
+      // console.error("Failed to fetch reviews:", err);
+    }
+  };
+
+  // Fetch reviews when profile loads or page changes
+  useEffect(() => {
+    if (profile?.coach.id) {
+      fetchAllReviews(reviewsPage);
+    }
+  }, [profile?.coach.id, reviewsPage]);
 
   const galleryItems = activeGalleryTab === "awards" 
     ? (profile?.coach.awards || []) 
@@ -636,6 +670,113 @@ function PublicCoachProfileContent() {
             </div>
           </section>
         )}
+
+        {/* Client Reviews Section */}
+        <section className="cpp-section">
+          <div className="cpp-container">
+            <div className="cpp-section__header">
+              <div>
+                <h2 className="cpp-section__title">Client Reviews</h2>
+                <p className="cpp-section__subtitle">
+                  {stats.totalReviews > 0 ? (
+                    <>
+                      {stats.totalReviews} review{stats.totalReviews !== 1 ? 's' : ''}
+                    </>
+                  ) : (
+                    "No reviews yet"
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Display Reviews */}
+            {allReviews.length > 0 ? (
+              <>
+                <div className="cpp-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1.5rem" }}>
+                  {allReviews.map((review: any) => (
+                    <div key={review._id} className="cpp-card">
+                      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+                        {review.client.avatarUrl ? (
+                          <img
+                            src={review.client.avatarUrl}
+                            alt={review.client.fullName}
+                            style={{
+                              width: "48px",
+                              height: "48px",
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: "48px",
+                              height: "48px",
+                              borderRadius: "50%",
+                              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "white",
+                              fontWeight: "600",
+                              fontSize: "1.25rem",
+                            }}
+                          >
+                            {review.client.fullName.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: "600", marginBottom: "0.25rem" }}>
+                            {review.client.fullName}
+                          </div>
+                        </div>
+                      </div>
+                      <p style={{ color: "#4b5563", lineHeight: "1.6", marginBottom: "0.75rem" }}>
+                        {review.review}
+                      </p>
+                      <div style={{ fontSize: "0.875rem", color: "#9ca3af" }}>
+                        {new Date(review.createdAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Reviews Pagination */}
+                {reviewsPagination && reviewsPagination.pages > 1 && (
+                  <div style={{ marginTop: "2rem", display: "flex", justifyContent: "center", gap: "1rem", alignItems: "center" }}>
+                    <button
+                      onClick={() => setReviewsPage(p => Math.max(1, p - 1))}
+                      disabled={reviewsPage === 1}
+                      className="cpp-btn cpp-btn--secondary"
+                      style={{ opacity: reviewsPage === 1 ? 0.5 : 1 }}
+                    >
+                      Previous
+                    </button>
+                    <span style={{ color: "#6b7280" }}>
+                      Page {reviewsPage} of {reviewsPagination.pages}
+                    </span>
+                    <button
+                      onClick={() => setReviewsPage(p => Math.min(reviewsPagination.pages, p + 1))}
+                      disabled={reviewsPage === reviewsPagination.pages}
+                      className="cpp-btn cpp-btn--secondary"
+                      style={{ opacity: reviewsPage === reviewsPagination.pages ? 0.5 : 1 }}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="cpp-card" style={{ textAlign: "center", padding: "3rem 2rem" }}>
+                <p style={{ color: "#9ca3af" }}>No reviews yet. Be the first to review this coach!</p>
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* Contact Section */}
         <section ref={contactFormRef} id="contact-form" className="cpp-section cpp-contact">

@@ -70,7 +70,10 @@ export default function AboutPage() {
               <h3 className="client-card__subsection-title">For Coaches</h3>
               <ul className="client-list">
                 <li><strong>Client Management:</strong> Centralized dashboard to view and manage all clients, track their progress, and monitor engagement</li>
-                <li><strong>Plan Creation:</strong> Build template plans and customize them for individual clients with specific goals, tasks, and timelines (1-52 weeks)</li>
+                <li><strong>Workout Plan Creation:</strong> Build customized workout routines with exercise selection, sets, reps, rest times, and weekly schedules</li>
+                <li><strong>Diet Plan Creation:</strong> Design personalized nutrition plans with meal schedules, macronutrient targets, and food recommendations</li>
+                <li><strong>Plan Templates:</strong> Create reusable templates for both workout and diet plans to streamline your coaching process</li>
+                <li><strong>Plan Customization:</strong> Tailor templates to individual client needs with specific goals, tasks, and timelines (1-52 weeks)</li>
                 <li><strong>Progress Monitoring:</strong> Access client health metrics (weight, height, BMI, water intake), progress photos, and log history in real-time</li>
                 <li><strong>Subscription Management:</strong> Handle plan subscriptions, approve requests, and manage billing through integrated payment solutions</li>
                 <li><strong>Product Marketplace:</strong> List and sell health products, supplements, or fitness equipment directly to clients</li>
@@ -82,7 +85,10 @@ export default function AboutPage() {
               <h3 className="client-card__subsection-title mt-4">For Clients</h3>
               <ul className="client-list">
                 <li><strong>Coach Discovery:</strong> Find and connect with certified coaches through referral codes and public coach profiles</li>
-                <li><strong>Personalized Plans:</strong> Access customized coaching plans with clear goals, tasks, and timelines tailored to your needs</li>
+                <li><strong>Personalized Workout Plans:</strong> Access custom workout routines designed specifically for your fitness level, goals, and preferences</li>
+                <li><strong>Personalized Diet Plans:</strong> Follow nutrition plans tailored to your dietary needs, health goals, and lifestyle requirements</li>
+                <li><strong>Exercise Tracking:</strong> View detailed workout schedules with exercises, sets, reps, rest periods, and technique instructions</li>
+                <li><strong>Meal Planning:</strong> Access structured meal schedules with recipes, portion sizes, and nutritional information</li>
                 <li><strong>Progress Tracking:</strong> Log daily health metrics including weight, height, BMI, water intake, and personal notes</li>
                 <li><strong>Photo Documentation:</strong> Upload progress photos to visually track your transformation journey</li>
                 <li><strong>Subscription Flexibility:</strong> Choose from various plan durations (4-52 weeks) and manage subscriptions with transparency</li>
@@ -152,7 +158,8 @@ export default function AboutPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">For Coaches</h3>
               <ul className="client-list">
-                <li><strong>All-in-One Solution:</strong> Manage clients, plans, subscriptions, products, and payments from a single platform</li>
+                <li><strong>All-in-One Solution:</strong> Manage clients, workout plans, diet plans, subscriptions, products, and payments from a single platform</li>
+                <li><strong>Comprehensive Plan Builder:</strong> Create detailed workout routines and nutrition plans with built-in templates and customization options</li>
                 <li><strong>Professional Image:</strong> Showcase your credentials, results, and expertise with a comprehensive public profile</li>
                 <li><strong>Time Savings:</strong> Automate administrative tasks and focus on what you do best—coaching</li>
                 <li><strong>Client Insights:</strong> Access detailed progress data and analytics to provide better, data-driven coaching</li>
@@ -163,10 +170,11 @@ export default function AboutPage() {
 
               <h3 className="client-card__subsection-title mt-4">For Clients</h3>
               <ul className="client-list">
-                <li><strong>Personalized Approach:</strong> Work with dedicated coaches who create plans specifically for you</li>
+                <li><strong>Personalized Approach:</strong> Work with dedicated coaches who create customized workout and diet plans specifically for you</li>
+                <li><strong>Structured Guidance:</strong> Follow detailed workout routines and meal plans designed to help you reach your specific goals</li>
                 <li><strong>Clear Progress Tracking:</strong> See your transformation with visual metrics, charts, and photo documentation</li>
                 <li><strong>Accountability:</strong> Daily logging and coach oversight keep you motivated and on track</li>
-                <li><strong>Convenience:</strong> Access your plans, track progress, and communicate with your coach anytime, anywhere</li>
+                <li><strong>Convenience:</strong> Access your workout plans, diet schedules, and track progress anytime, anywhere</li>
                 <li><strong>Transparency:</strong> Clear pricing, visible progress, and open communication with your coach</li>
                 <li><strong>Support:</strong> Dedicated coaching support throughout your wellness journey</li>
                 <li><strong>Results-Oriented:</strong> Plans designed with specific, measurable goals and outcomes</li>

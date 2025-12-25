@@ -17,7 +17,9 @@ import {
   IndianRupee,
   FileText,
   AlertTriangle,
+  Copy,
 } from "lucide-react";
+import { useProfileQuery } from "@/lib/queries/profile";
 
 interface SubscriptionStatus {
   status: "trial" | "active" | "expired" | "suspended";
@@ -55,6 +57,23 @@ interface PaymentHistory {
   notes?: string;
 }
 
+interface CoachReferralData {
+  referralCode: string;
+  stats: {
+    totalReferred: number;
+    successfulReferrals: number;
+    pendingReferrals: number;
+    totalDaysEarned: number;
+  };
+  referredCoaches: Array<{
+    fullName: string;
+    email: string;
+    joinedAt: string;
+    status: "pending" | "subscribed";
+    subscriptionStatus?: string;
+  }>;
+}
+
 export default function PlatformFeeManagementPage() {
   const queryClient = useQueryClient();
   const [showPaymentForm, setShowPaymentForm] = useState(false);
@@ -63,6 +82,7 @@ export default function PlatformFeeManagementPage() {
   const [notes, setNotes] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<PaymentHistory | null>(null);
+  const { data: profile } = useProfileQuery();
 
   // Fetch subscription status
   const { data: subscription, isLoading } = useQuery<SubscriptionStatus>({
@@ -79,6 +99,15 @@ export default function PlatformFeeManagementPage() {
     queryFn: async () => {
       const res = await api.get("/platform-subscription/history");
       return res.data.data;
+    },
+  });
+
+  // Fetch coach referral stats
+  const { data: referrals } = useQuery<CoachReferralData>({
+    queryKey: ["coachReferrals"],
+    queryFn: async () => {
+      const res = await api.get("/coach/referrals");
+      return res.data.data as CoachReferralData;
     },
   });
 
@@ -235,6 +264,21 @@ export default function PlatformFeeManagementPage() {
       default:
         return null;
     }
+  };
+
+  const getReferralStatusBadge = (status: "pending" | "subscribed") => {
+    if (status === "pending") {
+      return (
+        <span style={{ padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "0.75rem", backgroundColor: "#fef3c7", color: "#92400e" }}>
+          Pending
+        </span>
+      );
+    }
+    return (
+      <span style={{ padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "0.75rem", backgroundColor: "#d1fae5", color: "#065f46" }}>
+        Subscribed
+      </span>
+    );
   };
 
   const getDaysRemainingColor = (days: number) => {
@@ -514,6 +558,105 @@ export default function PlatformFeeManagementPage() {
             Make Payment
           </button>
         </div>
+      </div>
+
+      {/* Referral Benefit Callout */}
+      <div className="admin-card" style={{ marginBottom: "1.5rem", backgroundColor: "#f0fdf4", borderColor: "#22c55e" }}>
+        <h2 className="admin-card__title" style={{ color: "#166534" }}>Referral Benefit</h2>
+        <div style={{ marginTop: "0.75rem", color: "#166534" }}>
+          <p style={{ marginBottom: "0.75rem" }}>
+            Invite other coaches to join PulseLedger. When a referred coach completes their first platform subscription payment and it’s approved, you’ll receive <strong>+10 days</strong> added to your current subscription or trial.
+          </p>
+          {profile?.coachCode ? (
+            <div style={{ display: "grid", gap: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ fontSize: "0.875rem", color: "#374151" }}>Your referral code:</span>
+                <span style={{ fontWeight: 700, color: "#065f46" }}>{profile.coachCode}</span>
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  onClick={() => navigator.clipboard.writeText(profile.coachCode!)}
+                  title="Copy referral code"
+                >
+                  <Copy size={16} />
+                </button>
+              </div>
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                <a
+                  className="btn btn--secondary"
+                  href={`/public/${profile.coachCode}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Share Public Profile
+                </a>
+              </div>
+            </div>
+          ) : (
+            <p style={{ fontSize: "0.875rem", color: "#374151" }}>Your referral code will appear here once available.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Referral Tracking */}
+      <div className="admin-card" style={{ marginBottom: "1.5rem", backgroundColor: "#f8fafc", borderColor: "#334155" }}>
+        <h2 className="admin-card__title" style={{ color: "#0f172a" }}>Referral Stats</h2>
+        {!referrals ? (
+          <p style={{ color: "#6b7280", marginTop: "0.75rem" }}>Loading referral stats...</p>
+        ) : (
+          <div style={{ display: "grid", gap: "1rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem", marginTop: "0.75rem" }}>
+              <div style={{ backgroundColor: "#eef2ff", padding: "0.75rem", borderRadius: "0.5rem" }}>
+                <div style={{ fontSize: "0.75rem", color: "#4b5563" }}>Total Referred</div>
+                <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#4338ca" }}>{referrals.stats.totalReferred}</div>
+              </div>
+              <div style={{ backgroundColor: "#ecfeff", padding: "0.75rem", borderRadius: "0.5rem" }}>
+                <div style={{ fontSize: "0.75rem", color: "#4b5563" }}>Successful</div>
+                <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#0e7490" }}>{referrals.stats.successfulReferrals}</div>
+              </div>
+              <div style={{ backgroundColor: "#fff7ed", padding: "0.75rem", borderRadius: "0.5rem" }}>
+                <div style={{ fontSize: "0.75rem", color: "#4b5563" }}>Pending</div>
+                <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#c2410c" }}>{referrals.stats.pendingReferrals}</div>
+              </div>
+              <div style={{ backgroundColor: "#f0fdf4", padding: "0.75rem", borderRadius: "0.5rem" }}>
+                <div style={{ fontSize: "0.75rem", color: "#4b5563" }}>Days Earned</div>
+                <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#166534" }}>+{referrals.stats.totalDaysEarned}</div>
+              </div>
+            </div>
+
+            <div>
+              <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#0f172a", marginBottom: "0.5rem" }}>Referred Coaches</h3>
+              {referrals.referredCoaches.length === 0 ? (
+                <p style={{ color: "#6b7280" }}>No referrals yet — share your code to get started!</p>
+              ) : (
+                <div style={{ overflowX: "auto" }}>
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Joined</th>
+                        <th>Status</th>
+                        <th>Subscription</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {referrals.referredCoaches.map((c) => (
+                        <tr key={`${c.email}-${c.joinedAt}`}>
+                          <td style={{ fontWeight: 600 }}>{c.fullName}</td>
+                          <td style={{ fontFamily: "monospace", fontSize: "0.875rem" }}>{c.email}</td>
+                          <td>{formatDate(c.joinedAt)}</td>
+                          <td>{getReferralStatusBadge(c.status)}</td>
+                          <td style={{ textTransform: "capitalize" }}>{c.subscriptionStatus || "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Payment History Section */}

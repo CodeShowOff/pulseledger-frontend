@@ -4,7 +4,7 @@
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FileText, ArrowLeft } from "lucide-react";
+import { FileText, ArrowLeft, Eye } from "lucide-react";
 import { toast } from "sonner";
 import {
   useDietTemplates,
@@ -182,14 +182,30 @@ export default function CoachDietTemplatesPage() {
                       <td style={{ color: "var(--admin-color-muted)" }}>{t.dietaryType || "—"}</td>
                       <td style={{ color: "var(--admin-color-muted)" }}>{t.mealsPerDay ?? "—"}</td>
                       <td>
-                        <button
-                          type="button"
-                          className="btn btn--primary"
-                          onClick={() => onUseTemplate(t._id)}
-                          disabled={createFromTemplate.isPending}
-                        >
-                          Use Template
-                        </button>
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                          <Link
+                            href={`/coach/diet-plans/templates/${t._id}`}
+                            className="btn btn--outline"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                              padding: "0.5rem 0.75rem",
+                            }}
+                          >
+                            <Eye style={{ width: 14, height: 14 }} />
+                            View Details
+                          </Link>
+                          <button
+                            type="button"
+                            className="btn btn--primary"
+                            onClick={() => onUseTemplate(t._id)}
+                            disabled={createFromTemplate.isPending}
+                            style={{ padding: "0.5rem 0.75rem" }}
+                          >
+                            Use Template
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

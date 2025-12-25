@@ -323,7 +323,13 @@ export default function ViewWorkoutPlanPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {workout.exercises.map((ex: PlanExercise, exIndex: number) => (
+                            {workout.exercises.map((ex: PlanExercise, exIndex: number) => {
+                              // Handle exerciseId being either a string or populated object
+                              const exerciseName = typeof ex.exerciseId === 'object' && ex.exerciseId?.name
+                                ? ex.exerciseId.name
+                                : ex.exerciseName || "Exercise";
+                              
+                              return (
                               <tr
                                 key={exIndex}
                                 style={{
@@ -332,7 +338,7 @@ export default function ViewWorkoutPlanPage() {
                               >
                                 <td style={{ padding: "0.5rem 0.5rem 0.5rem 0", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                                   <Dumbbell style={{ width: 14, height: 14, color: "#16a34a" }} />
-                                  {ex.exerciseName || "Exercise"}
+                                  {exerciseName}
                                 </td>
                                 <td style={{ textAlign: "center", padding: "0.5rem" }}>
                                   {ex.sets || "-"}
@@ -347,7 +353,8 @@ export default function ViewWorkoutPlanPage() {
                                   {ex.restSeconds ? `${ex.restSeconds}s` : "-"}
                                 </td>
                               </tr>
-                            ))}
+                              );
+                            })}
                           </tbody>
                         </table>
                       )}

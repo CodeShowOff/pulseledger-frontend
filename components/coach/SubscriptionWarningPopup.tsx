@@ -54,7 +54,7 @@ export default function SubscriptionWarningPopup() {
 
   const handlePayNow = () => {
     setShowPopup(false);
-    router.push("/coach/platform-subscription");
+    router.push("/coach/platform-fee");
   };
 
   const handleRemindLater = () => {

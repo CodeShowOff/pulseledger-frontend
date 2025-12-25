@@ -13,7 +13,7 @@ interface SubscriptionStatus {
 }
 
 const ALLOWED_ROUTES_FOR_EXPIRED = [
-  "/coach/platform-subscription",
+  "/coach/platform-fee",
   "/auth/logout",
   "/profile",
   "/notifications",
@@ -54,7 +54,7 @@ export default function CoachSubscriptionGuard({ children }: { children: React.R
 
     // If subscription is expired and user is not on an allowed route, redirect
     if (subscription && subscription.status === "expired" && !isAllowedRoute) {
-      router.push(`/coach/platform-subscription?returnUrl=${encodeURIComponent(pathname)}`);
+      router.push(`/coach/platform-fee?returnUrl=${encodeURIComponent(pathname)}`);
       return;
     }
 
