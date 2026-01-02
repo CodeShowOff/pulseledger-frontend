@@ -6,7 +6,9 @@ import { publicRoutes, publicRoutePrefixes, getAllowedBasePath } from "./lib/aut
 function safeJwtDecode(token: string) {
   try {
     const payload = token.split(".")[1];
-    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    const b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "===".slice((b64.length + 3) % 4);
+    const json = atob(padded);
     return JSON.parse(json);
   } catch {
     return null;

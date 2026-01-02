@@ -21,11 +21,34 @@ let refreshInFlight: Promise<{ accessToken: string; user?: Record<string, unknow
 async function refreshSingleFlight() {
   if (refreshInFlight) return refreshInFlight;
   refreshInFlight = (async () => {
-    const res = await refreshClient.post("/auth/refresh");
-    const accessToken: string | undefined = res.data?.accessToken;
-    const user = res.data?.user;
-    if (!accessToken) return null;
-    return { accessToken, user };
+    try {
+      const res = await refreshClient.post("/auth/refresh");
+      const accessToken: string | undefined = res.data?.accessToken;
+      const user = res.data?.user;
+      if (!accessToken) return null;
+      return { accessToken, user };
+    } catch (err: unknown) {
+      // If another tab refreshed first, the backend may reject the old token with a
+      // "already refreshed" message. A single retry will use the updated cookie.
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const msg = String((err.response?.data as any)?.message || "");
+        const code = (err.response?.data as any)?.code;
+        const isAlreadyRefreshed =
+          status === 403 && (/already\s+refreshed/i.test(msg) || code === "TOKEN_ALREADY_REFRESHED");
+
+        const isTokenNotFound = status === 403 && code === "TOKEN_NOT_FOUND";
+
+        if (isAlreadyRefreshed || isTokenNotFound) {
+          const retryRes = await refreshClient.post("/auth/refresh");
+          const accessToken: string | undefined = retryRes.data?.accessToken;
+          const user = retryRes.data?.user;
+          if (!accessToken) return null;
+          return { accessToken, user };
+        }
+      }
+      throw err;
+    }
   })()
     .finally(() => {
       refreshInFlight = null;
@@ -117,7 +140,15 @@ api.interceptors.response.use(
         (originalRequest.headers as AxiosRequestHeaders).Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        useAuthStore.getState().logout();
+        // Only force logout when the refresh attempt proves the session is invalid.
+        // Network errors, timeouts, and 5xx should NOT kick the user out.
+        if (axios.isAxiosError(refreshError)) {
+          const s = refreshError.response?.status;
+          if (s === 401 || s === 403) {
+            useAuthStore.getState().logout();
+          }
+        }
+
         return Promise.reject(refreshError);
       }
     }

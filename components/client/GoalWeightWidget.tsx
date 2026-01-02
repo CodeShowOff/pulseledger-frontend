@@ -13,6 +13,12 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 const WeightEditSchema = z.object({
+  startWeight: z
+    .number({ invalid_type_error: "Start weight must be a number" })
+    .min(20, "Weight too low")
+    .max(500, "Weight too high")
+    .optional()
+    .or(z.nan().transform(() => undefined)),
   weight: z
     .number({ invalid_type_error: "Weight must be a number" })
     .min(20, "Weight too low")
@@ -29,12 +35,20 @@ const WeightEditSchema = z.object({
 
 type WeightEditFormData = z.infer<typeof WeightEditSchema>;
 
-const fetchGoalWeight = async (): Promise<number | null> => {
+type GoalWeightSettings = {
+  goalWeight: number | null;
+  startWeight: number | null;
+};
+
+const fetchGoalWeight = async (): Promise<GoalWeightSettings> => {
   try {
     const res = await api.get("/progress/goal-weight");
-    return res.data?.goalWeight ?? null;
+    return {
+      goalWeight: res.data?.goalWeight ?? null,
+      startWeight: res.data?.startWeight ?? null,
+    };
   } catch {
-    return null;
+    return { goalWeight: null, startWeight: null };
   }
 };
 
@@ -42,11 +56,14 @@ export default function GoalWeightWidget() {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data: goalWeight, isLoading: isLoadingGoal } = useQuery({
+  const { data: goalSettings, isLoading: isLoadingGoal } = useQuery({
     queryKey: ["goalWeight"],
     queryFn: fetchGoalWeight,
     staleTime: 5 * 60 * 1000,
   });
+
+  const goalWeight = goalSettings?.goalWeight ?? null;
+  const startWeight = goalSettings?.startWeight ?? null;
 
   const { data: progressData, isLoading: isLoadingProgress } = useQuery({
     queryKey: ["clientProgressEntries"],
@@ -62,6 +79,7 @@ export default function GoalWeightWidget() {
   } = useForm<WeightEditFormData>({
     resolver: zodResolver(WeightEditSchema),
     defaultValues: {
+      startWeight: undefined,
       weight: undefined,
       goalWeight: undefined,
     },
@@ -81,8 +99,8 @@ export default function GoalWeightWidget() {
   });
 
   const updateGoalMutation = useMutation({
-    mutationFn: async (weight: number) => {
-      const res = await api.put("/progress/goal-weight", { goalWeight: weight });
+    mutationFn: async (payload: { goalWeight?: number; startWeight?: number }) => {
+      const res = await api.put("/progress/goal-weight", payload);
       return res.data;
     },
     onSuccess: () => {
@@ -92,6 +110,36 @@ export default function GoalWeightWidget() {
 
   const onSubmit = async (data: WeightEditFormData) => {
     try {
+      // Validate weight logic based on goal type
+      const start = data.startWeight ?? startWeight;
+      const goal = data.goalWeight ?? goalWeight;
+      const current = data.weight;
+
+      // If we have enough data to determine goal type, validate
+      if (start != null && goal != null && current != null) {
+        const isGainGoal = goal > start;
+        
+        if (isGainGoal) {
+          // For weight gain: current should not be less than start
+          if (current < start) {
+            toast.error(`For weight gain goal, current weight (${current} kg) cannot be less than start weight (${start} kg)`);
+            return;
+          }
+        } else if (goal < start) {
+          // For weight loss: current should not be more than start (though we allow it with warning)
+          if (current > start) {
+            toast.warning(`Current weight (${current} kg) is higher than your starting weight (${start} kg). Keep going!`);
+            // Allow it to proceed - just a warning
+          }
+        }
+      }
+
+      // Validate that start and goal are different
+      if (start != null && goal != null && start === goal) {
+        toast.error("Start weight and goal weight must be different");
+        return;
+      }
+
       const promises = [];
       
       // Update current weight if provided
@@ -100,8 +148,17 @@ export default function GoalWeightWidget() {
       }
       
       // Update goal weight if provided
-      if (data.goalWeight !== undefined && !isNaN(data.goalWeight)) {
-        promises.push(updateGoalMutation.mutateAsync(data.goalWeight));
+      const shouldUpdateGoalSettings =
+        (data.goalWeight !== undefined && !isNaN(data.goalWeight)) ||
+        (data.startWeight !== undefined && !isNaN(data.startWeight));
+
+      if (shouldUpdateGoalSettings) {
+        promises.push(
+          updateGoalMutation.mutateAsync({
+            goalWeight: data.goalWeight,
+            startWeight: data.startWeight,
+          })
+        );
       }
       
       if (promises.length === 0) {
@@ -128,8 +185,9 @@ export default function GoalWeightWidget() {
 
   const handleStartEdit = () => {
     reset({
-      weight: undefined,
-      goalWeight: goalWeight || undefined,
+      startWeight: startWeight ?? undefined,
+      weight: currentWeight ?? undefined,
+      goalWeight: goalWeight ?? undefined,
     });
     setIsEditing(true);
   };
@@ -149,43 +207,58 @@ export default function GoalWeightWidget() {
       }, null)?.weight || null
     : null;
 
-  // Simple calculation using only current and goal weight
+  // Progress calculation with improved messages
   let progressPercentage = 0;
   let remainingKg = 0;
   let isWeightGain = false;
   let progressMessage = "";
 
-  if (goalWeight && currentWeight) {
-    if (goalWeight > currentWeight) {
-      // Weight Gain: Need to gain weight
-      isWeightGain = true;
-      progressPercentage = (currentWeight / goalWeight) * 100;
-      remainingKg = goalWeight - currentWeight;
-      
-      if (progressPercentage >= 100) {
-        progressMessage = "Goal achieved 🎯";
-      } else {
-        progressMessage = `You need ${remainingKg.toFixed(1)} kg more.`;
-      }
-      
-    } else if (goalWeight < currentWeight) {
-      // Weight Loss: Need to lose weight
-      progressPercentage = (goalWeight / currentWeight) * 100;
-      remainingKg = currentWeight - goalWeight;
-      
-      if (progressPercentage >= 100) {
-        progressMessage = "Goal achieved 🎯";
-      } else {
-        progressMessage = `You need to lose ${remainingKg.toFixed(1)} kg.`;
-      }
-      
+  const hasAllWeights = startWeight != null && goalWeight != null && currentWeight != null;
+
+  if (hasAllWeights) {
+    const denominator = goalWeight! - startWeight!;
+    const numerator = currentWeight! - startWeight!;
+
+    // Determine direction from start -> goal
+    isWeightGain = denominator > 0;
+
+    if (denominator === 0) {
+      // Start and goal are the same (shouldn't happen after validation)
+      progressPercentage = currentWeight === goalWeight ? 100 : 0;
+      progressMessage = currentWeight === goalWeight ? "Goal achieved 🎯" : "Set a different goal weight";
     } else {
-      // Goal achieved: current equals goal
-      progressPercentage = 100;
-      remainingKg = 0;
-      progressMessage = "Goal achieved 🎯";
+      progressPercentage = (numerator / denominator) * 100;
+
+      // Handle edge cases and generate appropriate messages
+      if (progressPercentage >= 100) {
+        progressPercentage = 100;
+        remainingKg = 0;
+        progressMessage = "Goal achieved 🎯";
+      } else if (progressPercentage < 0) {
+        // Client is going in wrong direction
+        progressPercentage = 0;
+        if (isWeightGain) {
+          // Weight gain goal but current < start
+          const deficit = startWeight! - currentWeight!;
+          progressMessage = `You've lost ${deficit.toFixed(1)} kg from start. Focus on gaining!`;
+        } else {
+          // Weight loss goal but current > start
+          const excess = currentWeight! - startWeight!;
+          progressMessage = `You've gained ${excess.toFixed(1)} kg from start. Stay focused!`;
+        }
+      } else {
+        // Normal progress (0-100%)
+        remainingKg = Math.abs(goalWeight! - currentWeight!);
+        if (isWeightGain) {
+          const gained = currentWeight! - startWeight!;
+          progressMessage = `Gained ${gained.toFixed(1)} kg! ${remainingKg.toFixed(1)} kg more to go.`;
+        } else {
+          const lost = startWeight! - currentWeight!;
+          progressMessage = `Lost ${lost.toFixed(1)} kg! ${remainingKg.toFixed(1)} kg more to go.`;
+        }
+      }
     }
-    
+
     // Clamp percentage between 0-100
     progressPercentage = Math.min(100, Math.max(0, progressPercentage));
   }
@@ -282,6 +355,30 @@ export default function GoalWeightWidget() {
           border: "1px solid #e0f2fe",
           marginBottom: "1rem"
         }}>
+          <div style={{ marginBottom: "0.75rem" }}>
+            <label style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.35rem", display: "block", fontWeight: "500" }}>
+              Start Weight (kg)
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              {...register("startWeight", { valueAsNumber: true })}
+              placeholder={currentWeight ? `e.g., ${currentWeight}` : "e.g., 75"}
+              className="client-form__control"
+              style={{
+                width: "100%",
+                padding: "0.625rem 0.875rem",
+                borderRadius: "0.5rem",
+                border: "1px solid #e5e7eb",
+                fontSize: "0.9375rem",
+                outline: "none"
+              }}
+              onFocus={(e) => e.target.style.borderColor = "#3b82f6"}
+              onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+            />
+            {errors.startWeight && <p style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: "0.25rem" }}>{errors.startWeight.message}</p>}
+          </div>
+
           <div style={{ marginBottom: "0.75rem" }}>
             <label style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.35rem", display: "block", fontWeight: "500" }}>
               Current Weight (kg)
@@ -434,7 +531,7 @@ export default function GoalWeightWidget() {
       ) : (
         <>
           {/* Progress Circle */}
-          {goalWeight && currentWeight ? (
+          {startWeight != null && goalWeight != null && currentWeight != null ? (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
           {/* SVG Circle */}
           <div style={{ position: "relative", width: size, height: size }}>
@@ -569,15 +666,17 @@ export default function GoalWeightWidget() {
         <div style={{ textAlign: "center", padding: "1.5rem 1rem" }}>
           <Scale style={{ width: "2rem", height: "2rem", color: "#cbd5e1", margin: "0 auto 0.75rem" }} />
           <p style={{ fontSize: "0.75rem", color: "#6b7280", marginTop: "0", marginRight: "0", marginBottom: "0.5rem", marginLeft: "0" }}>
-            {!goalWeight ? "Set your goal weight to start tracking progress" : "Add weight entries in Progress page to see your progress"}
+            {goalWeight == null || startWeight == null
+              ? "Set your start weight and goal weight to start tracking progress"
+              : "Add weight entries in Progress page to see your progress"}
           </p>
-          {!goalWeight && (
+          {(goalWeight == null || startWeight == null) && (
             <button
               onClick={handleStartEdit}
               className="client-button"
               style={{ marginTop: "0.75rem", padding: "0.5rem 1rem", fontSize: "0.75rem" }}
             >
-              Set Goal Weight
+              Set Start & Goal Weight
             </button>
           )}
         </div>
