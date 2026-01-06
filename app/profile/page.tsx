@@ -415,7 +415,7 @@ export default function ProfilePage() {
                       <li key={doc._id} style={{ listStyle: "disc", marginBottom: 4 }}>
                         <button
                           type="button"
-                          onClick={() => window.open(doc.url, "_blank")}
+                          onClick={() => window.open(doc.viewUrl, "_blank")}
                           style={{
                             border: "none",
                             background: "none",

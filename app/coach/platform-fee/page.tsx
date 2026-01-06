@@ -109,6 +109,8 @@ export default function PlatformFeeManagementPage() {
       const res = await api.get("/coach/referrals");
       return res.data.data as CoachReferralData;
     },
+    // When subscription is expired/invalid, backend blocks this endpoint.
+    enabled: subscription?.isValid === true,
   });
 
   // Submit payment mutation
@@ -601,7 +603,11 @@ export default function PlatformFeeManagementPage() {
       {/* Referral Tracking */}
       <div className="admin-card" style={{ marginBottom: "1.5rem", backgroundColor: "#f8fafc", borderColor: "#334155" }}>
         <h2 className="admin-card__title" style={{ color: "#0f172a" }}>Referral Stats</h2>
-        {!referrals ? (
+        {!subscription.isValid ? (
+          <p style={{ color: "#6b7280", marginTop: "0.75rem" }}>
+            Referral stats are available once your subscription is active.
+          </p>
+        ) : !referrals ? (
           <p style={{ color: "#6b7280", marginTop: "0.75rem" }}>Loading referral stats...</p>
         ) : (
           <div style={{ display: "grid", gap: "1rem" }}>

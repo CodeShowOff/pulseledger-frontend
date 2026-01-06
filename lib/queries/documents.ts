@@ -8,7 +8,6 @@ export const DOCUMENTS_QK = {
 export type UserDocument = {
   _id: string;
   userId: string;
-  url: string;
   publicId: string;
   resourceType: "image" | "raw";
   mimeType: string;
@@ -18,6 +17,7 @@ export type UserDocument = {
   format?: string | null;
   createdAt: string;
   updatedAt: string;
+  viewUrl: string;
 };
 
 export function useMyDocumentsQuery() {

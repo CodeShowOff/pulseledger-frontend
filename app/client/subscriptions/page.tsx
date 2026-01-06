@@ -32,6 +32,7 @@ export default function ClientSubscriptionsPage() {
     error: historyError,
   } = useClientSubscriptions();
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
 
   const cancelSubscription = useMutation({
     mutationFn: async (id: string) => {
@@ -308,65 +309,174 @@ export default function ClientSubscriptionsPage() {
         <section className="client-page__sections">
           <h2 className="client-section-title">Subscription History</h2>
           {hasHistory ? (
-            <div className="client-table-wrapper">
-              <table className="client-table">
-                <thead>
-                <tr>
-                  <th>Plan</th>
-                  <th>Status</th>
-                  <th>Amount</th>
-                  <th>Start</th>
-                  <th>End</th>
-                  <th>Requested</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+            <>
+              {/* Desktop/tablet: full table */}
+              <div className="client-hide-mobile client-table-wrapper">
+                <table className="client-table">
+                  <thead>
+                    <tr>
+                      <th>Plan</th>
+                      <th>Status</th>
+                      <th>Amount</th>
+                      <th>Start</th>
+                      <th>End</th>
+                      <th>Requested</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((sub) => {
+                      const planTitle = sub.planId?.title || sub.planTitle || "Coach Plan";
+                      const isCurrentActive =
+                        currentPlan?.type === "subscription" && currentPlan.subscription._id === sub._id;
+                      const showCancel = sub.status === "pending" || (sub.status === "approved" && isCurrentActive);
+                      return (
+                        <tr key={sub._id}>
+                          <td>
+                            <div>
+                              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#111827" }}>{planTitle}</span>
+                              {sub.planId?.goal && (
+                                <span style={{ display: "block", fontSize: "0.78rem", color: "#6b7280" }}>
+                                  Goal: {sub.planId.goal}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td style={{ textTransform: "capitalize" }}>{sub.status}</td>
+                          <td>Rs {(sub.amount ?? 0).toFixed(2)}</td>
+                          <td>{formatDate(sub.startDate)}</td>
+                          <td>{formatDate(sub.endDate)}</td>
+                          <td>{formatDate(sub.createdAt)}</td>
+                          <td>
+                            {showCancel && !isCurrentActive ? (
+                              <button
+                                type="button"
+                                onClick={() => handleCancel(sub._id)}
+                                disabled={cancelSubscription.isPending && cancellingId === sub._id}
+                                className="client-button client-button--danger"
+                                style={{ backgroundColor: "#ffffff", color: "#dc2626", padding: "0.3rem 0.7rem", fontSize: "0.78rem" }}
+                              >
+                                {cancelSubscription.isPending && cancellingId === sub._id ? "Cancelling..." : "Cancel"}
+                              </button>
+                            ) : isCurrentActive ? (
+                              <span style={{ fontSize: "0.78rem", color: "#9ca3af" }}>Manage above</span>
+                            ) : (
+                              <span style={{ fontSize: "0.78rem", color: "#9ca3af" }}>-</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile: compact rows with dropdown */}
+              <div className="client-show-mobile" style={{ display: "grid", gap: "0.75rem" }}>
                 {history.map((sub) => {
                   const planTitle = sub.planId?.title || sub.planTitle || "Coach Plan";
                   const isCurrentActive =
                     currentPlan?.type === "subscription" && currentPlan.subscription._id === sub._id;
                   const showCancel = sub.status === "pending" || (sub.status === "approved" && isCurrentActive);
+                  const isOpen = expandedHistoryId === sub._id;
+
                   return (
-                    <tr key={sub._id}>
-                      <td>
-                        <div>
-                          <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#111827" }}>{planTitle}</span>
-                          {sub.planId?.goal && (
-                            <span style={{ display: "block", fontSize: "0.78rem", color: "#6b7280" }}>
-                              Goal: {sub.planId.goal}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td style={{ textTransform: "capitalize" }}>{sub.status}</td>
-                      <td>Rs {(sub.amount ?? 0).toFixed(2)}</td>
-                      <td>{formatDate(sub.startDate)}</td>
-                      <td>{formatDate(sub.endDate)}</td>
-                      <td>{formatDate(sub.createdAt)}</td>
-                      <td>
-                        {showCancel && !isCurrentActive ? (
-                          <button
-                            type="button"
-                            onClick={() => handleCancel(sub._id)}
-                            disabled={cancelSubscription.isPending && cancellingId === sub._id}
-                            className="client-button client-button--danger"
-                            style={{ backgroundColor: "#ffffff", color: "#dc2626", padding: "0.3rem 0.7rem", fontSize: "0.78rem" }}
+                    <div
+                      key={sub._id}
+                      className="client-card"
+                      style={{ padding: "0.9rem 1rem" }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          justifyContent: "space-between",
+                          gap: "0.75rem",
+                        }}
+                      >
+                        <div style={{ minWidth: 0 }}>
+                          <div
+                            style={{
+                              fontWeight: 700,
+                              color: "#111827",
+                              fontSize: "0.95rem",
+                              wordBreak: "break-word",
+                            }}
                           >
-                            {cancelSubscription.isPending && cancellingId === sub._id ? "Cancelling..." : "Cancel"}
-                          </button>
-                        ) : isCurrentActive ? (
-                          <span style={{ fontSize: "0.78rem", color: "#9ca3af" }}>Manage above</span>
-                        ) : (
-                          <span style={{ fontSize: "0.78rem", color: "#9ca3af" }}>-</span>
-                        )}
-                      </td>
-                    </tr>
+                            {planTitle}
+                          </div>
+                          <div
+                            className="client-card__subtitle"
+                            style={{ marginTop: "0.25rem", textTransform: "capitalize" }}
+                          >
+                            Status: <span style={{ fontWeight: 600, color: "#111827" }}>{sub.status}</span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="client-button client-button--outline"
+                          onClick={() => setExpandedHistoryId(isOpen ? null : sub._id)}
+                          style={{ padding: "0.35rem 0.75rem", fontSize: "0.78rem", whiteSpace: "nowrap" }}
+                        >
+                          {isOpen ? "Hide" : "Details"}
+                        </button>
+                      </div>
+
+                      {isOpen && (
+                        <div style={{ marginTop: "0.75rem", display: "grid", gap: "0.45rem" }}>
+                          {sub.planId?.goal && (
+                            <div className="client-card__subtitle" style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem" }}>
+                              <span style={{ color: "#6b7280" }}>Goal</span>
+                              <span style={{ fontWeight: 600, color: "#111827", textAlign: "right" }}>{sub.planId.goal}</span>
+                            </div>
+                          )}
+
+                          <div className="client-card__subtitle" style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem" }}>
+                            <span style={{ color: "#6b7280" }}>Amount</span>
+                            <span style={{ fontWeight: 600, color: "#111827" }}>Rs {(sub.amount ?? 0).toFixed(2)}</span>
+                          </div>
+                          <div className="client-card__subtitle" style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem" }}>
+                            <span style={{ color: "#6b7280" }}>Start</span>
+                            <span style={{ fontWeight: 600, color: "#111827" }}>{formatDate(sub.startDate)}</span>
+                          </div>
+                          <div className="client-card__subtitle" style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem" }}>
+                            <span style={{ color: "#6b7280" }}>End</span>
+                            <span style={{ fontWeight: 600, color: "#111827" }}>{formatDate(sub.endDate)}</span>
+                          </div>
+                          <div className="client-card__subtitle" style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem" }}>
+                            <span style={{ color: "#6b7280" }}>Requested</span>
+                            <span style={{ fontWeight: 600, color: "#111827" }}>{formatDate(sub.createdAt)}</span>
+                          </div>
+
+                          <div style={{ marginTop: "0.35rem", display: "flex", justifyContent: "flex-end" }}>
+                            {showCancel && !isCurrentActive ? (
+                              <button
+                                type="button"
+                                onClick={() => handleCancel(sub._id)}
+                                disabled={cancelSubscription.isPending && cancellingId === sub._id}
+                                className="client-button client-button--danger"
+                                style={{ backgroundColor: "#ffffff", color: "#dc2626", padding: "0.3rem 0.7rem", fontSize: "0.78rem" }}
+                              >
+                                {cancelSubscription.isPending && cancellingId === sub._id ? "Cancelling..." : "Cancel"}
+                              </button>
+                            ) : isCurrentActive ? (
+                              <span className="client-card__subtitle" style={{ fontSize: "0.78rem", color: "#9ca3af", margin: 0 }}>
+                                Manage above
+                              </span>
+                            ) : (
+                              <span className="client-card__subtitle" style={{ fontSize: "0.78rem", color: "#9ca3af", margin: 0 }}>
+                                -
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
-            </div>
+              </div>
+            </>
           ) : (
             <p className="client-card__subtitle">
               You have not requested any plan changes yet. Explore available plans and subscribe to customise your journey.

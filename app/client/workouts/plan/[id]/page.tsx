@@ -17,6 +17,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import ExerciseAnimation from "@/components/shared/ExerciseAnimation";
+import { getISTDayOfWeek } from "@/lib/ist";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -112,7 +113,7 @@ export default function ClientWorkoutPlanDetailPage() {
     );
   };
 
-  const getTodayDayIndex = () => new Date().getDay();
+  const getTodayDayIndex = () => getISTDayOfWeek(new Date());
 
   if (isLoading) {
     return (
@@ -167,6 +168,7 @@ export default function ClientWorkoutPlanDetailPage() {
   }
 
   const todayDayIndex = getTodayDayIndex();
+  // Backend uses `dayNumber` as Monday=1 ... Sunday=7
   const todayDayNumber = todayDayIndex === 0 ? 7 : todayDayIndex;
 
   return (

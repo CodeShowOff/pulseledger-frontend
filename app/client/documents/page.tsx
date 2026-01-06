@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useMyDocumentsQuery, useUploadMyDocumentMutation } from "@/lib/queries/documents";
 
@@ -11,9 +11,35 @@ export default function ClientDocumentsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentName, setDocumentName] = useState("");
 
+  const selectedFilePreviewUrl = useMemo(() => {
+    if (!selectedFile) return null;
+    const isPreviewable =
+      selectedFile.type.startsWith("image/") ||
+      selectedFile.type === "application/pdf";
+    if (!isPreviewable) return null;
+    return URL.createObjectURL(selectedFile);
+  }, [selectedFile]);
+
+  useEffect(() => {
+    return () => {
+      if (selectedFilePreviewUrl) URL.revokeObjectURL(selectedFilePreviewUrl);
+    };
+  }, [selectedFilePreviewUrl]);
+
   const canUpload = useMemo(() => {
     return !!selectedFile && uploadMutation.status !== "pending";
   }, [selectedFile, uploadMutation.status]);
+
+  const getDocKind = (d: { mimeType?: string; resourceType?: string }) => {
+    const mimeType = (d.mimeType || "").toLowerCase();
+    const resourceType = (d.resourceType || "").toLowerCase();
+    const isPdf = mimeType === "application/pdf";
+    const isImage = resourceType === "image" || mimeType.startsWith("image/");
+
+    if (isPdf) return "pdf" as const;
+    if (isImage) return "image" as const;
+    return "other" as const;
+  };
 
   const handleUpload = async () => {
     if (!selectedFile) {
@@ -92,6 +118,41 @@ export default function ClientDocumentsPage() {
               {uploadMutation.status === "pending" ? "Uploading..." : "Upload"}
             </button>
           </div>
+
+          {selectedFile && selectedFilePreviewUrl && (
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "flex-start" }}>
+              <div style={{ minWidth: 220 }}>
+                <p className="client-card__subtitle" style={{ margin: 0 }}>
+                  Preview:
+                </p>
+              </div>
+
+              {selectedFile.type.startsWith("image/") ? (
+                <img
+                  src={selectedFilePreviewUrl}
+                  alt={selectedFile.name}
+                  style={{
+                    width: 220,
+                    height: 140,
+                    objectFit: "cover",
+                    border: "1px solid rgba(0,0,0,0.06)",
+                    borderRadius: 10,
+                  }}
+                />
+              ) : (
+                <iframe
+                  src={selectedFilePreviewUrl}
+                  title={selectedFile.name}
+                  style={{
+                    width: 220,
+                    height: 140,
+                    border: "1px solid rgba(0,0,0,0.06)",
+                    borderRadius: 10,
+                  }}
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -131,9 +192,49 @@ export default function ClientDocumentsPage() {
                   </div>
                 </div>
 
+                {(() => {
+                  const kind = getDocKind(d);
+                  if (kind === "other") return null;
+
+                  const commonStyle: React.CSSProperties = {
+                    width: 220,
+                    height: 140,
+                    border: "1px solid rgba(0,0,0,0.06)",
+                    borderRadius: 10,
+                    overflow: "hidden",
+                  };
+
+                  return (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                      <div className="client-card__subtitle" style={{ margin: 0 }}>
+                        Preview
+                      </div>
+
+                      {kind === "image" ? (
+                        <img
+                          src={d.viewUrl}
+                          alt={(d.name || d.originalName) ?? "Document"}
+                          loading="lazy"
+                          style={{
+                            ...commonStyle,
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <iframe
+                          src={d.viewUrl}
+                          title={(d.name || d.originalName) ?? "Document"}
+                          loading="lazy"
+                          style={commonStyle}
+                        />
+                      )}
+                    </div>
+                  );
+                })()}
+
                 <a
                   className="client-button"
-                  href={d.url}
+                  href={d.viewUrl}
                   target="_blank"
                   rel="noreferrer"
                   style={{ textAlign: "center" }}

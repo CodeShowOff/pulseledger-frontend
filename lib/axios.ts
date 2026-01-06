@@ -91,8 +91,20 @@ api.interceptors.response.use(
       // Redirect to subscription payment page if subscription expired
       if (errorCode === "SUBSCRIPTION_EXPIRED") {
         if (typeof window !== "undefined") {
-          const currentPath = window.location.pathname;
-          window.location.href = `/coach/platform-fee?returnUrl=${encodeURIComponent(currentPath)}`;
+          const pathname = window.location.pathname;
+
+          // If we're already on the paywall, don't redirect again (avoids reload loops)
+          if (pathname.startsWith("/coach/platform-fee")) {
+            return Promise.reject(error);
+          }
+
+          // Many requests can fail concurrently; ensure we only redirect once.
+          const w = window as unknown as { __plRedirectingToPaywall?: boolean };
+          if (!w.__plRedirectingToPaywall) {
+            w.__plRedirectingToPaywall = true;
+            const returnUrl = `${pathname}${window.location.search || ""}`;
+            window.location.replace(`/coach/platform-fee?returnUrl=${encodeURIComponent(returnUrl)}`);
+          }
         }
         return Promise.reject(error);
       }

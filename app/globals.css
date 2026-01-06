@@ -3892,6 +3892,18 @@ body.chat-page-active .coach-content__inner {
   color: #6b7280;
 }
 
+@media (max-width: 640px) {
+  .client-hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .client-show-mobile {
+    display: none !important;
+  }
+}
+
 .client-meta-row {
   display: flex;
   flex-wrap: wrap;

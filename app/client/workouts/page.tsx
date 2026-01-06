@@ -33,6 +33,7 @@ import {
 import api from "@/lib/axios";
 import ExerciseAnimation from "@/components/shared/ExerciseAnimation";
 import { toast } from "sonner";
+import { formatISTDate, getISTDayOfWeek } from "@/lib/ist";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -86,7 +87,8 @@ export default function ClientWorkoutsPage() {
   const { data: stats } = useClientWorkoutStats();
 
   const today = new Date();
-  const dayOfWeek = today.getUTCDay();
+  const dayOfWeek = getISTDayOfWeek(today);
+  const todayDateString = formatISTDate(today);
 
   useEffect(() => {
     if (selectedTodayPlanId) return;
@@ -711,7 +713,7 @@ export default function ClientWorkoutsPage() {
         >
           <div>
             <p style={{ fontSize: "0.8rem", opacity: 0.9 }}>
-              {DAYS[dayOfWeek]}, {today.toLocaleDateString()}
+              {DAYS[dayOfWeek]}, {todayDateString}
             </p>
             <h2 style={{ fontSize: "1.25rem", fontWeight: 700 }}>
               {selectedTodayWorkout?.focus || "Today's Workout"}
