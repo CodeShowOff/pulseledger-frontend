@@ -25,6 +25,8 @@ let channel: BroadcastChannel | null = null;
 
 function ensureChannel() {
   if (typeof window === "undefined") return null;
+  // BroadcastChannel is not supported on older mobile browsers (iOS Safari < 15.4)
+  if (typeof BroadcastChannel === "undefined") return null;
   if (!channel) channel = new BroadcastChannel("auth-token-refresh");
   return channel;
 }

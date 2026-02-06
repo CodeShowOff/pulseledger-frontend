@@ -14,10 +14,15 @@ export default function InstallPrompt() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Check if already installed
-    const isInstalled = window.matchMedia('(display-mode: standalone)').matches 
-      || (window.navigator as any).standalone 
-      || document.referrer.includes('android-app://');
+    // Check if already installed (with try-catch for older browsers)
+    let isInstalled = false;
+    try {
+      isInstalled = window.matchMedia('(display-mode: standalone)').matches 
+        || (window.navigator as any).standalone 
+        || document.referrer.includes('android-app://');
+    } catch {
+      // Media query not supported, assume not installed
+    }
 
     if (isInstalled) {
       return;
