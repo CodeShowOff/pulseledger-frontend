@@ -577,7 +577,13 @@ export default function PlatformFeeManagementPage() {
                 <button
                   type="button"
                   className="btn btn--ghost"
-                  onClick={() => navigator.clipboard.writeText(profile.coachCode!)}
+                  onClick={() => {
+                    try {
+                      navigator.clipboard.writeText(profile.coachCode!);
+                    } catch {
+                      // Clipboard API not available
+                    }
+                  }}
                   title="Copy referral code"
                 >
                   <Copy size={16} />

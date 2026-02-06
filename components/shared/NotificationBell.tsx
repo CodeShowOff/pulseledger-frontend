@@ -18,12 +18,26 @@ const NotificationBell = React.memo(function NotificationBell() {
       const newCount = unread - prev.current;
       toast.info(`${newCount} new notification${newCount > 1 ? "s" : ""}`);
       // Optionally use Web Notifications API when permitted
-      if ("Notification" in window) {
-        if (Notification.permission === "granted") {
-          new Notification("New notifications", { body: `You have ${unread} unread notifications.` });
-        } else if (Notification.permission === "default") {
-          Notification.requestPermission();
+      // Note: On mobile browsers, we must use ServiceWorker.showNotification() instead of new Notification()
+      if ("Notification" in window && Notification.permission === "granted") {
+        try {
+          // Try using Service Worker first (required for mobile)
+          if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then((registration) => {
+              registration.showNotification("New notifications", {
+                body: `You have ${unread} unread notifications.`,
+                icon: "/notification-bell.png",
+              });
+            }).catch(() => {});
+          } else {
+            // Fallback for desktop browsers
+            new Notification("New notifications", { body: `You have ${unread} unread notifications.` });
+          }
+        } catch {
+          // Silently fail - toast notification is already shown
         }
+      } else if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
       }
     }
     prev.current = unread;
