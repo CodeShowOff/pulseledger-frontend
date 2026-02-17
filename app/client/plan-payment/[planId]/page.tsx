@@ -237,6 +237,16 @@ export default function PlanPaymentPage() {
                   Pay via QR Code
                 </span>
               </label>
+
+              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "not-allowed", opacity: 0.55 }}>
+                <input type="radio" name="paymentMode" value="phonepe" disabled style={{ cursor: "not-allowed" }} />
+                <span className="client-card__subtitle" style={{ fontWeight: 500 }}>
+                  Pay via PhonePe
+                </span>
+                <span style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#ffffff", background: "linear-gradient(135deg, #6366f1, #7c3aed)", padding: "0.15rem 0.5rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
+                  Coming Soon
+                </span>
+              </label>
             </div>
 
             {paymentMode === "manual_qr" && (

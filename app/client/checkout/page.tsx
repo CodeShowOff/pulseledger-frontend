@@ -169,6 +169,13 @@ export default function ClientCheckoutPage() {
                 />
                 <span>Pay Now (Coach UPI QR)</span>
               </label>
+              <label style={{ display: "flex", alignItems: "center", gap: ".5rem", cursor: "not-allowed", opacity: 0.55 }}>
+                <input type="radio" name="paymentMode" value="phonepe" disabled style={{ cursor: "not-allowed" }} />
+                <span>Pay via PhonePe</span>
+                <span style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#ffffff", background: "linear-gradient(135deg, #6366f1, #7c3aed)", padding: "0.15rem 0.5rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
+                  Coming Soon
+                </span>
+              </label>
             </div>
             {paymentMode === "manual_qr" && (
               <div style={{ display: "flex", flexDirection: "column", gap: ".75rem" }}>
