@@ -356,11 +356,11 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Why Choose PulseLedger */}
+        {/* Why Choose FitCoach */}
         <div className="client-card">
           <h2 className="client-card__title" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <Users size={24} color="#2563eb" />
-            Why Choose PulseLedger?
+            Why Choose FitCoach?
           </h2>
 
           <div
@@ -429,7 +429,7 @@ export default function PricingPage() {
             Ready to Start Coaching?
           </h2>
           <p style={{ fontSize: "1.1rem", marginBottom: "2rem", opacity: 0.95 }}>
-            Join hundreds of health coaches using PulseLedger to grow their business.
+            Join hundreds of health coaches using FitCoach to grow their business.
           </p>
           <Link
             href="/auth/register"

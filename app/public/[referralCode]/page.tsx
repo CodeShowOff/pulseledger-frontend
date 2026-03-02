@@ -293,7 +293,7 @@ function PublicCoachProfileContent() {
           <div className="cpp-hero__info">
             <div className="cpp-hero__badge">
               <Sparkles size={14} />
-              <span>PulseLedger Certified Coach</span>
+              <span>FitCoach Certified Coach</span>
             </div>
             
             <h1 className="cpp-hero__name">{coach.fullName}</h1>

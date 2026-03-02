@@ -212,7 +212,7 @@
 
 /* Large translucent watermark text inside the banner */
 .cpp-hero__cover::after {
-  content: "PulseLedger";
+  content: "FitCoach";
   position: absolute;
   left: 50%;
   top: 40%;

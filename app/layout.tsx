@@ -24,16 +24,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <title>PulseLedger</title>
+        <title>FitCoach</title>
         <meta name="description" content="Health and nutrition tracking for coaches and clients" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="application-name" content="PulseLedger" />
+        <meta name="application-name" content="FitCoach" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="PulseLedger" />
+        <meta name="apple-mobile-web-app-title" content="FitCoach" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#3b82f6" />
@@ -62,7 +62,7 @@ export default function RootLayout({
                 fontSize: "0.875rem",
               }}
             >
-              © {new Date().getFullYear()} PulseLedger. All rights reserved.
+              © {new Date().getFullYear()} FitCoach. All rights reserved.
             </footer>
           )}
           <InstallPrompt />

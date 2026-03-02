@@ -1,7 +1,7 @@
 {
-  "name": "pulse-ledger-frontend",
+  "name": "fit-coach-frontend",
   "version": "1.0.0",
-  "description": "Pulse Ledger Frontend",
+  "description": "Fit Coach Frontend",
   "main": "next.config.js",
   "directories": {
     "lib": "lib"

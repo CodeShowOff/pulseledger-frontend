@@ -139,7 +139,7 @@ export default function InstallPrompt() {
       >
         <div style={{ flex: 1 }}>
           <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.25rem', color: '#111827' }}>
-            Install PulseLedger
+            Install FitCoach
           </h3>
           <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
             Install our app for a better experience with offline access

@@ -127,7 +127,7 @@ export default function CoachDashboard() {
         </h1>
         <div style={{ display: "flex", justifyContent: "center", marginTop: "0.5rem" }}>
           <span className="navbar-modern__logo-text" style={{ fontSize: "1.3rem" }}>
-            {user?.companyName || "PulseLedger"}
+            {user?.companyName || "FitCoach"}
           </span>
         </div>
       </section>

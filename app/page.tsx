@@ -186,7 +186,7 @@ export default function HomePage() {
               transition={{ delay: 0.3, duration: 0.7 }}
             >
               Transform Health Journeys
-              <span className="landing-hero__title-gradient"> with PulseLedger</span>
+              <span className="landing-hero__title-gradient"> with FitCoach</span>
             </motion.h1>
 
             <motion.p

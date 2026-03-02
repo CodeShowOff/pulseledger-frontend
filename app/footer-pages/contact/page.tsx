@@ -64,11 +64,11 @@ export default function ContactPage() {
           <div className="profile-grid" style={{ marginTop: "1.25rem" }}>
             <div className="profile-field">
               <div className="profile-field__label">Support Email</div>
-              <div className="profile-field__value">mail.pulseledger@gmail.com</div>
+              <div className="profile-field__value">mail.fitcoach@gmail.com</div>
             </div>
             <div className="profile-field">
               <div className="profile-field__label">Business Enquiries</div>
-              <div className="profile-field__value">mail.pulseledger@gmail.com</div>
+              <div className="profile-field__value">mail.fitcoach@gmail.com</div>
             </div>
           </div>
 

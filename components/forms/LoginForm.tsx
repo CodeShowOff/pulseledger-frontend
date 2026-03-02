@@ -59,7 +59,7 @@ export const LoginForm: React.FC = () => {
           }
           if (String(message).toLowerCase().includes("deactivated")) {
             setDeactivatedMessage(
-              "Your account has been deactivated by the admin. Please contact admin at mail.pulseledger@gmail.com to reactivate."
+              "Your account has been deactivated by the admin. Please contact admin at mail.fitcoach@gmail.com to reactivate."
             );
           }
           toast.error(message);

@@ -292,7 +292,7 @@ export default function PlatformSubscriptionPage() {
                 Subscription Expired
               </h3>
               <p style={{ color: "#7f1d1d", marginBottom: "1rem" }}>
-                Your platform access has expired. Please make a payment of ₹{subscription.platformFee} to continue using PulseLedger.
+                Your platform access has expired. Please make a payment of ₹{subscription.platformFee} to continue using FitCoach.
               </p>
               <button
                 className="btn btn--primary"
@@ -401,7 +401,7 @@ export default function PlatformSubscriptionPage() {
           <h2 className="admin-card__title" style={{ color: "#166534" }}>Referral Benefit</h2>
           <div style={{ marginTop: "0.75rem", color: "#166534" }}>
             <p style={{ marginBottom: "0.75rem" }}>
-              Invite other coaches to join PulseLedger. When a referred coach completes their first platform subscription payment and it’s approved, you’ll receive <strong>+10 days</strong> added to your current subscription or trial.
+              Invite other coaches to join FitCoach. When a referred coach completes their first platform subscription payment and it’s approved, you’ll receive <strong>+10 days</strong> added to your current subscription or trial.
             </p>
             {profile?.coachCode ? (
               <div style={{ display: "grid", gap: "0.5rem" }}>

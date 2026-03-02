@@ -10,24 +10,24 @@ export default function RefundPolicyPage() {
         <section className="client-page__sections">
           {/* Section 1: Platform Role */}
           <div className="client-card">
-            <h2 className="client-card__section-title">1. PulseLedger's Role as a Platform</h2>
+            <h2 className="client-card__section-title">1. FitCoach's Role as a Platform</h2>
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">1.1 Platform Facilitator</h3>
-              <p><strong>IMPORTANT:</strong> PulseLedger operates as a technology platform that connects health and fitness coaches with clients. We facilitate the relationship between coaches and clients but do not directly provide coaching services or sell products.</p>
+              <p><strong>IMPORTANT:</strong> FitCoach operates as a technology platform that connects health and fitness coaches with clients. We facilitate the relationship between coaches and clients but do not directly provide coaching services or sell products.</p>
 
               <h3 className="client-card__subsection-title">1.2 Independent Coaches</h3>
               <ul className="client-list">
-                <li>Coaches on PulseLedger are independent professionals who set their own prices, refund policies, and terms for their services and products</li>
-                <li>All payments for subscriptions and products go directly to your assigned coach, not to PulseLedger</li>
+                <li>Coaches on FitCoach are independent professionals who set their own prices, refund policies, and terms for their services and products</li>
+                <li>All payments for subscriptions and products go directly to your assigned coach, not to FitCoach</li>
                 <li>Each coach may have their own refund policies and timelines in addition to the guidelines outlined here</li>
-                <li>PulseLedger does not collect, hold, or process payments on behalf of coaches (payments are made directly via coach-provided payment methods such as UPI QR codes)</li>
+                <li>FitCoach does not collect, hold, or process payments on behalf of coaches (payments are made directly via coach-provided payment methods such as UPI QR codes)</li>
               </ul>
 
               <h3 className="client-card__subsection-title">1.3 Coach Autonomy</h3>
               <ul className="client-list">
                 <li>Coaches have full discretion over granting or denying refund requests for their services and products</li>
                 <li>Refund decisions are made by individual coaches based on their professional judgment and policies</li>
-                <li>PulseLedger cannot force coaches to issue refunds but encourages fair and reasonable refund practices</li>
+                <li>FitCoach cannot force coaches to issue refunds but encourages fair and reasonable refund practices</li>
               </ul>
             </div>
           </div>
@@ -61,19 +61,19 @@ export default function RefundPolicyPage() {
               <h3 className="client-card__subsection-title">2.3 Response Timeline</h3>
               <ul className="client-list">
                 <li>Coaches should respond to refund requests within 5-7 business days</li>
-                <li>If your coach does not respond within 10 business days, you may escalate to PulseLedger support</li>
+                <li>If your coach does not respond within 10 business days, you may escalate to FitCoach support</li>
                 <li>Complex refund requests may require additional time for review</li>
               </ul>
 
-              <h3 className="client-card__subsection-title">2.4 Escalation to PulseLedger</h3>
-              <p>If you cannot resolve a refund issue directly with your coach, you may contact PulseLedger support:</p>
+              <h3 className="client-card__subsection-title">2.4 Escalation to FitCoach</h3>
+              <p>If you cannot resolve a refund issue directly with your coach, you may contact FitCoach support:</p>
               <ul className="client-list">
-                <li><strong>Email:</strong> mail.pulseledger@gmail.com</li>
+                <li><strong>Email:</strong> mail.fitcoach@gmail.com</li>
                 <li><strong>Subject Line:</strong> "Refund Dispute - [Your Name]"</li>
                 <li><strong>Include:</strong> All communication history with your coach, payment documentation, and detailed explanation</li>
                 <li><strong>Response Time:</strong> We will investigate and respond within 7-10 business days</li>
               </ul>
-              <p><strong>Note:</strong> PulseLedger will mediate disputes but cannot guarantee refunds, as final decisions rest with individual coaches. We may suspend coaches who repeatedly violate fair refund practices.</p>
+              <p><strong>Note:</strong> FitCoach will mediate disputes but cannot guarantee refunds, as final decisions rest with individual coaches. We may suspend coaches who repeatedly violate fair refund practices.</p>
             </div>
           </div>
 
@@ -155,7 +155,7 @@ export default function RefundPolicyPage() {
               <ul className="client-list">
                 <li>Product refunds are entirely at the discretion of your coach, who is the seller</li>
                 <li>Each coach may have different policies for product returns and refunds</li>
-                <li>PulseLedger recommends but cannot enforce specific product refund terms</li>
+                <li>FitCoach recommends but cannot enforce specific product refund terms</li>
               </ul>
 
               <h3 className="client-card__subsection-title">4.2 Pending Orders</h3>
@@ -219,14 +219,14 @@ export default function RefundPolicyPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">5.1 About Platform Subscription</h3>
               <p>
-                Coaches on PulseLedger are required to maintain an active platform subscription to access coaching features and manage clients. The platform subscription fee is ₹99 per month with a 28-day free trial for new coaches.
+                Coaches on FitCoach are required to maintain an active platform subscription to access coaching features and manage clients. The platform subscription fee is ₹99 per month with a 28-day free trial for new coaches.
               </p>
 
               <h3 className="client-card__subsection-title">5.2 Platform Subscription Refund Policy</h3>
               <ul className="client-list">
                 <li><strong>Free Trial Period:</strong> No charges during the 28-day trial period, so no refunds apply</li>
                 <li><strong>Payment Submission:</strong> When coaches submit platform subscription payments, they upload payment proof and transaction details</li>
-                <li><strong>Pending Payments:</strong> Payments awaiting admin approval can be cancelled with full refund (₹99) by contacting PulseLedger support</li>
+                <li><strong>Pending Payments:</strong> Payments awaiting admin approval can be cancelled with full refund (₹99) by contacting FitCoach support</li>
                 <li><strong>Approved Payments:</strong> Once approved by admin, platform subscription is activated for 30 days</li>
               </ul>
 
@@ -241,7 +241,7 @@ export default function RefundPolicyPage() {
 
               <h3 className="client-card__subsection-title">5.4 How to Request Platform Subscription Refund</h3>
               <ul className="client-list">
-                <li><strong>Contact:</strong> Email mail.pulseledger@gmail.com with subject "Platform Subscription Refund Request"</li>
+                <li><strong>Contact:</strong> Email mail.fitcoach@gmail.com with subject "Platform Subscription Refund Request"</li>
                 <li><strong>Required Information:</strong>
                   <ul className="client-list">
                     <li>Coach name and email address</li>
@@ -259,7 +259,7 @@ export default function RefundPolicyPage() {
               <ul className="client-list">
                 <li>Admin may grant subscription extensions for legitimate reasons (technical issues, medical emergencies)</li>
                 <li>Extensions do not create automatic refund eligibility for current payments</li>
-                <li>Contact support at mail.pulseledger@gmail.com to request extensions with valid justification</li>
+                <li>Contact support at mail.fitcoach@gmail.com to request extensions with valid justification</li>
               </ul>
 
               <h3 className="client-card__subsection-title">5.6 Non-Refundable Situations</h3>
@@ -321,7 +321,7 @@ export default function RefundPolicyPage() {
 
               <h3 className="client-card__subsection-title">5.5 Refund Tracking</h3>
               <ul className="client-list">
-                <li>Currently, refunds are not tracked within the PulseLedger platform as they occur directly between you and your coach</li>
+                <li>Currently, refunds are not tracked within the FitCoach platform as they occur directly between you and your coach</li>
                 <li>Keep personal records of refund requests and confirmations</li>
                 <li>Save transaction receipts and communication records for your files</li>
               </ul>
@@ -343,23 +343,23 @@ export default function RefundPolicyPage() {
               <h3 className="client-card__subsection-title">6.2 Coach Unavailability</h3>
               <ul className="client-list">
                 <li>If your coach becomes unavailable or discontinues services during your active subscription, you may be entitled to a full or prorated refund</li>
-                <li>Contact PulseLedger support at mail.pulseledger@gmail.com if your coach becomes unresponsive</li>
+                <li>Contact FitCoach support at mail.fitcoach@gmail.com if your coach becomes unresponsive</li>
                 <li>We will attempt to mediate or facilitate reassignment to another coach with your consent</li>
               </ul>
 
               <h3 className="client-card__subsection-title">6.3 Technical Issues or Platform Errors</h3>
               <ul className="client-list">
-                <li><strong>Duplicate Charges:</strong> If you were charged twice for the same subscription or order, contact your coach and PulseLedger immediately for full refund of duplicate amount</li>
+                <li><strong>Duplicate Charges:</strong> If you were charged twice for the same subscription or order, contact your coach and FitCoach immediately for full refund of duplicate amount</li>
                 <li><strong>Payment Processing Errors:</strong> Platform or payment gateway errors resulting in incorrect charges will be fully refunded</li>
                 <li><strong>Account Access Issues:</strong> If technical issues prevent you from accessing paid services, refunds may be granted for affected period</li>
-                <li><strong>Reporting:</strong> Report technical issues to mail.pulseledger@gmail.com with screenshots and transaction details</li>
+                <li><strong>Reporting:</strong> Report technical issues to mail.fitcoach@gmail.com with screenshots and transaction details</li>
               </ul>
 
               <h3 className="client-card__subsection-title">6.4 Service Quality Issues</h3>
               <ul className="client-list">
                 <li>If you believe coaching services are not meeting professional standards or agreed-upon terms, discuss with your coach first</li>
                 <li>Document specific concerns and attempts to resolve issues</li>
-                <li>If unresolved, escalate to PulseLedger support with detailed information</li>
+                <li>If unresolved, escalate to FitCoach support with detailed information</li>
                 <li>We may investigate and facilitate resolution, including possible refunds</li>
               </ul>
 
@@ -398,10 +398,10 @@ export default function RefundPolicyPage() {
                 <li>Approach disputes professionally and provide clear documentation</li>
               </ul>
 
-              <h3 className="client-card__subsection-title">7.2 PulseLedger Mediation</h3>
-              <p>If you cannot resolve a refund dispute with your coach after reasonable attempts, PulseLedger can assist:</p>
+              <h3 className="client-card__subsection-title">7.2 FitCoach Mediation</h3>
+              <p>If you cannot resolve a refund dispute with your coach after reasonable attempts, FitCoach can assist:</p>
               <ul className="client-list">
-                <li><strong>Contact:</strong> Email mail.pulseledger@gmail.com with subject "Refund Dispute Mediation"</li>
+                <li><strong>Contact:</strong> Email mail.fitcoach@gmail.com with subject "Refund Dispute Mediation"</li>
                 <li><strong>Required Information:</strong>
                   <ul className="client-list">
                     <li>Your name and account details</li>
@@ -417,9 +417,9 @@ export default function RefundPolicyPage() {
                 <li><strong>Timeline:</strong> Mediation process typically takes 10-15 business days</li>
               </ul>
 
-              <h3 className="client-card__subsection-title">7.3 PulseLedger's Authority</h3>
+              <h3 className="client-card__subsection-title">7.3 FitCoach's Authority</h3>
               <ul className="client-list">
-                <li>PulseLedger can mediate disputes but cannot force coaches to issue refunds</li>
+                <li>FitCoach can mediate disputes but cannot force coaches to issue refunds</li>
                 <li>We can provide guidance based on fair practices and this policy</li>
                 <li>In cases of clear coach misconduct, we may suspend coach accounts</li>
                 <li>Final refund decisions rest with the coach as the service provider</li>
@@ -527,7 +527,7 @@ export default function RefundPolicyPage() {
 
               <h3 className="client-card__subsection-title">10.2 Continued Use</h3>
               <ul className="client-list">
-                <li>Continued use of PulseLedger after policy changes constitutes acceptance of the updated policy</li>
+                <li>Continued use of FitCoach after policy changes constitutes acceptance of the updated policy</li>
                 <li>Existing subscriptions and orders are generally governed by the policy in effect at the time of purchase</li>
               </ul>
 
@@ -551,14 +551,14 @@ export default function RefundPolicyPage() {
 
               <h3 className="client-card__subsection-title">11.2 For Refund Disputes or Platform Issues</h3>
               <ul className="client-list">
-                <li><strong>Email:</strong> mail.pulseledger@gmail.com</li>
+                <li><strong>Email:</strong> mail.fitcoach@gmail.com</li>
                 <li><strong>Subject Line:</strong> "Refund Dispute" or "Refund Policy Inquiry"</li>
                 <li><strong>Response Time:</strong> 5-10 business days for platform-related refund matters</li>
               </ul>
 
               <h3 className="client-card__subsection-title">11.3 For Policy Questions</h3>
               <ul className="client-list">
-                <li><strong>Email:</strong> mail.pulseledger@gmail.com</li>
+                <li><strong>Email:</strong> mail.fitcoach@gmail.com</li>
                 <li><strong>Subject Line:</strong> "Refund Policy Question"</li>
                 <li>We're happy to clarify any aspects of this policy</li>
               </ul>
@@ -583,10 +583,10 @@ export default function RefundPolicyPage() {
                 <strong>Important Reminder:</strong>
               </p>
               <p className="text-center">
-                For all refund requests, please contact your assigned coach first. PulseLedger is here to support you if direct resolution is not possible.
+                For all refund requests, please contact your assigned coach first. FitCoach is here to support you if direct resolution is not possible.
               </p>
               <p className="text-center">
-                Thank you for using PulseLedger!
+                Thank you for using FitCoach!
               </p>
             </div>
           </div>

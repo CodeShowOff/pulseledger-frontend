@@ -134,7 +134,7 @@ export default function FeedbackPage() {
                   <h3 style={{ fontWeight: 600, color: "#14532d", marginBottom: "0.25rem" }}>Feedback Submitted Successfully!</h3>
                   <p style={{ fontSize: "0.875rem", color: "#15803d" }}>
                     Thank you for taking the time to share your thoughts. We review all feedback and use
-                    it to improve PulseLedger.
+                    it to improve FitCoach.
                   </p>
                 </div>
               </div>

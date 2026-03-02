@@ -133,7 +133,7 @@ const Navbar = React.memo(function Navbar() {
       <div className="navbar-modern__container">
         {/* Logo */}
         <Link href="/" className="navbar-modern__logo">
-          <span className="navbar-modern__logo-text">PulseLedger</span>
+          <span className="navbar-modern__logo-text">FitCoach</span>
         </Link>
 
         {/* Desktop Navigation - in center */}

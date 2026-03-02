@@ -14,7 +14,7 @@ export default function TermsAndConditionsPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">1.1 Binding Agreement</h3>
               <p>
-                By registering for, accessing, or using PulseLedger, you acknowledge that you have read, understood, and agree to be bound by these Terms and our Privacy Policy, which is incorporated herein by reference. This Agreement constitutes a legally binding contract between you and PulseLedger.
+                By registering for, accessing, or using FitCoach, you acknowledge that you have read, understood, and agree to be bound by these Terms and our Privacy Policy, which is incorporated herein by reference. This Agreement constitutes a legally binding contract between you and FitCoach.
               </p>
 
               <h3 className="client-card__subsection-title">1.2 Eligibility</h3>
@@ -52,7 +52,7 @@ export default function TermsAndConditionsPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">2.1 Platform Overview</h3>
               <p>
-                PulseLedger is a comprehensive health and fitness coaching platform that connects certified coaches with clients seeking personalized wellness guidance. Our Service facilitates:
+                FitCoach is a comprehensive health and fitness coaching platform that connects certified coaches with clients seeking personalized wellness guidance. Our Service facilitates:
               </p>
               <ul className="client-list">
                 <li>Client-coach matching through referral codes</li>
@@ -85,13 +85,13 @@ export default function TermsAndConditionsPage() {
               <h3 className="client-card__subsection-title">2.4 Not Medical Advice - Health and Safety Disclaimer</h3>
               <p><strong>IMPORTANT DISCLAIMER:</strong></p>
               <ul className="client-list">
-                <li>PulseLedger and the coaching services provided through our platform are <strong>not a substitute for professional medical advice, diagnosis, or treatment</strong></li>
+                <li>FitCoach and the coaching services provided through our platform are <strong>not a substitute for professional medical advice, diagnosis, or treatment</strong></li>
                 <li>Always seek the advice of your physician or other qualified health provider with any questions regarding a medical condition</li>
                 <li>Never disregard professional medical advice or delay seeking it because of information obtained through our Service</li>
                 <li>Coaches on our platform are fitness professionals, not licensed medical doctors (unless explicitly stated otherwise)</li>
                 <li>The Service is intended for general fitness, wellness, and lifestyle guidance only</li>
                 <li><strong>BY USING THIS SERVICE, YOU ACKNOWLEDGE THAT YOU HAVE CONSULTED OR WILL CONSULT WITH A QUALIFIED HEALTHCARE PROFESSIONAL BEFORE STARTING ANY FITNESS, NUTRITION, OR WELLNESS PROGRAM</strong></li>
-                <li><strong>YOU EXPRESSLY WAIVE ANY CLAIMS AGAINST PULSELEDGER FOR ANY HEALTH OUTCOMES, INJURIES, OR ADVERSE EFFECTS RESULTING FROM FOLLOWING COACHING ADVICE OR USING THE SERVICE</strong></li>
+                <li><strong>YOU EXPRESSLY WAIVE ANY CLAIMS AGAINST FitCoach FOR ANY HEALTH OUTCOMES, INJURIES, OR ADVERSE EFFECTS RESULTING FROM FOLLOWING COACHING ADVICE OR USING THE SERVICE</strong></li>
                 <li>You assume all risks associated with your use of the Service and acknowledge that physical activity carries inherent risks</li>
               </ul>
             </div>
@@ -115,7 +115,7 @@ export default function TermsAndConditionsPage() {
                 <li>You must not share your password or account credentials with anyone</li>
                 <li>You must not allow anyone else to access your account</li>
                 <li>You are responsible for all activities occurring under your account, whether or not authorized by you</li>
-                <li>You must immediately notify us at mail.pulseledger@gmail.com if you suspect unauthorized access</li>
+                <li>You must immediately notify us at mail.fitcoach@gmail.com if you suspect unauthorized access</li>
               </ul>
 
               <h3 className="client-card__subsection-title">3.3 Session Management</h3>
@@ -136,7 +136,7 @@ export default function TermsAndConditionsPage() {
 
               <h3 className="client-card__subsection-title">3.5 Account Termination by User</h3>
               <ul className="client-list">
-                <li>You may close your account at any time by contacting us at mail.pulseledger@gmail.com</li>
+                <li>You may close your account at any time by contacting us at mail.fitcoach@gmail.com</li>
                 <li>Account closure does not automatically entitle you to refunds for active subscriptions or purchases</li>
                 <li>We may retain certain information as required by law or for legitimate business purposes (see our Privacy Policy)</li>
                 <li>You remain responsible for any obligations incurred before account closure</li>
@@ -212,8 +212,8 @@ export default function TermsAndConditionsPage() {
               </ul>
               <p><strong>IMPORTANT NOTICE:</strong></p>
               <ul className="client-list">
-                <li><strong>PulseLedger does NOT verify, validate, or certify coach qualifications, credentials, or certifications</strong></li>
-                <li><strong>PulseLedger is NOT responsible for the accuracy of coach-provided information or the quality of coaching services</strong></li>
+                <li><strong>FitCoach does NOT verify, validate, or certify coach qualifications, credentials, or certifications</strong></li>
+                <li><strong>FitCoach is NOT responsible for the accuracy of coach-provided information or the quality of coaching services</strong></li>
                 <li>Coaches are solely responsible for their professional conduct, qualifications, and the accuracy of their representations</li>
                 <li>Clients are advised to independently verify coach credentials before engaging their services</li>
               </ul>
@@ -261,13 +261,13 @@ export default function TermsAndConditionsPage() {
                 <li>Product information (name, description, MRP, price, category, images) must be accurate</li>
                 <li>Coaches are responsible for product quality, authenticity, and fulfillment</li>
                 <li>Coaches must comply with consumer protection laws and regulations</li>
-                <li>PulseLedger is not responsible for product quality, delivery, or disputes</li>
+                <li>FitCoach is not responsible for product quality, delivery, or disputes</li>
               </ul>
 
               <h3 className="client-card__subsection-title">5.7 Payment and QR Codes</h3>
               <ul className="client-list">
                 <li>Coaches may upload UPI payment QR codes for receiving manual payments</li>
-                <li>All payments are directly between coaches and clients; PulseLedger does not process payments</li>
+                <li>All payments are directly between coaches and clients; FitCoach does not process payments</li>
                 <li>Coaches are responsible for their own tax reporting and compliance</li>
                 <li>Coaches must maintain accurate financial records</li>
               </ul>
@@ -281,7 +281,7 @@ export default function TermsAndConditionsPage() {
                 <li>Exploit or take advantage of vulnerable clients</li>
                 <li>Engage in romantic or inappropriate relationships with clients</li>
                 <li>Misrepresent qualifications or credentials</li>
-                <li>Compete directly with PulseLedger or solicit clients off-platform</li>
+                <li>Compete directly with FitCoach or solicit clients off-platform</li>
               </ul>
             </div>
           </div>
@@ -292,7 +292,7 @@ export default function TermsAndConditionsPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">6.1 Platform Subscription Requirement</h3>
               <p>
-                All coaches registered on PulseLedger are required to maintain an active platform subscription to access coaching features and manage clients.
+                All coaches registered on FitCoach are required to maintain an active platform subscription to access coaching features and manage clients.
               </p>
 
               <h3 className="client-card__subsection-title">6.2 Subscription Terms</h3>
@@ -343,7 +343,7 @@ export default function TermsAndConditionsPage() {
               <h3 className="client-card__subsection-title">6.7 Trial Extensions and Special Circumstances</h3>
               <ul className="client-list">
                 <li>Admin may extend trial or subscription periods for legitimate reasons (technical issues, medical emergencies, platform downtime)</li>
-                <li>Extension requests should be submitted to mail.pulseledger@gmail.com with justification</li>
+                <li>Extension requests should be submitted to mail.fitcoach@gmail.com with justification</li>
                 <li>Extensions are granted at admin's sole discretion</li>
                 <li>Extensions do not create automatic refund entitlements</li>
               </ul>
@@ -394,9 +394,9 @@ export default function TermsAndConditionsPage() {
                 <li>Once assigned, your coach relationship is established and cannot be changed without creating a new account</li>
                 <li>Your assigned coach will have access to your health data, progress logs, and subscription information</li>
                 <li>Coach assignment is primarily for service delivery; we do not guarantee specific outcomes</li>
-                <li><strong>YOU ARE SOLELY RESPONSIBLE FOR SELECTING YOUR COACH; PulseLedger does not recommend or endorse any specific coach</strong></li>
+                <li><strong>YOU ARE SOLELY RESPONSIBLE FOR SELECTING YOUR COACH; FitCoach does not recommend or endorse any specific coach</strong></li>
                 <li><strong>You are advised to independently verify your coach's qualifications, experience, and credentials before engaging their services</strong></li>
-                <li><strong>PulseLedger is not liable for any disputes, fraud, or issues arising from your coach-client relationship</strong></li>
+                <li><strong>FitCoach is not liable for any disputes, fraud, or issues arising from your coach-client relationship</strong></li>
               </ul>
 
               <h3 className="client-card__subsection-title">6.2 Health and Progress Tracking</h3>
@@ -463,7 +463,7 @@ export default function TermsAndConditionsPage() {
               <ul className="client-list">
                 <li>Currently, payments are processed manually using coach-provided payment methods (UPI QR codes, cash, or other agreed methods)</li>
                 <li>Clients must upload valid payment proof when subscribing to paid plans</li>
-                <li>PulseLedger does not process payments directly; all transactions are between clients and coaches</li>
+                <li>FitCoach does not process payments directly; all transactions are between clients and coaches</li>
                 <li>Future integration with automated payment processors may be introduced</li>
               </ul>
 
@@ -523,7 +523,7 @@ export default function TermsAndConditionsPage() {
                 <li>Coaches may list health and fitness products for sale to their clients</li>
                 <li>Product listings include name, description, MRP (maximum retail price), selling price, category, and images</li>
                 <li>Product availability and pricing are managed by individual coaches</li>
-                <li>PulseLedger acts as a platform facilitator; we are not the seller of products</li>
+                <li>FitCoach acts as a platform facilitator; we are not the seller of products</li>
               </ul>
 
               <h3 className="client-card__subsection-title">8.2 Order Placement</h3>
@@ -558,7 +558,7 @@ export default function TermsAndConditionsPage() {
                 <li>Coaches are solely responsible for product quality, authenticity, and safety</li>
                 <li>Clients should verify product details, ingredients, and suitability before purchasing</li>
                 <li>Product-related disputes should be resolved directly between client and coach</li>
-                <li>PulseLedger is not liable for product defects, injuries, or dissatisfaction</li>
+                <li>FitCoach is not liable for product defects, injuries, or dissatisfaction</li>
                 <li>Refund and return policies are subject to our Refund Policy and individual coach policies</li>
               </ul>
 
@@ -567,7 +567,7 @@ export default function TermsAndConditionsPage() {
                 <li>Product delivery and logistics are managed by coaches</li>
                 <li>Delivery timelines, methods, and costs are determined by coaches</li>
                 <li>Clients should provide accurate delivery addresses</li>
-                <li>PulseLedger is not responsible for delivery delays or failures</li>
+                <li>FitCoach is not responsible for delivery delays or failures</li>
               </ul>
             </div>
           </div>
@@ -576,13 +576,13 @@ export default function TermsAndConditionsPage() {
           <div className="client-card">
             <h2 className="client-card__section-title">10. Intellectual Property Rights</h2>
             <div className="client-card__content">
-              <h3 className="client-card__subsection-title">9.1 PulseLedger's Intellectual Property</h3>
+              <h3 className="client-card__subsection-title">9.1 FitCoach's Intellectual Property</h3>
               <ul className="client-list">
-                <li>All content, features, functionality, software, designs, logos, trademarks, and service marks of PulseLedger are owned by us or our licensors</li>
+                <li>All content, features, functionality, software, designs, logos, trademarks, and service marks of FitCoach are owned by us or our licensors</li>
                 <li>The Service and all underlying technology are protected by copyright, trademark, patent, trade secret, and other intellectual property laws</li>
                 <li>You may not copy, modify, distribute, sell, or lease any part of our Service or software</li>
                 <li>You may not reverse engineer, decompile, or attempt to extract source code from our Service</li>
-                <li>The "PulseLedger" name and logo are our trademarks and may not be used without permission</li>
+                <li>The "FitCoach" name and logo are our trademarks and may not be used without permission</li>
               </ul>
 
               <h3 className="client-card__subsection-title">9.2 User Content Ownership</h3>
@@ -592,8 +592,8 @@ export default function TermsAndConditionsPage() {
                 <li>You must not upload content that infringes on others' intellectual property rights</li>
               </ul>
 
-              <h3 className="client-card__subsection-title">9.3 License to PulseLedger</h3>
-              <p>By uploading content to the Service, you grant PulseLedger a worldwide, non-exclusive, royalty-free, transferable license to:</p>
+              <h3 className="client-card__subsection-title">9.3 License to FitCoach</h3>
+              <p>By uploading content to the Service, you grant FitCoach a worldwide, non-exclusive, royalty-free, transferable license to:</p>
               <ul className="client-list">
                 <li>Store, display, reproduce, and distribute your content as necessary to provide the Service</li>
                 <li>Use your content for platform functionality (e.g., showing profile photos, progress photos to your coach)</li>
@@ -612,7 +612,7 @@ export default function TermsAndConditionsPage() {
               <h3 className="client-card__subsection-title">9.5 Copyright Infringement</h3>
               <ul className="client-list">
                 <li>We respect intellectual property rights and expect users to do the same</li>
-                <li>If you believe content on our Service infringes your copyright, please contact us at mail.pulseledger@gmail.com with:
+                <li>If you believe content on our Service infringes your copyright, please contact us at mail.fitcoach@gmail.com with:
                   <ul className="client-list">
                     <li>Description of the copyrighted work</li>
                     <li>Location of the infringing material on our Service</li>
@@ -687,14 +687,14 @@ export default function TermsAndConditionsPage() {
               <p><strong>IMPORTANT:</strong></p>
               <ul className="client-list">
                 <li>THE SERVICE IS NOT A SUBSTITUTE FOR PROFESSIONAL MEDICAL ADVICE, DIAGNOSIS, OR TREATMENT</li>
-                <li>PULSELEDGER IS NOT RESPONSIBLE FOR THE QUALITY, SAFETY, OR EFFECTIVENESS OF COACHING SERVICES PROVIDED BY COACHES</li>
+                <li>FitCoach IS NOT RESPONSIBLE FOR THE QUALITY, SAFETY, OR EFFECTIVENESS OF COACHING SERVICES PROVIDED BY COACHES</li>
                 <li>COACHES ARE INDEPENDENT PROFESSIONALS; WE DO NOT SUPERVISE, DIRECT, OR CONTROL THEIR SERVICES</li>
                 <li>YOU ASSUME ALL RISKS ASSOCIATED WITH FOLLOWING COACHING ADVICE OR USING THE SERVICE</li>
                 <li>ALWAYS CONSULT A QUALIFIED HEALTHCARE PROVIDER BEFORE STARTING ANY FITNESS OR NUTRITION PROGRAM</li>
-                <li><strong>PULSELEDGER IS ONLY A TECHNOLOGY PLATFORM PROVIDER AND IS NOT LIABLE FOR ANY FRAUD, MISCONDUCT, DISPUTES, OR ISSUES ARISING BETWEEN COACHES AND CLIENTS</strong></li>
-                <li><strong>CLIENTS INDEPENDENTLY CHOOSE THEIR COACHES; PULSELEDGER DOES NOT RECOMMEND, ENDORSE, OR GUARANTEE ANY COACH</strong></li>
-                <li><strong>PULSELEDGER'S LIABILITY IS LIMITED TO PLATFORM-RELATED TECHNICAL ISSUES ONLY AND DOES NOT EXTEND TO COACHING SERVICES, PRODUCTS, OR COACH-CLIENT RELATIONSHIPS</strong></li>
-                <li><strong>PULSELEDGER DOES NOT SELL, RENT, OR TRADE USER DATA TO THIRD PARTIES FOR COMMERCIAL PURPOSES</strong></li>
+                <li><strong>FitCoach IS ONLY A TECHNOLOGY PLATFORM PROVIDER AND IS NOT LIABLE FOR ANY FRAUD, MISCONDUCT, DISPUTES, OR ISSUES ARISING BETWEEN COACHES AND CLIENTS</strong></li>
+                <li><strong>CLIENTS INDEPENDENTLY CHOOSE THEIR COACHES; FitCoach DOES NOT RECOMMEND, ENDORSE, OR GUARANTEE ANY COACH</strong></li>
+                <li><strong>FitCoach's LIABILITY IS LIMITED TO PLATFORM-RELATED TECHNICAL ISSUES ONLY AND DOES NOT EXTEND TO COACHING SERVICES, PRODUCTS, OR COACH-CLIENT RELATIONSHIPS</strong></li>
+                <li><strong>FitCoach DOES NOT SELL, RENT, OR TRADE USER DATA TO THIRD PARTIES FOR COMMERCIAL PURPOSES</strong></li>
               </ul>
 
               <h3 className="client-card__subsection-title">11.3 No Guarantee of Results</h3>
@@ -714,7 +714,7 @@ export default function TermsAndConditionsPage() {
 
               <h3 className="client-card__subsection-title">11.5 Limitation of Liability</h3>
               <p>
-                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL PULSELEDGER, ITS OFFICERS, DIRECTORS, EMPLOYEES, AGENTS, OR AFFILIATES BE LIABLE FOR:
+                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL FitCoach, ITS OFFICERS, DIRECTORS, EMPLOYEES, AGENTS, OR AFFILIATES BE LIABLE FOR:
               </p>
               <ul className="client-list">
                 <li>ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES</li>
@@ -731,7 +731,7 @@ export default function TermsAndConditionsPage() {
 
               <h3 className="client-card__subsection-title">11.6 Cap on Liability</h3>
               <p>
-                IN NO EVENT SHALL OUR TOTAL LIABILITY TO YOU FOR ALL DAMAGES, LOSSES, AND CAUSES OF ACTION EXCEED THE AMOUNT PAID BY YOU TO PULSELEDGER, IF ANY, IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM, OR ONE HUNDRED DOLLARS ($100), WHICHEVER IS GREATER.
+                IN NO EVENT SHALL OUR TOTAL LIABILITY TO YOU FOR ALL DAMAGES, LOSSES, AND CAUSES OF ACTION EXCEED THE AMOUNT PAID BY YOU TO FitCoach, IF ANY, IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM, OR ONE HUNDRED DOLLARS ($100), WHICHEVER IS GREATER.
               </p>
 
               <h3 className="client-card__subsection-title">11.7 Jurisdictional Limitations</h3>
@@ -746,7 +746,7 @@ export default function TermsAndConditionsPage() {
             <h2 className="client-card__section-title">13. Indemnification</h2>
             <div className="client-card__content">
               <p>
-                You agree to defend, indemnify, and hold harmless PulseLedger, its officers, directors, employees, agents, affiliates, and partners from and against any and all claims, damages, obligations, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from:
+                You agree to defend, indemnify, and hold harmless FitCoach, its officers, directors, employees, agents, affiliates, and partners from and against any and all claims, damages, obligations, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from:
               </p>
               <ul className="client-list">
                 <li>Your use of and access to the Service</li>
@@ -773,7 +773,7 @@ export default function TermsAndConditionsPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">13.1 Termination by You</h3>
               <ul className="client-list">
-                <li>You may terminate your account at any time by contacting us at mail.pulseledger@gmail.com</li>
+                <li>You may terminate your account at any time by contacting us at mail.fitcoach@gmail.com</li>
                 <li>You remain responsible for all obligations incurred before termination</li>
                 <li>Termination does not automatically entitle you to refunds</li>
               </ul>
@@ -814,7 +814,7 @@ export default function TermsAndConditionsPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">14.1 Informal Resolution</h3>
               <p>
-                If you have any dispute with us, you agree to first contact us at mail.pulseledger@gmail.com and attempt to resolve the dispute informally. Most disputes can be resolved through good faith communication.
+                If you have any dispute with us, you agree to first contact us at mail.fitcoach@gmail.com and attempt to resolve the dispute informally. Most disputes can be resolved through good faith communication.
               </p>
 
               <h3 className="client-card__subsection-title">14.2 Governing Law</h3>
@@ -865,7 +865,7 @@ export default function TermsAndConditionsPage() {
 
               <h3 className="client-card__subsection-title">15.3 Version History</h3>
               <p>
-                We maintain version history of our Terms. You may request previous versions by contacting us at mail.pulseledger@gmail.com.
+                We maintain version history of our Terms. You may request previous versions by contacting us at mail.fitcoach@gmail.com.
               </p>
             </div>
           </div>
@@ -876,7 +876,7 @@ export default function TermsAndConditionsPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">16.1 Entire Agreement</h3>
               <p>
-                These Terms, together with our Privacy Policy and any other legal notices published by us on the Service, constitute the entire agreement between you and PulseLedger regarding your use of the Service.
+                These Terms, together with our Privacy Policy and any other legal notices published by us on the Service, constitute the entire agreement between you and FitCoach regarding your use of the Service.
               </p>
 
               <h3 className="client-card__subsection-title">16.2 Severability</h3>
@@ -903,9 +903,9 @@ export default function TermsAndConditionsPage() {
 
               <h3 className="client-card__subsection-title">16.6 Relationship of Parties</h3>
               <ul className="client-list">
-                <li>No agency, partnership, joint venture, or employment relationship is created between you and PulseLedger</li>
-                <li>Coaches are independent contractors, not employees or agents of PulseLedger</li>
-                <li>You have no authority to bind PulseLedger in any manner</li>
+                <li>No agency, partnership, joint venture, or employment relationship is created between you and FitCoach</li>
+                <li>Coaches are independent contractors, not employees or agents of FitCoach</li>
+                <li>You have no authority to bind FitCoach in any manner</li>
               </ul>
 
               <h3 className="client-card__subsection-title">16.7 Headings</h3>
@@ -938,7 +938,7 @@ export default function TermsAndConditionsPage() {
 
               <h3 className="client-card__subsection-title">17.2 Data Storage and Localization</h3>
               <ul className="client-list">
-                <li>PulseLedger stores data with Indian and international cloud service providers (MongoDB, Cloudinary)</li>
+                <li>FitCoach stores data with Indian and international cloud service providers (MongoDB, Cloudinary)</li>
                 <li>Data may be stored and processed outside India as permitted by applicable law</li>
                 <li>We implement reasonable security practices as required under Indian data protection regulations</li>
               </ul>
@@ -947,7 +947,7 @@ export default function TermsAndConditionsPage() {
               <ul className="client-list">
                 <li>GST registration and compliance for coaching services and product sales is the sole responsibility of individual coaches</li>
                 <li>Coaches earning above the GST threshold must register and comply with GST regulations independently</li>
-                <li>PulseLedger platform subscription fees (₹99/month) are subject to applicable GST</li>
+                <li>FitCoach platform subscription fees (₹99/month) are subject to applicable GST</li>
                 <li>Coaches are responsible for issuing GST-compliant invoices to their clients where required</li>
               </ul>
 
@@ -968,16 +968,16 @@ export default function TermsAndConditionsPage() {
                 If you have any questions, concerns, or feedback about these Terms or the Service, please contact us:
               </p>
               <ul className="client-list">
-                <li><strong>Email:</strong> mail.pulseledger@gmail.com</li>
+                <li><strong>Email:</strong> mail.fitcoach@gmail.com</li>
                 <li><strong>Subject Line:</strong> "Terms and Conditions Inquiry"</li>
                 <li><strong>Response Time:</strong> We will respond to all inquiries within 5-7 business days</li>
               </ul>
 
               <h3 className="client-card__subsection-title">Legal Notices</h3>
               <ul className="client-list">
-                <li><strong>For legal notices and formal communications:</strong> mail.pulseledger@gmail.com</li>
-                <li><strong>For copyright infringement claims:</strong> mail.pulseledger@gmail.com with subject "Copyright Claim"</li>
-                <li><strong>For data protection inquiries:</strong> mail.pulseledger@gmail.com with subject "Data Protection"</li>
+                <li><strong>For legal notices and formal communications:</strong> mail.fitcoach@gmail.com</li>
+                <li><strong>For copyright infringement claims:</strong> mail.fitcoach@gmail.com with subject "Copyright Claim"</li>
+                <li><strong>For data protection inquiries:</strong> mail.fitcoach@gmail.com with subject "Data Protection"</li>
               </ul>
             </div>
           </div>
@@ -989,7 +989,7 @@ export default function TermsAndConditionsPage() {
             <p><strong>Version:</strong> 2.1</p>
             <p><strong>Previous Version Date:</strong> November 20, 2025</p>
             <p className="mt-4">
-              By using PulseLedger, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions, as well as our Privacy Policy.
+              By using FitCoach, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions, as well as our Privacy Policy.
             </p>
           </div>
 
@@ -997,7 +997,7 @@ export default function TermsAndConditionsPage() {
           <div className="client-card">
             <div className="client-card__content">
               <p className="text-center">
-                <strong>Thank you for using PulseLedger!</strong>
+                <strong>Thank you for using FitCoach!</strong>
               </p>
               <p className="text-center">
                 We are committed to providing a safe, secure, and effective platform for your health and wellness journey.

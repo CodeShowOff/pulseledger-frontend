@@ -35,7 +35,7 @@ export default function ClientDashboardPage() {
       {!isLoading && (
         <div style={{ display: "flex", justifyContent: "center", marginTop: "0.25rem" }}>
           <span className="navbar-modern__logo-text" style={{ fontSize: "1.3rem" }}>
-            {coach?.companyName || "PulseLedger"}
+            {coach?.companyName || "FitCoach"}
           </span>
         </div>
       )}

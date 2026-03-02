@@ -272,7 +272,7 @@ export default function ReportBugsPage() {
                     type="text"
                     id="pageUrl"
                     className="auth-form__input"
-                    placeholder="https://pulseledger.com/..."
+                    placeholder="https://fitcoach.com/..."
                     value={formData.pageUrl}
                     onChange={(e) => setFormData({ ...formData, pageUrl: e.target.value })}
                     disabled={submitMutation.isPending}
@@ -371,12 +371,12 @@ export default function ReportBugsPage() {
                 For urgent issues or if you need immediate assistance:
               </p>
               <ul className="client-list">
-                <li><strong>Email:</strong> <a href="mailto:mail.pulseledger@gmail.com" className="client-link">mail.pulseledger@gmail.com</a></li>
+                <li><strong>Email:</strong> <a href="mailto:mail.fitcoach@gmail.com" className="client-link">mail.fitcoach@gmail.com</a></li>
                 <li><strong>Help Center:</strong> <Link href="/footer-pages/help-center" className="client-link">Visit our comprehensive help documentation</Link></li>
                 <li><strong>Contact Form:</strong> <Link href="/footer-pages/contact" className="client-link">Send us a general inquiry</Link></li>
               </ul>
               <p style={{ marginTop: "1rem" }}>
-                Thank you for helping us make PulseLedger better! Your feedback is essential to providing the best possible experience for our coaching community.
+                Thank you for helping us make FitCoach better! Your feedback is essential to providing the best possible experience for our coaching community.
               </p>
             </div>
           </div>

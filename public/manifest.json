@@ -1,6 +1,6 @@
 {
-  "name": "Pulse Ledger",
-  "short_name": "Pulse Ledger",
+  "name": "Fit Coach",
+  "short_name": "Fit Coach",
   "description": "Complete health and fitness management platform with progress tracking, meal plans, and coach guidance",
   "start_url": "/dashboard",
   "display": "standalone",

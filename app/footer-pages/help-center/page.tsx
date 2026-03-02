@@ -15,7 +15,7 @@ export default function HelpCenterPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">1.1 Creating Your Account</h3>
               <p>
-                PulseLedger offers two types of user accounts to suit your needs:
+                FitCoach offers two types of user accounts to suit your needs:
               </p>
               <ul className="client-list">
                 <li><strong>Client Account:</strong> For individuals seeking personalized health and fitness coaching</li>
@@ -23,7 +23,7 @@ export default function HelpCenterPage() {
               </ul>
               <p><strong>Registration Steps:</strong></p>
               <ol className="client-list">
-                <li>Visit the PulseLedger homepage and click the "Register" or "Sign Up" button</li>
+                <li>Visit the FitCoach homepage and click the "Register" or "Sign Up" button</li>
                 <li>Choose your account type (Client or Coach)</li>
                 <li>Enter your full name, email address, and create a secure password</li>
                 <li>Provide additional information:
@@ -49,7 +49,7 @@ export default function HelpCenterPage() {
                 <li>Ensure you entered the correct email address during registration</li>
                 <li>Wait a few minutes - email delivery can sometimes be delayed</li>
                 <li>Request a new verification code if the original expires</li>
-                <li>Contact support at mail.pulseledger@gmail.com if problems persist</li>
+                <li>Contact support at mail.fitcoach@gmail.com if problems persist</li>
               </ul>
 
               <h3 className="client-card__subsection-title">1.3 Profile Setup</h3>
@@ -84,7 +84,7 @@ export default function HelpCenterPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">2.1 Finding and Choosing a Coach</h3>
               <p>
-                PulseLedger makes it easy to find the perfect coach for your fitness journey:
+                FitCoach makes it easy to find the perfect coach for your fitness journey:
               </p>
               <ol className="client-list">
                 <li><strong>Browse Coaches:</strong> Visit the "Find Coaches" or "Coaches" section</li>
@@ -107,7 +107,7 @@ export default function HelpCenterPage() {
                 <li><strong>Request Subscription:</strong> Submit a plan request to your coach</li>
                 <li><strong>Coach Approval:</strong> Your coach reviews and approves the request</li>
                 <li><strong>Payment:</strong> Complete payment using your coach's provided method (UPI QR code, cash, etc.)</li>
-                <li><strong>Admin Approval:</strong> PulseLedger admins verify the subscription</li>
+                <li><strong>Admin Approval:</strong> FitCoach admins verify the subscription</li>
                 <li><strong>Subscription Activation:</strong> Your plan becomes active with full access</li>
               </ol>
 
@@ -129,7 +129,7 @@ export default function HelpCenterPage() {
 
               <h3 className="client-card__subsection-title">2.3 Progress Tracking</h3>
               <p>
-                PulseLedger provides comprehensive tools to monitor your fitness journey:
+                FitCoach provides comprehensive tools to monitor your fitness journey:
               </p>
               <p><strong>Health Metrics Tracking:</strong></p>
               <ul className="client-list">
@@ -336,7 +336,7 @@ export default function HelpCenterPage() {
 
               <h3 className="client-card__subsection-title">3.6 Payment Collection</h3>
               <p>
-                PulseLedger is a platform facilitator - you collect payments directly:
+                FitCoach is a platform facilitator - you collect payments directly:
               </p>
               <ul className="client-list">
                 <li><strong>Payment Methods:</strong> You can accept payments via UPI, bank transfer, cash, or any method you prefer</li>
@@ -355,7 +355,7 @@ export default function HelpCenterPage() {
               <h3 className="client-card__subsection-title">4.1 Login and Authentication</h3>
               <p><strong>Logging In:</strong></p>
               <ol className="client-list">
-                <li>Visit the PulseLedger homepage</li>
+                <li>Visit the FitCoach homepage</li>
                 <li>Click "Login" or "Sign In"</li>
                 <li>Enter your registered email and password</li>
                 <li>Click "Login" to access your account</li>
@@ -421,7 +421,7 @@ export default function HelpCenterPage() {
                 If you need to temporarily deactivate your account:
               </p>
               <ul className="client-list">
-                <li>Contact support at mail.pulseledger@gmail.com</li>
+                <li>Contact support at mail.fitcoach@gmail.com</li>
                 <li>Specify if you want to reactivate later</li>
                 <li>Complete any pending subscriptions or orders first</li>
                 <li>Admins can deactivate accounts that violate our policies</li>
@@ -473,7 +473,7 @@ export default function HelpCenterPage() {
                     <li>Ensure you've completed payment using your coach's method</li>
                     <li>Admin approval typically takes 1-2 business days after coach approval</li>
                     <li>Contact your coach to confirm they've received your payment</li>
-                    <li>If delayed beyond 3-5 days, email support at mail.pulseledger@gmail.com</li>
+                    <li>If delayed beyond 3-5 days, email support at mail.fitcoach@gmail.com</li>
                   </ul>
                 </div>
               </div>
@@ -495,14 +495,14 @@ export default function HelpCenterPage() {
               <div className="client-faq">
                 <h4 className="client-faq__question">How do I request a refund?</h4>
                 <div className="client-faq__answer">
-                  <p>PulseLedger operates as a platform facilitator. For refunds:</p>
+                  <p>FitCoach operates as a platform facilitator. For refunds:</p>
                   <ol className="client-list">
                     <li><strong>Contact Your Coach First:</strong> All refunds are handled by coaches directly</li>
                     <li>Explain your reason for requesting a refund</li>
                     <li>Provide payment proof and subscription details</li>
                     <li>Allow your coach 5-7 business days to process</li>
-                    <li>If your coach is unresponsive after 7 days, contact mail.pulseledger@gmail.com</li>
-                    <li>PulseLedger can mediate but cannot force refunds</li>
+                    <li>If your coach is unresponsive after 7 days, contact mail.fitcoach@gmail.com</li>
+                    <li>FitCoach can mediate but cannot force refunds</li>
                   </ol>
                   <p>See our <Link href="/footer-pages/refund-policy" className="client-link">Refund Policy</Link> for complete details on eligibility and timeframes.</p>
                 </div>
@@ -516,7 +516,7 @@ export default function HelpCenterPage() {
                     <li>Check your bank statement to confirm duplicate charges</li>
                     <li>Contact your coach immediately with payment proof</li>
                     <li>Coaches should refund duplicate payments within 5-7 business days</li>
-                    <li>If unresolved, contact PulseLedger support with evidence</li>
+                    <li>If unresolved, contact FitCoach support with evidence</li>
                   </ul>
                 </div>
               </div>
@@ -531,7 +531,7 @@ export default function HelpCenterPage() {
                     <li>Try a different browser (Chrome, Firefox, Safari, Edge)</li>
                     <li>Disable browser extensions that might interfere</li>
                     <li>Try accessing from a different device</li>
-                    <li>If issues persist, report to mail.pulseledger@gmail.com</li>
+                    <li>If issues persist, report to mail.fitcoach@gmail.com</li>
                   </ul>
                 </div>
               </div>
@@ -571,7 +571,7 @@ export default function HelpCenterPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">6.1 Data Protection</h3>
               <p>
-                PulseLedger takes your privacy seriously:
+                FitCoach takes your privacy seriously:
               </p>
               <ul className="client-list">
                 <li><strong>Encryption:</strong> All passwords are encrypted using bcrypt (10-16 salt rounds)</li>
@@ -606,7 +606,7 @@ export default function HelpCenterPage() {
                 <li><strong>Objection:</strong> Object to certain data processing activities</li>
                 <li><strong>Restriction:</strong> Request restriction of data processing</li>
               </ul>
-              <p>To exercise these rights, contact mail.pulseledger@gmail.com</p>
+              <p>To exercise these rights, contact mail.fitcoach@gmail.com</p>
 
               <h3 className="client-card__subsection-title">6.4 Keeping Your Account Secure</h3>
               <p><strong>Best Practices:</strong></p>
@@ -617,8 +617,8 @@ export default function HelpCenterPage() {
                 <li>Enable two-factor authentication if available</li>
                 <li>Review your account activity regularly</li>
                 <li>Update your password every 3-6 months</li>
-                <li>Be cautious of phishing emails pretending to be from PulseLedger</li>
-                <li>Report suspicious activity immediately to mail.pulseledger@gmail.com</li>
+                <li>Be cautious of phishing emails pretending to be from FitCoach</li>
+                <li>Report suspicious activity immediately to mail.fitcoach@gmail.com</li>
               </ul>
             </div>
           </div>
@@ -653,12 +653,12 @@ export default function HelpCenterPage() {
 
               <h3 className="client-card__subsection-title">7.3 Medical Disclaimer</h3>
               <p className="client-card__alert">
-                <strong>Important:</strong> PulseLedger is a coaching platform, NOT a medical service. Content provided through the platform is for informational and fitness purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult with qualified healthcare professionals before starting any fitness program, changing your diet, or taking supplements, especially if you have pre-existing health conditions, are pregnant, or are taking medications.
+                <strong>Important:</strong> FitCoach is a coaching platform, NOT a medical service. Content provided through the platform is for informational and fitness purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult with qualified healthcare professionals before starting any fitness program, changing your diet, or taking supplements, especially if you have pre-existing health conditions, are pregnant, or are taking medications.
               </p>
 
               <h3 className="client-card__subsection-title">7.4 Coach Qualifications</h3>
               <p>
-                While we encourage coaches to display certifications and qualifications, PulseLedger does not independently verify coach credentials. Clients should:
+                While we encourage coaches to display certifications and qualifications, FitCoach does not independently verify coach credentials. Clients should:
               </p>
               <ul className="client-list">
                 <li>Review coach profiles and qualifications carefully</li>
@@ -675,9 +675,9 @@ export default function HelpCenterPage() {
             <div className="client-card__content">
               <div className="client-faqs">
                 <div className="client-faq">
-                  <h3 className="client-faq__question">Is PulseLedger free to use?</h3>
+                  <h3 className="client-faq__question">Is FitCoach free to use?</h3>
                   <p className="client-faq__answer">
-                    Creating an account on PulseLedger is free. However, coaching plans and subscriptions are paid services set by individual coaches. Product purchases also have associated costs.
+                    Creating an account on FitCoach is free. However, coaching plans and subscriptions are paid services set by individual coaches. Product purchases also have associated costs.
                   </p>
                 </div>
 
@@ -698,7 +698,7 @@ export default function HelpCenterPage() {
                 <div className="client-faq">
                   <h3 className="client-faq__question">What payment methods are accepted?</h3>
                   <p className="client-faq__answer">
-                    PulseLedger doesn't process payments directly. Coaches accept payments via their preferred methods (UPI, bank transfer, cash, etc.). Check with your coach for their accepted payment methods.
+                    FitCoach doesn't process payments directly. Coaches accept payments via their preferred methods (UPI, bank transfer, cash, etc.). Check with your coach for their accepted payment methods.
                   </p>
                 </div>
 
@@ -719,14 +719,14 @@ export default function HelpCenterPage() {
                 <div className="client-faq">
                   <h3 className="client-faq__question">Can I delete my account?</h3>
                   <p className="client-faq__answer">
-                    Yes. Contact support at mail.pulseledger@gmail.com to request account deletion. Ensure all active subscriptions and pending orders are resolved first. Some data may be retained for legal compliance purposes.
+                    Yes. Contact support at mail.fitcoach@gmail.com to request account deletion. Ensure all active subscriptions and pending orders are resolved first. Some data may be retained for legal compliance purposes.
                   </p>
                 </div>
 
                 <div className="client-faq">
                   <h3 className="client-faq__question">What should I do if I face a problem with my coach?</h3>
                   <p className="client-faq__answer">
-                    First, try to resolve the issue directly with your coach through communication. If the issue persists or involves policy violations, contact PulseLedger support at mail.pulseledger@gmail.com. We can mediate disputes but coaches operate independently.
+                    First, try to resolve the issue directly with your coach through communication. If the issue persists or involves policy violations, contact FitCoach support at mail.fitcoach@gmail.com. We can mediate disputes but coaches operate independently.
                   </p>
                 </div>
 
@@ -752,7 +752,7 @@ export default function HelpCenterPage() {
                 </div>
 
                 <div className="client-faq">
-                  <h3 className="client-faq__question">How do I become a coach on PulseLedger?</h3>
+                  <h3 className="client-faq__question">How do I become a coach on FitCoach?</h3>
                   <p className="client-faq__answer">
                     Register for a coach account and complete your professional profile with certifications, experience, and specializations. Once approved, you can create plans, accept clients, and start coaching.
                   </p>
@@ -766,7 +766,7 @@ export default function HelpCenterPage() {
             <h2 className="client-card__section-title">9. Contact Support</h2>
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">9.1 When to Contact Support</h3>
-              <p>Reach out to PulseLedger support for:</p>
+              <p>Reach out to FitCoach support for:</p>
               <ul className="client-list">
                 <li>Technical issues with the platform</li>
                 <li>Account access problems</li>
@@ -780,7 +780,7 @@ export default function HelpCenterPage() {
               <h3 className="client-card__subsection-title">9.2 How to Contact Us</h3>
               <p><strong>Email Support:</strong></p>
               <ul className="client-list">
-                <li><strong>Email:</strong> <a href="mailto:mail.pulseledger@gmail.com" className="client-link">mail.pulseledger@gmail.com</a></li>
+                <li><strong>Email:</strong> <a href="mailto:mail.fitcoach@gmail.com" className="client-link">mail.fitcoach@gmail.com</a></li>
                 <li><strong>Response Time:</strong> We aim to respond within 1-2 business days</li>
                 <li><strong>Business Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM IST</li>
               </ul>
@@ -807,7 +807,7 @@ export default function HelpCenterPage() {
 
               <h3 className="client-card__subsection-title">9.4 Feedback and Suggestions</h3>
               <p>
-                We're always looking to improve PulseLedger. Share your feedback, feature requests, or suggestions at mail.pulseledger@gmail.com. Your input helps us build a better platform for the entire fitness community.
+                We're always looking to improve FitCoach. Share your feedback, feature requests, or suggestions at mail.fitcoach@gmail.com. Your input helps us build a better platform for the entire fitness community.
               </p>
             </div>
           </div>
@@ -818,7 +818,7 @@ export default function HelpCenterPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">10.1 Related Pages</h3>
               <ul className="client-list">
-                <li><Link href="/footer-pages/about" className="client-link">About PulseLedger</Link> - Learn about our mission and values</li>
+                <li><Link href="/footer-pages/about" className="client-link">About FitCoach</Link> - Learn about our mission and values</li>
                 <li><Link href="/footer-pages/terms-and-conditions" className="client-link">Terms & Conditions</Link> - Legal terms governing platform use</li>
                 <li><Link href="/footer-pages/privacy-policy" className="client-link">Privacy Policy</Link> - How we handle your data</li>
                 <li><Link href="/footer-pages/refund-policy" className="client-link">Refund Policy</Link> - Refund eligibility and procedures</li>
@@ -886,7 +886,7 @@ export default function HelpCenterPage() {
               <Link href="/footer-pages/contact" className="btn btn--primary" style={{ textDecoration: "none" }}>
                 Contact Support
               </Link>
-              <a href="mailto:mail.pulseledger@gmail.com" className="btn btn--outline" style={{ textDecoration: "none" }}>
+              <a href="mailto:mail.fitcoach@gmail.com" className="btn btn--outline" style={{ textDecoration: "none" }}>
                 Email Us Directly
               </a>
             </div>

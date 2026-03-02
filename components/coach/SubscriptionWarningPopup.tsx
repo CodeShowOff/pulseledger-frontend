@@ -168,7 +168,7 @@ export default function SubscriptionWarningPopup() {
             marginBottom: "2rem",
           }}
         >
-          Pay <strong>₹{subscription.platformFee}</strong> now to continue accessing PulseLedger platform without any interruption.
+          Pay <strong>₹{subscription.platformFee}</strong> now to continue accessing FitCoach platform without any interruption.
         </p>
 
         <div style={{ display: "flex", gap: "0.75rem", flexDirection: "column" }}>

@@ -35,7 +35,7 @@ const Footer = React.memo(function Footer() {
           {/* Brand Section */}
           <div className="footer-modern__brand">
             <Link href="/" className="footer-modern__logo">
-              <span className="footer-modern__logo-text">PulseLedger</span>
+              <span className="footer-modern__logo-text">FitCoach</span>
             </Link>
             <p className="footer-modern__tagline">
               The all-in-one platform connecting health coaches and clients.
@@ -130,7 +130,7 @@ const Footer = React.memo(function Footer() {
         {/* Bottom Bar */}
         <div className="footer-modern__bottom">
           <p className="footer-modern__copyright">
-            © {new Date().getFullYear()} PulseLedger. All rights reserved.
+            © {new Date().getFullYear()} FitCoach. All rights reserved.
           </p>
           <div className="footer-modern__bottom-links">
             <Link href="/footer-pages/privacy-policy">Privacy</Link>

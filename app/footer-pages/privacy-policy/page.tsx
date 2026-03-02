@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="client-card__section-title">1. Introduction and Scope</h2>
             <div className="client-card__content">
               <p>
-                PulseLedger is a comprehensive health management and coaching platform connecting certified health coaches with clients seeking personalized fitness, nutrition, and wellness guidance. This Privacy Policy applies to all users of our Service, including:
+                FitCoach is a comprehensive health management and coaching platform connecting certified health coaches with clients seeking personalized fitness, nutrition, and wellness guidance. This Privacy Policy applies to all users of our Service, including:
               </p>
               <ul className="client-list">
                 <li><strong>Clients:</strong> Individuals seeking health and fitness coaching services</li>
@@ -191,7 +191,7 @@ export default function PrivacyPolicyPage() {
                 <li>Implement rate limiting to prevent spam and automated attacks</li>
                 <li>Monitor for suspicious activities and unauthorized access attempts</li>
                 <li>Enforce our Terms of Service and other policies</li>
-                <li>Protect the rights, property, and safety of PulseLedger, our users, and the public</li>
+                <li>Protect the rights, property, and safety of FitCoach, our users, and the public</li>
               </ul>
 
               <h3 className="client-card__subsection-title">4.7 Legal Compliance and Protection</h3>
@@ -287,7 +287,7 @@ export default function PrivacyPolicyPage() {
               <ul className="client-list">
                 <li>Comply with legal obligations, court orders, or government requests</li>
                 <li>Enforce our Terms of Service and other agreements</li>
-                <li>Protect the rights, property, or safety of PulseLedger, our users, or the public</li>
+                <li>Protect the rights, property, or safety of FitCoach, our users, or the public</li>
                 <li>Detect, prevent, or address fraud, security, or technical issues</li>
                 <li>Investigate potential violations of our policies</li>
               </ul>
@@ -430,7 +430,7 @@ export default function PrivacyPolicyPage() {
               <ul className="client-list">
                 <li><strong>Right to Access:</strong> You can request a copy of the personal information we hold about you</li>
                 <li><strong>Right to Data Portability:</strong> You can request your data in a structured, commonly used, machine-readable format</li>
-                <li><strong>How to Exercise:</strong> Log in to your account to view and download your data, or contact us at mail.pulseledger@gmail.com</li>
+                <li><strong>How to Exercise:</strong> Log in to your account to view and download your data, or contact us at mail.fitcoach@gmail.com</li>
               </ul>
 
               <h3 className="client-card__subsection-title">9.2 Correction and Update</h3>
@@ -443,14 +443,14 @@ export default function PrivacyPolicyPage() {
               <ul className="client-list">
                 <li><strong>Right to Erasure ("Right to be Forgotten"):</strong> You can request deletion of your personal information</li>
                 <li><strong>Limitations:</strong> We may retain certain information where required by law or for legitimate business purposes (e.g., fraud prevention, legal compliance)</li>
-                <li><strong>How to Exercise:</strong> Contact us at mail.pulseledger@gmail.com with a deletion request; we will respond within 30 days</li>
+                <li><strong>How to Exercise:</strong> Contact us at mail.fitcoach@gmail.com with a deletion request; we will respond within 30 days</li>
               </ul>
 
               <h3 className="client-card__subsection-title">9.4 Restriction and Objection</h3>
               <ul className="client-list">
                 <li><strong>Right to Restrict Processing:</strong> You can request that we limit how we use your data</li>
                 <li><strong>Right to Object:</strong> You can object to processing based on legitimate interests or for direct marketing purposes</li>
-                <li><strong>How to Exercise:</strong> Contact us at mail.pulseledger@gmail.com specifying your request</li>
+                <li><strong>How to Exercise:</strong> Contact us at mail.fitcoach@gmail.com specifying your request</li>
               </ul>
 
               <h3 className="client-card__subsection-title">9.5 Consent Withdrawal</h3>
@@ -500,7 +500,7 @@ export default function PrivacyPolicyPage() {
               <h3 className="client-card__subsection-title">9.11 How to Exercise Your Rights</h3>
               <p>To exercise any of these rights, please contact us at:</p>
               <ul className="client-list">
-                <li><strong>Email:</strong> mail.pulseledger@gmail.com</li>
+                <li><strong>Email:</strong> mail.fitcoach@gmail.com</li>
                 <li><strong>Subject Line:</strong> "Privacy Rights Request"</li>
                 <li><strong>Include:</strong> Your full name, email address, account details, and specific request</li>
               </ul>
@@ -628,7 +628,7 @@ export default function PrivacyPolicyPage() {
 
               <h3 className="client-card__subsection-title">12.3 Discovery of Children's Data</h3>
               <p>
-                If we discover that we have collected personal information from a child under the applicable age limit without proper consent, we will take steps to delete that information as quickly as possible. If you believe we have collected information from a child improperly, please contact us immediately at mail.pulseledger@gmail.com.
+                If we discover that we have collected personal information from a child under the applicable age limit without proper consent, we will take steps to delete that information as quickly as possible. If you believe we have collected information from a child improperly, please contact us immediately at mail.fitcoach@gmail.com.
               </p>
 
               <h3 className="client-card__subsection-title">12.4 COPPA Compliance</h3>
@@ -672,7 +672,7 @@ export default function PrivacyPolicyPage() {
 
               <h3 className="client-card__subsection-title">13.4 Our Responsibility</h3>
               <p>
-                PulseLedger is not responsible for the content, privacy policies, or practices of third-party websites or services. Your interactions with third parties are governed solely by their terms and privacy policies.
+                FitCoach is not responsible for the content, privacy policies, or practices of third-party websites or services. Your interactions with third parties are governed solely by their terms and privacy policies.
               </p>
             </div>
           </div>
@@ -724,14 +724,14 @@ export default function PrivacyPolicyPage() {
 
               <h3 className="client-card__subsection-title">15.1 General Inquiries</h3>
               <ul className="client-list">
-                <li><strong>Email:</strong> mail.pulseledger@gmail.com</li>
+                <li><strong>Email:</strong> mail.fitcoach@gmail.com</li>
                 <li><strong>Subject Line:</strong> "Privacy Policy Inquiry"</li>
                 <li><strong>Response Time:</strong> We will respond to all inquiries within 5-7 business days</li>
               </ul>
 
               <h3 className="client-card__subsection-title">15.2 Privacy Rights Requests</h3>
               <ul className="client-list">
-                <li><strong>Email:</strong> mail.pulseledger@gmail.com</li>
+                <li><strong>Email:</strong> mail.fitcoach@gmail.com</li>
                 <li><strong>Subject Line:</strong> "Privacy Rights Request"</li>
                 <li><strong>Include:</strong> Full name, email address, account details, specific request, and identity verification information</li>
                 <li><strong>Response Time:</strong> Within 30 days (or as required by applicable law)</li>
@@ -739,7 +739,7 @@ export default function PrivacyPolicyPage() {
 
               <h3 className="client-card__subsection-title">15.3 Data Protection Officer</h3>
               <p>
-                For users in the EEA, UK, or other jurisdictions requiring a Data Protection Officer (DPO), please direct inquiries to mail.pulseledger@gmail.com with "DPO" in the subject line.
+                For users in the EEA, UK, or other jurisdictions requiring a Data Protection Officer (DPO), please direct inquiries to mail.fitcoach@gmail.com with "DPO" in the subject line.
               </p>
 
               <h3 className="client-card__subsection-title">15.4 Supervisory Authority</h3>
@@ -749,7 +749,7 @@ export default function PrivacyPolicyPage() {
 
               <h3 className="client-card__subsection-title">15.5 Security Concerns</h3>
               <p>
-                If you discover a security vulnerability or have security concerns, please email us immediately at mail.pulseledger@gmail.com with "Security Issue" in the subject line.
+                If you discover a security vulnerability or have security concerns, please email us immediately at mail.fitcoach@gmail.com with "Security Issue" in the subject line.
               </p>
             </div>
           </div>
@@ -765,14 +765,14 @@ export default function PrivacyPolicyPage() {
 
               <h3 className="client-card__subsection-title">16.2 Nevada Residents</h3>
               <p>
-                Nevada residents may opt out of the "sale" of personal information. We do not sell personal information as defined under Nevada law. If you have questions, contact us at mail.pulseledger@gmail.com.
+                Nevada residents may opt out of the "sale" of personal information. We do not sell personal information as defined under Nevada law. If you have questions, contact us at mail.fitcoach@gmail.com.
               </p>
 
               <h3 className="client-card__subsection-title">16.3 European Economic Area (EEA) and UK</h3>
               <ul className="client-list">
                 <li><strong>Legal Basis:</strong> See Section 5 for detailed information on our legal basis for processing</li>
                 <li><strong>Your Rights:</strong> See Section 9 for comprehensive information on your GDPR rights</li>
-                <li><strong>Data Controller:</strong> PulseLedger acts as the data controller for personal information processed through the Service</li>
+                <li><strong>Data Controller:</strong> FitCoach acts as the data controller for personal information processed through the Service</li>
                 <li><strong>International Transfers:</strong> See Section 11 for information on international data transfers</li>
               </ul>
 
@@ -783,7 +783,7 @@ export default function PrivacyPolicyPage() {
 
               <h3 className="client-card__subsection-title">16.5 India - Primary Jurisdiction</h3>
               <p>
-                <strong>PulseLedger operates primarily under Indian jurisdiction and complies with Indian data protection laws.</strong>
+                <strong>FitCoach operates primarily under Indian jurisdiction and complies with Indian data protection laws.</strong>
               </p>
               <ul className="client-list">
                 <li>Given the nature of our health coaching services, we collect sensitive personal data as defined under Indian law (health information, biometric data). We implement reasonable security practices and procedures as required under the Information Technology Act, 2000 and the IT (Reasonable Security Practices) Rules, 2011</li>
@@ -791,7 +791,7 @@ export default function PrivacyPolicyPage() {
                 <li>Data may be stored with international cloud providers (MongoDB, Cloudinary) as permitted by Indian law</li>
                 <li>Financial records are retained for 7 years in compliance with Indian tax and accounting regulations</li>
                 <li><strong>We do not sell or trade personal data to third parties for commercial purposes</strong></li>
-                <li>For data protection inquiries, contact us at mail.pulseledger@gmail.com</li>
+                <li>For data protection inquiries, contact us at mail.fitcoach@gmail.com</li>
               </ul>
             </div>
           </div>
@@ -803,13 +803,13 @@ export default function PrivacyPolicyPage() {
               <ul className="client-list">
                 <li><strong>"Personal Information"</strong> or <strong>"Personal Data"</strong>: Information that identifies, relates to, describes, or could reasonably be linked to you</li>
                 <li><strong>"Processing"</strong>: Any operation performed on personal data, including collection, storage, use, disclosure, or deletion</li>
-                <li><strong>"Service"</strong>: The PulseLedger platform, including website, applications, and all related services</li>
+                <li><strong>"Service"</strong>: The FitCoach platform, including website, applications, and all related services</li>
                 <li><strong>"User"</strong>, <strong>"You"</strong>, <strong>"Your"</strong>: Any person who accesses or uses the Service</li>
-                <li><strong>"We"</strong>, <strong>"Us"</strong>, <strong>"Our"</strong>: PulseLedger and its affiliates</li>
+                <li><strong>"We"</strong>, <strong>"Us"</strong>, <strong>"Our"</strong>: FitCoach and its affiliates</li>
                 <li><strong>"Coach"</strong>: Certified health and fitness professionals using the platform to provide services</li>
                 <li><strong>"Client"</strong>: Individuals using the platform to receive coaching services</li>
                 <li><strong>"Admin"</strong>: Platform administrators with elevated privileges</li>
-                <li><strong>"Third Party"</strong>: Any entity other than you or PulseLedger</li>
+                <li><strong>"Third Party"</strong>: Any entity other than you or FitCoach</li>
               </ul>
             </div>
           </div>
@@ -821,7 +821,7 @@ export default function PrivacyPolicyPage() {
             <p><strong>Version:</strong> 2.1</p>
             <p><strong>Previous Version Date:</strong> November 20, 2025</p>
             <p className="mt-4">
-              This Privacy Policy supersedes all previous versions. By continuing to use PulseLedger after the effective date, you acknowledge that you have read, understood, and agree to be bound by this Privacy Policy.
+              This Privacy Policy supersedes all previous versions. By continuing to use FitCoach after the effective date, you acknowledge that you have read, understood, and agree to be bound by this Privacy Policy.
             </p>
           </div>
 
@@ -829,7 +829,7 @@ export default function PrivacyPolicyPage() {
           <div className="client-card">
             <div className="client-card__content">
               <p className="text-center">
-                <strong>Thank you for trusting PulseLedger with your health and wellness journey.</strong>
+                <strong>Thank you for trusting FitCoach with your health and wellness journey.</strong>
               </p>
               <p className="text-center">
                 We are committed to protecting your privacy and providing a secure, transparent platform for your fitness goals.
