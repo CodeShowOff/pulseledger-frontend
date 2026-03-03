@@ -14,7 +14,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "analyze": "set ANALYZE=true&& next build --webpack"
+    "analyze": "set ANALYZE=true&& next build --webpack",
+    "images:compress": "python scripts/optimize_images.py"
   },
   "author": "",
   "license": "ISC",

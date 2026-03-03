@@ -124,7 +124,7 @@ export default function HomePage() {
 
   const steps = [
     { num: "01", title: "Sign Up", text: "Create a free account in under 2 minutes." },
-    { num: "02", title: "Set Goals", text: "Tell us your targets — we'll build the roadmap." },
+    { num: "02", title: "Set Goals", text: "Share your fitness goals — your coach will tailor the plan." },
     { num: "03", title: "Get Your Plan", text: "Receive workouts and nutrition tailored to you." },
     { num: "04", title: "See Results", text: "Track progress and celebrate every milestone." },
   ];
