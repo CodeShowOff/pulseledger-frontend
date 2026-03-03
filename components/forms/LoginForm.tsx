@@ -126,6 +126,19 @@ export const LoginForm: React.FC = () => {
           {deactivatedMessage}
         </p>
       )}
+
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-px bg-gray-200"></div>
+        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">or</span>
+        <div className="flex-1 h-px bg-gray-200"></div>
+      </div>
+      <button
+        type="button"
+        onClick={() => router.push("/auth/register")}
+        className="w-full rounded-full border-2 border-green-600 text-green-700 bg-transparent py-2.5 px-5 text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-green-600 hover:text-white"
+      >
+        Create an Account
+      </button>
     </form>
   );
 };
