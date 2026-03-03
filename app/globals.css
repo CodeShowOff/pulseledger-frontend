@@ -3007,7 +3007,7 @@ body.chat-page-active .coach-content__inner {
   /* Hero: clean, minimal, image-focused like reference */
   .hp-hero {
     min-height: auto;
-    padding: 3.5rem 0.9rem 0;
+    padding: 2.5rem 0.9rem 0;
   }
   .hp-hero__inner {
     min-height: 0;
@@ -3058,7 +3058,7 @@ body.chat-page-active .coach-content__inner {
   /* Let the image breathe — prominent like ref */
   .hp-hero__img {
     width: 100%;
-    margin-top: 4rem;
+    margin-top: 3rem;
     align-self: center;
   }
   .hp-hero__photo {
