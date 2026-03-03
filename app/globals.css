@@ -2505,6 +2505,33 @@ body.chat-page-active .coach-content__inner {
   line-height: 1.65;
   margin: 0;
 }
+.hp-features__nav {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.hp-features__nav-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.hp-features__nav-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
 
 /* ===== REAL RESULTS ===== */
 .hp-results {
@@ -2513,6 +2540,10 @@ body.chat-page-active .coach-content__inner {
   background: var(--bg-section);
   overflow: hidden;
 }
+.hp-results .hp-container {
+  position: relative;
+  z-index: 1;
+}
 .hp-results__bg-top,
 .hp-results__bg-bot {
   position: absolute;
@@ -2520,6 +2551,7 @@ body.chat-page-active .coach-content__inner {
   right: 0;
   height: 80px;
   z-index: 0;
+  pointer-events: none;
 }
 .hp-results__bg-top {
   top: -1px;
@@ -2567,7 +2599,10 @@ body.chat-page-active .coach-content__inner {
   border: 2px solid var(--card-border);
 }
 .hp-carousel__img {
-  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
 }
 .hp-carousel__name {
   font-size: 1.15rem;
@@ -2781,19 +2816,23 @@ body.chat-page-active .coach-content__inner {
 }
 .hp-gallery__item {
   position: relative;
-  width: 260px;
-  height: 180px;
+  width: 220px;
+  height: 280px;
   border-radius: 0.75rem;
   overflow: hidden;
   flex-shrink: 0;
   border: 1px solid var(--card-border);
+  background: var(--card-bg);
 }
 .hp-gallery__img {
-  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
   transition: transform 0.4s;
 }
 .hp-gallery__item:hover .hp-gallery__img {
-  transform: scale(1.06);
+  transform: scale(1.02);
 }
 
 /* ===== CTA ===== */
@@ -2910,16 +2949,37 @@ body.chat-page-active .coach-content__inner {
     gap: 1.5rem;
   }
   .hp-features__grid {
-    grid-template-columns: 1fr;
-    max-width: 480px;
-    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+    max-width: unset;
+  }
+  .hp-features__grid::-webkit-scrollbar {
+    display: none;
+  }
+  .hp-feature {
+    flex: 0 0 78vw;
+    max-width: 300px;
+    scroll-snap-align: start;
+  }
+  .hp-features .hp-container {
+    overflow: visible;
+    padding-right: 1rem;
+  }
+  .hp-features__nav {
+    display: flex;
   }
   .hp-carousel__img-wrapper {
-    width: 160px;
-    height: 210px;
+    width: 170px;
+    height: 230px;
   }
   .hp-carousel__track {
-    min-height: 290px;
+    min-height: 315px;
   }
   .hp-steps__grid {
     grid-template-columns: 1fr;
@@ -2938,8 +2998,8 @@ body.chat-page-active .coach-content__inner {
     padding: 3.5rem 1rem;
   }
   .hp-gallery__item {
-    width: 200px;
-    height: 140px;
+    width: 160px;
+    height: 210px;
   }
 }
 
@@ -3017,8 +3077,8 @@ body.chat-page-active .coach-content__inner {
     padding: 1.75rem;
   }
   .hp-carousel__img-wrapper {
-    width: 130px;
-    height: 180px;
+    width: 145px;
+    height: 205px;
   }
 }
 

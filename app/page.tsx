@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -50,6 +50,7 @@ const transformations = [
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const featuresGridRef = useRef<HTMLDivElement | null>(null);
 
   const dashboardHref =
     user?.role === "coach"
@@ -76,6 +77,16 @@ export default function HomePage() {
     const id = setInterval(nextSlide, 5000);
     return () => clearInterval(id);
   }, [nextSlide]);
+
+  const scrollFeatureCards = useCallback((direction: "prev" | "next") => {
+    const grid = featuresGridRef.current;
+    if (!grid) return;
+    const amount = Math.round(grid.clientWidth * 0.8);
+    grid.scrollBy({
+      left: direction === "next" ? amount : -amount,
+      behavior: "smooth",
+    });
+  }, []);
 
   /* ── Data ── */
   const features = [
@@ -217,7 +228,7 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          <div className="hp-features__grid">
+          <div className="hp-features__grid" ref={featuresGridRef}>
             {features.map((f, i) => (
               <motion.div
                 key={f.title}
@@ -235,6 +246,25 @@ export default function HomePage() {
                 <p>{f.text}</p>
               </motion.div>
             ))}
+          </div>
+
+          <div className="hp-features__nav" aria-label="Feature slides navigation">
+            <button
+              type="button"
+              className="hp-features__nav-btn"
+              onClick={() => scrollFeatureCards("prev")}
+              aria-label="Previous feature"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              className="hp-features__nav-btn"
+              onClick={() => scrollFeatureCards("next")}
+              aria-label="Next feature"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
         </div>
       </section>
@@ -276,7 +306,8 @@ export default function HomePage() {
                       <Image
                         src={transformations[currentSlide].before}
                         alt={`${transformations[currentSlide].name} before`}
-                        fill
+                        width={900}
+                        height={1200}
                         sizes="(max-width: 768px) 45vw, 240px"
                         className="hp-carousel__img"
                       />
@@ -285,7 +316,8 @@ export default function HomePage() {
                       <Image
                         src={transformations[currentSlide].after}
                         alt={`${transformations[currentSlide].name} after`}
-                        fill
+                        width={900}
+                        height={1200}
                         sizes="(max-width: 768px) 45vw, 240px"
                         className="hp-carousel__img"
                       />
@@ -429,7 +461,14 @@ export default function HomePage() {
           {["/images/exercise1.jpg", "/images/exercise2.jpg", "/images/exercise3.jpg", "/images/exercise1.jpg", "/images/exercise2.jpg", "/images/exercise3.jpg"].map(
             (src, i) => (
               <div key={i} className="hp-gallery__item">
-                <Image src={src} alt="Training" fill sizes="280px" className="hp-gallery__img" />
+                <Image
+                  src={src}
+                  alt="Training"
+                  width={900}
+                  height={1200}
+                  sizes="220px"
+                  className="hp-gallery__img"
+                />
               </div>
             )
           )}
