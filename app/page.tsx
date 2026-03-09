@@ -64,21 +64,21 @@ export default function HomePage() {
     user?.role === "coach"
       ? "/coach/dashboard"
       : user?.role === "client"
-      ? "/client/dashboard"
-      : user?.role === "admin"
-      ? "/admin/dashboard"
-      : "/";
+        ? "/client/dashboard"
+        : user?.role === "admin"
+          ? "/admin/dashboard"
+          : "/";
 
   const nextSlide = useCallback(
     () => setCurrentSlide((i) => (i + 1) % transformations.length),
-    []
+    [],
   );
   const prevSlide = useCallback(
     () =>
       setCurrentSlide(
-        (i) => (i - 1 + transformations.length) % transformations.length
+        (i) => (i - 1 + transformations.length) % transformations.length,
       ),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -131,10 +131,26 @@ export default function HomePage() {
   ];
 
   const steps = [
-    { num: "01", title: "Sign Up", text: "Create a free account in under 2 minutes." },
-    { num: "02", title: "Set Goals", text: "Share your fitness goals — your coach will tailor the plan." },
-    { num: "03", title: "Get Your Plan", text: "Receive workouts and nutrition tailored to you." },
-    { num: "04", title: "See Results", text: "Track progress and celebrate every milestone." },
+    {
+      num: "01",
+      title: "Sign Up",
+      text: "Create a free account in under 2 minutes.",
+    },
+    {
+      num: "02",
+      title: "Set Goals",
+      text: "Share your fitness goals — your coach will tailor the plan.",
+    },
+    {
+      num: "03",
+      title: "Get Your Plan",
+      text: "Receive workouts and nutrition tailored to you.",
+    },
+    {
+      num: "04",
+      title: "See Results",
+      text: "Track progress and celebrate every milestone.",
+    },
   ];
 
   /* ── Render ── */
@@ -510,6 +526,7 @@ export default function HomePage() {
                 alt="Training"
                 fill
                 sizes="220px"
+                loading="lazy"
                 className="hp-gallery__img"
               />
             </div>
