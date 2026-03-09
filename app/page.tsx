@@ -21,29 +21,37 @@ import {
   Target,
   Zap,
 } from "lucide-react";
+import { after } from "node:test";
 
 /* ── Transformation carousel data ── */
 const transformations = [
   {
-    name: "Patrick",
-    before: "/images/exercise1.jpg",
-    after: "/images/exercise2.jpg",
-    weightBefore: "140 kg",
-    weightAfter: "80 kg",
-  },
-  {
     name: "Sophia",
-    before: "/images/exercise3.jpg",
-    after: "/images/exercise1.jpg",
-    weightBefore: "58 kg",
-    weightAfter: "54 kg",
+    after: "/images/1.png",
+    before: "/images/2.png",
+    weightBefore: "88 kg",
+    weightAfter: "76 kg",
   },
   {
     name: "James",
-    before: "/images/exercise2.jpg",
-    after: "/images/exercise3.jpg",
-    weightBefore: "105 kg",
-    weightAfter: "82 kg",
+    after: "/images/3.png",
+    before: "/images/4.png",
+    weightBefore: "98 kg",
+    weightAfter: "79 kg",
+  },
+  {
+    name: "Patrick",
+    after: "/images/5.png",
+    before: "/images/6.png",
+    weightBefore: "63 kg",
+    weightAfter: "72 kg",
+  },
+  {
+    name: "Lily",
+    after: "/images/7.png",
+    before: "/images/8.png",
+    weightBefore: "59 kg",
+    weightAfter: "67 kg",
   },
 ];
 
@@ -148,7 +156,8 @@ export default function HomePage() {
               <span className="hp-hero__title-accent"> with FitCoach</span>
             </h1>
             <p className="hp-hero__sub">
-              Personalized coaching to help you reach your health &amp; fitness goals.
+              Personalized coaching to help you reach your health &amp; fitness
+              goals.
             </p>
             <div className="hp-hero__actions">
               {user ? (
@@ -157,10 +166,16 @@ export default function HomePage() {
                 </Link>
               ) : (
                 <>
-                  <Link href="/auth/register" className="hp-btn hp-btn--primary">
+                  <Link
+                    href="/auth/register"
+                    className="hp-btn hp-btn--primary"
+                  >
                     Get Started Free <ArrowRight size={18} />
                   </Link>
-                  <Link href="/auth/login" className="hp-btn hp-btn--secondary hp-hero__signin">
+                  <Link
+                    href="/auth/login"
+                    className="hp-btn hp-btn--secondary hp-hero__signin"
+                  >
                     Sign In
                   </Link>
                 </>
@@ -248,7 +263,10 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="hp-features__nav" aria-label="Feature slides navigation">
+          <div
+            className="hp-features__nav"
+            aria-label="Feature slides navigation"
+          >
             <button
               type="button"
               className="hp-features__nav-btn"
@@ -327,8 +345,7 @@ export default function HomePage() {
                     {transformations[currentSlide].name}
                   </h3>
                   <p className="hp-carousel__weight">
-                    {transformations[currentSlide].weightBefore}{" "}
-                    <span>→</span>{" "}
+                    {transformations[currentSlide].weightBefore} <span>→</span>{" "}
                     {transformations[currentSlide].weightAfter}
                   </p>
                 </motion.div>
@@ -417,10 +434,18 @@ export default function HomePage() {
               <div className="hp-role__badge">For Coaches</div>
               <h3>Grow your coaching business</h3>
               <ul>
-                <li><CheckCircle2 size={16} /> Unlimited client profiles</li>
-                <li><CheckCircle2 size={16} /> Custom workout &amp; diet plans</li>
-                <li><CheckCircle2 size={16} /> Revenue tracking</li>
-                <li><CheckCircle2 size={16} /> Built-in marketplace</li>
+                <li>
+                  <CheckCircle2 size={16} /> Unlimited client profiles
+                </li>
+                <li>
+                  <CheckCircle2 size={16} /> Custom workout &amp; diet plans
+                </li>
+                <li>
+                  <CheckCircle2 size={16} /> Revenue tracking
+                </li>
+                <li>
+                  <CheckCircle2 size={16} /> Built-in marketplace
+                </li>
               </ul>
               {!user && (
                 <Link href="/auth/register" className="hp-role__link">
@@ -440,10 +465,18 @@ export default function HomePage() {
               <div className="hp-role__badge">For Clients</div>
               <h3>Achieve your health goals</h3>
               <ul>
-                <li><CheckCircle2 size={16} /> Personalized routines</li>
-                <li><CheckCircle2 size={16} /> Diet &amp; meal plans</li>
-                <li><CheckCircle2 size={16} /> Progress charts</li>
-                <li><CheckCircle2 size={16} /> Direct chat with coach</li>
+                <li>
+                  <CheckCircle2 size={16} /> Personalized routines
+                </li>
+                <li>
+                  <CheckCircle2 size={16} /> Diet &amp; meal plans
+                </li>
+                <li>
+                  <CheckCircle2 size={16} /> Progress charts
+                </li>
+                <li>
+                  <CheckCircle2 size={16} /> Direct chat with coach
+                </li>
               </ul>
               {!user && (
                 <Link href="/auth/register" className="hp-role__link">
@@ -458,20 +491,29 @@ export default function HomePage() {
       {/* ===== GALLERY STRIP ===== */}
       <section className="hp-gallery">
         <div className="hp-gallery__track">
-          {["/images/exercise1.jpg", "/images/exercise2.jpg", "/images/exercise3.jpg", "/images/exercise1.jpg", "/images/exercise2.jpg", "/images/exercise3.jpg"].map(
-            (src, i) => (
-              <div key={i} className="hp-gallery__item">
-                <Image
-                  src={src}
-                  alt="Training"
-                  width={900}
-                  height={1200}
-                  sizes="220px"
-                  className="hp-gallery__img"
-                />
-              </div>
-            )
-          )}
+          {[
+            "/images/exercise1.jpg",
+            "/images/exercise (2).jpg",
+            "/images/exercise (6).jpg",
+            "/images/exercise (1).jpg",
+            "/images/exercise2.jpg",
+            "/images/exercise (3).jpg",
+            "/images/exercise (4).jpg",
+            "/images/exercise (5).jpg",
+            "/images/exercise3.jpg",
+            "/images/exercise (7).jpg",
+            "/images/exercise (8).jpg",
+          ].map((src, i) => (
+            <div key={i} className="hp-gallery__item">
+              <Image
+                src={src}
+                alt="Training"
+                fill
+                sizes="220px"
+                className="hp-gallery__img"
+              />
+            </div>
+          ))}
         </div>
       </section>
 
@@ -486,20 +528,29 @@ export default function HomePage() {
           >
             <h2>Ready to Transform Your Health Journey?</h2>
             <p>
-              Join thousands of coaches and clients already achieving their wellness goals.
-              Start your free account today.
+              Join thousands of coaches and clients already achieving their
+              wellness goals. Start your free account today.
             </p>
             <div className="hp-cta__actions">
               {user ? (
-                <Link href={dashboardHref} className="hp-btn hp-btn--primary hp-btn--lg">
+                <Link
+                  href={dashboardHref}
+                  className="hp-btn hp-btn--primary hp-btn--lg"
+                >
                   Go to Dashboard <ArrowRight size={18} />
                 </Link>
               ) : (
                 <>
-                  <Link href="/auth/register" className="hp-btn hp-btn--primary hp-btn--lg">
+                  <Link
+                    href="/auth/register"
+                    className="hp-btn hp-btn--primary hp-btn--lg"
+                  >
                     Get Started Free <ArrowRight size={18} />
                   </Link>
-                  <Link href="/auth/login" className="hp-btn hp-btn--secondary hp-btn--lg">
+                  <Link
+                    href="/auth/login"
+                    className="hp-btn hp-btn--secondary hp-btn--lg"
+                  >
                     Sign In
                   </Link>
                 </>

@@ -2807,7 +2807,7 @@ body.chat-page-active .coach-content__inner {
 .hp-gallery__track {
   display: flex;
   gap: 1rem;
-  animation: hpScroll 28s linear infinite;
+  animation: hpScroll 22s linear infinite;
   width: max-content;
 }
 @keyframes hpScroll {
@@ -2827,7 +2827,7 @@ body.chat-page-active .coach-content__inner {
 .hp-gallery__img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   transition: transform 0.4s;
 }
