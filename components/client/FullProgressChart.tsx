@@ -237,18 +237,21 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
                   borderRadius: "8px",
                   boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                 }}
-                labelFormatter={(value: string) => {
-                  try {
-                    return new Date(value).toLocaleString("en-US", { 
-                      month: "short", 
-                      day: "numeric", 
-                      year: "numeric",
-                      hour: "2-digit", 
-                      minute: "2-digit" 
-                    });
-                  } catch {
-                    return value;
+                labelFormatter={(value: unknown) => {
+                  if (typeof value !== "string" && typeof value !== "number" && !(value instanceof Date)) {
+                    return value as React.ReactNode;
                   }
+                  const date = new Date(value);
+                  if (Number.isNaN(date.getTime())) {
+                    return String(value);
+                  }
+                  return date.toLocaleString("en-US", { 
+                    month: "short", 
+                    day: "numeric", 
+                    year: "numeric",
+                    hour: "2-digit", 
+                    minute: "2-digit" 
+                  });
                 }}
                 labelStyle={{ color: "#1e293b", fontWeight: "600" }}
               />
