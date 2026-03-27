@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, Shield, ChevronDown } from "lucide-react";
 
 const Footer = React.memo(function Footer() {
@@ -35,6 +36,9 @@ const Footer = React.memo(function Footer() {
           {/* Brand Section */}
           <div className="footer-modern__brand">
             <Link href="/" className="footer-modern__logo">
+              <span className="footer-modern__logo-mark" aria-hidden="true">
+                <Image src="/logo.png" alt="" width={28} height={28} className="footer-modern__logo-icon" />
+              </span>
               <span className="footer-modern__logo-text">FitCoach</span>
             </Link>
             <p className="footer-modern__tagline">

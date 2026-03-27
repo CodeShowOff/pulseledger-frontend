@@ -11,12 +11,13 @@ import WaterIntakeWidget from "@/components/client/WaterIntakeWidget";
 import GoalWeightWidget from "@/components/client/GoalWeightWidget";
 import { useMyCoachQuery } from "@/lib/queries/coach";
 import RoleGuard from "@/components/shared/RoleGuard";
+import styles from "./dashboard.module.css";
 
 export default function ClientDashboardPage() {
   const { data: coach, isLoading } = useMyCoachQuery();
 
   return (
-    <div className="client-page__sections">
+    <div className={`client-page__sections ${styles.dashboardRoot}`}>
       <RoleGuard role="client" />
       <header className="client-page__header">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
@@ -33,40 +34,26 @@ export default function ClientDashboardPage() {
 
       {/* Company Name Display */}
       {!isLoading && (
-        <div style={{ display: "flex", justifyContent: "center", marginTop: "0.25rem" }}>
-          <span className="navbar-modern__logo-text" style={{ fontSize: "1.3rem" }}>
+        <div className={styles.brandRow}>
+          <span className={`navbar-modern__logo-text ${styles.brandText}`}>
             {coach?.companyName || "FitCoach"}
           </span>
         </div>
       )}
 
       {/* Water Intake and Goal Weight Widgets - Same Row */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: "1rem",
-          marginTop: "0.75rem",
-        }}
-      >
+      <div className={styles.widgetsGrid}>
         <WaterIntakeWidget />
         <GoalWeightWidget />
       </div>
 
       {/* Workout and Diet Quick Access - Same Row */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "1rem",
-          marginTop: "1rem",
-        }}
-      >
-        <div className="client-card client-card--highlight" style={{ display: "flex", flexDirection: "column" }}>
-          <div className="client-card__header" style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-              <span style={{ fontSize: "2rem" }}>💪</span>
-              <p className="client-card__title" style={{ margin: 0 }}>Today's Workout</p>
+      <div className={styles.quickAccessGrid}>
+        <div className={`client-card client-card--highlight ${styles.quickCard}`}>
+          <div className={`client-card__header ${styles.quickCardHeader}`}>
+            <div className={styles.quickCardTitleRow}>
+              <span className={styles.quickCardEmoji}>💪</span>
+              <p className={`client-card__title ${styles.quickCardTitle}`}>Today's Workout</p>
             </div>
             <p className="client-card__subtitle">
               View today's workout plan and track your progress.
@@ -74,23 +61,17 @@ export default function ClientDashboardPage() {
           </div>
           <Link 
             href="/client/workouts/today" 
-            className="client-button"
-            style={{ 
-              marginTop: "auto",
-              textAlign: "center",
-              padding: "0.65rem 1.5rem",
-              fontSize: "0.9rem"
-            }}
+            className={`client-button ${styles.quickCardAction}`}
           >
             View Today's Workout
           </Link>
         </div>
 
-        <div className="client-card client-card--highlight" style={{ display: "flex", flexDirection: "column" }}>
-          <div className="client-card__header" style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-              <span style={{ fontSize: "2rem" }}>🥗</span>
-              <p className="client-card__title" style={{ margin: 0 }}>Today's Nutrition</p>
+        <div className={`client-card client-card--highlight ${styles.quickCard}`}>
+          <div className={`client-card__header ${styles.quickCardHeader}`}>
+            <div className={styles.quickCardTitleRow}>
+              <span className={styles.quickCardEmoji}>🥗</span>
+              <p className={`client-card__title ${styles.quickCardTitle}`}>Today's Nutrition</p>
             </div>
             <p className="client-card__subtitle">
               Track today's meals and stay on top of your nutrition goals.
@@ -98,13 +79,7 @@ export default function ClientDashboardPage() {
           </div>
           <Link 
             href="/client/diet/today" 
-            className="client-button"
-            style={{ 
-              marginTop: "auto",
-              textAlign: "center",
-              padding: "0.65rem 1.5rem",
-              fontSize: "0.9rem"
-            }}
+            className={`client-button ${styles.quickCardAction}`}
           >
             View Today's Nutrition
           </Link>
@@ -112,19 +87,12 @@ export default function ClientDashboardPage() {
       </div>
 
       {/* Nutrition Index and Calorie Calculator - Same Row */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "1rem",
-          marginTop: "1rem",
-        }}
-      >
-        <div className="client-card client-card--highlight" style={{ display: "flex", flexDirection: "column" }}>
-          <div className="client-card__header" style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-              <span style={{ fontSize: "2rem" }}>📊</span>
-              <p className="client-card__title" style={{ margin: 0 }}>Indian Food Nutrition Index</p>
+      <div className={styles.quickAccessGrid}>
+        <div className={`client-card client-card--highlight ${styles.quickCard}`}>
+          <div className={`client-card__header ${styles.quickCardHeader}`}>
+            <div className={styles.quickCardTitleRow}>
+              <span className={styles.quickCardEmoji}>📊</span>
+              <p className={`client-card__title ${styles.quickCardTitle}`}>Indian Food Nutrition Index</p>
             </div>
             <p className="client-card__subtitle">
               Search macros and micros for popular Indian dishes.
@@ -132,23 +100,17 @@ export default function ClientDashboardPage() {
           </div>
           <Link 
             href="/indian-nutrition-index" 
-            className="client-button"
-            style={{ 
-              marginTop: "auto",
-              textAlign: "center",
-              padding: "0.65rem 1.5rem",
-              fontSize: "0.9rem"
-            }}
+            className={`client-button ${styles.quickCardAction}`}
           >
             Open Nutrition Index
           </Link>
         </div>
 
-        <div className="client-card client-card--highlight" style={{ display: "flex", flexDirection: "column" }}>
-          <div className="client-card__header" style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-              <span style={{ fontSize: "2rem" }}>🧮</span>
-              <p className="client-card__title" style={{ margin: 0 }}>Daily Calorie Calculator</p>
+        <div className={`client-card client-card--highlight ${styles.quickCard}`}>
+          <div className={`client-card__header ${styles.quickCardHeader}`}>
+            <div className={styles.quickCardTitleRow}>
+              <span className={styles.quickCardEmoji}>🧮</span>
+              <p className={`client-card__title ${styles.quickCardTitle}`}>Daily Calorie Calculator</p>
             </div>
             <p className="client-card__subtitle">
               Estimate your daily calorie needs and suggested macros.
@@ -156,13 +118,7 @@ export default function ClientDashboardPage() {
           </div>
           <Link 
             href="/calorie-calculator" 
-            className="client-button"
-            style={{ 
-              marginTop: "auto",
-              textAlign: "center",
-              padding: "0.65rem 1.5rem",
-              fontSize: "0.9rem"
-            }}
+            className={`client-button ${styles.quickCardAction}`}
           >
             Open Calorie Calculator
           </Link>

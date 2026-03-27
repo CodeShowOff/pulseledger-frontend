@@ -74,7 +74,7 @@ export default function CoachCreateVoucherPage() {
         </div>
       </section>
 
-      <div className="admin-card max-w-2xl">
+      <div className="admin-card">
         <form
           onSubmit={(e) => {
             e.preventDefault();

@@ -1,0 +1,50 @@
+.content {
+  width: 100%;
+  padding: var(--page-gutter-block) var(--page-gutter-inline) calc(var(--page-gutter-block) + 0.75rem);
+}
+
+/* Remove padding when containing chat */
+.content:has(.chatPageFull) {
+  padding: 0;
+  margin: 0;
+  min-height: calc(100vh - 76px);
+  height: calc(100vh - 76px);
+  background-color: #ffffff;
+  overflow: hidden;
+}
+
+/* Mobile: ensure absolutely no padding or margin */
+@media (max-width: 768px) {
+  .content:has(.chatPageFull) {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: calc(100vh - 76px) !important;
+    height: calc(100vh - 76px) !important;
+    max-height: calc(100vh - 76px) !important;
+    overflow: hidden !important;
+  }
+}
+
+.contentInner {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+:global(body.chat-page-active) .content {
+  min-height: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  background: #ffffff;
+}
+
+:global(body.chat-page-active) .contentInner {
+  max-width: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  gap: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}

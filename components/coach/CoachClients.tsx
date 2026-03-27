@@ -1,39 +1,35 @@
-// src/components/coach/CoachClients.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import api from "@/lib/axios";
-import { useCoachPendingPlanRequests, COACH_PENDING_PLAN_REQUESTS_KEY } from "@/lib/queries/planRequests";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Activity,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  FileText,
+  Mail,
+  MessageSquare,
+  Phone,
+  Search,
+  User,
+  X,
+} from "lucide-react";
+import api from "@/lib/axios";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
-import { User, Mail, Activity, FileText, Clock, MessageCircle, ChevronLeft, ChevronRight, Check, X, MessageSquare } from "lucide-react";
-
-// Mobile responsive styles
-const mobileStyles = `
-  @media (max-width: 640px) {
-    .hide-on-mobile {
-      display: none !important;
-    }
-    .action-buttons {
-      flex-direction: row;
-      justify-content: flex-start;
-      width: 100% !important;
-    }
-    .action-buttons a {
-      flex: 1;
-      justify-content: center;
-    }
-    .action-buttons span {
-      display: none;
-    }
-  }
-  @media (min-width: 641px) {
-    .action-buttons {
-      width: auto !important;
-    }
-  }
-`;
+import {
+  COACH_PENDING_PLAN_REQUESTS_KEY,
+  useCoachPendingPlanRequests,
+} from "@/lib/queries/planRequests";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import styles from "./CoachClients.module.css";
 
 type Client = {
   _id: string;
@@ -66,7 +62,13 @@ type Client = {
   };
 };
 
-const CLIENTS_PER_PAGE = 5;
+type PendingPlanRequest = {
+  _id: string;
+  clientId?: { _id?: string };
+  planId?: { title?: string };
+};
+
+const CLIENTS_PER_PAGE = 6;
 
 const formatDate = (value?: string | null) => {
   if (!value) return null;
@@ -75,27 +77,55 @@ const formatDate = (value?: string | null) => {
   return parsed.toLocaleDateString();
 };
 
-const fetchClients = async (page = 1, search = "") => {
-  const params = new URLSearchParams({ page: String(page), limit: "100" });
-  if (search.trim()) {
-    params.set("search", search.trim());
-  }
+const fetchClients = async (search = "") => {
+  const params = new URLSearchParams({ page: "1", limit: "100" });
+  if (search.trim()) params.set("search", search.trim());
   const res = await api.get(`/coach/clients?${params.toString()}`);
   return res.data;
 };
 
+function getPlanLabel(client: Client) {
+  if (client.planSummary?.current) {
+    return {
+      title: `${client.planSummary.current.planTitle || "Plan"}${
+        client.planSummary.current.type === "default" ? " (Default)" : ""
+      }`,
+      endDate:
+        client.planSummary.current.type === "subscription"
+          ? formatDate(client.planSummary.current.endDate)
+          : null,
+    };
+  }
+
+  if (client.planSummary?.defaultPlan) {
+    return {
+      title: client.planSummary.defaultPlan.title || "Default plan",
+      endDate: null,
+    };
+  }
+
+  return {
+    title: "No assigned plan",
+    endDate: null,
+  };
+}
+
 export default function CoachClients() {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim(), 400);
+  const debouncedSearch = useDebouncedValue(search.trim(), 350);
 
   const { data, isLoading, isFetching, error } = useQuery({
-    queryKey: ["coachClients", 1, debouncedSearch],
-    queryFn: () => fetchClients(1, debouncedSearch),
-    placeholderData: (previousData) => previousData, // Keep previous data while fetching
+    queryKey: ["coachClients", debouncedSearch],
+    queryFn: () => fetchClients(debouncedSearch),
+    placeholderData: (previousData) => previousData,
   });
-  const { data: pendingRequests = [] } = useCoachPendingPlanRequests();
+
+  const { data: pendingRequestsData = [] } = useCoachPendingPlanRequests();
+  const pendingRequests = pendingRequestsData as PendingPlanRequest[];
   const queryClient = useQueryClient();
+
   const approveMutation = useMutation({
     mutationFn: async (id: string) => api.patch(`/plan-requests/${id}/approve`),
     onSuccess: () => {
@@ -104,6 +134,7 @@ export default function CoachClients() {
       queryClient.invalidateQueries({ queryKey: ["coachSubscriptions"] });
     },
   });
+
   const declineMutation = useMutation({
     mutationFn: async (id: string) => api.patch(`/plan-requests/${id}/decline`),
     onSuccess: () => {
@@ -113,322 +144,257 @@ export default function CoachClients() {
   });
 
   const clients: Client[] = data?.data ?? [];
-  const totalPages = Math.ceil(clients.length / CLIENTS_PER_PAGE);
+
+  const totalPages = Math.max(1, Math.ceil(clients.length / CLIENTS_PER_PAGE));
   const paginatedClients = clients.slice(
     (currentPage - 1) * CLIENTS_PER_PAGE,
     currentPage * CLIENTS_PER_PAGE
   );
 
   useEffect(() => {
-    if (totalPages > 0 && currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [totalPages, currentPage]);
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
 
-  // Show initial loading state only on first load
+  const pageInfoText = useMemo(() => {
+    if (!clients.length) return "No results";
+    const start = (currentPage - 1) * CLIENTS_PER_PAGE + 1;
+    const end = Math.min(currentPage * CLIENTS_PER_PAGE, clients.length);
+    return `${start}-${end} of ${clients.length}`;
+  }, [clients.length, currentPage]);
+
   if (isLoading && !data) {
-    return <p>Loading clients...</p>;
+    return (
+      <Card className="border-slate-200/80 bg-white/95">
+        <CardContent className="p-6 text-sm text-slate-500">Loading clients...</CardContent>
+      </Card>
+    );
   }
 
   if (error) {
-    return <p>Error loading clients</p>;
+    return (
+      <Card className="border-rose-200 bg-rose-50/80">
+        <CardContent className="p-6 text-sm font-medium text-rose-700">
+          Error loading clients. Please try again.
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: mobileStyles }} />
-      <div>
-        <div className="admin-page-header" style={{ padding: 0, marginBottom: "0.75rem" }}>
-          <h3 className="admin-page-header__title" style={{ fontSize: "1.05rem" }}>
-            Assigned Clients
-          </h3>
-          <p className="admin-page-header__subtitle" style={{ fontSize: "0.85rem" }}>
-            Overview of all clients linked to your coaching account.
-          </p>
-        </div>
+    <div className={styles.clientsRoot}>
+      <Card className={styles.toolbarCard}>
+        <CardContent className="px-5 pb-4 pt-5 md:px-5 md:pb-4 md:pt-5">
+          <div className={styles.toolbarInner}>
+            <div className={styles.toolbarCopy}>
+              <h2 className={styles.toolbarTitle}>Assigned Clients</h2>
+              <p className={styles.toolbarSubtext}>Overview of all clients linked to your coaching account.</p>
+            </div>
 
-      <div style={{ marginBottom: "0.75rem", maxWidth: 320, position: "relative" }}>
-        <input
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setCurrentPage(1);
-          }}
-          placeholder="Search by name, email, or phone"
-          className="admin-search-input"
-          style={{ width: "100%", padding: "0.5rem 0.75rem" }}
-        />
-        {isFetching && (
-          <span style={{ 
-            position: "absolute", 
-            right: "0.75rem", 
-            top: "50%", 
-            transform: "translateY(-50%)",
-            fontSize: "0.75rem",
-            color: "var(--admin-color-text-secondary, #6b7280)"
-          }}>
-            Loading...
-          </span>
-        )}
-      </div>
+            <div className={styles.searchWrap}>
+              <Search className={styles.searchIcon} />
+              <Input
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Search name, email, phone"
+                className={styles.searchInput}
+              />
+              {isFetching ? (
+                <span className={styles.searchStatus}>Updating...</span>
+              ) : null}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Card-based layout */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "1rem", opacity: isFetching ? 0.6 : 1, transition: "opacity 0.2s" }}>
-        {paginatedClients.map((c) => {
-          const clientPending = pendingRequests.filter((r: any) => r.clientId?._id === c._id);
+      <div className={styles.list}>
+        {paginatedClients.map((client, idx) => {
+          const clientPending = pendingRequests.filter((r) => r.clientId?._id === client._id);
+          const plan = getPlanLabel(client);
 
           return (
-            <div
-              key={c._id}
-              style={{
-                background: "#fff",
-                border: "1px solid var(--admin-color-border, #e5e7eb)",
-                borderRadius: "0.75rem",
-                padding: "1rem",
-                boxShadow: "var(--admin-shadow-soft, 0 1px 3px rgba(0,0,0,0.1))",
+            <motion.div
+              key={client._id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.03, duration: 0.2 }}
+              whileHover={{ y: -2 }}
+              className={styles.cardMotion}
+              role="button"
+              tabIndex={0}
+              onClick={() => router.push(`/coach/clients/${client._id}`)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  router.push(`/coach/clients/${client._id}`);
+                }
               }}
             >
-              {/* First Row: Avatar, Name, Email, Phone, Actions */}
-              <div 
-                style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: "1rem",
-                  marginBottom: "0.75rem",
-                  flexWrap: "wrap"
-                }}
-              >
-                {/* Avatar + Name & Email */}
-                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flex: "1 1 auto", minWidth: "220px" }}>
-                  <div style={{
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "50%",
-                    backgroundColor: "#e0f2fe",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0
-                  }}>
-                    <User size={24} style={{ color: "#0284c7" }} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: "0.95rem", marginBottom: "0.25rem" }}>
-                      {c.fullName}
+              <Card className={styles.clientCard}>
+                <CardContent className={styles.clientCardBody}>
+                  <div className={styles.topRow}>
+                    <div className={styles.identity}>
+                      <div className={styles.avatar}>
+                        <User className="h-5 w-5" />
+                      </div>
+                      <div className={styles.nameWrap}>
+                        <p className={styles.clientName}>{client.fullName}</p>
+                        <p className={styles.clientEmail}>
+                          <Mail className="h-3.5 w-3.5" />
+                          <span className={styles.clientEmailText}>{client.email}</span>
+                        </p>
+                      </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.75rem", color: "#6b7280" }}>
-                      <Mail size={12} style={{ flexShrink: 0 }} />
-                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {c.email}
-                      </span>
+
+                    <div className={styles.metricCard}>
+                      <p className={styles.metricLabel}>
+                        <Activity className="h-3.5 w-3.5" />
+                        BMI
+                      </p>
+                      <p className={styles.metricValue}>{client.latestProgress?.bmi ?? "-"}</p>
                     </div>
-                  </div>
-                </div>
 
-                {/* WhatsApp Number - Hidden on mobile */}
-                <div className="hide-on-mobile" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  {c.whatsappNumber ? (
-                    <div style={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      gap: "0.4rem",
-                      fontSize: "0.85rem",
-                      color: "#059669",
-                      padding: "0.35rem 0.65rem",
-                      backgroundColor: "#d1fae5",
-                      borderRadius: "0.375rem"
-                    }}>
-                      <span>📱</span>
-                      <span style={{ fontWeight: 500 }}>{c.whatsappNumber}</span>
+                    <div className={styles.planCard}>
+                      <div className={styles.planHeader}>
+                        <p className={styles.planLabel}>
+                          <FileText className="h-3.5 w-3.5" />
+                          Plan
+                        </p>
+                        {plan.endDate ? (
+                          <p className={styles.planEndDate}>
+                            <Clock className="h-3.5 w-3.5" />
+                            Ends {plan.endDate}
+                          </p>
+                        ) : null}
+                      </div>
+                      <p className={styles.planTitle}>{plan.title}</p>
                     </div>
-                  ) : (
-                    <div style={{ fontSize: "0.8rem", color: "#9ca3af" }}>No phone</div>
-                  )}
-                </div>
 
-                {/* Action Buttons */}
-                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }} className="action-buttons">
-                  <Link
-                    href={`/coach/chat?clientId=${c._id}`}
-                    className="btn btn--primary"
-                    style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.85rem", padding: "0.5rem 1rem" }}
-                  >
-                    <MessageSquare size={16} />
-                    <span>Chat</span>
-                  </Link>
-                  <Link
-                    href={`/coach/clients/${c._id}`}
-                    className="btn btn--outline"
-                    style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.85rem", padding: "0.5rem 1rem" }}
-                  >
-                    <User size={16} />
-                    <span>View Profile</span>
-                  </Link>
-                </div>
-              </div>
+                    <div className={styles.actions}>
+                      {client.whatsappNumber ? (
+                        <Badge variant="success" className={`normal-case tracking-normal ${styles.phoneBadge}`}>
+                          <Phone className="mr-1 h-4 w-4" />
+                          {client.whatsappNumber}
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className={`normal-case tracking-normal ${styles.phoneBadge}`}>No phone</Badge>
+                      )}
 
-              {/* Second Row: BMI, Plan - Hidden on mobile */}
-              <div className="hide-on-mobile" style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: "1rem",
-                flexWrap: "wrap",
-                paddingTop: "0.75rem",
-                borderTop: "1px solid #f3f4f6"
-              }}>
-                {/* BMI */}
-                <div style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: "0.5rem",
-                  padding: "0.5rem 0.75rem",
-                  backgroundColor: "#f0fdf4",
-                  borderRadius: "0.5rem",
-                  border: "1px solid #bbf7d0",
-                  minWidth: "120px"
-                }}>
-                  <Activity size={16} style={{ color: "#16a34a" }} />
-                  <div>
-                    <div style={{ fontSize: "0.7rem", color: "#6b7280", fontWeight: 500 }}>BMI</div>
-                    <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#16a34a" }}>
-                      {c.latestProgress?.bmi ?? "-"}
+                      <Link
+                        href={`/coach/chat?clientId=${client._id}`}
+                        className={`${styles.linkBtn} ${styles.linkBtnPrimary}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        Chat
+                      </Link>
                     </div>
                   </div>
-                </div>
-                
-                {/* Plan Info */}
-                <div style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: "0.5rem",
-                  flex: "0 1 auto",
-                  maxWidth: "400px",
-                  padding: "0.5rem 0.75rem",
-                  backgroundColor: "#faf5ff",
-                  borderRadius: "0.5rem",
-                  border: "1px solid #e9d5ff"
-                }}>
-                  <FileText size={16} style={{ color: "#9333ea", flexShrink: 0 }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {c.planSummary?.current ? (
-                      <>
-                        <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "#581c87", marginBottom: "0.1rem" }}>
-                          {c.planSummary.current.planTitle || "Plan"}
-                          {c.planSummary.current.type === "default" && " (Default)"}
-                        </div>
-                        {c.planSummary.current.type === "subscription" && formatDate(c.planSummary.current.endDate) && (
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.7rem", color: "#6b7280" }}>
-                            <Clock size={11} />
-                            <span>Ends {formatDate(c.planSummary.current.endDate)}</span>
+
+                  {clientPending.length > 0 ? (
+                    <div className={styles.pendingBox}>
+                      <p className={styles.pendingTitle}>
+                        {clientPending.length} pending request{clientPending.length > 1 ? "s" : ""}
+                      </p>
+                      <div className={styles.pendingList}>
+                        {clientPending.map((req) => (
+                          <div key={req._id} className={styles.pendingItem}>
+                            <p className={styles.pendingName}>{req.planId?.title || "Plan request"}</p>
+                            <div className={styles.pendingActions}>
+                              <Button
+                                type="button"
+                                size="sm"
+                                className={styles.pendingBtn}
+                                disabled={approveMutation.isPending || declineMutation.isPending}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  approveMutation.mutate(req._id);
+                                }}
+                              >
+                                <Check className="h-3.5 w-3.5" />
+                                Approve
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="destructive"
+                                className={styles.pendingBtn}
+                                disabled={approveMutation.isPending || declineMutation.isPending}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  declineMutation.mutate(req._id);
+                                }}
+                              >
+                                <X className="h-3.5 w-3.5" />
+                                Decline
+                              </Button>
+                            </div>
                           </div>
-                        )}
-                      </>
-                    ) : c.planSummary?.defaultPlan ? (
-                      <div style={{ fontSize: "0.85rem", color: "#581c87" }}>
-                        {c.planSummary.defaultPlan.title || "Default plan"}
+                        ))}
                       </div>
-                    ) : (
-                      <div style={{ fontSize: "0.85rem", color: "#9ca3af" }}>No plan</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Pending Requests */}
-              {clientPending.length > 0 && (
-                <div style={{ 
-                  background: "#fef3c7", 
-                  borderRadius: "0.5rem", 
-                  padding: "0.75rem", 
-                }}>
-                  <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#92400e", marginBottom: "0.5rem", display: "block" }}>
-                    {clientPending.length} Pending Request{clientPending.length > 1 ? "s" : ""}
-                  </span>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    {clientPending.map((req: any) => (
-                      <div key={req._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem" }}>
-                        <span style={{ fontSize: "0.8rem", color: "#78350f" }}>{req.planId?.title || "Plan Request"}</span>
-                        <div style={{ display: "flex", gap: "0.25rem" }}>
-                          <button
-                            type="button"
-                            disabled={approveMutation.isPending || declineMutation.isPending}
-                            onClick={() => approveMutation.mutate(req._id)}
-                            className="btn btn--primary"
-                            style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem", display: "flex", alignItems: "center", gap: "0.25rem" }}
-                          >
-                            <Check size={12} />
-                            Approve
-                          </button>
-                          <button
-                            type="button"
-                            disabled={approveMutation.isPending || declineMutation.isPending}
-                            onClick={() => declineMutation.mutate(req._id)}
-                            className="btn btn--danger"
-                            style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem", display: "flex", alignItems: "center", gap: "0.25rem" }}
-                          >
-                            <X size={12} />
-                            Decline
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
+            </motion.div>
           );
         })}
+      </div>
 
-        {!clients.length && (
-          <div style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}>
+      {!clients.length ? (
+        <Card className={styles.emptyCard}>
+          <CardContent className={styles.emptyContent}>
             No clients match the current filters.
-          </div>
-        )}
-      </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
-          <button
-            type="button"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="btn btn--outline"
-            style={{ display: "flex", alignItems: "center", gap: "0.25rem", padding: "0.4rem 0.75rem", fontSize: "0.85rem" }}
-          >
-            <ChevronLeft size={16} />
-            Prev
-          </button>
+      {totalPages > 1 ? (
+        <Card className={styles.paginationCard}>
+          <CardContent className={styles.paginationInner}>
+            <p className={styles.pageText}>{pageInfoText}</p>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              type="button"
-              onClick={() => setCurrentPage(page)}
-              className={`btn ${currentPage === page ? "btn--primary" : "btn--outline"}`}
-              style={{ padding: "0.4rem 0.75rem", fontSize: "0.85rem", minWidth: "2.5rem" }}
-            >
-              {page}
-            </button>
-          ))}
+            <div className={styles.pageControls}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+                Prev
+              </Button>
 
-          <button
-            type="button"
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="btn btn--outline"
-            style={{ display: "flex", alignItems: "center", gap: "0.25rem", padding: "0.4rem 0.75rem", fontSize: "0.85rem" }}
-          >
-            Next
-            <ChevronRight size={16} />
-          </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  type="button"
+                  variant={currentPage === page ? "default" : "outline"}
+                  size="sm"
+                  className="min-w-8 px-2"
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </Button>
+              ))}
 
-          <span style={{ fontSize: "0.85rem", color: "#6b7280", marginLeft: "0.5rem" }}>
-            Page {currentPage} of {totalPages}
-          </span>
-        </div>
-      )}
-      </div>
-    </>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+    </div>
   );
 }
