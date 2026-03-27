@@ -491,7 +491,7 @@ export default function WaterIntakeTracker() {
                       border: "1px solid #e5e7eb",
                       borderRadius: "8px",
                     }}
-                    formatter={(value: number | string) => `${value}L`}
+                    formatter={(value) => `${value ?? 0}L`}
                     labelFormatter={(label) => {
                       // Full date in tooltip for week view
                       const date = new Date(label);
