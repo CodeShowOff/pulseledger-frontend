@@ -150,7 +150,13 @@ export default function EarningsDashboard() {
                     border: "1px solid #e5e7eb",
                     borderRadius: "8px",
                   }}
-                  formatter={(value: number | string) => `₹${typeof value === 'number' ? value.toFixed(2) : value}`}
+                  formatter={(value) => {
+                    const normalizedValue = Array.isArray(value) ? value[0] : value;
+                    if (typeof normalizedValue === "number") {
+                      return `₹${normalizedValue.toFixed(2)}`;
+                    }
+                    return `₹${normalizedValue ?? 0}`;
+                  }}
                 />
                 <Legend />
                 <Bar

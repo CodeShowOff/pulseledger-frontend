@@ -11,7 +11,10 @@
   },
   "scripts": {
     "dev": "next dev",
+    "type-check": "tsc --noEmit --pretty false",
+    "prebuild": "npm run type-check",
     "build": "next build",
+    "vercel-build": "npm run type-check && next build",
     "start": "next start",
     "lint": "eslint .",
     "analyze": "set ANALYZE=true&& next build --webpack",
