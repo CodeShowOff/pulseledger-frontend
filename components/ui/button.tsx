@@ -6,7 +6,7 @@ type ButtonSize = "default" | "sm" | "lg" | "icon";
 
 const variantClasses: Record<ButtonVariant, string> = {
   default:
-    "bg-gradient-to-r from-indigo-500 via-blue-500 to-violet-500 text-white shadow-[0_10px_30px_-12px_rgba(79,70,229,0.55)] hover:brightness-105",
+    "bg-indigo-600 text-white shadow-[0_10px_30px_-12px_rgba(79,70,229,0.45)] hover:bg-indigo-700",
   secondary: "bg-slate-100 text-slate-800 hover:bg-slate-200",
   ghost: "bg-transparent text-slate-700 hover:bg-slate-100",
   outline: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
@@ -31,7 +31,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 disabled:pointer-events-none disabled:opacity-50",
+          "inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 disabled:pointer-events-none disabled:opacity-50",
           variantClasses[variant],
           sizeClasses[size],
           className

@@ -250,7 +250,10 @@ body.chat-page-active .coach-content__inner {
 .site-navbar__brand {
   font-size: 1.1rem;
   font-weight: 900;
-  color: #2563eb;
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .site-navbar__actions {
@@ -490,12 +493,31 @@ body.chat-page-active .coach-content__inner {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
 }
 
 .navbar-modern__logo-icon {
   width: 2rem;
   height: 2rem;
   display: block;
+  opacity: 0;
+}
+
+.navbar-modern__logo-mark::before,
+.footer-modern__logo-mark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  -webkit-mask-image: url("/logo.png");
+  mask-image: url("/logo.png");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  pointer-events: none;
 }
 
 .navbar-modern__logo:hover {
@@ -1020,12 +1042,14 @@ body.chat-page-active .coach-content__inner {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
 }
 
 .footer-modern__logo-icon {
   width: 1.75rem;
   height: 1.75rem;
   display: block;
+  opacity: 0;
 }
 
 .footer-modern__logo-text {

@@ -8,7 +8,6 @@ import { useAuthStore } from "@/lib/store";
 import NotificationBell from "@/components/shared/NotificationBell";
 import { useUnreadChatCount } from "@/lib/queries/chat";
 import {
-  Home,
   LayoutDashboard,
   TrendingUp,
   CreditCard,
@@ -79,7 +78,6 @@ const Navbar = React.memo(function Navbar() {
 
   // Role-aware links WITH icons now
   const guestLinks = [
-    { label: "Home", href: "/", icon: Home },
     { label: "About", href: "/footer-pages/about", icon: BookOpen },
     { label: "Contact", href: "/footer-pages/contact", icon: Mail },
   ];
@@ -110,9 +108,9 @@ const Navbar = React.memo(function Navbar() {
 
   const links = useMemo(() => {
     if (!user) return guestLinks;
-    if (user.role === "client") return [{ label: "Home", href: "/", icon: Home }, ...clientLinks];
-    if (user.role === "coach") return [{ label: "Home", href: "/", icon: Home }, ...coachLinks];
-    if (user.role === "admin") return [{ label: "Home", href: "/", icon: Home }, ...adminLinks];
+    if (user.role === "client") return clientLinks;
+    if (user.role === "coach") return coachLinks;
+    if (user.role === "admin") return adminLinks;
     return guestLinks;
   }, [user]);
 

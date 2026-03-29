@@ -3,8 +3,10 @@
 import type { } from "next";
 import "./globals.css";
 import "../styles/admin.css";
+import { Inter } from "next/font/google";
 
 import { usePathname } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import ThemeProvider from "@/providers/ThemeProvider";
 import ToastProvider from "@/providers/ToastProvider";
 import Navbar from "@/components/shared/NavBar";
@@ -12,6 +14,11 @@ import AuthCookieSync from "@/components/shared/AuthCookieSync";
 import Footer from "@/components/shared/Footer";
 import QueryProvider from "@/providers/QueryProvider";
 import InstallPrompt from "@/components/shared/InstallPrompt";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
 
 export default function RootLayout({
   children,
@@ -41,13 +48,23 @@ export default function RootLayout({
         <meta name="theme-color" content="#3b82f6" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
       </head>
-      <body className="site-shell text-gray-900 antialiased">
+      <body className={`${inter.className} site-shell bg-slate-50/80 text-gray-900 antialiased`}>
         <QueryProvider>
           <Navbar />
           <ThemeProvider>
               <AuthCookieSync />
               <main className="site-main">
-                {children}
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={pathname}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
+                    {children}
+                  </motion.div>
+                </AnimatePresence>
               </main>
               <ToastProvider />
           </ThemeProvider>

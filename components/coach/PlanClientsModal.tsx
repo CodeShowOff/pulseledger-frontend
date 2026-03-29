@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { X, User, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import PlanFormPortal from "@/components/coach/PlanFormPortal";
 
 type Client = {
   _id: string;
@@ -49,35 +50,33 @@ export default function PlanClientsModal({ planId, planTitle, onClose }: PlanCli
   });
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-        padding: "1rem",
-      }}
-      onClick={onClose}
-    >
+    <PlanFormPortal>
       <div
         style={{
-          backgroundColor: "#fff",
-          borderRadius: "12px",
-          maxWidth: "800px",
-          width: "100%",
-          maxHeight: "90vh",
-          overflow: "hidden",
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
           display: "flex",
-          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+          padding: "1rem",
         }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={onClose}
       >
+        <div
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: "12px",
+            maxWidth: "800px",
+            width: "100%",
+            maxHeight: "90vh",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
         {/* Header */}
         <div
           style={{
@@ -343,7 +342,8 @@ export default function PlanClientsModal({ planId, planTitle, onClose }: PlanCli
             </>
           )}
         </div>
+        </div>
       </div>
-    </div>
+    </PlanFormPortal>
   );
 }

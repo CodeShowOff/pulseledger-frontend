@@ -18,17 +18,18 @@ import {
   Tooltip,
 } from "recharts";
 import {
+  ArrowRight,
   AlertCircle,
   BookOpen,
   ClipboardList,
   Clock,
   Dumbbell,
-  Home,
   Link2,
   Sparkles,
   Star,
   Target,
   TrendingUp,
+  UserCircle2,
   UserPlus,
   Users,
   UtensilsCrossed,
@@ -38,7 +39,6 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({
@@ -130,14 +130,60 @@ export default function CoachDashboard() {
       ? "warn"
       : "ok";
 
-  const sidebarNav = [
-    { label: "Overview", href: "/coach/dashboard", Icon: Home, active: true },
-    { label: "Clients", href: "/coach/clients", Icon: Users },
-    { label: "Workouts", href: "/coach/workout-plans", Icon: Dumbbell },
-    { label: "Nutrition", href: "/coach/diet-plans", Icon: UtensilsCrossed },
-    { label: "Revenue", href: "/coach/earnings", Icon: Wallet },
-    { label: "Reviews", href: "/coach/reviews", Icon: Star },
+  const dashboardActions = [
+    {
+      label: "Visit My Profile",
+      description: "Open your public and business profile details to keep everything up to date.",
+      href: "/profile",
+      Icon: UserCircle2,
+      color: "from-sky-500 to-cyan-500",
+      bg: "from-sky-50 to-cyan-50",
+    },
+    {
+      label: "Platform Fee",
+      description: "Manage subscription status and avoid interruptions in coach dashboard access.",
+      href: "/coach/platform-fee",
+      Icon: CreditCard,
+      color: "from-indigo-500 to-blue-500",
+      bg: "from-indigo-50 to-blue-50",
+    },
+    {
+      label: "Workouts",
+      description: "Build and assign workout plans with structure and consistency.",
+      href: "/coach/workout-plans",
+      Icon: Dumbbell,
+      color: "from-orange-500 to-amber-500",
+      bg: "from-orange-50 to-amber-50",
+    },
+    {
+      label: "Nutrition",
+      description: "Create diet plans and optimize meal strategies for every client segment.",
+      href: "/coach/diet-plans",
+      Icon: UtensilsCrossed,
+      color: "from-emerald-500 to-lime-500",
+      bg: "from-emerald-50 to-lime-50",
+    },
+    {
+      label: "Revenue",
+      description: "Review earnings, payouts, and business performance trends.",
+      href: "/coach/earnings",
+      Icon: Wallet,
+      color: "from-violet-500 to-fuchsia-500",
+      bg: "from-violet-50 to-fuchsia-50",
+    },
+    {
+      label: "Reviews",
+      description: "Read testimonials and improve trust through client feedback.",
+      href: "/coach/reviews",
+      Icon: Star,
+      color: "from-rose-500 to-pink-500",
+      bg: "from-rose-50 to-pink-50",
+    },
   ];
+
+  const primaryActionLabels = ["Workouts", "Nutrition", "Reviews"];
+  const primaryActions = dashboardActions.filter((item) => primaryActionLabels.includes(item.label));
+  const secondaryActions = dashboardActions.filter((item) => !primaryActionLabels.includes(item.label));
 
   const quickCards = [
     {
@@ -242,38 +288,7 @@ export default function CoachDashboard() {
       <RoleGuard role="coach" />
 
       <div className="mx-auto w-full max-w-[1640px]">
-        <div className="grid min-h-[calc(100vh-108px)] grid-cols-1 gap-3 xl:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="rounded-2xl border border-slate-200/80 bg-white/90 p-5 shadow-[0_18px_34px_-26px_rgba(15,23,42,0.45)]">
-            <nav className="space-y-1.5">
-              {sidebarNav.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={cn(
-                    "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                    item.active
-                      ? "bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-violet-500/10 text-indigo-700"
-                      : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "grid h-8 w-8 place-items-center rounded-lg border",
-                      item.active
-                        ? "border-indigo-200 bg-indigo-50 text-indigo-600"
-                        : "border-slate-200 bg-white text-slate-500 group-hover:text-slate-700"
-                    )}
-                  >
-                    <item.Icon className="h-4 w-4" />
-                  </span>
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-
-            <Separator className="my-6" />
-          </aside>
-
+        <div className="grid min-h-[calc(100vh-108px)] grid-cols-1 gap-3">
           <div className="space-y-3">
             {subscription && (subscription.status === "expired" || subscription.status === "trial" || (subscription.status === "active" && subscription.daysRemaining <= 3)) ? (
               <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
@@ -376,6 +391,178 @@ export default function CoachDashboard() {
                 </Card>
               </motion.div>
             </section>
+
+            <section>
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.28 }}>
+                <Card className="overflow-hidden border-slate-200/80 bg-white/95">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <span className="grid h-7 w-7 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                        <Sparkles className="h-4 w-4" />
+                      </span>
+                      Workspace modules
+                    </CardTitle>
+                    <CardDescription>
+                      Core areas of your coaching business, now placed where they belong — in your dashboard workflow.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        {primaryActions.map((item, index) => (
+                          <motion.div
+                            key={item.label}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.14 + index * 0.03, duration: 0.24 }}
+                            whileHover={{ y: -3 }}
+                          >
+                            <Link href={item.href} className="block h-full">
+                              <div className={cn(
+                                "group relative flex h-full min-h-[142px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 p-4 transition-all duration-200 hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.55)]",
+                                `bg-gradient-to-br ${item.bg}`
+                              )}>
+                                <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/50 blur-xl" />
+
+                                <div className="flex items-start justify-between gap-3">
+                                  <span className={cn(
+                                    "grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br text-white shadow-sm",
+                                    item.color
+                                  )}>
+                                    <item.Icon className="h-5 w-5" />
+                                  </span>
+
+                                  <div className="flex items-end gap-1 opacity-70">
+                                    <span className={cn("h-3 w-1 rounded-full bg-gradient-to-b", item.color)} />
+                                    <span className={cn("h-5 w-1 rounded-full bg-gradient-to-b", item.color)} />
+                                    <span className={cn("h-4 w-1 rounded-full bg-gradient-to-b", item.color)} />
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <h3 className="text-sm font-semibold text-slate-900">{item.label}</h3>
+                                  <p className="text-xs leading-5 text-slate-600">{item.description}</p>
+                                </div>
+
+                                <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 transition-colors group-hover:text-indigo-900">
+                                  Open {item.label}
+                                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                                </div>
+                              </div>
+                            </Link>
+                          </motion.div>
+                        ))}
+                      </div>
+
+                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        {secondaryActions.map((item, index) => (
+                        <motion.div
+                          key={item.label}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 + index * 0.03, duration: 0.24 }}
+                          whileHover={{ y: -3 }}
+                        >
+                          <Link href={item.href} className="block h-full">
+                            <div className={cn(
+                              "group relative flex h-full min-h-[142px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 p-4 transition-all duration-200 hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.55)]",
+                              `bg-gradient-to-br ${item.bg}`
+                            )}>
+                              <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/50 blur-xl" />
+
+                              <div className="flex items-start justify-between gap-3">
+                                <span className={cn(
+                                  "grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br text-white shadow-sm",
+                                  item.color
+                                )}>
+                                  <item.Icon className="h-5 w-5" />
+                                </span>
+
+                                <div className="flex items-end gap-1 opacity-70">
+                                  <span className={cn("h-3 w-1 rounded-full bg-gradient-to-b", item.color)} />
+                                  <span className={cn("h-5 w-1 rounded-full bg-gradient-to-b", item.color)} />
+                                  <span className={cn("h-4 w-1 rounded-full bg-gradient-to-b", item.color)} />
+                                </div>
+                              </div>
+
+                              <div className="space-y-2">
+                                <h3 className="text-sm font-semibold text-slate-900">{item.label}</h3>
+                                <p className="text-xs leading-5 text-slate-600">{item.description}</p>
+                              </div>
+
+                              <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 transition-colors group-hover:text-indigo-900">
+                                Open {item.label}
+                                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                              </div>
+                            </div>
+                          </Link>
+                        </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </section>
+
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14, duration: 0.25 }}>
+              <Card className="relative overflow-hidden border-indigo-200/80 bg-gradient-to-r from-indigo-50 via-blue-50 to-violet-50">
+                <CardContent className="relative p-4 sm:p-5">
+                  <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-indigo-300/20 blur-2xl" />
+                  <div className="pointer-events-none absolute -bottom-16 right-24 h-36 w-36 rounded-full bg-violet-300/20 blur-2xl" />
+
+                  <div className="relative grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <span className="mt-0.5 grid h-9 w-9 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm">
+                          <Link2 className="h-4 w-4" />
+                        </span>
+                        <div>
+                          <p className="text-sm font-semibold uppercase tracking-wide text-indigo-700">Referral</p>
+                          <p className="text-sm text-slate-600">
+                            Share your public profile link with prospects and grow your client base faster.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="inline-flex max-w-full items-center gap-2 rounded-xl border border-indigo-200/80 bg-white/90 px-3 py-2">
+                        <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">
+                          Code
+                        </Badge>
+                        <p className="truncate font-mono text-sm font-semibold text-slate-800">
+                          {user?.referralCode || "Generating..."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-indigo-200 bg-white/80 text-indigo-700 hover:bg-indigo-50"
+                        onClick={async () => {
+                          if (!publicProfileUrl) return;
+                          try {
+                            await navigator.clipboard.writeText(publicProfileUrl);
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 1600);
+                          } catch {
+                            setCopied(false);
+                          }
+                        }}
+                      >
+                        {copied ? "Copied" : "Copy Link"}
+                      </Button>
+                      <Link href={publicProfileUrl || "#"} target="_blank">
+                        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+                          Open Public Profile
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
             <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {kpis.map((item, index) => (
@@ -557,31 +744,6 @@ export default function CoachDashboard() {
               </motion.div>
             </section>
 
-            <section className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/90 p-3">
-              <Badge variant="secondary">Referral</Badge>
-              <p className="truncate rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
-                {user?.referralCode || "Generating..."}
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={async () => {
-                  if (!publicProfileUrl) return;
-                  try {
-                    await navigator.clipboard.writeText(publicProfileUrl);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 1600);
-                  } catch {
-                    setCopied(false);
-                  }
-                }}
-              >
-                {copied ? "Copied" : "Copy Link"}
-              </Button>
-              <Link href={publicProfileUrl || "#"} target="_blank" className="ml-auto">
-                <Button size="sm">Open Public Profile</Button>
-              </Link>
-            </section>
           </div>
         </div>
       </div>

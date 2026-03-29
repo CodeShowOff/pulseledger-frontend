@@ -3,72 +3,67 @@
 
 import React from "react";
 import Link from "next/link";
-import { Plus, Utensils, FileText } from "lucide-react";
+import { motion } from "framer-motion";
+import { Plus, Utensils, FileText, Sparkles } from "lucide-react";
 import DietPlanList from "@/components/coach/DietPlanList";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function CoachDietPlansPage() {
   return (
-    <div>
-      <section className="admin-page-header">
-        <div>
-          <h1 className="admin-page-header__title coach-page-header__title">
-            Diet Plans
-          </h1>
-          <p className="admin-page-header__subtitle coach-page-header__subtitle">
-            Create and manage diet plans for your clients
-          </p>
-        </div>
-        <div className="admin-page-header__actions">
-          <Link
-            href="/coach/food-items"
-            className="btn btn--outline"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-            }}
-          >
-            <Utensils className="btn__icon" style={{ width: 16, height: 16 }} />
-            Custom Food Items
-          </Link>
-          <Link
-            href="/coach/diet-plans/templates"
-            className="btn btn--outline"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-            }}
-          >
-            <FileText className="btn__icon" style={{ width: 16, height: 16 }} />
-            Browse Templates
-          </Link>
-          <Link
-            href="/coach/diet-plans/create"
-            className="btn btn--primary"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-            }}
-          >
-            <Plus className="btn__icon" style={{ width: 16, height: 16 }} />
-            Create Plan
-          </Link>
-        </div>
-      </section>
+    <div className="space-y-6">
+      <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+        <Card className="border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
+          <CardHeader>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <Badge className="mb-2 w-fit border-white/25 bg-white/10 text-white">Nutrition System</Badge>
+                <CardTitle className="text-2xl font-bold text-white">Diet plans</CardTitle>
+                <CardDescription className="!text-white/90">
+                  Craft premium nutrition plans with consistent structure, outcomes, and delivery quality.
+                </CardDescription>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Link href="/coach/food-items">
+                  <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                    <Utensils className="h-4 w-4" />
+                    Custom Food Items
+                  </Button>
+                </Link>
+                <Link href="/coach/diet-plans/templates">
+                  <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                    <FileText className="h-4 w-4" />
+                    Browse Templates
+                  </Button>
+                </Link>
+                <Link href="/coach/diet-plans/create">
+                  <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                    <Plus className="h-4 w-4" />
+                    Create Plan
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </motion.section>
 
-      <section
-        style={{
-          background: "#ffffff",
-          borderRadius: "12px",
-          border: "1px solid #e5e7eb",
-          padding: "1.25rem",
-          marginTop: "1.5rem",
-        }}
-      >
-        <DietPlanList />
-      </section>
+      <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Sparkles className="h-4 w-4" />
+              </span>
+              Active diet plans
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DietPlanList />
+          </CardContent>
+        </Card>
+      </motion.section>
     </div>
   );
 }
