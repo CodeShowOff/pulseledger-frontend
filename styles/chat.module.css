@@ -1936,6 +1936,11 @@
     max-height: calc(100vh - 280px);
   }
 
+  :global(body.mobile-bottom-nav-visible) .conversationListScroll {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    max-height: calc(100vh - 280px - 84px);
+  }
+
   .conversationItem {
     padding: 0.5rem 0.625rem;
   }

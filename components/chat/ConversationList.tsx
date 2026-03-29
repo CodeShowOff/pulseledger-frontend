@@ -17,6 +17,7 @@ interface ConversationListProps {
   conversations: Conversation[];
   activeId: string | null;
   onSelect: (conversation: Conversation) => void;
+  userRole: "client" | "coach";
   isLoading?: boolean;
 }
 
@@ -100,6 +101,7 @@ export default function ConversationList({
   conversations,
   activeId,
   onSelect,
+  userRole,
   isLoading = false,
 }: ConversationListProps) {
   const currentUserId = useAuthStore((s) => s.user?.id) || "";
@@ -142,6 +144,8 @@ export default function ConversationList({
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
+
+  const directChatTitle = userRole === "coach" ? "Chat with Clients" : "Chat with Coach";
 
   if (isLoading) {
     return (
@@ -276,7 +280,7 @@ export default function ConversationList({
         {grouped.direct.length > 0 && (
           <div>
             <SectionHeader
-              title="Chat with Coach"
+              title={directChatTitle}
               icon={User}
               colorClass="green"
               section="direct"

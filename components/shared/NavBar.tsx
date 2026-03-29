@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
+import { useChatStore } from "@/lib/chatStore";
 import NotificationBell from "@/components/shared/NotificationBell";
 import { useUnreadChatCount } from "@/lib/queries/chat";
 import {
@@ -25,6 +26,7 @@ const Navbar = React.memo(function Navbar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const avatarUrl = useAuthStore((s) => s.user?.avatarUrl);
+  const activeConversationId = useChatStore((s) => s.activeConversationId);
   const { data: unreadCount = 0 } = useUnreadChatCount();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -36,6 +38,14 @@ const Navbar = React.memo(function Navbar() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+      const isMobileViewport = window.matchMedia("(max-width: 768px)").matches;
+
+      // Keep navbar visible on mobile where bottom tabs should remain persistent.
+      if (isMobileViewport) {
+        setIsVisible(true);
+        setLastScrollY(currentScrollY);
+        return;
+      }
       
       if (currentScrollY < 10) {
         setIsVisible(true);
@@ -114,6 +124,24 @@ const Navbar = React.memo(function Navbar() {
     return guestLinks;
   }, [user]);
 
+  const isChatRoute = pathname?.startsWith("/client/chat") || pathname?.startsWith("/coach/chat");
+  const showMobileBottomNav = (pathname !== "/" || !!user) && !(isChatRoute && !!activeConversationId);
+
+  useEffect(() => {
+    const body = document.body;
+    const isMobileViewport = window.matchMedia("(max-width: 768px)").matches;
+
+    if (showMobileBottomNav && isMobileViewport) {
+      body.classList.add("mobile-bottom-nav-visible");
+    } else {
+      body.classList.remove("mobile-bottom-nav-visible");
+    }
+
+    return () => {
+      body.classList.remove("mobile-bottom-nav-visible");
+    };
+  }, [showMobileBottomNav]);
+
   const handleLogout = useCallback(async () => {
     try {
       const { default: api } = await import("@/lib/axios");
@@ -127,8 +155,9 @@ const Navbar = React.memo(function Navbar() {
   }, [logout, router]);
 
   return (
-    <nav className={`navbar-modern ${isVisible ? "navbar-modern--visible" : "navbar-modern--hidden"}`}>
-      <div className="navbar-modern__container">
+    <>
+      <nav className={`navbar-modern ${isVisible ? "navbar-modern--visible" : "navbar-modern--hidden"}`}>
+        <div className="navbar-modern__container">
         {/* Logo */}
         <Link href="/" className="navbar-modern__logo">
           <span className="navbar-modern__logo-mark" aria-hidden="true">
@@ -263,10 +292,11 @@ const Navbar = React.memo(function Navbar() {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      </nav>
 
       {/* Secondary Navigation Row - shows on mobile with icons, hidden on desktop */}
-      {(pathname !== "/" || user) && (
+      {showMobileBottomNav && (
         <div className="navbar-modern__secondary">
           <div className="navbar-modern__secondary-inner">
             {links.map((link) => {
@@ -295,7 +325,7 @@ const Navbar = React.memo(function Navbar() {
           </div>
         </div>
       )}
-    </nav>
+    </>
   );
 });
 

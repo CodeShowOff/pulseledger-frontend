@@ -117,6 +117,20 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
     [conversations, activeConversationId]
   );
 
+  // Mark when a specific conversation is open (used to hide mobile bottom nav)
+  useEffect(() => {
+    const body = document.body;
+    if (activeConversationId) {
+      body.classList.add("chat-conversation-open");
+    } else {
+      body.classList.remove("chat-conversation-open");
+    }
+
+    return () => {
+      body.classList.remove("chat-conversation-open");
+    };
+  }, [activeConversationId]);
+
   // Connect on mount
   useEffect(() => {
     connect();
@@ -304,6 +318,7 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
           conversations={conversations}
           activeId={activeConversationId}
           onSelect={handleSelectConversation}
+          userRole={userRole}
           isLoading={isLoadingConversations}
         />
       </div>
