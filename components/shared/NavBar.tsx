@@ -160,16 +160,6 @@ const Navbar = React.memo(function Navbar() {
         <div className="navbar-modern__container">
         {/* Logo */}
         <Link href="/" className="navbar-modern__logo">
-          <span className="navbar-modern__logo-mark" aria-hidden="true">
-            <Image
-              src="/logo.png"
-              alt=""
-              width={32}
-              height={32}
-              className="navbar-modern__logo-icon"
-              priority
-            />
-          </span>
           <span className="navbar-modern__logo-text">FitCoach</span>
         </Link>
 

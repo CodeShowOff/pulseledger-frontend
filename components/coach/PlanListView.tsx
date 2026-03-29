@@ -128,7 +128,7 @@ export default function PlanListView() {
               transition={{ duration: 0.18 }}
             >
               <Card className="border-slate-200/80 bg-slate-50/55">
-                <CardContent className="space-y-4 p-6 md:p-6">
+                <CardContent className="space-y-4 p-4 sm:p-6">
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/80 pb-3 pt-0.5">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -171,7 +171,7 @@ export default function PlanListView() {
                     ) : null}
                   </div>
 
-                  <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200/80 pt-3">
+                  <div className="flex flex-nowrap items-center gap-2 border-t border-slate-200/80 pt-3">
                     <Button
                       type="button"
                       variant="outline"
@@ -180,14 +180,14 @@ export default function PlanListView() {
                         setSelectedPlanId(plan._id);
                         setSelectedPlanTitle(plan.title);
                       }}
-                      className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                      className="h-9 min-w-0 flex-1 px-2 text-xs border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 sm:flex-none sm:px-3 sm:text-sm"
                     >
                       <Users className="h-4 w-4" />
                       View Clients
                     </Button>
 
-                    <Link href={`/coach/plans/${plan._id}/edit`}>
-                      <Button type="button" variant="outline" size="sm">
+                    <Link href={`/coach/plans/${plan._id}/edit`} className="flex-1 min-w-0 sm:flex-none">
+                      <Button type="button" variant="outline" size="sm" className="h-9 w-full min-w-0 px-2 text-xs sm:w-auto sm:px-3 sm:text-sm">
                         <Edit className="h-4 w-4" />
                         Edit
                       </Button>
@@ -203,7 +203,10 @@ export default function PlanListView() {
                         }
                       }}
                       disabled={plan.isDefault || deleteMutation.isPending}
-                      className={plan.isDefault ? "opacity-50" : ""}
+                      className={cn(
+                        "h-9 min-w-0 flex-1 px-2 text-xs sm:flex-none sm:px-3 sm:text-sm",
+                        plan.isDefault ? "opacity-50" : ""
+                      )}
                     >
                       <Trash2 className="h-4 w-4" />
                       Delete

@@ -7,8 +7,12 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Users } from "lucide-react";
+import { useCoachPendingPlanRequests } from "@/lib/queries/planRequests";
 
 export default function CoachClientsPage() {
+  const { data: pendingRequestsData = [] } = useCoachPendingPlanRequests();
+  const pendingCount = pendingRequestsData.length;
+
   return (
     <div className="mx-auto w-full max-w-[1640px] space-y-5 pt-2 md:pt-3">
       <motion.section
@@ -30,6 +34,11 @@ export default function CoachClientsPage() {
           >
             <Users className="h-4 w-4" />
             Received Requests
+            {pendingCount > 0 ? (
+              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-xs font-bold leading-none text-white">
+                {pendingCount > 99 ? "99+" : pendingCount}
+              </span>
+            ) : null}
           </Link>
         </div>
       </motion.section>

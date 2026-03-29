@@ -241,6 +241,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     newSocket.on("connect", () => {
       // console.log("🔌 Socket connected");
       set({ isConnected: true, connectionError: null });
+
+      // If a conversation was selected before socket was ready,
+      // re-select it now to join room and fetch message history.
+      const { activeConversationId, messages } = get();
+      if (activeConversationId && messages.length === 0) {
+        get().setActiveConversation(activeConversationId);
+      }
     });
 
     newSocket.on("disconnect", (reason) => {
@@ -398,15 +405,29 @@ export const useChatStore = create<ChatState>((set, get) => ({
       socket.emit(SOCKET_EVENTS.LEAVE_CONVERSATION, { conversationId: activeConversationId });
     }
 
+    // Closing conversation should immediately stop loading state.
+    if (!conversationId) {
+      set({
+        activeConversationId: null,
+        messages: [],
+        isLoadingMessages: false,
+        hasMoreMessages: true,
+        typingUsers: new Map(),
+      });
+      return;
+    }
+
+    // If socket isn't ready yet, keep selected conversation but avoid stuck loading.
+    // Message history will be loaded when socket connects.
     set({ 
       activeConversationId: conversationId, 
       messages: [], 
-      isLoadingMessages: true,
+      isLoadingMessages: !!socket,
       hasMoreMessages: true,
       typingUsers: new Map(),
     });
 
-    if (!conversationId || !socket) return;
+    if (!socket) return;
 
     // Join new conversation
     socket.emit(SOCKET_EVENTS.JOIN_CONVERSATION, { conversationId }, (response: { success: boolean; error?: string }) => {

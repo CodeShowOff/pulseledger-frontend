@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/store";
 import {
@@ -28,6 +29,7 @@ interface ChatContainerProps {
 }
 
 export default function ChatContainer({ userRole, initialClientId }: ChatContainerProps) {
+  const router = useRouter();
   const currentUserId = useAuthStore((s) => s.user?.id) || "";
   const dashboardHref = userRole === "coach" ? "/coach/dashboard" : "/client/dashboard";
   
@@ -173,9 +175,19 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
 
   // Handle back to list (mobile)
   const handleBackToList = useCallback(() => {
+    // Deep-linked chat (e.g. /coach/chat?clientId=...): go back to previous page.
+    if (initialClientId) {
+      if (typeof window !== "undefined" && window.history.length > 1) {
+        router.back();
+      } else {
+        router.push(dashboardHref);
+      }
+      return;
+    }
+
     setActiveConversation(null);
     setIsMobileListVisible(true);
-  }, [setActiveConversation]);
+  }, [initialClientId, router, dashboardHref, setActiveConversation]);
 
   // Handle send message
   const handleSendMessage = useCallback(

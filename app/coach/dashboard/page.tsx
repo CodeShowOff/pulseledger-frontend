@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
@@ -29,6 +30,7 @@ import {
   Star,
   Target,
   TrendingUp,
+  MessageSquare,
   UserCircle2,
   UserPlus,
   Users,
@@ -78,6 +80,7 @@ interface SubscriptionStatus {
 }
 
 export default function CoachDashboard() {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [copied, setCopied] = useState(false);
 
@@ -341,22 +344,31 @@ export default function CoachDashboard() {
                     <CardTitle className="mt-2 text-2xl font-bold text-white sm:text-3xl">
                       Welcome back, {user?.fullName?.split(" ")[0] || "Coach"}
                     </CardTitle>
-                    <CardDescription className="max-w-xl text-white/95">
+                    <CardDescription className="hidden max-w-xl text-white/95 sm:block">
                       Your command center is ready — track progress, optimize nutrition workflows, and scale coaching outcomes from one clean workspace.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="grid gap-3 sm:grid-cols-3">
+                  <CardContent className="hidden gap-3 sm:grid sm:grid-cols-3">
                     <div className="rounded-xl border border-white/20 bg-white/10 p-3">
                       <p className="text-xs uppercase tracking-wide text-blue-100">Focus</p>
-                      <p className="mt-1 text-sm font-semibold">Client retention</p>
+                      <p className="mt-1 text-sm font-semibold">
+                        <span className="sm:hidden">Retention</span>
+                        <span className="hidden sm:inline">Client retention</span>
+                      </p>
                     </div>
                     <div className="rounded-xl border border-white/20 bg-white/10 p-3">
                       <p className="text-xs uppercase tracking-wide text-blue-100">Today</p>
-                      <p className="mt-1 text-sm font-semibold">Plan improvements</p>
+                      <p className="mt-1 text-sm font-semibold">
+                        <span className="sm:hidden">Improvements</span>
+                        <span className="hidden sm:inline">Plan improvements</span>
+                      </p>
                     </div>
                     <div className="rounded-xl border border-white/20 bg-white/10 p-3">
                       <p className="text-xs uppercase tracking-wide text-blue-100">Status</p>
-                      <p className="mt-1 text-sm font-semibold">All systems healthy</p>
+                      <p className="mt-1 text-sm font-semibold">
+                        <span className="sm:hidden">Healthy</span>
+                        <span className="hidden sm:inline">All systems healthy</span>
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -371,7 +383,7 @@ export default function CoachDashboard() {
                       </span>
                       Quick links
                     </CardTitle>
-                    <CardDescription>Frequently used tools for your daily workflow.</CardDescription>
+                    <CardDescription className="hidden sm:block">Frequently used tools for your daily workflow.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {quickCards.slice(0, 4).map((card) => (
@@ -402,7 +414,7 @@ export default function CoachDashboard() {
                       </span>
                       Workspace modules
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="hidden sm:block">
                       Core areas of your coaching business, now placed where they belong — in your dashboard workflow.
                     </CardDescription>
                   </CardHeader>
@@ -441,7 +453,7 @@ export default function CoachDashboard() {
 
                                 <div className="space-y-2">
                                   <h3 className="text-sm font-semibold text-slate-900">{item.label}</h3>
-                                  <p className="text-xs leading-5 text-slate-600">{item.description}</p>
+                                  <p className="hidden text-xs leading-5 text-slate-600 sm:block">{item.description}</p>
                                 </div>
 
                                 <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 transition-colors group-hover:text-indigo-900">
@@ -487,7 +499,7 @@ export default function CoachDashboard() {
 
                               <div className="space-y-2">
                                 <h3 className="text-sm font-semibold text-slate-900">{item.label}</h3>
-                                <p className="text-xs leading-5 text-slate-600">{item.description}</p>
+                                <p className="hidden text-xs leading-5 text-slate-600 sm:block">{item.description}</p>
                               </div>
 
                               <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 transition-colors group-hover:text-indigo-900">
@@ -696,47 +708,46 @@ export default function CoachDashboard() {
                   <CardContent>
                     {clientsLoading ? (
                       <p className="text-sm text-slate-500">Loading clients...</p>
+                    ) : (clients ?? []).length === 0 ? (
+                      <p className="text-sm text-slate-500">No clients yet.</p>
                     ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full min-w-[620px] border-separate border-spacing-y-2 text-sm">
-                          <thead>
-                            <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
-                              <th className="px-3">Name</th>
-                              <th className="px-3">Email</th>
-                              <th className="px-3">BMI</th>
-                              <th className="px-3">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {(clients ?? []).map((client) => {
-                              const bmiValue =
-                                typeof client.bmi === "number"
-                                  ? client.bmi
-                                  : typeof client.latestProgress?.bmi === "number"
-                                  ? client.latestProgress?.bmi
-                                  : undefined;
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between px-1 text-xs uppercase tracking-wide text-slate-500">
+                          <span>Name</span>
+                          <span>Chat</span>
+                        </div>
 
-                              return (
-                                <tr key={client._id} className="rounded-xl border border-slate-200 bg-slate-50/70 text-slate-700">
-                                  <td className="rounded-l-xl px-3 py-2.5 font-medium">{client.fullName}</td>
-                                  <td className="px-3 py-2.5 text-slate-500">{client.email}</td>
-                                  <td className="px-3 py-2.5">
-                                    <Badge variant="secondary" className="text-[10px]">
-                                      {typeof bmiValue === "number" ? bmiValue.toFixed(1) : "-"}
-                                    </Badge>
-                                  </td>
-                                  <td className="rounded-r-xl px-3 py-2.5">
-                                    <Link href={`/coach/clients/${client._id}`}>
-                                      <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700">
-                                        Open
-                                      </Button>
-                                    </Link>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
+                        {(clients ?? []).map((client) => (
+                          <div
+                            key={client._id}
+                            className="flex cursor-pointer items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-slate-700 transition-colors hover:bg-slate-100/80"
+                            tabIndex={0}
+                            onClick={() => router.push(`/coach/clients/${client._id}`)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                router.push(`/coach/clients/${client._id}`);
+                              }
+                            }}
+                          >
+                            <p className="min-w-0 truncate font-medium">{client.fullName}</p>
+
+                            <Link
+                              href={`/coach/chat?clientId=${client._id}`}
+                              className="shrink-0"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 gap-1.5 border-indigo-200 px-2.5 text-indigo-700 hover:bg-indigo-50"
+                              >
+                                <MessageSquare className="h-4 w-4" />
+                                <span>Chat</span>
+                              </Button>
+                            </Link>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </CardContent>
