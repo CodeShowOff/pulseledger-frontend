@@ -1,25 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
-import axios from "axios";
-import Image from "next/image";
+import getErrorMessage from "@/lib/getErrorMessage";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
-  CheckCircle,
-  Clock,
-  Upload,
-  X,
-  Calendar,
-  TrendingUp,
-  IndianRupee,
-  FileText,
   AlertTriangle,
+  Calendar,
+  CheckCircle2,
+  Clock,
   Copy,
+  CreditCard,
+  Eye,
+  FileText,
+  IndianRupee,
+  Loader2,
+  RefreshCw,
+  TrendingUp,
+  Upload,
+  UserPlus2,
+  X,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useProfileQuery } from "@/lib/queries/profile";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface SubscriptionStatus {
   status: "trial" | "active" | "expired" | "suspended";
@@ -74,17 +90,106 @@ interface CoachReferralData {
   }>;
 }
 
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+};
+
+function formatDate(dateString?: string | null) {
+  if (!dateString) return "-";
+  return new Date(dateString).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatDateTime(dateString?: string | null) {
+  if (!dateString) return "-";
+  return new Date(dateString).toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatCurrency(value: number) {
+  return `₹${value.toLocaleString("en-IN")}`;
+}
+
+function getPaymentBadge(status: PaymentHistory["status"]) {
+  if (status === "approved") {
+    return (
+      <Badge
+        variant="success"
+        className="px-2 py-0.5 text-[10px] normal-case tracking-normal"
+      >
+        <CheckCircle2 className="h-3.5 w-3.5" />
+        Approved
+      </Badge>
+    );
+  }
+
+  if (status === "rejected") {
+    return (
+      <Badge
+        variant="danger"
+        className="px-2 py-0.5 text-[10px] normal-case tracking-normal"
+      >
+        <AlertCircle className="h-3.5 w-3.5" />
+        Rejected
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge
+      variant="warning"
+      className="px-2 py-0.5 text-[10px] normal-case tracking-normal"
+    >
+      <Clock className="h-3.5 w-3.5" />
+      Pending
+    </Badge>
+  );
+}
+
+function getReferralBadge(status: "pending" | "subscribed") {
+  if (status === "subscribed") {
+    return (
+      <Badge
+        variant="success"
+        className="px-2 py-0.5 text-[10px] normal-case tracking-normal"
+      >
+        Subscribed
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge
+      variant="warning"
+      className="px-2 py-0.5 text-[10px] normal-case tracking-normal"
+    >
+      Pending
+    </Badge>
+  );
+}
+
 export default function PlatformFeeManagementPage() {
   const queryClient = useQueryClient();
+  const { data: profile } = useProfileQuery();
+
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [transactionId, setTransactionId] = useState("");
   const [notes, setNotes] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [selectedPayment, setSelectedPayment] = useState<PaymentHistory | null>(null);
-  const { data: profile } = useProfileQuery();
+  const [selectedPayment, setSelectedPayment] = useState<PaymentHistory | null>(
+    null
+  );
 
-  // Fetch subscription status
   const { data: subscription, isLoading } = useQuery<SubscriptionStatus>({
     queryKey: ["platformSubscription"],
     queryFn: async () => {
@@ -93,8 +198,11 @@ export default function PlatformFeeManagementPage() {
     },
   });
 
-  // Fetch payment history
-  const { data: paymentHistory = [] } = useQuery<PaymentHistory[]>({
+  const {
+    data: paymentHistory = [],
+    isLoading: historyLoading,
+    isFetching: historyFetching,
+  } = useQuery<PaymentHistory[]>({
     queryKey: ["platformSubscriptionHistory"],
     queryFn: async () => {
       const res = await api.get("/platform-subscription/history");
@@ -102,18 +210,35 @@ export default function PlatformFeeManagementPage() {
     },
   });
 
-  // Fetch coach referral stats
-  const { data: referrals } = useQuery<CoachReferralData>({
+  const { data: referrals, isLoading: referralsLoading } = useQuery<CoachReferralData>({
     queryKey: ["coachReferrals"],
     queryFn: async () => {
       const res = await api.get("/coach/referrals");
       return res.data.data as CoachReferralData;
     },
-    // When subscription is expired/invalid, backend blocks this endpoint.
     enabled: subscription?.isValid === true,
   });
 
-  // Submit payment mutation
+  const resetPaymentForm = () => {
+    setShowPaymentForm(false);
+    setPaymentProof(null);
+    setTransactionId("");
+    setNotes("");
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  };
+
+  useEffect(() => {
+    return () => {
+      setPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    };
+  }, []);
+
   const submitPaymentMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const res = await api.post("/platform-subscription/payment", formData, {
@@ -124,177 +249,71 @@ export default function PlatformFeeManagementPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["platformSubscription"] });
       queryClient.invalidateQueries({ queryKey: ["platformSubscriptionHistory"] });
-      setShowPaymentForm(false);
-      setPaymentProof(null);
-      setTransactionId("");
-      setNotes("");
-      setPreviewUrl(null);
-      alert("Payment submitted successfully! Awaiting admin approval.");
+      queryClient.invalidateQueries({ queryKey: ["coachReferrals"] });
+      resetPaymentForm();
+      toast.success("Payment submitted successfully! Awaiting admin approval.");
     },
-    onError: (error: unknown) => {
-      if (axios.isAxiosError(error)) {
-        const msg = (error as any).response?.data?.message || (error as any).message;
-        alert(msg || "Failed to submit payment");
-      } else if (error instanceof Error) {
-        alert(error.message || "Failed to submit payment");
-      } else {
-        alert(String(error) || "Failed to submit payment");
-      }
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to submit payment"));
     },
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB");
-        return;
-      }
-      setPaymentProof(file);
-      setPreviewUrl(URL.createObjectURL(file));
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
     }
+
+    setPaymentProof(file);
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
   };
 
   const handleSubmitPayment = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!paymentProof) {
-      alert("Please upload payment proof screenshot");
+      toast.error("Please upload payment proof screenshot");
       return;
     }
 
     const formData = new FormData();
     formData.append("paymentProof", paymentProof);
-    if (transactionId) formData.append("transactionId", transactionId);
-    if (notes) formData.append("notes", notes);
+    if (transactionId.trim()) formData.append("transactionId", transactionId.trim());
+    if (notes.trim()) formData.append("notes", notes.trim());
 
     submitPaymentMutation.mutate(formData);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "trial":
-        return "#3b82f6";
-      case "active":
-        return "#10b981";
-      case "expired":
-        return "#ef4444";
-      case "suspended":
-        return "#f59e0b";
-      default:
-        return "#6b7280";
-    }
-  };
-
-  const getPaymentStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return (
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.25rem",
-              padding: "0.25rem 0.75rem",
-              borderRadius: "9999px",
-              fontSize: "0.875rem",
-              backgroundColor: "#fef3c7",
-              color: "#92400e",
-              fontWeight: 600,
-            }}
-          >
-            <Clock size={14} />
-            Pending
-          </span>
-        );
-      case "approved":
-        return (
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.25rem",
-              padding: "0.25rem 0.75rem",
-              borderRadius: "9999px",
-              fontSize: "0.875rem",
-              backgroundColor: "#d1fae5",
-              color: "#065f46",
-              fontWeight: 600,
-            }}
-          >
-            <CheckCircle size={14} />
-            Approved
-          </span>
-        );
-      case "rejected":
-        return (
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.25rem",
-              padding: "0.25rem 0.75rem",
-              borderRadius: "9999px",
-              fontSize: "0.875rem",
-              backgroundColor: "#fee2e2",
-              color: "#991b1b",
-              fontWeight: 600,
-            }}
-          >
-            <AlertCircle size={14} />
-            Rejected
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
-
-  const getReferralStatusBadge = (status: "pending" | "subscribed") => {
-    if (status === "pending") {
-      return (
-        <span style={{ padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "0.75rem", backgroundColor: "#fef3c7", color: "#92400e" }}>
-          Pending
-        </span>
-      );
-    }
-    return (
-      <span style={{ padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "0.75rem", backgroundColor: "#d1fae5", color: "#065f46" }}>
-        Subscribed
-      </span>
-    );
-  };
-
-  const getDaysRemainingColor = (days: number) => {
-    if (days <= 0) return "#ef4444";
-    if (days <= 3) return "#ef4444";
-    if (days <= 7) return "#f59e0b";
-    return "#10b981";
-  };
+  const approvedPayments = useMemo(
+    () => paymentHistory.filter((payment) => payment.status === "approved"),
+    [paymentHistory]
+  );
+  const pendingPayments = useMemo(
+    () => paymentHistory.filter((payment) => payment.status === "pending"),
+    [paymentHistory]
+  );
+  const rejectedPayments = useMemo(
+    () => paymentHistory.filter((payment) => payment.status === "rejected"),
+    [paymentHistory]
+  );
 
   if (isLoading) {
     return (
-      <div className="admin-page">
-        <div className="admin-card">
-          <p>Loading platform fee details...</p>
+      <div className="space-y-4 pt-4 md:pt-6">
+        <div className="h-[200px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div
+              key={`platform-skeleton-${idx}`}
+              className="h-[130px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70"
+            />
+          ))}
         </div>
       </div>
     );
@@ -302,898 +321,801 @@ export default function PlatformFeeManagementPage() {
 
   if (!subscription) {
     return (
-      <div className="admin-page">
-        <div className="admin-card">
-          <p style={{ color: "#ef4444" }}>Unable to load subscription information</p>
-        </div>
+      <div className="pt-4 md:pt-6">
+        <Card className="border-rose-200 bg-rose-50">
+          <CardContent className="py-6">
+            <p className="text-sm font-medium text-rose-700">
+              Unable to load subscription information.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   const isExpired = subscription.status === "expired";
-  const isNearExpiry = subscription.daysRemaining <= 7 && subscription.daysRemaining > 0;
+  const isNearExpiry =
+    subscription.daysRemaining <= 7 && subscription.daysRemaining > 0;
 
-  // Calculate statistics from payment history
-  const approvedPayments = paymentHistory.filter((p) => p.status === "approved");
-  const pendingPayments = paymentHistory.filter((p) => p.status === "pending");
-  const rejectedPayments = paymentHistory.filter((p) => p.status === "rejected");
+  const statusMeta =
+    subscription.status === "expired"
+      ? {
+          label: "Expired",
+          dot: "bg-rose-300",
+          pill: "border-rose-200/50 bg-rose-500/15 text-rose-100",
+        }
+      : subscription.status === "active"
+      ? {
+          label: "Active",
+          dot: "bg-emerald-300",
+          pill: "border-emerald-200/40 bg-emerald-500/15 text-emerald-100",
+        }
+      : subscription.status === "trial"
+      ? {
+          label: "Trial",
+          dot: "bg-sky-300",
+          pill: "border-sky-200/40 bg-sky-500/15 text-sky-100",
+        }
+      : {
+          label: "Suspended",
+          dot: "bg-amber-300",
+          pill: "border-amber-200/50 bg-amber-500/15 text-amber-100",
+        };
+
+  const daysRemainingTone =
+    subscription.daysRemaining <= 0
+      ? "text-rose-600"
+      : subscription.daysRemaining <= 3
+      ? "text-rose-600"
+      : subscription.daysRemaining <= 7
+      ? "text-amber-600"
+      : "text-emerald-600";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="admin-page"
-    >
-      {/* Header */}
-      <section className="admin-page-header">
-        <div>
-          <h1 className="admin-page-header__title">💳 Platform Fee Management</h1>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              padding: "0.5rem 1rem",
-              borderRadius: "9999px",
-              backgroundColor: `${getStatusColor(subscription.status)}20`,
-              border: `2px solid ${getStatusColor(subscription.status)}`,
-            }}
-          >
-            <div
-              style={{
-                width: "10px",
-                height: "10px",
-                borderRadius: "50%",
-                backgroundColor: getStatusColor(subscription.status),
-              }}
-            />
-            <span
-              style={{
-                textTransform: "capitalize",
-                fontWeight: 600,
-                color: getStatusColor(subscription.status),
-              }}
-            >
-              {subscription.status}
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* Alert Banners */}
-      {isExpired && (
-        <div
-          className="admin-card"
-          style={{
-            backgroundColor: "#fee2e2",
-            border: "2px solid #ef4444",
-            marginBottom: "1.5rem",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
-            <AlertCircle
-              style={{ color: "#dc2626", width: 28, height: 28, flexShrink: 0 }}
-            />
-            <div style={{ flex: 1 }}>
-              <h3
-                style={{
-                  fontSize: "1.125rem",
-                  fontWeight: 600,
-                  color: "#991b1b",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                ⚠️ Subscription Expired
-              </h3>
-              <p style={{ color: "#7f1d1d", marginBottom: "1rem" }}>
-                Your platform access has expired. Please make a payment of ₹
-                {subscription.platformFee} to continue using FitCoach and access all
-                features.
-              </p>
-              <button
-                className="btn btn--primary"
-                onClick={() => setShowPaymentForm(true)}
-                style={{ backgroundColor: "#dc2626", borderColor: "#dc2626" }}
-              >
-                Pay Now ₹{subscription.platformFee}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isNearExpiry && !isExpired && (
-        <div
-          className="admin-card"
-          style={{
-            backgroundColor: "#fef3c7",
-            border: "2px solid #f59e0b",
-            marginBottom: "1.5rem",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
-            <AlertTriangle
-              style={{ color: "#d97706", width: 28, height: 28, flexShrink: 0 }}
-            />
-            <div style={{ flex: 1 }}>
-              <h3
-                style={{
-                  fontSize: "1.125rem",
-                  fontWeight: 600,
-                  color: "#92400e",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                ⏰ Subscription Expiring Soon
-              </h3>
-              <p style={{ color: "#78350f", marginBottom: "1rem" }}>
-                Your subscription will expire in {subscription.daysRemaining} day
-                {subscription.daysRemaining !== 1 ? "s" : ""}. Pay now to avoid service
-                interruption and continue enjoying uninterrupted access.
-              </p>
-              <button
-                className="btn btn--primary"
-                onClick={() => setShowPaymentForm(true)}
-                style={{ backgroundColor: "#d97706", borderColor: "#d97706" }}
-              >
-                Renew Now ₹{subscription.platformFee}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Statistics Cards */}
-      <div
-        className="admin-card-grid"
-        style={{
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          marginBottom: "1.5rem",
-        }}
+    <div className="space-y-5 pt-4 md:pt-6">
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28 }}
       >
-        {/* Days Remaining */}
-        <div className="admin-card" style={{ borderLeft: `4px solid ${getDaysRemainingColor(subscription.daysRemaining)}` }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-            <Calendar style={{ color: getDaysRemainingColor(subscription.daysRemaining), width: 24, height: 24 }} />
-            <p className="admin-card__label">Days Remaining</p>
-          </div>
-          <p
-            className="admin-card__value"
-            style={{
-              fontSize: "2.5rem",
-              fontWeight: 700,
-              color: getDaysRemainingColor(subscription.daysRemaining),
-            }}
-          >
-            {subscription.daysRemaining}
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#6b7280", marginTop: "0.5rem" }}>
-            {subscription.status === "trial"
-              ? `Trial ends on ${formatDate(subscription.trialEndsAt)}`
-              : subscription.subscriptionExpiresAt
-              ? `Expires on ${formatDate(subscription.subscriptionExpiresAt)}`
-              : "No active subscription"}
-          </p>
-        </div>
-
-        {/* Platform Fee */}
-        <div className="admin-card" style={{ borderLeft: "4px solid #3b82f6" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-            <IndianRupee style={{ color: "#3b82f6", width: 24, height: 24 }} />
-            <p className="admin-card__label">Platform Fee</p>
-          </div>
-          <p
-            className="admin-card__value"
-            style={{ fontSize: "2.5rem", fontWeight: 700, color: "#3b82f6" }}
-          >
-            ₹{subscription.platformFee}
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#6b7280", marginTop: "0.5rem" }}>
-            Per month (30 days)
-          </p>
-        </div>
-
-        {/* Total Paid */}
-        <div className="admin-card" style={{ borderLeft: "4px solid #10b981" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-            <TrendingUp style={{ color: "#10b981", width: 24, height: 24 }} />
-            <p className="admin-card__label">Total Paid</p>
-          </div>
-          <p
-            className="admin-card__value"
-            style={{ fontSize: "2.5rem", fontWeight: 700, color: "#10b981" }}
-          >
-            ₹{subscription.totalPaid}
-          </p>
-          <p style={{ fontSize: "0.875rem", color: "#6b7280", marginTop: "0.5rem" }}>
-            {approvedPayments.length} successful payments
-          </p>
-        </div>
-
-        {/* Payment Status Summary */}
-        <div className="admin-card" style={{ borderLeft: "4px solid #8b5cf6" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-            <FileText style={{ color: "#8b5cf6", width: 24, height: 24 }} />
-            <p className="admin-card__label">Payment Summary</p>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>Approved:</span>
-              <span style={{ fontSize: "1rem", fontWeight: 600, color: "#10b981" }}>
-                {approvedPayments.length}
-              </span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>Pending:</span>
-              <span style={{ fontSize: "1rem", fontWeight: 600, color: "#f59e0b" }}>
-                {pendingPayments.length}
-              </span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>Rejected:</span>
-              <span style={{ fontSize: "1rem", fontWeight: 600, color: "#ef4444" }}>
-                {rejectedPayments.length}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Action Card */}
-      <div className="admin-card" style={{ marginBottom: "1.5rem", backgroundColor: "#f0f9ff" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-          <div>
-            <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "#1e40af", marginBottom: "0.5rem" }}>
-              Ready to Renew Your Subscription?
-            </h3>
-            <p style={{ fontSize: "0.875rem", color: "#1e3a8a" }}>
-              Make a payment now to extend your platform access by 30 days
-            </p>
-          </div>
-          <button
-            className="btn btn--primary"
-            onClick={() => setShowPaymentForm(true)}
-            style={{ whiteSpace: "nowrap" }}
-          >
-            Make Payment
-          </button>
-        </div>
-      </div>
-
-      {/* Referral Benefit Callout */}
-      <div className="admin-card" style={{ marginBottom: "1.5rem", backgroundColor: "#f0fdf4", borderColor: "#22c55e" }}>
-        <h2 className="admin-card__title" style={{ color: "#166534" }}>Referral Benefit</h2>
-        <div style={{ marginTop: "0.75rem", color: "#166534" }}>
-          <p style={{ marginBottom: "0.75rem" }}>
-            Invite other coaches to join FitCoach. When a referred coach completes their first platform subscription payment and it’s approved, you’ll receive <strong>+10 days</strong> added to your current subscription or trial.
-          </p>
-          {profile?.coachCode ? (
-            <div style={{ display: "grid", gap: "0.5rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <span style={{ fontSize: "0.875rem", color: "#374151" }}>Your referral code:</span>
-                <span style={{ fontWeight: 700, color: "#065f46" }}>{profile.coachCode}</span>
-                <button
-                  type="button"
-                  className="btn btn--ghost"
-                  onClick={() => {
-                    try {
-                      navigator.clipboard.writeText(profile.coachCode!);
-                    } catch {
-                      // Clipboard API not available
-                    }
-                  }}
-                  title="Copy referral code"
-                >
-                  <Copy size={16} />
-                </button>
+        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
+          <CardHeader className="gap-4 p-6 md:p-7">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                <Badge className="w-fit border-white/25 bg-white/15 text-white">
+                  Billing & Access
+                </Badge>
+                <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+                  Platform fee management
+                </CardTitle>
+                <CardDescription className="max-w-2xl text-sm !text-white/90 md:text-base">
+                  Keep your coaching workspace active by submitting and tracking monthly platform payments.
+                </CardDescription>
               </div>
-              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+
+              <div className="space-y-2 md:text-right">
+                <div
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-wide",
+                    statusMeta.pill
+                  )}
+                >
+                  <span className={cn("h-2 w-2 rounded-full", statusMeta.dot)} />
+                  {statusMeta.label}
+                </div>
+                <div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                    onClick={() => setShowPaymentForm(true)}
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    {pendingPayments.length > 0 ? "Submit another payment" : "Submit payment"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-3 pt-2 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-blue-100">Days remaining</p>
+                <p className="mt-1 text-xl font-semibold">
+                  {subscription.daysRemaining}
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-blue-100">Platform fee</p>
+                <p className="mt-1 text-xl font-semibold">{formatCurrency(subscription.platformFee)}</p>
+              </div>
+              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-blue-100">Total paid</p>
+                <p className="mt-1 text-xl font-semibold">{formatCurrency(subscription.totalPaid)}</p>
+              </div>
+              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-blue-100">Pending verifications</p>
+                <p className="mt-1 text-xl font-semibold">{pendingPayments.length}</p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </motion.section>
+
+      {(isExpired || isNearExpiry) && (
+        <motion.section
+          variants={fadeInUp}
+          initial="initial"
+          animate="animate"
+          transition={{ duration: 0.28, delay: 0.04 }}
+        >
+          <Card
+            className={cn(
+              "border",
+              isExpired
+                ? "border-rose-200 bg-rose-50"
+                : "border-amber-200 bg-amber-50"
+            )}
+          >
+            <CardContent className="flex flex-col items-start justify-between gap-4 p-4 sm:flex-row sm:items-center">
+              <div className="flex items-start gap-3">
+                <span
+                  className={cn(
+                    "mt-0.5 grid h-9 w-9 place-items-center rounded-xl",
+                    isExpired ? "bg-rose-100 text-rose-600" : "bg-amber-100 text-amber-600"
+                  )}
+                >
+                  {isExpired ? (
+                    <AlertCircle className="h-5 w-5" />
+                  ) : (
+                    <AlertTriangle className="h-5 w-5" />
+                  )}
+                </span>
+                <div>
+                  <p
+                    className={cn(
+                      "text-sm font-semibold",
+                      isExpired ? "text-rose-800" : "text-amber-800"
+                    )}
+                  >
+                    {isExpired
+                      ? "Subscription expired"
+                      : `Subscription expires in ${subscription.daysRemaining} day${
+                          subscription.daysRemaining !== 1 ? "s" : ""
+                        }`}
+                  </p>
+                  <p
+                    className={cn(
+                      "text-sm",
+                      isExpired ? "text-rose-700" : "text-amber-700"
+                    )}
+                  >
+                    Pay {formatCurrency(subscription.platformFee)} to keep uninterrupted access to your coach tools.
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                onClick={() => setShowPaymentForm(true)}
+                className={cn(
+                  isExpired
+                    ? "bg-rose-600 hover:bg-rose-700"
+                    : "bg-amber-600 hover:bg-amber-700"
+                )}
+              >
+                {isExpired ? "Renew now" : "Pay now"}
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.section>
+      )}
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.08 }}
+        className="grid gap-4 lg:grid-cols-2"
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <TrendingUp className="h-4 w-4" />
+              </span>
+              Payment snapshot
+            </CardTitle>
+            <CardDescription>Track account health and payment processing at a glance.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <p className="text-xs text-slate-500">Current balance status</p>
+              <p className={cn("mt-1 text-lg font-semibold", daysRemainingTone)}>
+                {subscription.daysRemaining} day{subscription.daysRemaining !== 1 ? "s" : ""}
+              </p>
+              <p className="text-xs text-slate-500">
+                {subscription.status === "trial"
+                  ? `Trial ends on ${formatDate(subscription.trialEndsAt)}`
+                  : `Expires on ${formatDate(subscription.subscriptionExpiresAt)}`}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <p className="text-xs text-slate-500">Last payment</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">
+                {subscription.lastPaymentDate ? formatDate(subscription.lastPaymentDate) : "Not available"}
+              </p>
+              <p className="text-xs text-slate-500">Monthly fee {formatCurrency(subscription.platformFee)}</p>
+            </div>
+
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
+              <p className="text-xs text-emerald-700">Approved</p>
+              <p className="mt-1 text-lg font-semibold text-emerald-800">{approvedPayments.length}</p>
+            </div>
+
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3">
+              <p className="text-xs text-amber-700">Pending / Rejected</p>
+              <p className="mt-1 text-lg font-semibold text-amber-800">
+                {pendingPayments.length} / {rejectedPayments.length}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
+                <UserPlus2 className="h-4 w-4" />
+              </span>
+              Referral benefit
+            </CardTitle>
+            <CardDescription>
+              Earn +10 days when a referred coach completes their first approved subscription payment.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {profile?.coachCode ? (
+              <>
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/70 p-2.5">
+                  <Badge variant="secondary" className="normal-case tracking-normal">
+                    Referral code
+                  </Badge>
+                  <span className="font-mono text-sm font-semibold text-slate-800">
+                    {profile.coachCode}
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(profile.coachCode ?? "");
+                        toast.success("Referral code copied");
+                      } catch {
+                        toast.error("Unable to copy right now");
+                      }
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    Copy
+                  </Button>
+                </div>
+
                 <a
-                  className="btn btn--secondary"
                   href={`/public/${profile.coachCode}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="inline-flex"
                 >
-                  Share Public Profile
+                  <Button type="button" variant="outline">
+                    Open public profile
+                  </Button>
                 </a>
-              </div>
-            </div>
-          ) : (
-            <p style={{ fontSize: "0.875rem", color: "#374151" }}>Your referral code will appear here once available.</p>
-          )}
-        </div>
-      </div>
-
-      {/* Referral Tracking */}
-      <div className="admin-card" style={{ marginBottom: "1.5rem", backgroundColor: "#f8fafc", borderColor: "#334155" }}>
-        <h2 className="admin-card__title" style={{ color: "#0f172a" }}>Referral Stats</h2>
-        {!subscription.isValid ? (
-          <p style={{ color: "#6b7280", marginTop: "0.75rem" }}>
-            Referral stats are available once your subscription is active.
-          </p>
-        ) : !referrals ? (
-          <p style={{ color: "#6b7280", marginTop: "0.75rem" }}>Loading referral stats...</p>
-        ) : (
-          <div style={{ display: "grid", gap: "1rem" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem", marginTop: "0.75rem" }}>
-              <div style={{ backgroundColor: "#eef2ff", padding: "0.75rem", borderRadius: "0.5rem" }}>
-                <div style={{ fontSize: "0.75rem", color: "#4b5563" }}>Total Referred</div>
-                <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#4338ca" }}>{referrals.stats.totalReferred}</div>
-              </div>
-              <div style={{ backgroundColor: "#ecfeff", padding: "0.75rem", borderRadius: "0.5rem" }}>
-                <div style={{ fontSize: "0.75rem", color: "#4b5563" }}>Successful</div>
-                <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#0e7490" }}>{referrals.stats.successfulReferrals}</div>
-              </div>
-              <div style={{ backgroundColor: "#fff7ed", padding: "0.75rem", borderRadius: "0.5rem" }}>
-                <div style={{ fontSize: "0.75rem", color: "#4b5563" }}>Pending</div>
-                <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#c2410c" }}>{referrals.stats.pendingReferrals}</div>
-              </div>
-              <div style={{ backgroundColor: "#f0fdf4", padding: "0.75rem", borderRadius: "0.5rem" }}>
-                <div style={{ fontSize: "0.75rem", color: "#4b5563" }}>Days Earned</div>
-                <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#166534" }}>+{referrals.stats.totalDaysEarned}</div>
-              </div>
-            </div>
-
-            <div>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#0f172a", marginBottom: "0.5rem" }}>Referred Coaches</h3>
-              {referrals.referredCoaches.length === 0 ? (
-                <p style={{ color: "#6b7280" }}>No referrals yet — share your code to get started!</p>
-              ) : (
-                <div style={{ overflowX: "auto" }}>
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Joined</th>
-                        <th>Status</th>
-                        <th>Subscription</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {referrals.referredCoaches.map((c) => (
-                        <tr key={`${c.email}-${c.joinedAt}`}>
-                          <td style={{ fontWeight: 600 }}>{c.fullName}</td>
-                          <td style={{ fontFamily: "monospace", fontSize: "0.875rem" }}>{c.email}</td>
-                          <td>{formatDate(c.joinedAt)}</td>
-                          <td>{getReferralStatusBadge(c.status)}</td>
-                          <td style={{ textTransform: "capitalize" }}>{c.subscriptionStatus || "-"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Payment History Section */}
-      <div className="admin-card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-          <h2 className="admin-card__title">Payment History</h2>
-          <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-            {paymentHistory.length} total payment{paymentHistory.length !== 1 ? "s" : ""}
-          </span>
-        </div>
-
-        {paymentHistory.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
-            <FileText size={48} style={{ color: "#d1d5db", margin: "0 auto 1rem" }} />
-            <p style={{ color: "#6b7280", fontSize: "1rem", marginBottom: "0.5rem" }}>
-              No payment history yet
-            </p>
-            <p style={{ color: "#9ca3af", fontSize: "0.875rem" }}>
-              Your payment records will appear here once you make your first payment
-            </p>
-          </div>
-        ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Date Submitted</th>
-                  <th>Amount</th>
-                  <th>Transaction ID</th>
-                  <th>Status</th>
-                  <th>Valid Period</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paymentHistory.map((payment) => (
-                  <tr key={payment._id}>
-                    <td>
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        <span style={{ fontWeight: 500 }}>{formatDate(payment.paidAt)}</span>
-                        <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
-                          {new Date(payment.paidAt).toLocaleTimeString("en-IN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <span style={{ fontWeight: 600, fontSize: "1rem" }}>
-                        ₹{payment.amount}
-                      </span>
-                    </td>
-                    <td>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          fontSize: "0.875rem",
-                          backgroundColor: "#f3f4f6",
-                          padding: "0.25rem 0.5rem",
-                          borderRadius: "0.25rem",
-                        }}
-                      >
-                        {payment.transactionId}
-                      </span>
-                    </td>
-                    <td>{getPaymentStatusBadge(payment.status)}</td>
-                    <td>
-                      {payment.validFrom && payment.validUntil ? (
-                        <div style={{ display: "flex", flexDirection: "column", fontSize: "0.875rem" }}>
-                          <span>{formatDate(payment.validFrom)}</span>
-                          <span style={{ color: "#6b7280" }}>to</span>
-                          <span>{formatDate(payment.validUntil)}</span>
-                        </div>
-                      ) : (
-                        <span style={{ color: "#9ca3af" }}>-</span>
-                      )}
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: "0.5rem" }}>
-                        <button
-                          className="btn btn--outline"
-                          style={{ fontSize: "0.875rem", padding: "0.25rem 0.75rem" }}
-                          onClick={() => setSelectedPayment(payment)}
-                        >
-                          View Details
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Payment Form Modal */}
-      {showPaymentForm && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-            padding: "1rem",
-          }}
-          onClick={() => !submitPaymentMutation.isPending && setShowPaymentForm(false)}
-        >
-          <div
-            className="admin-card"
-            style={{
-              maxWidth: "600px",
-              width: "100%",
-              maxHeight: "90vh",
-              overflowY: "auto",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "1.5rem",
-              }}
-            >
-              <h2 className="admin-card__title">Submit Payment</h2>
-              <button
-                onClick={() =>
-                  !submitPaymentMutation.isPending && setShowPaymentForm(false)
-                }
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "0.5rem",
-                }}
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div
-              style={{
-                backgroundColor: "#f0f9ff",
-                padding: "1rem",
-                borderRadius: "0.5rem",
-                marginBottom: "1.5rem",
-              }}
-            >
-              <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>
-                Payment Instructions:
+              </>
+            ) : (
+              <p className="text-sm text-slate-500">
+                Your referral code will appear here once available.
               </p>
-              <ol style={{ paddingLeft: "1.25rem", color: "#4b5563" }}>
-                <li>Scan the QR code below or use the payment details</li>
-                <li>Make payment of ₹{subscription.platformFee}</li>
-                <li>Take a screenshot of payment confirmation</li>
-                <li>Upload the screenshot and submit</li>
-                <li>Wait for admin approval (usually within 24 hours)</li>
-              </ol>
-            </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.section>
 
-            {/* Admin QR Code */}
-            {subscription.paymentQrUrl && (
-              <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
-                <p
-                  style={{
-                    fontWeight: 600,
-                    marginBottom: "0.75rem",
-                    color: "#1e40af",
-                  }}
-                >
-                  Scan QR Code to Pay
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.12 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <UserPlus2 className="h-4 w-4" />
+              </span>
+              Referral tracking
+            </CardTitle>
+            <CardDescription>Monitor your invited coaches and rewards performance.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!subscription.isValid ? (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+                Referral stats are available once your subscription is active.
+              </div>
+            ) : referralsLoading ? (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+                Loading referral stats...
+              </div>
+            ) : !referrals ? (
+              <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-6 text-sm text-rose-700">
+                Unable to load referral stats right now.
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-3">
+                    <p className="text-xs text-indigo-700">Total referred</p>
+                    <p className="mt-1 text-lg font-semibold text-indigo-800">
+                      {referrals.stats.totalReferred}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-3">
+                    <p className="text-xs text-cyan-700">Successful</p>
+                    <p className="mt-1 text-lg font-semibold text-cyan-800">
+                      {referrals.stats.successfulReferrals}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3">
+                    <p className="text-xs text-amber-700">Pending</p>
+                    <p className="mt-1 text-lg font-semibold text-amber-800">
+                      {referrals.stats.pendingReferrals}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
+                    <p className="text-xs text-emerald-700">Days earned</p>
+                    <p className="mt-1 text-lg font-semibold text-emerald-800">
+                      +{referrals.stats.totalDaysEarned}
+                    </p>
+                  </div>
+                </div>
+
+                {referrals.referredCoaches.length === 0 ? (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+                    No referrals yet — share your code to get started.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto rounded-xl border border-slate-200">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Email</th>
+                          <th>Joined</th>
+                          <th>Status</th>
+                          <th>Subscription</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {referrals.referredCoaches.map((coach) => (
+                          <tr key={`${coach.email}-${coach.joinedAt}`}>
+                            <td style={{ fontWeight: 600 }}>{coach.fullName}</td>
+                            <td style={{ fontFamily: "monospace", fontSize: "0.85rem" }}>
+                              {coach.email}
+                            </td>
+                            <td>{formatDate(coach.joinedAt)}</td>
+                            <td>{getReferralBadge(coach.status)}</td>
+                            <td style={{ textTransform: "capitalize" }}>
+                              {coach.subscriptionStatus || "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.16 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                    <FileText className="h-4 w-4" />
+                  </span>
+                  Payment history
+                </CardTitle>
+                <CardDescription>
+                  {paymentHistory.length} total payment{paymentHistory.length !== 1 ? "s" : ""}
+                </CardDescription>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => queryClient.invalidateQueries({ queryKey: ["platformSubscriptionHistory"] })}
+                disabled={historyFetching}
+              >
+                <RefreshCw className={cn("h-4 w-4", historyFetching ? "animate-spin" : "")} />
+                Refresh
+              </Button>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            {historyLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={`payment-skeleton-${i}`}
+                    className="h-12 animate-pulse rounded-xl border border-slate-200 bg-slate-100/70"
+                  />
+                ))}
+              </div>
+            ) : paymentHistory.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-10 text-center">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-slate-500 shadow-sm">
+                  <FileText className="h-5 w-5" />
+                </span>
+                <p className="mt-3 text-sm font-semibold text-slate-700">No payment history yet</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Your payment records will appear here after your first submission.
                 </p>
-                <Image
-                  src={subscription.paymentQrUrl}
-                  alt="Payment QR Code"
-                  width={300}
-                  height={300}
-                  style={{
-                    maxWidth: "300px",
-                    width: "100%",
-                    borderRadius: "0.5rem",
-                    border: "2px solid #3b82f6",
-                    padding: "0.5rem",
-                    backgroundColor: "#fff",
-                  }}
-                />
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-slate-200">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Submitted</th>
+                      <th>Amount</th>
+                      <th>Transaction ID</th>
+                      <th>Status</th>
+                      <th>Validity</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paymentHistory.map((payment) => (
+                      <tr key={payment._id}>
+                        <td>
+                          <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span style={{ fontWeight: 600 }}>{formatDate(payment.paidAt)}</span>
+                            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                              {new Date(payment.paidAt).toLocaleTimeString("en-IN", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ fontWeight: 700, color: "#0f172a" }}>
+                          {formatCurrency(payment.amount)}
+                        </td>
+                        <td>
+                          <span
+                            style={{
+                              fontFamily: "monospace",
+                              fontSize: "0.82rem",
+                              backgroundColor: "#f1f5f9",
+                              padding: "0.25rem 0.5rem",
+                              borderRadius: "0.4rem",
+                            }}
+                          >
+                            {payment.transactionId || "-"}
+                          </span>
+                        </td>
+                        <td>{getPaymentBadge(payment.status)}</td>
+                        <td>
+                          {payment.validFrom && payment.validUntil
+                            ? `${formatDate(payment.validFrom)} → ${formatDate(payment.validUntil)}`
+                            : "-"}
+                        </td>
+                        <td>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSelectedPayment(payment)}
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            Details
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
+          </CardContent>
+        </Card>
+      </motion.section>
 
-            <form onSubmit={handleSubmitPayment}>
-              <div style={{ marginBottom: "1rem" }}>
-                <label className="client-form__label">
-                  Transaction ID (Optional)
-                </label>
-                <input
-                  type="text"
-                  className="client-form__control"
-                  value={transactionId}
-                  onChange={(e) => setTransactionId(e.target.value)}
-                  placeholder="Enter transaction/reference ID"
-                />
-              </div>
-
-              <div style={{ marginBottom: "1rem" }}>
-                <label className="client-form__label">
-                  Payment Proof Screenshot *
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
-                  id="paymentProof"
-                  required
-                />
-                <label
-                  htmlFor="paymentProof"
-                  className="client-button"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                  }}
-                >
-                  <Upload size={20} />
-                  {paymentProof ? "Change Screenshot" : "Upload Screenshot"}
-                </label>
-                {previewUrl && (
-                  <Image
-                    src={previewUrl}
-                    alt="Preview"
-                    width={300}
-                    height={200}
-                    style={{
-                      marginTop: "0.5rem",
-                      maxWidth: "100%",
-                      maxHeight: "200px",
-                      borderRadius: "0.5rem",
-                    }}
-                  />
-                )}
-              </div>
-
-              <div style={{ marginBottom: "1.5rem" }}>
-                <label className="client-form__label">Notes (Optional)</label>
-                <textarea
-                  className="client-form__control"
-                  rows={3}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Add any additional notes..."
-                  style={{ resize: "vertical" }}
-                />
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: "0.75rem",
-                  justifyContent: "flex-end",
-                }}
-              >
-                <button
-                  type="button"
-                  className="btn btn--ghost"
-                  onClick={() => setShowPaymentForm(false)}
-                  disabled={submitPaymentMutation.isPending}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn--primary"
-                  disabled={submitPaymentMutation.isPending || !paymentProof}
-                >
-                  {submitPaymentMutation.isPending
-                    ? "Submitting..."
-                    : "Submit Payment"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Payment Details Modal */}
-      {selectedPayment && (
+      {showPaymentForm ? (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-            padding: "1rem",
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4"
+          onClick={() => {
+            if (!submitPaymentMutation.isPending) resetPaymentForm();
           }}
-          onClick={() => setSelectedPayment(null)}
         >
-          <div
-            className="admin-card"
-            style={{
-              maxWidth: "700px",
-              width: "100%",
-              maxHeight: "90vh",
-              overflowY: "auto",
-            }}
+          <Card
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto border-slate-200/90 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "1.5rem",
-              }}
-            >
-              <h2 className="admin-card__title">Payment Details</h2>
-              <button
-                onClick={() => setSelectedPayment(null)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "0.5rem",
-                }}
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <div>
-                <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                  Status
-                </p>
-                {getPaymentStatusBadge(selectedPayment.status)}
-              </div>
-
-              <div>
-                <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                  Amount
-                </p>
-                <p style={{ fontSize: "1.5rem", fontWeight: 700 }}>
-                  ₹{selectedPayment.amount}
-                </p>
-              </div>
-
-              <div>
-                <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                  Transaction ID
-                </p>
-                <p
-                  style={{
-                    fontFamily: "monospace",
-                    backgroundColor: "#f3f4f6",
-                    padding: "0.5rem",
-                    borderRadius: "0.25rem",
-                  }}
-                >
-                  {selectedPayment.transactionId}
-                </p>
-              </div>
-
-              <div>
-                <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                  Submitted On
-                </p>
-                <p style={{ fontWeight: 500 }}>{formatDateTime(selectedPayment.paidAt)}</p>
-              </div>
-
-              {selectedPayment.approvedAt && (
+            <CardHeader className="border-b border-slate-100 pb-4">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p
-                    style={{
-                      fontSize: "0.875rem",
-                      color: "#6b7280",
-                      marginBottom: "0.25rem",
-                    }}
+                  <CardTitle className="text-lg">Submit payment</CardTitle>
+                  <CardDescription>
+                    Upload your payment proof and transaction details for admin verification.
+                  </CardDescription>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!submitPaymentMutation.isPending) resetPaymentForm();
+                  }}
+                  className="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="Close payment modal"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4 pt-5">
+              <div className="rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-3 text-sm text-sky-900">
+                <p className="mb-2 font-semibold">Payment instructions</p>
+                <ol className="list-decimal space-y-1 pl-5 text-sky-800">
+                  <li>Pay {formatCurrency(subscription.platformFee)} using the QR code.</li>
+                  <li>Take a screenshot of the payment confirmation.</li>
+                  <li>Upload the screenshot and submit the form below.</li>
+                  <li>Admin usually verifies within 24 hours.</li>
+                </ol>
+              </div>
+
+              {subscription.paymentQrUrl ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-center">
+                  <p className="mb-2 text-sm font-medium text-slate-700">Scan QR code to pay</p>
+                  <a
+                    href={subscription.paymentQrUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    {selectedPayment.status === "approved" ? "Approved" : "Rejected"} On
+                    <img
+                      src={subscription.paymentQrUrl}
+                      alt="Payment QR code"
+                      className="mx-auto w-full max-w-[320px] rounded-lg border border-slate-200 bg-white p-2"
+                    />
+                  </a>
+                </div>
+              ) : null}
+
+              <form onSubmit={handleSubmitPayment} className="space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Transaction ID (optional)
+                  </label>
+                  <Input
+                    value={transactionId}
+                    onChange={(e) => setTransactionId(e.target.value)}
+                    placeholder="Enter transaction/reference ID"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Payment proof screenshot
+                  </label>
+                  <input
+                    id="paymentProof"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    style={{ display: "none" }}
+                  />
+                  <label
+                    htmlFor="paymentProof"
+                    className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:border-indigo-300 hover:bg-indigo-50/40"
+                  >
+                    <Upload className="h-4 w-4" />
+                    {paymentProof ? "Change screenshot" : "Upload screenshot"}
+                  </label>
+
+                  {paymentProof ? (
+                    <p className="mt-1.5 text-xs text-slate-500">Selected: {paymentProof.name}</p>
+                  ) : null}
+
+                  {previewUrl ? (
+                    <img
+                      src={previewUrl}
+                      alt="Payment proof preview"
+                      className="mt-2 max-h-[220px] w-full rounded-lg border border-slate-200 object-contain"
+                    />
+                  ) : null}
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Notes (optional)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Add any additional notes"
+                    className="min-h-[92px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus-visible:ring-2 focus-visible:ring-indigo-300/70"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={resetPaymentForm}
+                    disabled={submitPaymentMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={submitPaymentMutation.isPending || !paymentProof}
+                  >
+                    {submitPaymentMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      "Submit payment"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
+      {selectedPayment ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4"
+          onClick={() => setSelectedPayment(null)}
+        >
+          <Card
+            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto border-slate-200/90 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <CardHeader className="border-b border-slate-100 pb-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="text-lg">Payment details</CardTitle>
+                  <CardDescription>
+                    Submitted on {formatDateTime(selectedPayment.paidAt)}
+                  </CardDescription>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedPayment(null)}
+                  className="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="Close details modal"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4 pt-5">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+                  <p className="text-xs text-slate-500">Status</p>
+                  <div className="mt-1">{getPaymentBadge(selectedPayment.status)}</div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+                  <p className="text-xs text-slate-500">Amount</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-900">
+                    {formatCurrency(selectedPayment.amount)}
                   </p>
-                  <p style={{ fontWeight: 500 }}>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+                <p className="text-xs text-slate-500">Transaction ID</p>
+                <p className="mt-1 font-mono text-sm text-slate-800">
+                  {selectedPayment.transactionId || "-"}
+                </p>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+                  <p className="text-xs text-slate-500">Submitted on</p>
+                  <p className="mt-1 text-sm font-medium text-slate-800">
+                    {formatDateTime(selectedPayment.paidAt)}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+                  <p className="text-xs text-slate-500">Processed on</p>
+                  <p className="mt-1 text-sm font-medium text-slate-800">
                     {formatDateTime(selectedPayment.approvedAt)}
                   </p>
-                  {selectedPayment.approvedBy && (
-                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                  {selectedPayment.approvedBy ? (
+                    <p className="mt-1 text-xs text-slate-500">
                       by {selectedPayment.approvedBy.fullName}
                     </p>
-                  )}
+                  ) : null}
                 </div>
-              )}
+              </div>
 
-              {selectedPayment.validFrom && selectedPayment.validUntil && (
-                <div>
-                  <p
-                    style={{
-                      fontSize: "0.875rem",
-                      color: "#6b7280",
-                      marginBottom: "0.25rem",
-                    }}
-                  >
-                    Validity Period
-                  </p>
-                  <p style={{ fontWeight: 500 }}>
-                    {formatDate(selectedPayment.validFrom)} to{" "}
-                    {formatDate(selectedPayment.validUntil)}
+              {selectedPayment.validFrom && selectedPayment.validUntil ? (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
+                  <p className="text-xs text-emerald-700">Validity period</p>
+                  <p className="mt-1 text-sm font-medium text-emerald-800">
+                    {formatDate(selectedPayment.validFrom)} to {formatDate(selectedPayment.validUntil)}
                   </p>
                 </div>
-              )}
+              ) : null}
 
-              {selectedPayment.notes && (
-                <div>
-                  <p
-                    style={{
-                      fontSize: "0.875rem",
-                      color: "#6b7280",
-                      marginBottom: "0.25rem",
-                    }}
-                  >
-                    Notes
-                  </p>
-                  <p
-                    style={{
-                      backgroundColor: "#f9fafb",
-                      padding: "0.75rem",
-                      borderRadius: "0.5rem",
-                      fontSize: "0.875rem",
-                    }}
-                  >
-                    {selectedPayment.notes}
-                  </p>
+              {selectedPayment.notes ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+                  <p className="text-xs text-slate-500">Notes</p>
+                  <p className="mt-1 text-sm text-slate-700">{selectedPayment.notes}</p>
                 </div>
-              )}
+              ) : null}
 
-              {selectedPayment.rejectionReason && (
-                <div>
-                  <p
-                    style={{
-                      fontSize: "0.875rem",
-                      color: "#ef4444",
-                      marginBottom: "0.25rem",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Rejection Reason
-                  </p>
-                  <p
-                    style={{
-                      backgroundColor: "#fee2e2",
-                      padding: "0.75rem",
-                      borderRadius: "0.5rem",
-                      fontSize: "0.875rem",
-                      color: "#991b1b",
-                    }}
-                  >
+              {selectedPayment.rejectionReason ? (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-3">
+                  <p className="text-xs font-semibold text-rose-700">Rejection reason</p>
+                  <p className="mt-1 text-sm text-rose-800">
                     {selectedPayment.rejectionReason}
                   </p>
                 </div>
-              )}
+              ) : null}
 
-              <div>
-                <p
-                  style={{
-                    fontSize: "0.875rem",
-                    color: "#6b7280",
-                    marginBottom: "0.5rem",
-                  }}
-                >
-                  Payment Proof
-                </p>
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+                <p className="mb-2 text-xs text-slate-500">Payment proof</p>
                 {selectedPayment.paymentProof ? (
                   <a
                     href={selectedPayment.paymentProof}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ display: "block" }}
+                    className="block"
                   >
-                    <Image
+                    <img
                       src={selectedPayment.paymentProof}
-                      alt="Payment Proof"
-                      width={600}
-                      height={400}
-                      style={{
-                        maxWidth: "100%",
-                        borderRadius: "0.5rem",
-                        border: "1px solid #e5e7eb",
-                      }}
+                      alt="Payment proof"
+                      className="w-full rounded-lg border border-slate-200"
                     />
                   </a>
                 ) : (
-                  <p style={{ color: "#9ca3af", fontSize: "0.875rem" }}>
-                    No payment proof available
-                  </p>
+                  <p className="text-sm text-slate-500">No payment proof available</p>
                 )}
               </div>
-            </div>
 
-            <div
-              style={{
-                marginTop: "1.5rem",
-                paddingTop: "1rem",
-                borderTop: "1px solid #e5e7eb",
-              }}
-            >
-              <button
-                className="btn btn--outline"
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
                 onClick={() => setSelectedPayment(null)}
-                style={{ width: "100%" }}
               >
                 Close
-              </button>
-            </div>
-          </div>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-      )}
-    </motion.div>
+      ) : null}
+    </div>
   );
 }

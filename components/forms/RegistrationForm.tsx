@@ -260,7 +260,7 @@ export const RegisterForm: React.FC = () => {
       <button
         type="button"
         onClick={() => router.push("/auth/login")}
-        className="w-full rounded-full border-2 border-blue-600 text-blue-700 bg-transparent py-2.5 px-5 text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue-600 hover:text-white"
+        className="w-full rounded-full border-2 border-blue-600 text-blue-700 bg-transparent py-2.5 px-5 text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue-50 hover:text-blue-800"
       >
         Login to your Account
       </button>

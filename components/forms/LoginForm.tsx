@@ -135,7 +135,7 @@ export const LoginForm: React.FC = () => {
       <button
         type="button"
         onClick={() => router.push("/auth/register")}
-        className="w-full rounded-full border-2 border-green-600 text-green-700 bg-transparent py-2.5 px-5 text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-green-600 hover:text-white"
+        className="w-full rounded-full border-2 border-green-600 text-green-700 bg-transparent py-2.5 px-5 text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-green-50 hover:text-green-800"
       >
         Create an Account
       </button>

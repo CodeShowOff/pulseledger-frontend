@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import RoleGuard from "@/components/shared/RoleGuard";
 import api from "@/lib/axios";
+import { NotificationItem, useLatestNotifications } from "@/lib/queries/notifications";
 import { Inter } from "next/font/google";
 import { motion } from "framer-motion";
 import {
@@ -32,7 +33,6 @@ import {
   TrendingUp,
   MessageSquare,
   UserCircle2,
-  UserPlus,
   Users,
   UtensilsCrossed,
   CreditCard,
@@ -79,6 +79,39 @@ interface SubscriptionStatus {
   totalPaid: number;
 }
 
+function formatRelativeTime(value: string) {
+  const timestamp = new Date(value).getTime();
+  if (!Number.isFinite(timestamp)) return "";
+
+  const diffMs = Date.now() - timestamp;
+  if (diffMs < 60_000) return "Just now";
+
+  const minutes = Math.floor(diffMs / 60_000);
+  if (minutes < 60) return `${minutes}m ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days}d ago`;
+
+  return new Date(timestamp).toLocaleDateString();
+}
+
+function getActivityIcon(notification: NotificationItem) {
+  switch (notification.type) {
+    case "order":
+      return ClipboardList;
+    case "plan":
+      return UtensilsCrossed;
+    case "system":
+      return Sparkles;
+    default:
+      return MessageSquare;
+  }
+}
+
 export default function CoachDashboard() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
@@ -116,6 +149,30 @@ export default function CoachDashboard() {
       return (res.data?.data ?? []) as CoachClient[];
     },
   });
+
+  const {
+    data: latestNotificationsResponse,
+    isLoading: activityLoading,
+    isError: activityError,
+  } = useLatestNotifications(4);
+
+  const latestActivity = useMemo(() => {
+    const notifications = latestNotificationsResponse?.data ?? [];
+
+    return [...notifications]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 4)
+      .map((notification) => ({
+        _id: notification._id,
+        label:
+          notification.title?.trim() ||
+          notification.message?.trim() ||
+          notification.type.toUpperCase(),
+        time: formatRelativeTime(notification.createdAt),
+        Icon: getActivityIcon(notification),
+        isUnread: !notification.readAt,
+      }));
+  }, [latestNotificationsResponse]);
 
   const publicProfileUrl =
     typeof window !== "undefined" && user?.referralCode
@@ -619,8 +676,8 @@ export default function CoachDashboard() {
                     {progressLoading ? (
                       <p className="text-sm text-slate-500">Loading chart data...</p>
                     ) : (
-                      <div className="h-[280px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                      <div className="w-full min-w-0">
+                        <ResponsiveContainer width="100%" height={280} minWidth={0}>
                           <AreaChart data={chartData} margin={{ top: 8, right: 0, left: -20, bottom: 0 }}>
                             <defs>
                               <linearGradient id="coachBmiGradient" x1="0" y1="0" x2="0" y2="1">
@@ -672,22 +729,32 @@ export default function CoachDashboard() {
                     <CardDescription>Recent momentum across your coaching business.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {[
-                      { label: "New lead joined your profile", time: "20m ago", Icon: UserPlus },
-                      { label: "Nutrition plan accepted", time: "1h ago", Icon: UtensilsCrossed },
-                      { label: "Workout completed by client", time: "3h ago", Icon: Dumbbell },
-                      { label: "Positive review submitted", time: "Today", Icon: Star },
-                    ].map((item) => (
-                      <div key={item.label} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                        <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-slate-600 shadow-sm">
-                          <item.Icon className="h-4 w-4" />
-                        </span>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-slate-700">{item.label}</p>
-                          <p className="text-xs text-slate-500">{item.time}</p>
+                    {activityLoading ? (
+                      <p className="text-sm text-slate-500">Loading activity...</p>
+                    ) : activityError ? (
+                      <p className="text-sm text-rose-600">Failed to load activity.</p>
+                    ) : latestActivity.length === 0 ? (
+                      <p className="text-sm text-slate-500">No recent activity yet.</p>
+                    ) : (
+                      latestActivity.map((item) => (
+                        <div key={item._id} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                          <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-slate-600 shadow-sm">
+                            <item.Icon className="h-4 w-4" />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-slate-700">{item.label}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-xs text-slate-500">{item.time}</p>
+                              {item.isUnread ? (
+                                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+                                  New
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>

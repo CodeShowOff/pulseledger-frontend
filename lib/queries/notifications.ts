@@ -4,6 +4,7 @@ import api from "@/lib/axios";
 export const NOTIFS_QK = {
   unread: ["notifications", "unread-count"] as const,
   list: (page: number) => ["notifications", "list", page] as const,
+  latest: (limit: number) => ["notifications", "latest", limit] as const,
 };
 
 export type NotificationItem = {
@@ -14,6 +15,17 @@ export type NotificationItem = {
   meta?: Record<string, any>;
   readAt?: string | null;
   createdAt: string;
+};
+
+export type NotificationsListResponse = {
+  success: boolean;
+  data: NotificationItem[];
+  unread: number;
+  pagination: {
+    total: number;
+    page: number;
+    totalPages: number;
+  };
 };
 
 export function useUnreadCount() {
@@ -33,7 +45,17 @@ export function useNotifications(page = 1) {
     queryKey: NOTIFS_QK.list(page),
     queryFn: async () => {
       const res = await api.get(`/notifications/me`, { params: { page, limit: 20 } });
-      return res.data as { success: boolean; data: NotificationItem[]; unread: number; pagination: { total: number; page: number; totalPages: number } };
+      return res.data as NotificationsListResponse;
+    },
+  });
+}
+
+export function useLatestNotifications(limit = 4) {
+  return useQuery({
+    queryKey: NOTIFS_QK.latest(limit),
+    queryFn: async () => {
+      const res = await api.get(`/notifications/me`, { params: { page: 1, limit } });
+      return res.data as NotificationsListResponse;
     },
   });
 }

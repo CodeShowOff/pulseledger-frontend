@@ -532,7 +532,7 @@ body.chat-page-active .coach-content__inner {
 
 .navbar-modern__logo-text {
   font-size: 1.6rem;
-  font-weight: 800;
+  font-weight: 900;
   background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -3448,8 +3448,8 @@ body.chat-page-active .coach-content__inner {
 }
 
 .auth-form__switch-btn--login:hover {
-  background-color: #2563eb;
-  color: #ffffff;
+  background-color: #eff6ff;
+  color: #1d4ed8;
 }
 
 .auth-form__switch-btn--register {
@@ -3458,8 +3458,8 @@ body.chat-page-active .coach-content__inner {
 }
 
 .auth-form__switch-btn--register:hover {
-  background-color: #16a34a;
-  color: #ffffff;
+  background-color: #f0fdf4;
+  color: #15803d;
 }
 
 .auth-form__submit--secondary {
@@ -3925,13 +3925,19 @@ body.chat-page-active .coach-content__inner {
   cursor: pointer;
 }
 
-.client-button:hover {
+.client-button:not(.client-button--outline):not(.client-button--ghost):not(.client-button--danger):hover {
   background-color: #1d4ed8;
 }
 
 .client-button--outline {
   background-color: #ffffff;
   color: #2563eb;
+}
+
+.client-button--outline:hover {
+  background-color: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
 }
 
 .client-button-secondary {
@@ -3985,6 +3991,24 @@ body.chat-page-active .coach-content__inner {
 
 .notification-chip-row__cta {
   margin-left: 0;
+}
+
+.notification-chip-row__cta:not(.notification-chip-row__send) {
+  background-color: #ffffff;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.notification-chip-row__cta:not(.notification-chip-row__send):hover:not(:disabled) {
+  background-color: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.notification-chip-row__cta:not(.notification-chip-row__send):disabled {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #94a3b8;
 }
 
 .notification-chip-row__send {

@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import { motion } from "framer-motion";
 import {
   ResponsiveContainer,
   BarChart,
@@ -13,6 +14,22 @@ import {
   Legend,
   CartesianGrid,
 } from "recharts";
+import {
+  Banknote,
+  BarChart3,
+  ClipboardList,
+  Package,
+  Sparkles,
+  Wallet,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface EarningsData {
   success: boolean;
@@ -35,30 +52,41 @@ interface EarningsData {
   orders: Array<any>;
 }
 
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+};
+
+function formatCurrency(value: number) {
+  return `₹${value.toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function formatMonthLabel(monthKey: string) {
+  const [yearStr, monthStr] = monthKey.split("-");
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month)) {
+    return monthKey;
+  }
+
+  return new Date(year, month - 1, 1).toLocaleDateString("en-IN", {
+    month: "short",
+    year: "2-digit",
+  });
+}
+
 export default function EarningsDashboard() {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<EarningsData>({
     queryKey: ["coachEarnings"],
     queryFn: async () => {
       const res = await api.get("/coach/earnings");
       return res.data as EarningsData;
     },
   });
-
-  if (isLoading) {
-    return (
-      <div className="admin-page-header">
-        <p>Loading earnings data...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{ padding: "2rem", color: "var(--admin-color-error)" }}>
-        <p>Error loading earnings data</p>
-      </div>
-    );
-  }
 
   const summary = data?.summary || {
     totalEarnings: 0,
@@ -70,166 +98,309 @@ export default function EarningsDashboard() {
 
   const trend = data?.trend || [];
 
-  return (
-    <div>
-      {/* Header */}
-      <section className="admin-page-header">
-        <h1 className="admin-page-header__title coach-page-header__title">
-          💰 Earnings Dashboard
-        </h1>
-        <p className="admin-page-header__subtitle coach-page-header__subtitle">
-          Track your income from subscriptions and product orders.
-        </p>
-      </section>
+  const chartData = useMemo(
+    () =>
+      trend.map((entry) => ({
+        ...entry,
+        monthLabel: formatMonthLabel(entry.month),
+      })),
+    [trend]
+  );
 
-      {/* Summary Cards */}
-      <section
-        style={{
-          marginTop: "1.25rem",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "1rem",
-        }}
-      >
-        <div className="admin-card" style={{ borderLeft: "4px solid #10b981" }}>
-          <p className="admin-card__label">Total Earnings</p>
-          <p className="admin-card__value" style={{ color: "#10b981", fontSize: "1.8rem" }}>
-            ₹{summary.totalEarnings.toFixed(2)}
-          </p>
-          <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginTop: "0.35rem" }}>
-            From subscriptions & orders
-          </p>
+  const averagePerOrder =
+    summary.orderCount > 0 ? summary.orderEarnings / summary.orderCount : 0;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 pt-4 md:pt-6">
+        <div className="h-[220px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div
+              key={`earnings-loading-${idx}`}
+              className="h-[120px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70"
+            />
+          ))}
         </div>
+      </div>
+    );
+  }
 
-        <div className="admin-card" style={{ borderLeft: "4px solid #3b82f6" }}>
-          <p className="admin-card__label">Subscription Earnings</p>
-          <p className="admin-card__value" style={{ color: "#3b82f6", fontSize: "1.8rem" }}>
-            ₹{summary.subscriptionEarnings.toFixed(2)}
-          </p>
-          <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginTop: "0.35rem" }}>
-            {summary.subscriptionCount} active subscriptions
-          </p>
-        </div>
-
-        <div className="admin-card" style={{ borderLeft: "4px solid #f59e0b" }}>
-          <p className="admin-card__label">Order Earnings</p>
-          <p className="admin-card__value" style={{ color: "#f59e0b", fontSize: "1.8rem" }}>
-            ₹{summary.orderEarnings.toFixed(2)}
-          </p>
-          <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginTop: "0.35rem" }}>
-            {summary.orderCount} completed orders
-          </p>
-        </div>
-
-        <div className="admin-card" style={{ borderLeft: "4px solid #8b5cf6" }}>
-          <p className="admin-card__label">Average per Order</p>
-          <p className="admin-card__value" style={{ color: "#8b5cf6", fontSize: "1.8rem" }}>
-            ₹{summary.orderCount > 0 ? (summary.orderEarnings / summary.orderCount).toFixed(2) : "0"}
-          </p>
-          <p style={{ fontSize: "0.8rem", color: "var(--admin-color-muted)", marginTop: "0.35rem" }}>
-            Order average value
-          </p>
-        </div>
-      </section>
-
-      {/* Earnings Trend Chart */}
-      {trend.length > 0 && (
-        <section style={{ marginTop: "1.5rem" }}>
-          <div className="admin-card">
-            <h2 className="admin-page-header__title" style={{ fontSize: "1rem", marginBottom: "1rem" }}>
-              Earnings Trend
-            </h2>
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={trend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="month" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#ffffff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                  }}
-                  formatter={(value) => {
-                    const normalizedValue = Array.isArray(value) ? value[0] : value;
-                    if (typeof normalizedValue === "number") {
-                      return `₹${normalizedValue.toFixed(2)}`;
-                    }
-                    return `₹${normalizedValue ?? 0}`;
-                  }}
-                />
-                <Legend />
-                <Bar
-                  dataKey="subscriptionEarnings"
-                  fill="#3b82f6"
-                  name="Subscription Earnings"
-                />
-                <Bar dataKey="orderEarnings" fill="#f59e0b" name="Order Earnings" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </section>
-      )}
-
-      {/* Summary Tables */}
-      <section style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-        {/* Subscription Summary */}
-        <div className="admin-card">
-          <h2 className="admin-page-header__title" style={{ fontSize: "1rem", marginBottom: "1rem" }}>
-            Subscription Summary
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #e5e7eb", paddingBottom: "0.5rem" }}>
-              <span style={{ fontWeight: "600", color: "#374151" }}>Active Subscriptions</span>
-              <span style={{ color: "#3b82f6", fontWeight: "600" }}>{summary.subscriptionCount}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #e5e7eb", paddingBottom: "0.5rem" }}>
-              <span style={{ fontWeight: "600", color: "#374151" }}>Total Revenue</span>
-              <span style={{ color: "#3b82f6", fontWeight: "600" }}>₹{summary.subscriptionEarnings.toFixed(2)}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "0.5rem" }}>
-              <span style={{ fontWeight: "600", color: "#374151" }}>Avg per Subscription</span>
-              <span style={{ color: "#3b82f6", fontWeight: "600" }}>
-                ₹{summary.subscriptionCount > 0 ? (summary.subscriptionEarnings / summary.subscriptionCount).toFixed(2) : "0"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Order Summary */}
-        <div className="admin-card">
-          <h2 className="admin-page-header__title" style={{ fontSize: "1rem", marginBottom: "1rem" }}>
-            Order Summary
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #e5e7eb", paddingBottom: "0.5rem" }}>
-              <span style={{ fontWeight: "600", color: "#374151" }}>Completed Orders</span>
-              <span style={{ color: "#f59e0b", fontWeight: "600" }}>{summary.orderCount}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #e5e7eb", paddingBottom: "0.5rem" }}>
-              <span style={{ fontWeight: "600", color: "#374151" }}>Total Revenue</span>
-              <span style={{ color: "#f59e0b", fontWeight: "600" }}>₹{summary.orderEarnings.toFixed(2)}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "0.5rem" }}>
-              <span style={{ fontWeight: "600", color: "#374151" }}>Avg per Order</span>
-              <span style={{ color: "#f59e0b", fontWeight: "600" }}>
-                ₹{summary.orderCount > 0 ? (summary.orderEarnings / summary.orderCount).toFixed(2) : "0"}
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* No Data State */}
-      {summary.totalEarnings === 0 && (
-        <section style={{ marginTop: "1.5rem" }}>
-          <div className="admin-card" style={{ textAlign: "center", padding: "2rem" }}>
-            <p style={{ fontSize: "1rem", color: "#6b7280" }}>
-              No earnings yet. Start by creating subscription plans and products!
+  if (error) {
+    return (
+      <div className="pt-4 md:pt-6">
+        <Card className="border-rose-200 bg-rose-50">
+          <CardContent className="py-6">
+            <p className="text-sm font-medium text-rose-700">
+              Error loading earnings data.
             </p>
-          </div>
-        </section>
-      )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5 pt-4 md:pt-6">
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28 }}
+      >
+        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
+          <CardHeader className="gap-4 p-6 md:p-7">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                <Badge className="w-fit border-white/25 bg-white/15 text-white">
+                  Revenue Hub
+                </Badge>
+                <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+                  Earnings dashboard
+                </CardTitle>
+                <CardDescription className="max-w-2xl text-sm !text-white/90 md:text-base">
+                  Track income from subscriptions and product orders in one place.
+                </CardDescription>
+              </div>
+            </div>
+
+            <div className="grid gap-3 pt-2 sm:grid-cols-2">
+              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-blue-100">Total revenue</p>
+                <p className="mt-1 text-xl font-semibold">
+                  {formatCurrency(summary.totalEarnings)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-blue-100">Total transactions</p>
+                <p className="mt-1 text-xl font-semibold">
+                  {summary.subscriptionCount + summary.orderCount}
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.05 }}
+        className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        {[
+          {
+            title: "Total earnings",
+            value: formatCurrency(summary.totalEarnings),
+            subtitle: "Subscriptions + orders",
+            Icon: Wallet,
+            iconTone: "bg-emerald-50 text-emerald-600",
+          },
+          {
+            title: "Subscription earnings",
+            value: formatCurrency(summary.subscriptionEarnings),
+            subtitle: `${summary.subscriptionCount} approved subscriptions`,
+            Icon: ClipboardList,
+            iconTone: "bg-blue-50 text-blue-600",
+          },
+          {
+            title: "Order earnings",
+            value: formatCurrency(summary.orderEarnings),
+            subtitle: `${summary.orderCount} approved/completed orders`,
+            Icon: Package,
+            iconTone: "bg-amber-50 text-amber-600",
+          },
+          {
+            title: "Average per order",
+            value: formatCurrency(averagePerOrder),
+            subtitle: "Order revenue average",
+            Icon: Banknote,
+            iconTone: "bg-violet-50 text-violet-600",
+          },
+        ].map((item) => (
+          <Card key={item.title}>
+            <CardContent className="p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                  {item.title}
+                </p>
+                <span
+                  className={`grid h-9 w-9 place-items-center rounded-xl ${item.iconTone}`}
+                >
+                  <item.Icon className="h-4 w-4" />
+                </span>
+              </div>
+              <p className="text-2xl font-bold text-slate-900">{item.value}</p>
+              <p className="mt-1 text-xs text-slate-500">{item.subtitle}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.1 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <BarChart3 className="h-4 w-4" />
+              </span>
+              Earnings trend
+            </CardTitle>
+            <CardDescription>
+              Monthly comparison of subscription and product order revenue.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            {chartData.length > 0 ? (
+              <div className="w-full min-w-0">
+                <ResponsiveContainer width="100%" height={340} minWidth={0}>
+                  <BarChart data={chartData} margin={{ top: 8, right: 0, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 8" stroke="#e2e8f0" vertical={false} />
+                    <XAxis dataKey="monthLabel" stroke="#64748b" tick={{ fontSize: 12 }} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                    <Tooltip
+                      cursor={{ fill: "rgba(99,102,241,0.06)" }}
+                      contentStyle={{
+                        backgroundColor: "#ffffff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "12px",
+                        boxShadow: "0 10px 24px -18px rgba(15, 23, 42, 0.5)",
+                      }}
+                      formatter={(value) => {
+                        const normalized = Array.isArray(value) ? value[0] : value;
+                        return typeof normalized === "number"
+                          ? formatCurrency(normalized)
+                          : normalized;
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="subscriptionEarnings" fill="#4f46e5" name="Subscription" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="orderEarnings" fill="#f59e0b" name="Orders" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-10 text-center">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-slate-500 shadow-sm">
+                  <BarChart3 className="h-5 w-5" />
+                </span>
+                <p className="mt-3 text-sm font-semibold text-slate-700">
+                  No trend data available
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Monthly chart will appear when earnings start recording.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.14 }}
+        className="grid gap-4 lg:grid-cols-2"
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">Subscription summary</CardTitle>
+            <CardDescription>Performance from approved subscriptions.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2.5">
+            {[
+              {
+                label: "Approved subscriptions",
+                value: String(summary.subscriptionCount),
+              },
+              {
+                label: "Total revenue",
+                value: formatCurrency(summary.subscriptionEarnings),
+              },
+              {
+                label: "Average per subscription",
+                value: formatCurrency(
+                  summary.subscriptionCount > 0
+                    ? summary.subscriptionEarnings / summary.subscriptionCount
+                    : 0
+                ),
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5"
+              >
+                <span className="text-sm text-slate-600">{item.label}</span>
+                <span className="text-sm font-semibold text-slate-900">{item.value}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">Order summary</CardTitle>
+            <CardDescription>Performance from approved/completed product orders.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2.5">
+            {[
+              {
+                label: "Completed orders",
+                value: String(summary.orderCount),
+              },
+              {
+                label: "Total revenue",
+                value: formatCurrency(summary.orderEarnings),
+              },
+              {
+                label: "Average per order",
+                value: formatCurrency(averagePerOrder),
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5"
+              >
+                <span className="text-sm text-slate-600">{item.label}</span>
+                <span className="text-sm font-semibold text-slate-900">{item.value}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      {summary.totalEarnings === 0 ? (
+        <motion.section
+          variants={fadeInUp}
+          initial="initial"
+          animate="animate"
+          transition={{ duration: 0.28, delay: 0.18 }}
+        >
+          <Card className="border-slate-200/80 bg-white/95">
+            <CardContent className="py-8">
+              <div className="flex flex-col items-center text-center">
+                <span className="grid h-12 w-12 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <Sparkles className="h-5 w-5" />
+                </span>
+                <p className="mt-3 text-sm font-semibold text-slate-700">
+                  No earnings yet
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Start by creating subscription plans and products to begin revenue tracking.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.section>
+      ) : null}
     </div>
   );
 }

@@ -45,12 +45,12 @@ export default function CoachChart() {
   if (!data || data.length === 0) return <p>No progress data yet</p>;
 
   return (
-    <div className="bg-white p-4 rounded-xl border shadow-sm">
+    <div className="bg-white p-4 rounded-xl border shadow-sm min-w-0">
       <h3 className="text-lg font-semibold mb-3">Client Progress (Avg BMI)</h3>
       <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "1rem" }}>
         Average BMI across all clients, grouped by week
       </p>
-      <ResponsiveContainer width="100%" height={280}>
+      <ResponsiveContainer width="100%" height={280} minWidth={0}>
         <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
           <defs>
             <linearGradient id="colorBMI" x1="0" y1="0" x2="0" y2="1">
