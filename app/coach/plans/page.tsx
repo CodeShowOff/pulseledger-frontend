@@ -32,7 +32,18 @@ export default function CoachPlansPage() {
           <CardHeader className="gap-4 p-6 md:p-7">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-2">
-                <Badge className="w-fit border-white/25 bg-white/15 text-white">Plans Workspace</Badge>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="w-fit border-white/25 bg-white/15 text-white">Plans Workspace</Badge>
+                  {pendingCount > 0 ? (
+                    <Badge
+                      variant="warning"
+                      className="w-fit border-rose-300/50 bg-rose-500 text-white"
+                      aria-label={`${pendingCount} pending plan request${pendingCount === 1 ? "" : "s"}`}
+                    >
+                      {pendingCount > 99 ? "99+" : pendingCount} Pending Requests
+                    </Badge>
+                  ) : null}
+                </div>
                 <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
                   Build and scale premium client plans
                 </CardTitle>

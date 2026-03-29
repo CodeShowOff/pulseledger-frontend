@@ -1,9 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
-import { User, Upload, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Camera,
+  FileText,
+  Link2,
+  MapPin,
+  Shield,
+  Trash2,
+  Upload,
+  User,
+  UserRoundCog,
+} from "lucide-react";
 import { useProfileQuery, PROFILE_QUERY_KEY } from "@/lib/queries/profile";
 import { useMyDocumentsQuery } from "@/lib/queries/documents";
 import api from "@/lib/axios";
@@ -13,6 +24,10 @@ import { useAuthStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 const PaymentQrUploader = dynamic(() => import("@/components/coach/PaymentQrUploader"), { ssr: false });
 
@@ -21,6 +36,11 @@ const formatDate = (value?: string | null) => {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "-";
   return parsed.toLocaleDateString();
+};
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
 };
 
 export default function ProfilePage() {
@@ -63,11 +83,16 @@ export default function ProfilePage() {
   const [submittingDeletion, setSubmittingDeletion] = useState(false);
   const ITEMS_PER_PAGE = 4;
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const awardInputRef = useRef<HTMLInputElement | null>(null);
+  const transformationInputRef = useRef<HTMLInputElement | null>(null);
   const setAvatarUrl = useAuthStore((s) => s.setAvatarUrl);
   const storeAvatar = useAuthStore((s) => s.user?.avatarUrl);
   const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
-  const { data: myDocuments, isLoading: docsLoading } = useMyDocumentsQuery();
+  const isClientProfile = data?.role === "client";
+  const { data: myDocuments, isLoading: docsLoading } = useMyDocumentsQuery({
+    enabled: isClientProfile,
+  });
 
   const currentAddress = data?.address || null;
 
@@ -280,476 +305,506 @@ export default function ProfilePage() {
     }
   };
 
-  const detailRows = useMemo(() => {
-    if (!data) return [];
-    const entries: Array<{ label: string; value: string }> = [
-      { label: "Full Name", value: data.fullName },
-      { label: "Email", value: data.email },
-      { label: "Role", value: data.role },
-    ];
+  if (isLoading) {
+    return (
+      <div className="space-y-4 px-[var(--page-gutter-inline)] pt-4 md:pt-6">
+        <div className="h-[210px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div
+              key={`profile-loading-${idx}`}
+              className="h-[180px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70"
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-    if (data.phone) entries.push({ label: "Phone", value: data.phone });
-    if (data.whatsappNumber)
-      entries.push({ label: "WhatsApp", value: data.whatsappNumber });
-    if (data.specialization)
-      entries.push({ label: "Specialization", value: data.specialization });
-    if (typeof data.experienceYears === "number")
-      entries.push({ label: "Experience (years)", value: `${data.experienceYears}` });
-    if (typeof data.weight === "number") entries.push({ label: "Weight", value: `${data.weight} kg` });
-    if (typeof data.height === "number") entries.push({ label: "Height", value: `${data.height} cm` });
-    if (typeof data.bmi === "number") entries.push({ label: "BMI", value: `${data.bmi}` });
-    // Progress Summary intentionally removed from profile view.
+  if (error) {
+    return (
+      <div className="px-[var(--page-gutter-inline)] pt-4 md:pt-6">
+        <Card className="border-rose-200 bg-rose-50">
+          <CardContent className="flex items-center gap-2 py-6">
+            <AlertTriangle className="h-4 w-4 text-rose-600" />
+            <p className="text-sm font-medium text-rose-700">Unable to load your profile right now.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-    return entries;
-  }, [data]);
+  if (!data) {
+    return (
+      <div className="px-[var(--page-gutter-inline)] pt-4 md:pt-6">
+        <Card>
+          <CardContent className="py-6">
+            <p className="text-sm text-slate-600">No profile data is available.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <motion.div
-      className="profile-shell"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="profile-inner">
-        <header className="profile-header">
-          <div>
-            <h1
-              className="profile-header__title"
-              style={{ display: "flex", alignItems: "center", gap: 8 }}
-            >
-              <User className="w-6 h-6" />
-              My Profile
-            </h1>
-            <p className="profile-header__subtitle">
-              Your account, contact and health info in one place.
-            </p>
-          </div>
-          <div className="profile-header__badge">
-            <span />
-            Role: {data?.role || "-"}
-          </div>
-        </header>
+    <motion.div className="space-y-5 px-[var(--page-gutter-inline)] pt-4 md:pt-6" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+      <motion.section variants={fadeInUp} initial="initial" animate="animate" transition={{ duration: 0.28 }}>
+        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
+          <CardHeader className="gap-3 p-4 sm:gap-4 sm:p-6 md:p-7">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Badge className="hidden w-fit border-white/25 bg-white/15 text-white sm:inline-flex">Profile Center</Badge>
+                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
+                  <span className="inline-flex items-center gap-2">
+                    <User className="h-5 w-5 sm:h-6 sm:w-6" />
+                    My Profile
+                  </span>
+                </CardTitle>
+                <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block md:text-base">
+                  Your account, contact and health information in one polished workspace.
+                </CardDescription>
+              </div>
 
-        <div className="profile-card" style={{ marginBottom: "1rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", justifyContent: "space-between", flexWrap: "wrap" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.9rem" }}>
-              {(storeAvatar || data?.avatarUrl) ? (
-                <Image src={storeAvatar || data?.avatarUrl || ""} alt="Avatar" width={72} height={72} style={{ width: 72, height: 72, borderRadius: 999, objectFit: "cover", filter: "brightness(1.2)" }} priority />
+              <div className="hidden rounded-xl border border-white/25 bg-white/10 px-3 py-2.5 sm:block sm:px-4 sm:py-3">
+                <p className="text-[10px] uppercase tracking-wide text-blue-100 sm:text-[11px]">Current role</p>
+                <p className="mt-1 text-sm font-semibold capitalize text-white">{data.role || "-"}</p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </motion.section>
+
+      <motion.section variants={fadeInUp} initial="initial" animate="animate" transition={{ duration: 0.28, delay: 0.04 }}>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Camera className="h-4 w-4" />
+              </span>
+              Profile picture
+            </CardTitle>
+            <CardDescription className="hidden sm:block">Upload PNG, JPEG, or WebP image files up to 2 MB.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              {storeAvatar || data.avatarUrl ? (
+                <Image
+                  src={storeAvatar || data.avatarUrl || ""}
+                  alt="Profile avatar"
+                  width={72}
+                  height={72}
+                  className="h-[72px] w-[72px] rounded-full object-cover"
+                  priority
+                />
               ) : (
-                <div className="client-profile-avatar" style={{ width: 72, height: 72, fontSize: 22 }}>
-                  {data?.fullName?.[0]?.toUpperCase() || "U"}
+                <div className="grid h-[72px] w-[72px] place-items-center rounded-full bg-indigo-100 text-xl font-semibold text-indigo-700">
+                  {data.fullName?.[0]?.toUpperCase() || "U"}
                 </div>
               )}
+
               <div>
-                <div className="client-section-title">Profile Picture</div>
-                <p className="profile-header__subtitle" style={{ fontSize: "0.8rem" }}>PNG/JPEG/WebP up to 2 MB</p>
+                <p className="text-sm font-semibold text-slate-900">{data.fullName || "User"}</p>
+                <p className="text-xs text-slate-500">{data.email || "-"}</p>
               </div>
             </div>
-            <div>
-              <label className="btn btn--outline" style={{ cursor: uploading ? "default" : "pointer" }}>
-                <Upload className="btn__icon" /> {uploading ? "Uploading..." : "Upload New"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  disabled={uploading}
-                  ref={avatarInputRef}
-                  onChange={async (e) => {
-                    if (!e.target.files || !e.target.files[0]) return;
-                    const file = e.target.files[0];
-                    const form = new FormData();
-                    form.append("image", file);
-                    try {
-                      setUploading(true);
-                      const res = await api.post("/users/upload-avatar", form, {
-                        headers: { "Content-Type": "multipart/form-data" },
-                      });
-                      const newUrl = res.data?.data?.avatarUrl as string | undefined;
-                      if (newUrl) {
-                        // Update store (persisted) so other pages use cached avatar
-                        setAvatarUrl(newUrl);
-                        // Update profile query cache locally without refetch
-                        queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: unknown) =>
-                          prev ? { ...(prev as Record<string, unknown>), avatarUrl: newUrl } : prev
-                        );
-                      }
-                    } catch (err) {
-                      // Error uploading avatar
-                    } finally {
-                      setUploading(false);
-                      if (avatarInputRef.current) avatarInputRef.current.value = "";
+
+            <div className="flex items-center gap-2">
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={uploading}
+                onChange={async (e) => {
+                  if (!e.target.files || !e.target.files[0]) return;
+                  const file = e.target.files[0];
+                  const form = new FormData();
+                  form.append("image", file);
+
+                  try {
+                    setUploading(true);
+                    const res = await api.post("/users/upload-avatar", form, {
+                      headers: { "Content-Type": "multipart/form-data" },
+                    });
+                    const newUrl = res.data?.data?.avatarUrl as string | undefined;
+
+                    if (newUrl) {
+                      setAvatarUrl(newUrl);
+                      queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: unknown) =>
+                        prev ? { ...(prev as Record<string, unknown>), avatarUrl: newUrl } : prev
+                      );
                     }
-                  }}
-                />
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <section className="profile-grid">
-          {data?.role === "client" && (
-            <div
-              className="profile-card"
-              style={{ display: "flex", flexDirection: "column" }}
-            >
-              <h2
-                className="profile-header__title"
-                style={{ fontSize: "1rem" }}
-              >
-                My Documents
-              </h2>
-              <p
-                className="profile-header__subtitle"
-                style={{ marginTop: 4, marginBottom: 12, fontSize: "0.85rem" }}
-              >
-                Upload and manage your medical reports, lab results, and other health documents in one place.
-              </p>
-              <div style={{ marginBottom: 12, flex: 1 }}>
-                {docsLoading ? (
-                  <p className="profile-header__subtitle" style={{ fontSize: "0.8rem" }}>
-                    Loading your documents...
-                  </p>
-                ) : myDocuments && myDocuments.length > 0 ? (
-                  <ul style={{ fontSize: "0.8rem", color: "#4b5563", paddingLeft: "1rem", marginBottom: 4 }}>
-                    {myDocuments.slice(0, 3).map((doc) => (
-                      <li key={doc._id} style={{ listStyle: "disc", marginBottom: 4 }}>
-                        <button
-                          type="button"
-                          onClick={() => window.open(doc.viewUrl, "_blank")}
-                          style={{
-                            border: "none",
-                            background: "none",
-                            padding: 0,
-                            margin: 0,
-                            cursor: "pointer",
-                            color: "#2563eb",
-                            textDecoration: "underline",
-                            fontSize: "0.8rem",
-                          }}
-                        >
-                          {doc.name || doc.originalName}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="profile-header__subtitle" style={{ fontSize: "0.8rem" }}>
-                    You haven&apos;t uploaded any documents yet.
-                  </p>
-                )}
-                {myDocuments && myDocuments.length > 3 && (
-                  <p className="profile-header__subtitle" style={{ fontSize: "0.8rem", marginTop: 2 }}>
-                    and {myDocuments.length - 3} more...
-                  </p>
-                )}
-              </div>
-              <button
-                type="button"
-                className="btn btn--primary"
-                onClick={() => router.push("/client/documents")}
-                style={{
-                  marginTop: "auto",
-                  fontSize: "0.9rem",
-                  paddingInline: "1rem",
-                  paddingBlock: "0.5rem",
+                  } catch {
+                    // Error uploading avatar
+                  } finally {
+                    setUploading(false);
+                    if (avatarInputRef.current) avatarInputRef.current.value = "";
+                  }
                 }}
+              />
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={uploading}
               >
-                Go to My Documents
-              </button>
+                <Upload className="h-4 w-4" />
+                {uploading ? "Uploading..." : "Upload new"}
+              </Button>
             </div>
-          )}
+          </CardContent>
+        </Card>
+      </motion.section>
 
-          <div className="profile-card">
-            <h2 className="profile-header__title" style={{ fontSize: "1rem" }}>
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.08 }}
+        className="grid gap-4 lg:grid-cols-2"
+      >
+        {data.role === "client" && (
+          <Card className="lg:col-span-2">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <FileText className="h-4 w-4" />
+                </span>
+                My Documents
+              </CardTitle>
+              <CardDescription className="hidden sm:block">
+                Upload and manage your medical reports, lab results, and other health documents in one place.
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-3">
+              {docsLoading ? (
+                <p className="text-sm text-slate-500">Loading your documents...</p>
+              ) : myDocuments && myDocuments.length > 0 ? (
+                <ul className="space-y-2">
+                  {myDocuments.slice(0, 3).map((doc) => (
+                    <li key={doc._id}>
+                      <button
+                        type="button"
+                        onClick={() => window.open(doc.viewUrl, "_blank")}
+                        className="rounded text-sm font-medium text-indigo-600 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/70"
+                      >
+                        {doc.name || doc.originalName}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-slate-500">You haven&apos;t uploaded any documents yet.</p>
+              )}
+
+              {myDocuments && myDocuments.length > 3 ? (
+                <p className="text-xs text-slate-500">and {myDocuments.length - 3} more...</p>
+              ) : null}
+
+              <div className="pt-1">
+                <Button type="button" size="sm" onClick={() => router.push("/client/documents")}>
+                  Go to My Documents
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <User className="h-4 w-4" />
+              </span>
               Basic Info
-            </h2>
-            <dl
-              className="profile-fields"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: 8,
-              }}
-            >
-              <div className="profile-field" style={{ gridColumn: "1 / -1" }}>
-                <dt className="profile-field__label">Full Name</dt>
-                <dd className="profile-field__value">{data?.fullName || "-"}</dd>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid gap-2 sm:grid-cols-2">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 sm:col-span-2">
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Full name</dt>
+                <dd className="mt-1 break-words text-sm font-medium text-slate-900">{data.fullName || "-"}</dd>
               </div>
-              <div className="profile-field" style={{ gridColumn: "1 / -1" }}>
-                <dt className="profile-field__label">Email</dt>
-                <dd className="profile-field__value">{data?.email || "-"}</dd>
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 sm:col-span-2">
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Email</dt>
+                <dd className="mt-1 break-all text-sm font-medium text-slate-900">{data.email || "-"}</dd>
               </div>
-              <div className="profile-field">
-                <dt className="profile-field__label">Phone</dt>
-                <dd className="profile-field__value">{data?.phone || "-"}</dd>
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Phone</dt>
+                <dd className="mt-1 text-sm font-medium text-slate-900">{data.phone || "-"}</dd>
               </div>
-              <div className="profile-field">
-                <dt className="profile-field__label">WhatsApp</dt>
-                <dd className="profile-field__value">{data?.whatsappNumber || "-"}</dd>
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">WhatsApp</dt>
+                <dd className="mt-1 text-sm font-medium text-slate-900">{data.whatsappNumber || "-"}</dd>
               </div>
             </dl>
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="profile-card">
-            <h2 className="profile-header__title" style={{ fontSize: "1rem" }}>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <UserRoundCog className="h-4 w-4" />
+              </span>
               Account & Coach
-            </h2>
-            <dl className="profile-fields">
-              <div className="profile-field">
-                <dt className="profile-field__label">Role</dt>
-                <dd
-                  className="profile-field__value"
-                  style={{ textTransform: "capitalize" }}
-                >
-                  {data?.role || "-"}
-                </dd>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid gap-2">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Role</dt>
+                <dd className="mt-1 text-sm font-medium capitalize text-slate-900">{data.role || "-"}</dd>
               </div>
-              <div className="profile-field">
-                <dt className="profile-field__label">Coach Code</dt>
-                <dd className="profile-field__value">{data?.coachCode || "-"}</dd>
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Coach code</dt>
+                <dd className="mt-1 text-sm font-medium text-slate-900">{data.coachCode || "-"}</dd>
               </div>
-              <div className="profile-field">
-                <dt className="profile-field__label">Joined On</dt>
-                <dd className="profile-field__value">{formatDate(data?.createdAt)}</dd>
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Joined on</dt>
+                <dd className="mt-1 text-sm font-medium text-slate-900">{formatDate(data.createdAt)}</dd>
               </div>
             </dl>
-          </div>
+          </CardContent>
+        </Card>
 
-          {data?.role === "client" && (
-            <div className="profile-card">
-              <h2 className="profile-header__title" style={{ fontSize: "1rem" }}>
-                Health Overview
-              </h2>
-              <dl className="profile-fields">
-                <div className="profile-field">
-                  <dt className="profile-field__label">Weight</dt>
-                  <dd className="profile-field__value">
-                    {typeof data?.weight === "number" ? `${data.weight} kg` : "-"}
+        {data.role === "client" && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base md:text-lg">Health Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <dl className="grid gap-2 sm:grid-cols-3">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Weight</dt>
+                  <dd className="mt-1 text-sm font-medium text-slate-900">
+                    {typeof data.weight === "number" ? `${data.weight} kg` : "-"}
                   </dd>
                 </div>
-                <div className="profile-field">
-                  <dt className="profile-field__label">Height</dt>
-                  <dd className="profile-field__value">
-                    {typeof data?.height === "number" ? `${data.height} cm` : "-"}
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Height</dt>
+                  <dd className="mt-1 text-sm font-medium text-slate-900">
+                    {typeof data.height === "number" ? `${data.height} cm` : "-"}
                   </dd>
                 </div>
-                <div className="profile-field">
-                  <dt className="profile-field__label">BMI</dt>
-                  <dd className="profile-field__value">
-                    {typeof data?.bmi === "number" ? data.bmi : "-"}
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">BMI</dt>
+                  <dd className="mt-1 text-sm font-medium text-slate-900">
+                    {typeof data.bmi === "number" ? data.bmi : "-"}
                   </dd>
                 </div>
               </dl>
-            </div>
-          )}
+            </CardContent>
+          </Card>
+        )}
 
-          {data?.role === "coach" && (
-            <div className="profile-card" style={{ gridColumn: "1 / -1" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                <h2 className="profile-header__title" style={{ fontSize: "1rem" }}>
-                  Coach Information
-                </h2>
-                {!coachInfoEditing && (
-                  <button
-                    type="button"
-                    className="btn btn--outline"
-                    style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
-                    onClick={startEditCoachInfo}
-                  >
+        {data.role === "coach" && (
+          <Card className="lg:col-span-2">
+            <CardHeader className="pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <CardTitle className="text-base md:text-lg">Coach Information</CardTitle>
+                {!coachInfoEditing ? (
+                  <Button type="button" variant="outline" size="sm" onClick={startEditCoachInfo}>
                     Edit
-                  </button>
-                )}
+                  </Button>
+                ) : null}
               </div>
+            </CardHeader>
 
-              {!coachInfoEditing && (
-                <div className="profile-fields" style={{ marginTop: 8, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
-                  <div className="profile-field">
-                    <dt className="profile-field__label">Specialization</dt>
-                    <dd className="profile-field__value">{data?.specialization || "-"}</dd>
+            <CardContent>
+              {!coachInfoEditing ? (
+                <dl className="grid gap-2 sm:grid-cols-2">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Specialization</dt>
+                    <dd className="mt-1 text-sm font-medium text-slate-900">{data.specialization || "-"}</dd>
                   </div>
-                  <div className="profile-field">
-                    <dt className="profile-field__label">Experience (years)</dt>
-                    <dd className="profile-field__value">
-                      {typeof data?.experienceYears === "number" ? `${data.experienceYears} years` : "-"}
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Experience (years)</dt>
+                    <dd className="mt-1 text-sm font-medium text-slate-900">
+                      {typeof data.experienceYears === "number" ? `${data.experienceYears} years` : "-"}
                     </dd>
                   </div>
-                  <div className="profile-field" style={{ gridColumn: "1 / -1" }}>
-                    <dt className="profile-field__label">About Me / Description</dt>
-                    <dd className="profile-field__value" style={{ whiteSpace: "pre-wrap", lineHeight: "1.6" }}>
-                      {data?.description || "-"}
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 sm:col-span-2">
+                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">About me / description</dt>
+                    <dd className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                      {data.description || "-"}
                     </dd>
                   </div>
-                </div>
-              )}
-
-              {coachInfoEditing && (
-                <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div className="client-form" style={{ gap: 8 }}>
-                    <div className="client-form__row">
-                      <label className="client-form__label">Specialization</label>
-                      <input
-                        className="client-form__control"
+                </dl>
+              ) : (
+                <div className="space-y-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label htmlFor="coach-specialization" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Specialization
+                      </label>
+                      <Input
+                        id="coach-specialization"
                         type="text"
                         placeholder="e.g., Weight Loss, Muscle Gain, Sports Nutrition"
                         value={coachInfoValue.specialization}
-                        onChange={(e) => setCoachInfoValue((prev) => ({ ...prev, specialization: e.target.value }))}
+                        onChange={(e) =>
+                          setCoachInfoValue((prev) => ({ ...prev, specialization: e.target.value }))
+                        }
                       />
                     </div>
-                    <div className="client-form__row">
-                      <label className="client-form__label">Experience (years)</label>
-                      <input
-                        className="client-form__control"
+
+                    <div className="space-y-1.5">
+                      <label htmlFor="coach-experience" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Experience (years)
+                      </label>
+                      <Input
+                        id="coach-experience"
                         type="number"
                         min="0"
                         max="50"
                         placeholder="e.g., 5"
                         value={coachInfoValue.experienceYears}
-                        onChange={(e) => setCoachInfoValue((prev) => ({ ...prev, experienceYears: e.target.value }))}
+                        onChange={(e) =>
+                          setCoachInfoValue((prev) => ({ ...prev, experienceYears: e.target.value }))
+                        }
                       />
-                    </div>
-                    <div className="client-form__row client-form__row--full">
-                      <label className="client-form__label">About Me / Description</label>
-                      <textarea
-                        className="client-form__control"
-                        rows={6}
-                        maxLength={1000}
-                        placeholder="Tell potential clients about yourself, your achievements, certifications, coaching philosophy, success stories, etc."
-                        value={coachInfoValue.description}
-                        onChange={(e) => setCoachInfoValue((prev) => ({ ...prev, description: e.target.value }))}
-                        style={{ resize: "vertical", fontFamily: "inherit" }}
-                      />
-                      <div style={{ fontSize: "0.85rem", color: "#6b7280", marginTop: "0.25rem" }}>
-                        {coachInfoValue.description.length}/1000 characters
-                      </div>
                     </div>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-                    <button
-                      type="button"
-                      className="btn btn--ghost"
-                      onClick={cancelEditCoachInfo}
-                      disabled={coachInfoSaving}
-                    >
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="coach-description" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      About me / description
+                    </label>
+                    <textarea
+                      id="coach-description"
+                      rows={6}
+                      maxLength={1000}
+                      placeholder="Tell potential clients about yourself, achievements, certifications, coaching philosophy, and success stories."
+                      value={coachInfoValue.description}
+                      onChange={(e) =>
+                        setCoachInfoValue((prev) => ({ ...prev, description: e.target.value }))
+                      }
+                      className="min-h-[140px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/70"
+                    />
+                    <p className="text-xs text-slate-500">{coachInfoValue.description.length}/1000 characters</p>
+                  </div>
+
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button type="button" variant="secondary" onClick={cancelEditCoachInfo} disabled={coachInfoSaving}>
                       Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn--primary"
-                      onClick={saveCoachInfo}
-                      disabled={coachInfoSaving}
-                    >
+                    </Button>
+                    <Button type="button" onClick={saveCoachInfo} disabled={coachInfoSaving}>
                       {coachInfoSaving ? "Saving..." : "Save"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
-            </div>
-          )}
+            </CardContent>
+          </Card>
+        )}
 
-          {data?.role === "coach" && (
-            <div className="profile-card" style={{ gridColumn: "1 / -1" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                <h2 className="profile-header__title" style={{ fontSize: "1rem" }}>
+        {data.role === "coach" && (
+          <Card className="lg:col-span-2">
+            <CardHeader className="pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                    <Link2 className="h-4 w-4" />
+                  </span>
                   Social Media Links
-                </h2>
-                {!socialMediaEditing && (
-                  <button
-                    type="button"
-                    className="btn btn--outline"
-                    style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
-                    onClick={startEditSocialMedia}
-                  >
+                </CardTitle>
+                {!socialMediaEditing ? (
+                  <Button type="button" variant="outline" size="sm" onClick={startEditSocialMedia}>
                     Edit
-                  </button>
-                )}
+                  </Button>
+                ) : null}
               </div>
+            </CardHeader>
 
-              {!socialMediaEditing && (
-                <div className="profile-fields" style={{ marginTop: 8, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
-                  <div className="profile-field">
-                    <dt className="profile-field__label">Instagram</dt>
-                    <dd className="profile-field__value" style={{ wordBreak: "break-all" }}>{data?.socialMedia?.instagram || "-"}</dd>
-                  </div>
-                  <div className="profile-field">
-                    <dt className="profile-field__label">Facebook</dt>
-                    <dd className="profile-field__value" style={{ wordBreak: "break-all" }}>{data?.socialMedia?.facebook || "-"}</dd>
-                  </div>
-                  <div className="profile-field">
-                    <dt className="profile-field__label">Twitter</dt>
-                    <dd className="profile-field__value" style={{ wordBreak: "break-all" }}>{data?.socialMedia?.twitter || "-"}</dd>
-                  </div>
-                  <div className="profile-field">
-                    <dt className="profile-field__label">LinkedIn</dt>
-                    <dd className="profile-field__value" style={{ wordBreak: "break-all" }}>{data?.socialMedia?.linkedin || "-"}</dd>
-                  </div>
-                  <div className="profile-field">
-                    <dt className="profile-field__label">YouTube</dt>
-                    <dd className="profile-field__value" style={{ wordBreak: "break-all" }}>{data?.socialMedia?.youtube || "-"}</dd>
-                  </div>
-                  <div className="profile-field">
-                    <dt className="profile-field__label">Website</dt>
-                    <dd className="profile-field__value" style={{ wordBreak: "break-all" }}>{data?.socialMedia?.website || "-"}</dd>
-                  </div>
-                </div>
-              )}
-
-              {socialMediaEditing && (
-                <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div className="client-form" style={{ gap: 8 }}>
-                    <div className="client-form__row">
-                      <label className="client-form__label">Instagram URL</label>
-                      <input
-                        className="client-form__control"
+            <CardContent>
+              {!socialMediaEditing ? (
+                <dl className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {[
+                    { label: "Instagram", value: data.socialMedia?.instagram || "-" },
+                    { label: "Facebook", value: data.socialMedia?.facebook || "-" },
+                    { label: "Twitter", value: data.socialMedia?.twitter || "-" },
+                    { label: "LinkedIn", value: data.socialMedia?.linkedin || "-" },
+                    { label: "YouTube", value: data.socialMedia?.youtube || "-" },
+                    { label: "Website", value: data.socialMedia?.website || "-" },
+                  ].map((item) => (
+                    <div key={item.label} className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                      <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{item.label}</dt>
+                      <dd className="mt-1 break-all text-sm font-medium text-slate-900">{item.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <div className="space-y-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label htmlFor="instagram-url" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Instagram URL
+                      </label>
+                      <Input
+                        id="instagram-url"
                         type="url"
                         placeholder="https://instagram.com/yourprofile"
                         value={socialMediaValue.instagram}
                         onChange={(e) => setSocialMediaValue((prev) => ({ ...prev, instagram: e.target.value }))}
                       />
                     </div>
-                    <div className="client-form__row">
-                      <label className="client-form__label">Facebook URL</label>
-                      <input
-                        className="client-form__control"
+                    <div className="space-y-1.5">
+                      <label htmlFor="facebook-url" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Facebook URL
+                      </label>
+                      <Input
+                        id="facebook-url"
                         type="url"
                         placeholder="https://facebook.com/yourpage"
                         value={socialMediaValue.facebook}
                         onChange={(e) => setSocialMediaValue((prev) => ({ ...prev, facebook: e.target.value }))}
                       />
                     </div>
-                    <div className="client-form__row">
-                      <label className="client-form__label">Twitter URL</label>
-                      <input
-                        className="client-form__control"
+                    <div className="space-y-1.5">
+                      <label htmlFor="twitter-url" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Twitter URL
+                      </label>
+                      <Input
+                        id="twitter-url"
                         type="url"
                         placeholder="https://twitter.com/yourprofile"
                         value={socialMediaValue.twitter}
                         onChange={(e) => setSocialMediaValue((prev) => ({ ...prev, twitter: e.target.value }))}
                       />
                     </div>
-                    <div className="client-form__row">
-                      <label className="client-form__label">LinkedIn URL</label>
-                      <input
-                        className="client-form__control"
+                    <div className="space-y-1.5">
+                      <label htmlFor="linkedin-url" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        LinkedIn URL
+                      </label>
+                      <Input
+                        id="linkedin-url"
                         type="url"
                         placeholder="https://linkedin.com/in/yourprofile"
                         value={socialMediaValue.linkedin}
                         onChange={(e) => setSocialMediaValue((prev) => ({ ...prev, linkedin: e.target.value }))}
                       />
                     </div>
-                    <div className="client-form__row">
-                      <label className="client-form__label">YouTube URL</label>
-                      <input
-                        className="client-form__control"
+                    <div className="space-y-1.5">
+                      <label htmlFor="youtube-url" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        YouTube URL
+                      </label>
+                      <Input
+                        id="youtube-url"
                         type="url"
                         placeholder="https://youtube.com/@yourchannel"
                         value={socialMediaValue.youtube}
                         onChange={(e) => setSocialMediaValue((prev) => ({ ...prev, youtube: e.target.value }))}
                       />
                     </div>
-                    <div className="client-form__row">
-                      <label className="client-form__label">Website URL</label>
-                      <input
-                        className="client-form__control"
+                    <div className="space-y-1.5">
+                      <label htmlFor="website-url" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Website URL
+                      </label>
+                      <Input
+                        id="website-url"
                         type="url"
                         placeholder="https://yourwebsite.com"
                         value={socialMediaValue.website}
@@ -757,563 +812,529 @@ export default function ProfilePage() {
                       />
                     </div>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-                    <button
+
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button
                       type="button"
-                      className="btn btn--ghost"
+                      variant="secondary"
                       onClick={cancelEditSocialMedia}
                       disabled={socialMediaSaving}
                     >
                       Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn--primary"
-                      onClick={saveSocialMedia}
-                      disabled={socialMediaSaving}
-                    >
+                    </Button>
+                    <Button type="button" onClick={saveSocialMedia} disabled={socialMediaSaving}>
                       {socialMediaSaving ? "Saving..." : "Save"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
-            </div>
-          )}
+            </CardContent>
+          </Card>
+        )}
 
-          {data?.role === "coach" && (
-            <>
-              {/* Awards & Achievements Gallery */}
-              <div className="profile-card" style={{ gridColumn: "1 / -1" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                  <h2 className="profile-header__title" style={{ fontSize: "1rem" }}>
-                    Awards & Achievements
-                  </h2>
-                </div>
-                <p className="profile-header__subtitle" style={{ fontSize: "0.85rem", marginTop: "0.5rem", marginBottom: "1rem" }}>
-                  Upload certificates, awards, and achievements (max 10 images)
-                </p>
-                
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
-                  {data.awards?.slice(awardsPage * ITEMS_PER_PAGE, (awardsPage + 1) * ITEMS_PER_PAGE).map((award) => (
-                    <div key={award.publicId} style={{ position: "relative", borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                      <Image src={award.url} alt="Award" width={200} height={200} style={{ width: "100%", height: "200px", objectFit: "cover", filter: "brightness(1.2)" }} loading="lazy" />
-                      <button
-                        type="button"
-                        className="btn btn--ghost"
-                        style={{
-                          position: "absolute",
-                          top: "0.5rem",
-                          right: "0.5rem",
-                          fontSize: "0.75rem",
-                          paddingInline: "0.5rem",
-                          paddingBlock: "0.25rem",
-                          backgroundColor: "rgba(255,255,255,0.9)"
-                        }}
-                        onClick={async () => {
-                          if (confirm("Delete this award image?")) {
-                            try {
-                              await api.delete(`/users/awards/${encodeURIComponent(award.publicId)}`);
-                              queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
-                            } catch (err) {
-                              // Error deleting award
-                            }
-                          }
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                
-                {data.awards && data.awards.length > ITEMS_PER_PAGE && (
-                  <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginTop: "1.5rem" }}>
-                    <button
+        {data.role === "coach" ? (
+          <>
+            <Card className="lg:col-span-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base md:text-lg">Awards & Achievements</CardTitle>
+                <CardDescription className="hidden sm:block">
+                  Upload certificates, awards, and achievements (max 10 images).
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {data.awards && data.awards.length > 0 ? (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {data.awards
+                      .slice(awardsPage * ITEMS_PER_PAGE, (awardsPage + 1) * ITEMS_PER_PAGE)
+                      .map((award) => (
+                        <div key={award.publicId} className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                          <Image
+                            src={award.url}
+                            alt="Award"
+                            width={280}
+                            height={220}
+                            className="h-[220px] w-full object-contain"
+                            loading="lazy"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute right-2 top-2 h-7 px-2 text-[11px]"
+                            onClick={async () => {
+                              if (window.confirm("Delete this award image?")) {
+                                try {
+                                  await api.delete(`/users/awards/${encodeURIComponent(award.publicId)}`);
+                                  queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
+                                } catch {
+                                  // Error deleting award
+                                }
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </Button>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500">No awards uploaded yet.</p>
+                )}
+
+                {data.awards && data.awards.length > ITEMS_PER_PAGE ? (
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <Button
                       type="button"
-                      className="btn btn--secondary"
-                      onClick={() => setAwardsPage(p => Math.max(0, p - 1))}
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setAwardsPage((p) => Math.max(0, p - 1))}
                       disabled={awardsPage === 0}
-                      style={{ fontSize: "0.9rem", paddingInline: "1rem", paddingBlock: "0.5rem" }}
                     >
                       Previous
-                    </button>
-                    <span style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", color: "#6b7280" }}>
+                    </Button>
+                    <span className="text-xs text-slate-500">
                       Page {awardsPage + 1} of {Math.ceil(data.awards.length / ITEMS_PER_PAGE)}
                     </span>
-                    <button
+                    <Button
                       type="button"
-                      className="btn btn--secondary"
-                      onClick={() => setAwardsPage(p => Math.min(Math.ceil((data.awards?.length || 0) / ITEMS_PER_PAGE) - 1, p + 1))}
+                      variant="secondary"
+                      size="sm"
+                      onClick={() =>
+                        setAwardsPage((p) =>
+                          Math.min(Math.ceil((data.awards?.length || 0) / ITEMS_PER_PAGE) - 1, p + 1)
+                        )
+                      }
                       disabled={awardsPage >= Math.ceil((data.awards?.length || 0) / ITEMS_PER_PAGE) - 1}
-                      style={{ fontSize: "0.9rem", paddingInline: "1rem", paddingBlock: "0.5rem" }}
                     >
                       Next
-                    </button>
+                    </Button>
                   </div>
-                )}
-                
-                {(!data.awards || data.awards.length < 10) && (
-                  <div style={{ marginTop: "1rem" }}>
+                ) : null}
+
+                {(!data.awards || data.awards.length < 10) ? (
+                  <div>
                     <input
+                      ref={awardInputRef}
                       type="file"
                       accept="image/*"
-                      id="award-upload"
-                      style={{ display: "none" }}
+                      className="hidden"
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
                         const formData = new FormData();
                         formData.append("image", file);
+
                         try {
                           await api.post("/users/upload-award", formData, {
-                            headers: { "Content-Type": "multipart/form-data" }
+                            headers: { "Content-Type": "multipart/form-data" },
                           });
                           queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
                           e.target.value = "";
-                        } catch (err) {
+                        } catch {
                           alert("Failed to upload image");
                         }
                       }}
                     />
-                    <label htmlFor="award-upload">
-                      <button
-                        type="button"
-                        className="btn btn--primary"
-                        onClick={() => document.getElementById("award-upload")?.click()}
-                        style={{ fontSize: "0.9rem" }}
-                      >
-                        Upload Award Image
-                      </button>
-                    </label>
+                    <Button type="button" size="sm" onClick={() => awardInputRef.current?.click()}>
+                      <Upload className="h-4 w-4" />
+                      Upload Award Image
+                    </Button>
                   </div>
-                )}
-              </div>
+                ) : null}
+              </CardContent>
+            </Card>
 
-              {/* Transformation Results Gallery */}
-              <div className="profile-card" style={{ gridColumn: "1 / -1" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                  <h2 className="profile-header__title" style={{ fontSize: "1rem" }}>
-                    Transformation Results
-                  </h2>
-                </div>
-                <p className="profile-header__subtitle" style={{ fontSize: "0.85rem", marginTop: "0.5rem", marginBottom: "1rem" }}>
-                  Upload client transformation photos (max 20 images)
-                </p>
-                
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
-                  {data.transformations?.slice(transformationsPage * ITEMS_PER_PAGE, (transformationsPage + 1) * ITEMS_PER_PAGE).map((transformation) => (
-                    <div key={transformation.publicId} style={{ position: "relative", borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                      <Image src={transformation.url} alt="Transformation" width={200} height={200} style={{ width: "100%", height: "200px", objectFit: "cover", filter: "brightness(1.2)" }} loading="lazy" />
-                      <button
-                        type="button"
-                        className="btn btn--ghost"
-                        style={{
-                          position: "absolute",
-                          top: "0.5rem",
-                          right: "0.5rem",
-                          fontSize: "0.75rem",
-                          paddingInline: "0.5rem",
-                          paddingBlock: "0.25rem",
-                          backgroundColor: "rgba(255,255,255,0.9)"
-                        }}
-                        onClick={async () => {
-                          if (confirm("Delete this transformation image?")) {
-                            try {
-                              await api.delete(`/users/transformations/${encodeURIComponent(transformation.publicId)}`);
-                              queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
-                            } catch (err) {
-                              // Error deleting transformation
-                            }
-                          }
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                
-                {data.transformations && data.transformations.length > ITEMS_PER_PAGE && (
-                  <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginTop: "1.5rem" }}>
-                    <button
+            <Card className="lg:col-span-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base md:text-lg">Transformation Results</CardTitle>
+                <CardDescription className="hidden sm:block">
+                  Upload client transformation photos (max 20 images).
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {data.transformations && data.transformations.length > 0 ? (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {data.transformations
+                      .slice(transformationsPage * ITEMS_PER_PAGE, (transformationsPage + 1) * ITEMS_PER_PAGE)
+                      .map((transformation) => (
+                        <div
+                          key={transformation.publicId}
+                          className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100"
+                        >
+                          <Image
+                            src={transformation.url}
+                            alt="Transformation"
+                            width={280}
+                            height={220}
+                            className="h-[220px] w-full object-contain"
+                            loading="lazy"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute right-2 top-2 h-7 px-2 text-[11px]"
+                            onClick={async () => {
+                              if (window.confirm("Delete this transformation image?")) {
+                                try {
+                                  await api.delete(`/users/transformations/${encodeURIComponent(transformation.publicId)}`);
+                                  queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
+                                } catch {
+                                  // Error deleting transformation
+                                }
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </Button>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500">No transformation images uploaded yet.</p>
+                )}
+
+                {data.transformations && data.transformations.length > ITEMS_PER_PAGE ? (
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <Button
                       type="button"
-                      className="btn btn--secondary"
-                      onClick={() => setTransformationsPage(p => Math.max(0, p - 1))}
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setTransformationsPage((p) => Math.max(0, p - 1))}
                       disabled={transformationsPage === 0}
-                      style={{ fontSize: "0.9rem", paddingInline: "1rem", paddingBlock: "0.5rem" }}
                     >
                       Previous
-                    </button>
-                    <span style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", color: "#6b7280" }}>
+                    </Button>
+                    <span className="text-xs text-slate-500">
                       Page {transformationsPage + 1} of {Math.ceil(data.transformations.length / ITEMS_PER_PAGE)}
                     </span>
-                    <button
+                    <Button
                       type="button"
-                      className="btn btn--secondary"
-                      onClick={() => setTransformationsPage(p => Math.min(Math.ceil((data.transformations?.length || 0) / ITEMS_PER_PAGE) - 1, p + 1))}
-                      disabled={transformationsPage >= Math.ceil((data.transformations?.length || 0) / ITEMS_PER_PAGE) - 1}
-                      style={{ fontSize: "0.9rem", paddingInline: "1rem", paddingBlock: "0.5rem" }}
+                      variant="secondary"
+                      size="sm"
+                      onClick={() =>
+                        setTransformationsPage((p) =>
+                          Math.min(Math.ceil((data.transformations?.length || 0) / ITEMS_PER_PAGE) - 1, p + 1)
+                        )
+                      }
+                      disabled={
+                        transformationsPage >= Math.ceil((data.transformations?.length || 0) / ITEMS_PER_PAGE) - 1
+                      }
                     >
                       Next
-                    </button>
+                    </Button>
                   </div>
-                )}
-                
-                {(!data.transformations || data.transformations.length < 20) && (
-                  <div style={{ marginTop: "1rem" }}>
+                ) : null}
+
+                {(!data.transformations || data.transformations.length < 20) ? (
+                  <div>
                     <input
+                      ref={transformationInputRef}
                       type="file"
                       accept="image/*"
-                      id="transformation-upload"
-                      style={{ display: "none" }}
+                      className="hidden"
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
                         const formData = new FormData();
                         formData.append("image", file);
+
                         try {
                           await api.post("/users/upload-transformation", formData, {
-                            headers: { "Content-Type": "multipart/form-data" }
+                            headers: { "Content-Type": "multipart/form-data" },
                           });
                           queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
                           e.target.value = "";
-                        } catch (err) {
+                        } catch {
                           alert("Failed to upload image");
                         }
                       }}
                     />
-                    <label htmlFor="transformation-upload">
-                      <button
-                        type="button"
-                        className="btn btn--primary"
-                        onClick={() => document.getElementById("transformation-upload")?.click()}
-                        style={{ fontSize: "0.9rem" }}
-                      >
-                        Upload Transformation Image
-                      </button>
-                    </label>
+                    <Button type="button" size="sm" onClick={() => transformationInputRef.current?.click()}>
+                      <Upload className="h-4 w-4" />
+                      Upload Transformation Image
+                    </Button>
                   </div>
-                )}
-              </div>
-            </>
-          )}
+                ) : null}
+              </CardContent>
+            </Card>
+          </>
+        ) : null}
 
-          <div className="profile-card" style={{ gridColumn: "1 / -1" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-              <h2 className="profile-header__title" style={{ fontSize: "1rem" }}>
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <MapPin className="h-4 w-4" />
+                </span>
                 Address
-              </h2>
-              {!addressEditing && (
-                <button
-                  type="button"
-                  className="btn btn--outline"
-                  style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
-                  onClick={startEditAddress}
-                >
+              </CardTitle>
+
+              {!addressEditing ? (
+                <Button type="button" variant="outline" size="sm" onClick={startEditAddress}>
                   Edit
-                </button>
-              )}
+                </Button>
+              ) : null}
             </div>
+          </CardHeader>
 
-            {!addressEditing && (
-              <div className="profile-fields" style={{ marginTop: 8, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
-                <div className="profile-field" style={{ gridColumn: "1 / -1" }}>
-                  <dt className="profile-field__label">Address Line 1</dt>
-                  <dd className="profile-field__value">{currentAddress?.line1 || "-"}</dd>
-                </div>
-                <div className="profile-field" style={{ gridColumn: "1 / -1" }}>
-                  <dt className="profile-field__label">Address Line 2</dt>
-                  <dd className="profile-field__value">{currentAddress?.line2 || "-"}</dd>
-                </div>
-                <div className="profile-field">
-                  <dt className="profile-field__label">Phone Number</dt>
-                  <dd className="profile-field__value">{currentAddress?.phoneNumber || "-"}</dd>
-                </div>
-                <div className="profile-field">
-                  <dt className="profile-field__label">Neighborhood / Locality</dt>
-                  <dd className="profile-field__value">{currentAddress?.neighborhood || "-"}</dd>
-                </div>
-                <div className="profile-field">
-                  <dt className="profile-field__label">City / Town</dt>
-                  <dd className="profile-field__value">{currentAddress?.city || "-"}</dd>
-                </div>
-                <div className="profile-field">
-                  <dt className="profile-field__label">State / Province / Region</dt>
-                  <dd className="profile-field__value">{currentAddress?.state || "-"}</dd>
-                </div>
-                <div className="profile-field">
-                  <dt className="profile-field__label">Postal Code / ZIP / PIN</dt>
-                  <dd className="profile-field__value">{currentAddress?.postalCode || "-"}</dd>
-                </div>
-                <div className="profile-field">
-                  <dt className="profile-field__label">Country</dt>
-                  <dd className="profile-field__value">{currentAddress?.country || "-"}</dd>
-                </div>
-                {!currentAddress && (
-                  <p className="profile-header__subtitle" style={{ marginTop: 8 }}>
-                    No address added yet.
-                  </p>
-                )}
+          <CardContent>
+            {!addressEditing ? (
+              <div className="space-y-2">
+                <dl className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {[
+                    { label: "Address line 1", value: currentAddress?.line1 || "-", full: true },
+                    { label: "Address line 2", value: currentAddress?.line2 || "-", full: true },
+                    { label: "Phone number", value: currentAddress?.phoneNumber || "-" },
+                    { label: "Neighborhood / locality", value: currentAddress?.neighborhood || "-" },
+                    { label: "City / town", value: currentAddress?.city || "-" },
+                    { label: "State / province / region", value: currentAddress?.state || "-" },
+                    { label: "Postal code / ZIP / PIN", value: currentAddress?.postalCode || "-" },
+                    { label: "Country", value: currentAddress?.country || "-" },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className={`rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 ${
+                        item.full ? "sm:col-span-2 lg:col-span-3" : ""
+                      }`}
+                    >
+                      <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{item.label}</dt>
+                      <dd className="mt-1 text-sm font-medium text-slate-900">{item.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+
+                {!currentAddress ? <p className="text-sm text-slate-500">No address added yet.</p> : null}
               </div>
-            )}
-
-            {addressEditing && (
-              <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
-                <div className="client-form" style={{ gap: 8 }}>
-                  <div className="client-form__row client-form__row--full">
-                    <label className="client-form__label">Address Line 1</label>
-                    <input
-                      className="client-form__control"
+            ) : (
+              <div className="space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
+                    <label htmlFor="address-line1" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Address line 1
+                    </label>
+                    <Input
+                      id="address-line1"
                       type="text"
                       placeholder="House/flat number, building, street"
                       value={addressValue.line1}
                       onChange={(e) => setAddressValue((prev) => ({ ...prev, line1: e.target.value }))}
                     />
                   </div>
-                  <div className="client-form__row client-form__row--full">
-                    <label className="client-form__label">Address Line 2 (optional)</label>
-                    <input
-                      className="client-form__control"
+                  <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
+                    <label htmlFor="address-line2" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Address line 2 (optional)
+                    </label>
+                    <Input
+                      id="address-line2"
                       type="text"
                       placeholder="Apartment, area, landmark"
                       value={addressValue.line2}
                       onChange={(e) => setAddressValue((prev) => ({ ...prev, line2: e.target.value }))}
                     />
                   </div>
-                  <div className="client-form__row">
-                    <label className="client-form__label">Neighborhood / Locality</label>
-                    <input
-                      className="client-form__control"
+                  <div className="space-y-1.5">
+                    <label htmlFor="address-neighborhood" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Neighborhood / locality
+                    </label>
+                    <Input
+                      id="address-neighborhood"
                       type="text"
                       value={addressValue.neighborhood}
                       onChange={(e) => setAddressValue((prev) => ({ ...prev, neighborhood: e.target.value }))}
                     />
                   </div>
-                  <div className="client-form__row">
-                    <label className="client-form__label">City / Town</label>
-                    <input
-                      className="client-form__control"
+                  <div className="space-y-1.5">
+                    <label htmlFor="address-city" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      City / town
+                    </label>
+                    <Input
+                      id="address-city"
                       type="text"
                       value={addressValue.city}
                       onChange={(e) => setAddressValue((prev) => ({ ...prev, city: e.target.value }))}
                     />
                   </div>
-                  <div className="client-form__row">
-                    <label className="client-form__label">State / Province / Region</label>
-                    <input
-                      className="client-form__control"
+                  <div className="space-y-1.5">
+                    <label htmlFor="address-state" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      State / province / region
+                    </label>
+                    <Input
+                      id="address-state"
                       type="text"
                       value={addressValue.state}
                       onChange={(e) => setAddressValue((prev) => ({ ...prev, state: e.target.value }))}
                     />
                   </div>
-                  <div className="client-form__row">
-                    <label className="client-form__label">Postal Code / ZIP / PIN</label>
-                    <input
-                      className="client-form__control"
+                  <div className="space-y-1.5">
+                    <label htmlFor="address-postal" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Postal code / ZIP / PIN
+                    </label>
+                    <Input
+                      id="address-postal"
                       type="text"
                       value={addressValue.postalCode}
                       onChange={(e) => setAddressValue((prev) => ({ ...prev, postalCode: e.target.value }))}
                     />
                   </div>
-                  <div className="client-form__row">
-                    <label className="client-form__label">Country</label>
-                    <input
-                      className="client-form__control"
+                  <div className="space-y-1.5">
+                    <label htmlFor="address-country" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Country
+                    </label>
+                    <Input
+                      id="address-country"
                       type="text"
                       value={addressValue.country}
                       onChange={(e) => setAddressValue((prev) => ({ ...prev, country: e.target.value }))}
                     />
                   </div>
-                  <div className="client-form__row">
-                    <label className="client-form__label">Phone Number</label>
-                    <input
-                      className="client-form__control"
+                  <div className="space-y-1.5">
+                    <label htmlFor="address-phone" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Phone number
+                    </label>
+                    <Input
+                      id="address-phone"
                       type="text"
                       value={addressValue.phoneNumber}
                       onChange={(e) => setAddressValue((prev) => ({ ...prev, phoneNumber: e.target.value }))}
                     />
                   </div>
                 </div>
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-                  <button
-                    type="button"
-                    className="btn btn--ghost"
-                    onClick={cancelEditAddress}
-                    disabled={addressSaving}
-                  >
+
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button type="button" variant="secondary" onClick={cancelEditAddress} disabled={addressSaving}>
                     Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn--primary"
-                    onClick={saveAddress}
-                    disabled={addressSaving}
-                  >
+                  </Button>
+                  <Button type="button" onClick={saveAddress} disabled={addressSaving}>
                     {addressSaving ? "Saving..." : "Save"}
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
-          </div>
-        </section>
+          </CardContent>
+        </Card>
+      </motion.section>
 
-        {/* Coach-only payment QR uploader */}
-        {data?.role === "coach" && <PaymentQrUploader />}
+      {data.role === "coach" ? (
+        <motion.section variants={fadeInUp} initial="initial" animate="animate" transition={{ duration: 0.28, delay: 0.12 }}>
+          <PaymentQrUploader />
+        </motion.section>
+      ) : null}
 
-        <section style={{ marginTop: "1.5rem", display: "flex", gap: "1.5rem", flexWrap: "wrap", alignItems: "stretch" }}>
-          {/* Security Section */}
-          <div className="profile-card" style={{ 
-            flex: "1 1 320px", 
-            padding: "1.75rem",
-            display: "flex",
-            flexDirection: "column"
-          }}>
-            <h2 style={{ 
-              fontSize: "1.125rem", 
-              marginBottom: "0.5rem", 
-              fontWeight: 600,
-              color: "#1e293b"
-            }}>
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.16 }}
+        className="grid gap-4 lg:grid-cols-2"
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Shield className="h-4 w-4" />
+              </span>
               Security
-            </h2>
-            <p style={{ 
-              marginBottom: "1.25rem", 
-              lineHeight: "1.6",
-              color: "#64748b",
-              fontSize: "0.9rem",
-              flex: 1
-            }}>
-              Log out from all your devices and browsers.
-            </p>
-            <button
+            </CardTitle>
+            <CardDescription className="hidden sm:block">Log out from all your devices and browsers.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
               type="button"
-              className="btn btn--danger"
+              variant="destructive"
+              className="w-full justify-center"
               onClick={async () => {
                 const confirmed = window.confirm("Are you sure you want to logout from everywhere?");
                 if (!confirmed) return;
                 try {
                   await api.post("/auth/logout-all");
-                } catch (err) {
+                } catch {
                   // ignore backend error; proceed to clear local state
                 } finally {
                   logout();
                   router.replace("/auth/login");
                 }
               }}
-              style={{ 
-                width: "100%", 
-                justifyContent: "center",
-                padding: "0.75rem 1.25rem",
-                fontSize: "0.95rem",
-                fontWeight: 500
-              }}
             >
               Logout from everywhere
-            </button>
-          </div>
+            </Button>
+          </CardContent>
+        </Card>
 
-          {/* Danger Zone */}
-          {(data?.role === "client" || data?.role === "coach") && (
-            <div className="profile-card" style={{ 
-              flex: "1 1 320px",
-              padding: "1.75rem",
-              border: "2px solid #fecaca",
-              background: "linear-gradient(135deg, rgba(254, 202, 202, 0.1) 0%, rgba(252, 165, 165, 0.05) 100%)",
-              display: "flex",
-              flexDirection: "column"
-            }}>
-              <h2 style={{ 
-                fontSize: "1.125rem", 
-                marginBottom: "0.5rem", 
-                color: "#dc2626",
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}>
-                <span style={{ fontSize: "1.25rem" }}>⚠️</span>
+        {data.role === "client" || data.role === "coach" ? (
+          <Card className="border-rose-200 bg-gradient-to-br from-rose-50/90 to-red-50/70">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base text-rose-700 md:text-lg">
+                <AlertTriangle className="h-4 w-4" />
                 Danger Zone
-              </h2>
-              <p style={{ 
-                marginBottom: "1.25rem", 
-                lineHeight: "1.6",
-                color: "#991b1b",
-                fontSize: "0.9rem",
-                flex: 1
-              }}>
-                Request permanent deletion of your account and all associated data. This action requires admin approval and cannot be undone once processed.
-              </p>
-              <button
+              </CardTitle>
+              <CardDescription className="hidden text-rose-600/80 sm:block">
+                Request permanent deletion of your account and associated data. This action requires admin approval.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
                 type="button"
-                className="btn btn--danger"
+                variant="destructive"
+                className="w-full justify-center"
                 onClick={() => setShowDeletionDialog(true)}
-                style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  justifyContent: "center",
-                  gap: "0.5rem",
-                  width: "100%",
-                  padding: "0.75rem 1.25rem",
-                  fontSize: "0.95rem",
-                  fontWeight: 500
-                }}
               >
-                <Trash2 style={{ width: "18px", height: "18px" }} />
+                <Trash2 className="h-4 w-4" />
                 Request Account Deletion
-              </button>
-            </div>
-          )}
-        </section>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
+      </motion.section>
 
-        {/* Deletion Request Dialog */}
-        {showDeletionDialog && (
-          <div
-            style={{
-              position: "fixed",
-              inset: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 9999,
-              padding: "1rem",
-            }}
-            onClick={() => !submittingDeletion && setShowDeletionDialog(false)}
+      {showDeletionDialog ? (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4"
+          onClick={() => !submittingDeletion && setShowDeletionDialog(false)}
+        >
+          <Card
+            className="w-full max-w-xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="deletion-dialog-title"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="profile-card"
-              style={{
-                maxWidth: "500px",
-                width: "100%",
-                margin: 0,
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="profile-header__title" style={{ fontSize: "1.25rem", marginBottom: 12, color: "#dc2626" }}>
+            <CardHeader className="pb-3">
+              <CardTitle id="deletion-dialog-title" className="flex items-center gap-2 text-base text-rose-700 md:text-lg">
+                <AlertTriangle className="h-4 w-4" />
                 Request Account Deletion
-              </h2>
-              <p className="profile-header__subtitle" style={{ marginBottom: 16 }}>
-                Please tell us why you want to delete your account. This will help us improve our service.
-                An admin will review your request before processing.
-              </p>
-              <textarea
-                className="client-form__control"
-                rows={5}
-                maxLength={1000}
-                placeholder="Reason for account deletion (required)"
-                value={deletionReason}
-                onChange={(e) => setDeletionReason(e.target.value)}
-                style={{ resize: "vertical", fontFamily: "inherit", width: "100%", marginBottom: "0.5rem" }}
-                disabled={submittingDeletion}
-              />
-              <div style={{ fontSize: "0.85rem", color: "#6b7280", marginBottom: "1rem" }}>
-                {deletionReason.length}/1000 characters
+              </CardTitle>
+              <CardDescription className="hidden sm:block">
+                Please tell us why you want to delete your account. An admin will review your request before
+                processing.
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-3">
+              <div className="space-y-1.5">
+                <label htmlFor="deletion-reason" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Reason for account deletion
+                </label>
+                <textarea
+                  id="deletion-reason"
+                  rows={5}
+                  maxLength={1000}
+                  placeholder="Reason for account deletion (required)"
+                  value={deletionReason}
+                  onChange={(e) => setDeletionReason(e.target.value)}
+                  className="min-h-[120px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/70"
+                  disabled={submittingDeletion}
+                />
+                <p className="text-xs text-slate-500">{deletionReason.length}/1000 characters</p>
               </div>
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-                <button
+
+              <div className="flex flex-wrap justify-end gap-2">
+                <Button
                   type="button"
-                  className="btn btn--ghost"
+                  variant="secondary"
                   onClick={() => {
                     setShowDeletionDialog(false);
                     setDeletionReason("");
@@ -1321,20 +1342,20 @@ export default function ProfilePage() {
                   disabled={submittingDeletion}
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
-                  className="btn btn--danger"
+                  variant="destructive"
                   onClick={handleRequestDeletion}
                   disabled={submittingDeletion || !deletionReason.trim()}
                 >
                   {submittingDeletion ? "Submitting..." : "Submit Request"}
-                </button>
+                </Button>
               </div>
-            </div>
-          </div>
-        )}
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
     </motion.div>
   );
 }

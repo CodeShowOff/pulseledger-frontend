@@ -20,9 +20,16 @@ export type UserDocument = {
   viewUrl: string;
 };
 
-export function useMyDocumentsQuery() {
+type UseMyDocumentsQueryOptions = {
+  enabled?: boolean;
+};
+
+export function useMyDocumentsQuery(options: UseMyDocumentsQueryOptions = {}) {
+  const { enabled = true } = options;
+
   return useQuery({
     queryKey: DOCUMENTS_QK.mine,
+    enabled,
     queryFn: async () => {
       const res = await api.get("/documents");
       return (res.data?.data || []) as UserDocument[];
