@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "sonner";
@@ -24,9 +24,99 @@ interface TodayDataResponse {
   entries: WaterIntakeEntry[];
 }
 
-export default function WaterIntakeWidget() {
+type WaterIntakeWidgetProps = {
+  compact?: boolean;
+};
+
+type WaterDoseGlassIconProps = {
+  fillRatio: number;
+  label: string;
+  compact?: boolean;
+};
+
+function WaterDoseGlassIcon({ fillRatio, label, compact = false }: WaterDoseGlassIconProps) {
+  const iconWidth = compact ? 34 : 40;
+  const iconHeight = compact ? 30 : 34;
+  const glassWidth = compact ? 18 : 22;
+  const glassHeight = compact ? 23 : 27;
+  const glassX = (iconWidth - glassWidth) / 2;
+  const glassY = compact ? 2.5 : 3;
+  const gradientId = useId();
+
+  const normalizedFill = Math.max(0, Math.min(1, fillRatio));
+  const fillInset = 2;
+  const maxWaterHeight = glassHeight - fillInset * 2;
+  const waterHeight = Math.max(1.2, maxWaterHeight * normalizedFill);
+  const waterY = glassY + glassHeight - fillInset - waterHeight;
+
+  return (
+    <div
+      style={{
+        width: `${iconWidth}px`,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        gap: compact ? "0.04rem" : "0.08rem",
+      }}
+      aria-hidden="true"
+    >
+      <svg width={iconWidth} height={iconHeight} viewBox={`0 0 ${iconWidth} ${iconHeight}`}>
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#86efac" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="#16a34a" stopOpacity="0.94" />
+          </linearGradient>
+        </defs>
+
+        <rect
+          x={glassX}
+          y={glassY}
+          width={glassWidth}
+          height={glassHeight}
+          rx={compact ? 4 : 4.5}
+          fill="rgba(34, 197, 94, 0.16)"
+          stroke="rgba(21, 128, 61, 0.68)"
+          strokeWidth={1.6}
+        />
+
+        <rect
+          x={glassX + fillInset}
+          y={waterY}
+          width={glassWidth - fillInset * 2}
+          height={waterHeight}
+          rx={2.2}
+          fill={`url(#${gradientId})`}
+        />
+
+        <path
+          d={`M ${glassX + 2.5} ${glassY + 5} L ${glassX + 2.5} ${glassY + glassHeight - 3}`}
+          stroke="rgba(220, 252, 231, 0.75)"
+          strokeWidth={1.2}
+          strokeLinecap="round"
+        />
+      </svg>
+
+      <span
+        style={{
+          textAlign: "center",
+          fontSize: compact ? "0.5rem" : "0.58rem",
+          fontWeight: 700,
+          letterSpacing: "0.01em",
+          color: "rgba(22, 101, 52, 0.45)",
+          lineHeight: 1,
+        }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidgetProps) {
   const [amountInput, setAmountInput] = useState("");
   const queryClient = useQueryClient();
+  const ringGradientId = useId();
 
   // Fetch user's daily water goal
   const { data: goalData } = useQuery<{ data: { goal: number } }>({
@@ -99,28 +189,53 @@ export default function WaterIntakeWidget() {
   const total = todayData?.data?.amountLiters || 0;
   const goal = goalData?.data?.goal || 3.5;
   const percentage = goal > 0 ? Math.min((total / goal) * 100, 100) : 0;
+
+  const widgetPadding = compact ? "0.7rem" : "1rem";
+  const widgetRadius = compact ? "0.65rem" : "0.75rem";
+  const headerGap = compact ? "0.3rem" : "0.35rem";
+  const headerTitleSize = compact ? "0.8rem" : "0.95rem";
+  const buttonPad = compact ? "0.28rem" : "0.4rem";
+  const chipPad = compact ? "0.4rem" : "0.5rem";
+  const chipLabelSize = compact ? "0.58rem" : "0.65rem";
+  const chipValueSize = compact ? "0.82rem" : "0.95rem";
+  const quickPad = compact ? "0.4rem 0.2rem" : "0.5rem 0.25rem";
+  const quickFontSize = compact ? "0.66rem" : "0.75rem";
+  const statCardMinHeight = compact ? 48 : undefined;
+  const quickButtons = [
+    { amount: 0.25, label: "250ml", fillRatio: 0.25 },
+    { amount: 0.5, label: "500ml", fillRatio: 0.5 },
+    { amount: 1, label: "1L", fillRatio: 1 },
+  ] as const;
   
   // Circular progress values - compact for mobile
-  const strokeWidth = 10;
-  const size = 140;
+  const strokeWidth = compact ? 8 : 10;
+  const size = compact ? 94 : 140;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const ringAnimationStyle: React.CSSProperties = {
+    transition: `stroke-dashoffset ${compact ? "720ms" : "620ms"} cubic-bezier(0.22, 1, 0.36, 1)`,
+    willChange: "stroke-dashoffset",
+    backfaceVisibility: "hidden",
+  };
 
   return (
     <div style={{
       background: "linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%)",
-      borderRadius: "0.75rem",
+      borderRadius: widgetRadius,
       border: "1px solid #dcfce7",
-      padding: "1rem",
+      padding: widgetPadding,
+      height: compact ? "100%" : "auto",
+      display: "flex",
+      flexDirection: "column",
       boxShadow: "0 10px 25px rgba(15, 23, 42, 0.06)"
     }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-          <GlassWater style={{ width: "1rem", height: "1rem", color: "#22c55e" }} />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: compact ? "0.65rem" : "1rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: headerGap }}>
+          <GlassWater style={{ width: compact ? "0.85rem" : "1rem", height: compact ? "0.85rem" : "1rem", color: "#22c55e" }} />
           <h3 style={{ 
-            fontSize: "0.95rem", 
+            fontSize: headerTitleSize, 
             fontWeight: "600", 
             color: "#111827",
             marginTop: "0",
@@ -128,13 +243,13 @@ export default function WaterIntakeWidget() {
             marginBottom: "0",
             marginLeft: "0"
           }}>
-            Water Intake Today
+            Water Intake
           </h3>
         </div>
         <Link
           href="/client/water-intake"
           style={{
-            padding: "0.4rem",
+            padding: buttonPad,
             background: "#f0f9ff",
             border: "1px solid #dcfce7",
             borderRadius: "0.4rem",
@@ -149,12 +264,12 @@ export default function WaterIntakeWidget() {
           onMouseLeave={(e) => e.currentTarget.style.background = "#f0f9ff"}
           title="View Full Water Intake Log"
         >
-          <ExternalLink style={{ width: "0.9rem", height: "0.9rem", color: "#22c55e" }} />
+          <ExternalLink style={{ width: compact ? "0.78rem" : "0.9rem", height: compact ? "0.78rem" : "0.9rem", color: "#22c55e" }} />
         </Link>
       </div>
 
       {/* Progress Circle */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? "0.65rem" : "1rem" }}>
         {/* SVG Circle */}
         <div style={{ position: "relative", width: size, height: size }}>
           <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
@@ -173,15 +288,15 @@ export default function WaterIntakeWidget() {
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke="url(#greenGradient)"
+              stroke={`url(#${ringGradientId})`}
               strokeWidth={strokeWidth}
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
-              style={{ transition: "stroke-dashoffset 0.5s ease" }}
+              style={ringAnimationStyle}
             />
             <defs>
-              <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient id={ringGradientId} x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#22c55e" />
                 <stop offset="100%" stopColor="#10b981" />
               </linearGradient>
@@ -196,10 +311,10 @@ export default function WaterIntakeWidget() {
             transform: "translate(-50%, -50%)",
             textAlign: "center"
           }}>
-            <div style={{ fontSize: "2rem", fontWeight: "700", color: "#111827", lineHeight: "1" }}>
+            <div style={{ fontSize: compact ? "1.55rem" : "2rem", fontWeight: "700", color: "#111827", lineHeight: "1" }}>
               {Math.round(percentage)}%
             </div>
-            <div style={{ fontSize: "0.7rem", color: "#6b7280", marginTop: "0.35rem" }}>
+            <div style={{ fontSize: compact ? "0.6rem" : "0.7rem", color: "#6b7280", marginTop: compact ? "0.2rem" : "0.35rem" }}>
               Hydrated
             </div>
           </div>
@@ -209,22 +324,22 @@ export default function WaterIntakeWidget() {
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "0.5rem",
+          gap: compact ? "0.35rem" : "0.5rem",
           width: "100%"
         }}>
-          <div style={{ textAlign: "center", padding: "0.5rem", background: "#f0fdf4", borderRadius: "0.4rem" }}>
-            <div style={{ fontSize: "0.65rem", color: "#6b7280", marginBottom: "0.15rem" }}>Today</div>
-            <div style={{ fontSize: "0.95rem", fontWeight: "700", color: "#22c55e" }}>{total.toFixed(1)}L</div>
+          <div style={{ textAlign: "center", padding: chipPad, background: "#f0fdf4", borderRadius: "0.4rem", minHeight: statCardMinHeight, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ fontSize: chipLabelSize, color: "#6b7280", marginBottom: compact ? "0.08rem" : "0.15rem" }}>Today</div>
+            <div style={{ fontSize: chipValueSize, fontWeight: "700", color: "#22c55e" }}>{total.toFixed(1)}L</div>
           </div>
-          <div style={{ textAlign: "center", padding: "0.5rem", background: "#f0fdf4", borderRadius: "0.4rem" }}>
-            <div style={{ fontSize: "0.65rem", color: "#6b7280", marginBottom: "0.15rem" }}>Goal</div>
-            <div style={{ fontSize: "0.95rem", fontWeight: "700", color: "#10b981" }}>{goal.toFixed(1)}L</div>
+          <div style={{ textAlign: "center", padding: chipPad, background: "#f0fdf4", borderRadius: "0.4rem", minHeight: statCardMinHeight, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ fontSize: chipLabelSize, color: "#6b7280", marginBottom: compact ? "0.08rem" : "0.15rem" }}>Goal</div>
+            <div style={{ fontSize: chipValueSize, fontWeight: "700", color: "#10b981" }}>{goal.toFixed(1)}L</div>
           </div>
-          <div style={{ textAlign: "center", padding: "0.5rem", background: "#f0fdf4", borderRadius: "0.4rem" }}>
-            <div style={{ fontSize: "0.65rem", color: "#6b7280", marginBottom: "0.15rem" }}>
+          <div style={{ textAlign: "center", padding: chipPad, background: "#f0fdf4", borderRadius: "0.4rem", minHeight: statCardMinHeight, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ fontSize: chipLabelSize, color: "#6b7280", marginBottom: compact ? "0.08rem" : "0.15rem" }}>
               {percentage >= 100 ? "Done!" : "Left"}
             </div>
-            <div style={{ fontSize: "0.95rem", fontWeight: "700", color: "#15803d" }}>
+            <div style={{ fontSize: chipValueSize, fontWeight: "700", color: "#15803d" }}>
               {percentage >= 100 ? "✓" : `${(goal - total).toFixed(1)}L`}
             </div>
           </div>
@@ -234,81 +349,41 @@ export default function WaterIntakeWidget() {
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "0.5rem",
+          gap: compact ? "0.35rem" : "0.5rem",
           width: "100%"
         }}>
-          <button
-            onClick={() => handleQuickLog(0.25)}
-            disabled={logMutation.isPending}
-            style={{
-              padding: "0.5rem 0.25rem",
-              background: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
-              border: "1px solid #bbf7d0",
-              borderRadius: "0.4rem",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "0.1rem",
-              fontSize: "0.75rem",
-              fontWeight: "600",
-              color: "#15803d",
-              transition: "all 0.2s"
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
-            onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
-          >
-            <GlassWater style={{ width: "0.85rem", height: "0.85rem" }} />
-            250ml
-          </button>
-          <button
-            onClick={() => handleQuickLog(0.5)}
-            disabled={logMutation.isPending}
-            style={{
-              padding: "0.5rem 0.25rem",
-              background: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
-              border: "1px solid #bbf7d0",
-              borderRadius: "0.4rem",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "0.1rem",
-              fontSize: "0.75rem",
-              fontWeight: "600",
-              color: "#15803d",
-              transition: "all 0.2s"
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
-            onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
-          >
-            <GlassWater style={{ width: "0.85rem", height: "0.85rem" }} />
-            500ml
-          </button>
-          <button
-            onClick={() => handleQuickLog(1)}
-            disabled={logMutation.isPending}
-            style={{
-              padding: "0.5rem 0.25rem",
-              background: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
-              border: "1px solid #bbf7d0",
-              borderRadius: "0.4rem",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "0.1rem",
-              fontSize: "0.75rem",
-              fontWeight: "600",
-              color: "#15803d",
-              transition: "all 0.2s"
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
-            onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
-          >
-            <GlassWater style={{ width: "0.85rem", height: "0.85rem" }} />
-            1L
-          </button>
+          {quickButtons.map((option) => (
+            <button
+              key={option.label}
+              onClick={() => handleQuickLog(option.amount)}
+              disabled={logMutation.isPending}
+              aria-label={`Log ${option.label} water`}
+              style={{
+                padding: quickPad,
+                background: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
+                border: "1px solid #bbf7d0",
+                borderRadius: "0.4rem",
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.1rem",
+                fontSize: quickFontSize,
+                fontWeight: "600",
+                color: "#15803d",
+                transition: "all 0.2s"
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
+              onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+            >
+              <WaterDoseGlassIcon
+                compact={compact}
+                fillRatio={option.fillRatio}
+                label={option.label}
+              />
+            </button>
+          ))}
         </div>
       </div>
     </div>

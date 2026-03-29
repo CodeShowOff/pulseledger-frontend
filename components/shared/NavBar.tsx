@@ -9,6 +9,7 @@ import { useChatStore } from "@/lib/chatStore";
 import NotificationBell from "@/components/shared/NotificationBell";
 import { useUnreadChatCount } from "@/lib/queries/chat";
 import {
+  House,
   LayoutDashboard,
   TrendingUp,
   CreditCard,
@@ -291,6 +292,7 @@ const Navbar = React.memo(function Navbar() {
           <div className="navbar-modern__secondary-inner">
             {links.map((link) => {
               const Icon = link.icon;
+              const MobileIcon = link.href.endsWith("/dashboard") ? House : Icon;
               const isChatLink = link.href === "/coach/chat" || link.href === "/client/chat";
               const showBadge = isChatLink && unreadCount > 0;
 
@@ -301,7 +303,7 @@ const Navbar = React.memo(function Navbar() {
                   className={`navbar-modern__secondary-link ${isActive(link.href) ? "navbar-modern__secondary-link--active" : ""}`}
                 >
                   <span className="navbar-modern__secondary-icon">
-                    <Icon size={20} strokeWidth={2} />
+                    <MobileIcon size={20} strokeWidth={2} />
                     {showBadge && (
                       <span className="navbar-modern__secondary-badge">
                         {unreadCount > 99 ? "99+" : unreadCount}

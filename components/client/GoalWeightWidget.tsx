@@ -1,7 +1,7 @@
 // Goal Weight Progress Widget - Circular progress indicator
 "use client";
 
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import axios from "axios";
@@ -52,9 +52,14 @@ const fetchGoalWeight = async (): Promise<GoalWeightSettings> => {
   }
 };
 
-export default function GoalWeightWidget() {
+type GoalWeightWidgetProps = {
+  compact?: boolean;
+};
+
+export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetProps) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const ringGradientId = useId();
 
   const { data: goalSettings, isLoading: isLoadingGoal } = useQuery({
     queryKey: ["goalWeight"],
@@ -263,11 +268,26 @@ export default function GoalWeightWidget() {
     progressPercentage = Math.min(100, Math.max(0, progressPercentage));
   }
 
-  const strokeWidth = 10;
-  const size = 140;
+  const strokeWidth = compact ? 8 : 10;
+  const size = compact ? 94 : 140;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
+  const ringAnimationStyle: React.CSSProperties = {
+    transition: `stroke-dashoffset ${compact ? "720ms" : "620ms"} cubic-bezier(0.22, 1, 0.36, 1)`,
+    willChange: "stroke-dashoffset",
+    backfaceVisibility: "hidden",
+  };
+
+  const rootPadding = compact ? "0.7rem" : "1rem";
+  const rootRadius = compact ? "0.65rem" : "0.75rem";
+  const headerTitleSize = compact ? "0.8rem" : "0.95rem";
+  const iconSize = compact ? "0.85rem" : "1rem";
+  const statPad = compact ? "0.4rem" : "0.5rem";
+  const statLabelSize = compact ? "0.58rem" : "0.65rem";
+  const statValueSize = compact ? "0.82rem" : "0.95rem";
+  const statLabelMb = compact ? "0.08rem" : "0.15rem";
+  const statCardMinHeight = compact ? 48 : undefined;
 
   return (
     <>
@@ -289,6 +309,16 @@ export default function GoalWeightWidget() {
         .goal-widget-progress-info {
           display: flex;
         }
+
+        .goal-widget-stats--compact {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.35rem;
+        }
+
+        .goal-widget-stats--compact > div:last-child {
+          grid-column: 1 / -1;
+        }
+
         @media (max-width: 640px) {
           .goal-widget-stats {
             grid-template-columns: repeat(2, 1fr);
@@ -303,17 +333,20 @@ export default function GoalWeightWidget() {
       `}</style>
       <div style={{
         background: "linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%)",
-        borderRadius: "0.75rem",
+        borderRadius: rootRadius,
         border: "1px solid #e0f2fe",
-        padding: "1rem",
+        padding: rootPadding,
+        height: compact ? "100%" : "auto",
+        display: "flex",
+        flexDirection: "column",
         boxShadow: "0 10px 25px rgba(15, 23, 42, 0.06)"
       }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: compact ? "0.65rem" : "1rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-          <Target style={{ width: "1rem", height: "1rem", color: isWeightGain ? "#0ea5e9" : "#f97316" }} />
+          <Target style={{ width: iconSize, height: iconSize, color: isWeightGain ? "#0ea5e9" : "#f97316" }} />
           <h3 style={{ 
-            fontSize: "0.95rem", 
+            fontSize: headerTitleSize, 
             fontWeight: "600", 
             color: "#111827",
             marginTop: "0",
@@ -321,14 +354,14 @@ export default function GoalWeightWidget() {
             marginBottom: "0",
             marginLeft: "0"
           }}>
-            Weight Goal Progress
+            Weight Goal
           </h3>
         </div>
         {!isEditing && (
           <button
             onClick={handleStartEdit}
             style={{
-              padding: "0.4rem",
+              padding: compact ? "0.28rem" : "0.4rem",
               background: isWeightGain ? "#f0f9ff" : "#fff7ed",
               border: isWeightGain ? "1px solid #e0f2fe" : "1px solid #fed7aa",
               borderRadius: "0.4rem",
@@ -341,7 +374,7 @@ export default function GoalWeightWidget() {
             onMouseEnter={(e) => e.currentTarget.style.background = isWeightGain ? "#e0f2fe" : "#fed7aa"}
             onMouseLeave={(e) => e.currentTarget.style.background = isWeightGain ? "#f0f9ff" : "#fff7ed"}
           >
-            <Edit2 style={{ width: "0.9rem", height: "0.9rem", color: isWeightGain ? "#0ea5e9" : "#f97316" }} />
+            <Edit2 style={{ width: compact ? "0.78rem" : "0.9rem", height: compact ? "0.78rem" : "0.9rem", color: isWeightGain ? "#0ea5e9" : "#f97316" }} />
           </button>
         )}
       </div>
@@ -479,7 +512,7 @@ export default function GoalWeightWidget() {
 
       {/* Loading State */}
       {(isLoadingGoal || isLoadingProgress) ? (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", padding: "1rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? "0.65rem" : "1rem", padding: compact ? "0.65rem" : "1rem" }}>
           {/* Skeleton Circle */}
           <div style={{
             width: size,
@@ -503,20 +536,20 @@ export default function GoalWeightWidget() {
           </div>
 
           {/* Skeleton Stats Grid */}
-          <div className="goal-widget-stats">
+          <div className={compact ? "goal-widget-stats goal-widget-stats--compact" : "goal-widget-stats"}>
             {[1, 2, 3].map((i) => (
-              <div key={i} style={{ textAlign: "center", padding: "0.5rem", background: "#f0f9ff", borderRadius: "0.4rem" }}>
+              <div key={i} style={{ textAlign: "center", padding: statPad, background: "#f0f9ff", borderRadius: "0.4rem" }}>
                 <div style={{
-                  height: "0.65rem",
+                  height: compact ? "0.58rem" : "0.65rem",
                   width: "60%",
-                  margin: "0 auto 0.15rem",
+                  margin: `0 auto ${statLabelMb}`,
                   borderRadius: "0.25rem",
                   background: "linear-gradient(90deg, #e0f2fe 0%, #bae6fd 50%, #e0f2fe 100%)",
                   backgroundSize: "200% 100%",
                   animation: "shimmer 1.5s infinite"
                 }}></div>
                 <div style={{
-                  height: "0.95rem",
+                  height: compact ? "0.82rem" : "0.95rem",
                   width: "80%",
                   margin: "0 auto",
                   borderRadius: "0.25rem",
@@ -532,7 +565,7 @@ export default function GoalWeightWidget() {
         <>
           {/* Progress Circle */}
           {startWeight != null && goalWeight != null && currentWeight != null ? (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? "0.65rem" : "1rem" }}>
           {/* SVG Circle */}
           <div style={{ position: "relative", width: size, height: size }}>
             <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
@@ -551,15 +584,15 @@ export default function GoalWeightWidget() {
                 cy={size / 2}
                 r={radius}
                 fill="none"
-                stroke="url(#gradient)"
+                stroke={`url(#${ringGradientId})`}
                 strokeWidth={strokeWidth}
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
                 strokeLinecap="round"
-                style={{ transition: "stroke-dashoffset 0.5s ease" }}
+                style={ringAnimationStyle}
               />
               <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <linearGradient id={ringGradientId} x1="0%" y1="0%" x2="100%" y2="100%">
                   {isWeightGain ? (
                     <>
                       <stop offset="0%" stopColor="#0ea5e9" />
@@ -583,37 +616,37 @@ export default function GoalWeightWidget() {
               transform: "translate(-50%, -50%)",
               textAlign: "center"
             }}>
-              <div style={{ fontSize: "2rem", fontWeight: "700", color: "#111827", lineHeight: "1" }}>
+              <div style={{ fontSize: compact ? "1.55rem" : "2rem", fontWeight: "700", color: "#111827", lineHeight: "1" }}>
                 {Math.round(progressPercentage)}%
               </div>
-              <div style={{ fontSize: "0.7rem", color: "#6b7280", marginTop: "0.35rem" }}>
+              <div style={{ fontSize: compact ? "0.6rem" : "0.7rem", color: "#6b7280", marginTop: compact ? "0.2rem" : "0.35rem" }}>
                 Achieved
               </div>
             </div>
           </div>
 
           {/* Stats Grid */}
-          <div className="goal-widget-stats">
-            <div style={{ textAlign: "center", padding: "0.5rem", background: isWeightGain ? "#f0f9ff" : "#fff7ed", borderRadius: "0.4rem" }}>
-              <div style={{ fontSize: "0.65rem", color: "#6b7280", marginBottom: "0.15rem" }}>Current</div>
-              <div style={{ fontSize: "0.95rem", fontWeight: "700", color: isWeightGain ? "#0ea5e9" : "#f97316" }}>{currentWeight} kg</div>
+          <div className={compact ? "goal-widget-stats goal-widget-stats--compact" : "goal-widget-stats"}>
+            <div style={{ textAlign: "center", padding: statPad, background: isWeightGain ? "#f0f9ff" : "#fff7ed", borderRadius: "0.4rem", minHeight: statCardMinHeight, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <div style={{ fontSize: statLabelSize, color: "#6b7280", marginBottom: statLabelMb }}>Current</div>
+              <div style={{ fontSize: statValueSize, fontWeight: "700", lineHeight: "1.1", color: isWeightGain ? "#0ea5e9" : "#f97316" }}>{currentWeight} kg</div>
             </div>
-            <div style={{ textAlign: "center", padding: "0.5rem", background: isWeightGain ? "#f0f9ff" : "#fff7ed", borderRadius: "0.4rem" }}>
-              <div style={{ fontSize: "0.65rem", color: "#6b7280", marginBottom: "0.15rem" }}>Goal</div>
-              <div style={{ fontSize: "0.95rem", fontWeight: "700", color: isWeightGain ? "#0284c7" : "#ea580c" }}>{goalWeight} kg</div>
+            <div style={{ textAlign: "center", padding: statPad, background: isWeightGain ? "#f0f9ff" : "#fff7ed", borderRadius: "0.4rem", minHeight: statCardMinHeight, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <div style={{ fontSize: statLabelSize, color: "#6b7280", marginBottom: statLabelMb }}>Goal</div>
+              <div style={{ fontSize: statValueSize, fontWeight: "700", lineHeight: "1.1", color: isWeightGain ? "#0284c7" : "#ea580c" }}>{goalWeight} kg</div>
             </div>
-            <div style={{ textAlign: "center", padding: "0.5rem", background: isWeightGain ? "#f0f9ff" : "#fff7ed", borderRadius: "0.4rem" }}>
-              <div style={{ fontSize: "0.65rem", color: "#6b7280", marginBottom: "0.15rem" }}>
+            <div style={{ textAlign: "center", padding: statPad, background: isWeightGain ? "#f0f9ff" : "#fff7ed", borderRadius: "0.4rem", minHeight: statCardMinHeight, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <div style={{ fontSize: statLabelSize, color: "#6b7280", marginBottom: statLabelMb }}>
                 {progressPercentage === 100 ? "Done!" : isWeightGain ? "To Gain" : "To Lose"}
               </div>
-              <div style={{ fontSize: "0.95rem", fontWeight: "700", color: isWeightGain ? "#0369a1" : "#c2410c" }}>
+              <div style={{ fontSize: statValueSize, fontWeight: "700", lineHeight: "1.1", color: isWeightGain ? "#0369a1" : "#c2410c" }}>
                 {progressPercentage === 100 ? "✓" : `${remainingKg.toFixed(1)} kg`}
               </div>
             </div>
           </div>
 
           {/* Progress Info */}
-          {progressPercentage > 0 && progressPercentage < 100 && (
+          {!compact && progressPercentage > 0 && progressPercentage < 100 && (
             <div className="goal-widget-progress-info" style={{
               width: "100%",
               padding: "0.65rem 0.75rem",
@@ -640,7 +673,7 @@ export default function GoalWeightWidget() {
             </div>
           )}
           
-          {progressPercentage === 100 && (
+          {!compact && progressPercentage === 100 && (
             <div style={{
               width: "100%",
               padding: "0.65rem 0.75rem",
@@ -663,9 +696,9 @@ export default function GoalWeightWidget() {
           )}
         </div>
       ) : (
-        <div style={{ textAlign: "center", padding: "1.5rem 1rem" }}>
-          <Scale style={{ width: "2rem", height: "2rem", color: "#cbd5e1", margin: "0 auto 0.75rem" }} />
-          <p style={{ fontSize: "0.75rem", color: "#6b7280", marginTop: "0", marginRight: "0", marginBottom: "0.5rem", marginLeft: "0" }}>
+        <div style={{ textAlign: "center", padding: compact ? "1rem 0.75rem" : "1.5rem 1rem" }}>
+          <Scale style={{ width: compact ? "1.5rem" : "2rem", height: compact ? "1.5rem" : "2rem", color: "#cbd5e1", margin: compact ? "0 auto 0.5rem" : "0 auto 0.75rem" }} />
+          <p style={{ fontSize: compact ? "0.65rem" : "0.75rem", color: "#6b7280", marginTop: "0", marginRight: "0", marginBottom: compact ? "0.35rem" : "0.5rem", marginLeft: "0" }}>
             {goalWeight == null || startWeight == null
               ? "Set your start weight and goal weight to start tracking progress"
               : "Add weight entries in Progress page to see your progress"}
