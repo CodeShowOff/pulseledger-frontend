@@ -1,10 +1,19 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
-import { X } from "lucide-react";
+import { CalendarDays, Camera, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface ProgressPhoto {
   _id: string;
@@ -19,7 +28,20 @@ interface ClientProgressPhotosProps {
   clientName: string;
 }
 
-export default function ClientProgressPhotos({ clientId, clientName }: ClientProgressPhotosProps) {
+function formatPhotoDate(value: string) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "Unknown date";
+  return parsed.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+export default function ClientProgressPhotos({
+  clientId,
+  clientName,
+}: ClientProgressPhotosProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<ProgressPhoto | null>(null);
 
   const { data: photosData, isLoading } = useQuery({
@@ -34,203 +56,120 @@ export default function ClientProgressPhotos({ clientId, clientName }: ClientPro
   const photos = photosData?.data || [];
 
   return (
-    <div className="admin-card" style={{ marginTop: "1.5rem" }}>
-      <div style={{ marginBottom: "1rem" }}>
-        <h2 className="admin-card__title" style={{ marginBottom: "0.5rem" }}>
-          Progress Photos ({photos.length})
-        </h2>
-        <p className="admin-page-header__subtitle">
-          {clientName}&apos;s transformation journey in photos
-        </p>
-      </div>
-
-      {isLoading ? (
-        <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>Loading photos...</p>
-      ) : photos.length === 0 ? (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "3rem 1rem",
-            backgroundColor: "#f9fafb",
-            borderRadius: "12px",
-            border: "2px dashed #e5e7eb",
-          }}
-        >
-          <p style={{ color: "#6b7280", fontSize: "0.95rem", marginBottom: "0.5rem" }}>
-            No progress photos uploaded yet
-          </p>
-          <p style={{ color: "#9ca3af", fontSize: "0.85rem" }}>
-            Client hasn&apos;t shared any transformation photos
-          </p>
-        </div>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-            gap: "1.25rem",
-          }}
-        >
-          {photos.map((photo: ProgressPhoto) => (
-            <div
-              key={photo._id}
-              style={{
-                position: "relative",
-                borderRadius: "12px",
-                overflow: "hidden",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                cursor: "pointer",
-                transition: "transform 0.2s, box-shadow 0.2s",
-                backgroundColor: "#f9fafb",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "scale(1.03)";
-                e.currentTarget.style.boxShadow = "0 8px 20px rgba(0, 0, 0, 0.15)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.1)";
-              }}
-              onClick={() => setSelectedPhoto(photo)}
-            >
-              <Image
-                src={photo.url}
-                alt={photo.caption || "Progress photo"}
-                width={280}
-                height={280}
-                style={{
-                  width: "100%",
-                  height: "280px",
-                  objectFit: "cover",
-                }}
-                loading="lazy"
-              />
-              <div
-                style={{
-                  padding: "0.75rem",
-                  backgroundColor: "white",
-                }}
-              >
-                {photo.caption && (
-                  <p
-                    style={{
-                      fontSize: "0.85rem",
-                      color: "#374151",
-                      marginBottom: "0.5rem",
-                      lineHeight: "1.4",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {photo.caption}
-                  </p>
-                )}
-                <p
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "#9ca3af",
-                  }}
-                >
-                  {new Date(photo.uploadedAt).toLocaleDateString(undefined, {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
+    <>
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="space-y-1">
+              <Badge variant="secondary" className="w-fit normal-case tracking-normal">
+                Progress journal
+              </Badge>
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <Camera className="h-4 w-4" />
+                </span>
+                Progress photos ({photos.length})
+              </CardTitle>
+              <CardDescription>
+                {clientName}&apos;s transformation timeline in one visual gallery.
+              </CardDescription>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        </CardHeader>
 
-      {/* Photo Modal */}
-      {selectedPhoto && (
+        <CardContent>
+          {isLoading ? (
+            <p className="text-sm text-slate-500">Loading photos...</p>
+          ) : photos.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center">
+              <p className="text-sm font-medium text-slate-700">No progress photos uploaded yet</p>
+              <p className="mt-1 text-xs text-slate-500">
+                The client hasn&apos;t shared transformation photos yet.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {photos.map((photo: ProgressPhoto) => (
+                <button
+                  key={photo._id}
+                  type="button"
+                  onClick={() => setSelectedPhoto(photo)}
+                  className="group overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition-all hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.55)]"
+                >
+                  <div className="relative h-[230px] w-full bg-slate-100">
+                    <Image
+                      src={photo.url}
+                      alt={photo.caption || "Progress photo"}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                      className="object-contain"
+                      loading="lazy"
+                    />
+                  </div>
+
+                  <div className="space-y-2 p-3">
+                    {photo.caption ? (
+                      <p className="text-sm font-medium leading-5 text-slate-700">{photo.caption}</p>
+                    ) : (
+                      <p className="text-sm text-slate-400">No caption</p>
+                    )}
+
+                    <p className="inline-flex items-center gap-1 text-xs text-slate-500">
+                      <CalendarDays className="h-3.5 w-3.5" />
+                      {formatPhotoDate(photo.uploadedAt)}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {selectedPhoto ? (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.9)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: "2rem",
-          }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/85 p-4"
           onClick={() => setSelectedPhoto(null)}
         >
           <div
-            style={{
-              position: "relative",
-              maxWidth: "90vw",
-              maxHeight: "90vh",
-            }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Selected progress photo"
+            className="w-full max-w-5xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              onClick={() => setSelectedPhoto(null)}
-              style={{
-                position: "absolute",
-                top: "-40px",
-                right: "0",
-                background: "transparent",
-                border: "none",
-                color: "white",
-                cursor: "pointer",
-                fontSize: "2rem",
-              }}
-            >
-              <X size={32} />
-            </button>
-            <Image
-              src={selectedPhoto.url}
-              alt={selectedPhoto.caption || "Progress photo"}
-              width={800}
-              height={800}
-              style={{
-                maxWidth: "100%",
-                maxHeight: "85vh",
-                width: "auto",
-                height: "auto",
-                borderRadius: "12px",
-                objectFit: "contain",
-              }}
-              priority
-            />
-            {selectedPhoto.caption && (
-              <div
-                style={{
-                  marginTop: "1rem",
-                  color: "white",
-                  fontSize: "1rem",
-                  textAlign: "center",
-                  padding: "0 1rem",
-                }}
+            <div className="mb-2 flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSelectedPhoto(null)}
+                className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
               >
-                {selectedPhoto.caption}
-              </div>
-            )}
-            <div
-              style={{
-                marginTop: "0.5rem",
-                color: "#d1d5db",
-                fontSize: "0.85rem",
-                textAlign: "center",
-              }}
-            >
-              Uploaded on {new Date(selectedPhoto.uploadedAt).toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+                <X className="h-4 w-4" />
+                Close
+              </Button>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-white/20 bg-slate-900">
+              <Image
+                src={selectedPhoto.url}
+                alt={selectedPhoto.caption || "Progress photo"}
+                width={1200}
+                height={900}
+                className="max-h-[78vh] w-full object-contain"
+                priority
+              />
+            </div>
+
+            <div className="mt-3 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white/90">
+              {selectedPhoto.caption ? <p>{selectedPhoto.caption}</p> : null}
+              <p className="mt-1 text-xs text-white/70">
+                Uploaded on {formatPhotoDate(selectedPhoto.uploadedAt)}
+              </p>
             </div>
           </div>
         </div>
-      )}
-    </div>
+      ) : null}
+    </>
   );
 }

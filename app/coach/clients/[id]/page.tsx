@@ -1,526 +1,758 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import api from "@/lib/axios";
-import { useCoachClientPlanRequests, COACH_CLIENT_PLAN_REQUESTS_KEY, COACH_PENDING_PLAN_REQUESTS_KEY } from "@/lib/queries/planRequests";
+import {
+  COACH_CLIENT_PLAN_REQUESTS_KEY,
+  COACH_PENDING_PLAN_REQUESTS_KEY,
+  PlanRequest,
+  useCoachClientPlanRequests,
+} from "@/lib/queries/planRequests";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
-import { MessageSquare } from "lucide-react";
+import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Activity,
+  ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
+  ClipboardList,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Phone,
+  ShoppingBag,
+  UserRound,
+  XCircle,
+} from "lucide-react";
 import ClientProgressPhotos from "@/components/coach/ClientProgressPhotos";
 import DetailedProgressCharts from "@/components/client/DetailedProgressCharts";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+type ClientAddress = {
+  line1?: string;
+  line2?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  phoneNumber?: string;
+};
+
+type ClientPlanCurrent = {
+  planTitle?: string;
+  type?: "subscription" | "default" | string;
+  durationWeeks?: number;
+  price?: number;
+  endDate?: string | null;
+};
+
+type ClientPlanDefault = {
+  title?: string;
+  durationWeeks?: number;
+  price?: number;
+};
+
+type ClientData = {
+  _id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  whatsappNumber?: string;
+  avatarUrl?: string;
+  createdAt?: string;
+  weight?: number;
+  height?: number;
+  bmi?: number;
+  latestProgress?: {
+    date?: string;
+  } | null;
+  address?: ClientAddress;
+  planSummary?: {
+    current?: ClientPlanCurrent | null;
+    defaultPlan?: ClientPlanDefault | null;
+  };
+};
+
+type CoachOrderItem = {
+  name?: string;
+  quantity?: number;
+};
+
+type CoachOrder = {
+  _id: string;
+  clientId?: string | { _id?: string };
+  items?: CoachOrderItem[];
+  finalAmount?: number;
+  paymentMode?: string;
+  status?: string;
+  createdAt?: string;
+};
+
+type CoachOrdersResponse = {
+  data?: CoachOrder[];
+};
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+};
+
+function formatDate(value?: string | null) {
+  if (!value) return "-";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "-";
+  return parsed.toLocaleDateString();
+}
+
+function getStatusTone(status?: string) {
+  switch ((status ?? "").toLowerCase()) {
+    case "pending":
+      return "border-amber-200 bg-amber-50 text-amber-700";
+    case "approved":
+      return "border-blue-200 bg-blue-50 text-blue-700";
+    case "fulfilled":
+    case "completed":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    case "cancelled":
+    case "rejected":
+    case "declined":
+      return "border-rose-200 bg-rose-50 text-rose-700";
+    default:
+      return "border-slate-200 bg-slate-100 text-slate-700";
+  }
+}
 
 export default function ClientDetailPage() {
   const params = useParams();
-  const id = Array.isArray(params?.id) ? params.id[0] : (params?.id as string);
+  const idValue = params?.id;
+  const id = Array.isArray(idValue) ? idValue[0] : (idValue as string | undefined) ?? "";
   const [ordersPage, setOrdersPage] = useState(1);
 
-  const { data: client, isLoading: loadingClient, error: clientError } = useQuery({
+  const {
+    data: client,
+    isLoading: loadingClient,
+    error: clientError,
+  } = useQuery<ClientData>({
     queryKey: ["coachClient", id],
     queryFn: async () => {
       const res = await api.get(`/coach/clients/${id}`);
-      return res.data.data;
+      return res.data.data as ClientData;
     },
     enabled: Boolean(id),
     retry: false,
   });
 
-  const { data: allOrdersData, isLoading: loadingOrders } = useQuery({
+  const { data: allOrdersData, isLoading: loadingOrders } = useQuery<CoachOrdersResponse>({
     queryKey: ["coachOrders"],
     queryFn: async () => {
       const res = await api.get(`/orders/coach?limit=100`);
-      return res.data;
+      return res.data as CoachOrdersResponse;
     },
     enabled: Boolean(id),
   });
 
-  // Filter orders for this specific client and paginate
-  const clientOrders = allOrdersData?.data?.filter((order: any) => 
-    order.clientId?._id === id || order.clientId === id
-  ) || [];
+  const clientOrders = useMemo(() => {
+    const allOrders = Array.isArray(allOrdersData?.data) ? allOrdersData.data : [];
+    return allOrders.filter((order) => {
+      if (!order.clientId) return false;
+      return typeof order.clientId === "string"
+        ? order.clientId === id
+        : order.clientId?._id === id;
+    });
+  }, [allOrdersData?.data, id]);
+
   const ordersPerPage = 5;
   const ordersStart = (ordersPage - 1) * ordersPerPage;
   const orders = clientOrders.slice(ordersStart, ordersStart + ordersPerPage);
   const ordersPagination = {
     page: ordersPage,
     totalPages: Math.ceil(clientOrders.length / ordersPerPage),
-    total: clientOrders.length
+    total: clientOrders.length,
   };
 
-  const { data: planRequests = [], isLoading: loadingRequests } = useCoachClientPlanRequests(id || "");
+  const {
+    data: planRequests = [],
+    isLoading: loadingRequests,
+  } = useCoachClientPlanRequests(id || "");
+
   const queryClient = useQueryClient();
-  
+
   const approveMutation = useMutation({
     mutationFn: async (requestId: string) => {
       await api.patch(`/plan-requests/${requestId}/approve`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: COACH_CLIENT_PLAN_REQUESTS_KEY(id!) });
+      queryClient.invalidateQueries({ queryKey: COACH_CLIENT_PLAN_REQUESTS_KEY(id) });
       queryClient.invalidateQueries({ queryKey: COACH_PENDING_PLAN_REQUESTS_KEY });
       queryClient.invalidateQueries({ queryKey: ["coachSubscriptions"] });
       queryClient.invalidateQueries({ queryKey: ["coachClients"] });
     },
   });
-  
+
   const declineMutation = useMutation({
     mutationFn: async (requestId: string) => {
       await api.patch(`/plan-requests/${requestId}/decline`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: COACH_CLIENT_PLAN_REQUESTS_KEY(id!) });
+      queryClient.invalidateQueries({ queryKey: COACH_CLIENT_PLAN_REQUESTS_KEY(id) });
       queryClient.invalidateQueries({ queryKey: COACH_PENDING_PLAN_REQUESTS_KEY });
       queryClient.invalidateQueries({ queryKey: ["coachClients"] });
     },
   });
 
-  const formatDate = (value?: string | null) => {
-    if (!value) return "-";
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return "-";
-    return parsed.toLocaleDateString();
-  };
-
-  const formatDateTime = (value?: string | null) => {
-    if (!value) return "-";
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return "-";
-    return parsed.toLocaleString();
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, { bg: string; text: string }> = {
-      pending: { bg: "#fef9c3", text: "#92400e" },
-      approved: { bg: "#dbeafe", text: "#1e40af" },
-      fulfilled: { bg: "#d1fae5", text: "#047857" },
-      completed: { bg: "#d1fae5", text: "#047857" },
-      cancelled: { bg: "#fee2e2", text: "#b91c1c" },
-      rejected: { bg: "#fee2e2", text: "#b91c1c" },
-    };
-    return colors[status] || { bg: "#f3f4f6", text: "#374151" };
-  };
-
-  if (loadingClient) return <p>Loading client details...</p>;
-  if (clientError) {
+  if (loadingClient) {
     return (
-      <div className="admin-card">
-        <p className="admin-page-header__subtitle" style={{ color: "#dc2626" }}>
-          Access denied. This client is not assigned to you or does not exist.
-        </p>
-        <Link href="/coach/clients" className="btn btn--outline" style={{ marginTop: "1rem" }}>
-          ← Back to Clients
-        </Link>
+      <div className="space-y-4 pt-4 md:pt-6">
+        <div className="h-[210px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="h-[220px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+          <div className="h-[220px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+        </div>
       </div>
     );
   }
-  if (!client)
+
+  if (clientError) {
     return (
-      <div className="admin-card">
-        <p className="admin-page-header__subtitle">Client not found or you don't have access.</p>
-        <Link href="/coach/clients" className="btn btn--outline" style={{ marginTop: "1rem" }}>
-          ← Back to Clients
-        </Link>
+      <div className="pt-4 md:pt-6">
+        <Card className="border-rose-200 bg-rose-50">
+          <CardHeader>
+            <CardTitle className="text-base text-rose-800">Unable to open client profile</CardTitle>
+            <CardDescription className="text-rose-700">
+              Access denied. This client is not assigned to you or does not exist.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/coach/clients">
+              <Button variant="outline">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Clients
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     );
+  }
+
+  if (!client) {
+    return (
+      <div className="pt-4 md:pt-6">
+        <Card className="border-slate-200/80 bg-white/95">
+          <CardHeader>
+            <CardTitle className="text-base">Client not found</CardTitle>
+            <CardDescription>This client is unavailable or no longer assigned to your account.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/coach/clients">
+              <Button variant="outline">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Clients
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const address = client.address;
+  const addressLine = [address?.city, address?.state, address?.postalCode]
+    .filter(Boolean)
+    .join(", ");
+  const activePlan = client.planSummary?.current;
+  const defaultPlan = client.planSummary?.defaultPlan;
 
   return (
-    <div>
-      <section className="admin-page-header">
-        <div className="admin-page-header__actions" style={{ justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
-          <div>
-            <h1 className="admin-page-header__title coach-page-header__title">
-              Client Details
-            </h1>
-            <p className="admin-page-header__subtitle coach-page-header__subtitle">
-              Complete profile and activity history for {client.fullName}
-            </p>
-          </div>
-          <Link href="/coach/clients" className="btn btn--outline">
-            ← Back to Clients
-          </Link>
-        </div>
-      </section>
+    <div className="space-y-5 pt-4 md:pt-6">
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28 }}
+      >
+        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
+          <CardHeader className="gap-4 p-6 md:p-7">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-[240px] flex-1 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="w-fit border-white/25 bg-white/15 text-white">Client workspace</Badge>
+                  <Badge
+                    className={cn(
+                      "w-fit border-white/25 bg-white/15 text-white",
+                      activePlan
+                        ? "border-emerald-200/35 bg-emerald-500/40 text-white"
+                        : "border-slate-200/30 bg-slate-800/20 text-white"
+                    )}
+                  >
+                    {activePlan ? "Plan Active" : "No Active Plan"}
+                  </Badge>
+                </div>
 
-      {/* Profile Photo & Basic Info */}
-      <div className="admin-card" style={{ marginBottom: "1.5rem" }}>
-        <div style={{ display: "flex", gap: "1.5rem", alignItems: "flex-start", flexWrap: "wrap" }}>
-          {client.avatarUrl ? (
-            <Image
-              src={client.avatarUrl}
-              alt={client.fullName}
-              width={120}
-              height={120}
-              style={{
-                width: 120,
-                height: 120,
-                borderRadius: "50%",
-                objectFit: "cover",
-                border: "3px solid #e5e7eb",
-                filter: "brightness(1.2)",
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                width: 120,
-                height: 120,
-                borderRadius: "50%",
-                backgroundColor: "#e5e7eb",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "2.5rem",
-                fontWeight: "600",
-                color: "#6b7280",
-              }}
-            >
-              {client.fullName?.charAt(0)?.toUpperCase() || "C"}
-            </div>
-          )}
-          <div style={{ flex: 1, minWidth: "250px" }}>
-            <h2 className="admin-card__title" style={{ marginBottom: "0.5rem" }}>
-              {client.fullName}
-            </h2>
-            <p className="admin-page-header__subtitle">{client.email}</p>
-            <p className="admin-page-header__subtitle">Phone: {client.phone || "-"}</p>
-            {client.whatsappNumber && (
-              <p className="admin-page-header__subtitle">
-                WhatsApp: {client.whatsappNumber}
-              </p>
-            )}
-            <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              <Link
-                href={`/coach/chat?clientId=${id}`}
-                className="btn btn--primary"
-                style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", padding: "0.5rem 1rem" }}
-              >
-                <MessageSquare size={16} />
-                Chat with Client
-              </Link>
-            </div>
-            <p className="admin-page-header__subtitle" style={{ marginTop: "0.5rem", fontSize: "0.85rem" }}>
-              Member since: {formatDate(client.createdAt)}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Progress Photos Section */}
-      <ClientProgressPhotos clientId={id} clientName={client.fullName} />
-
-      <div className="admin-card-grid" style={{ alignItems: "flex-start", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
-        {/* Health Information */}
-        <div className="admin-card">
-          <h2 className="admin-card__title" style={{ marginBottom: "0.75rem" }}>
-            Health Information
-          </h2>
-          <div style={{ display: "grid", gap: "0.5rem" }}>
-            <div>
-              <p className="admin-card__label">Weight</p>
-              <p className="admin-page-header__subtitle">{client.weight ? `${client.weight} kg` : "-"}</p>
-            </div>
-            <div>
-              <p className="admin-card__label">Height</p>
-              <p className="admin-page-header__subtitle">{client.height ? `${client.height} cm` : "-"}</p>
-            </div>
-            <div>
-              <p className="admin-card__label">BMI</p>
-              <p className="admin-page-header__subtitle">{client.bmi ? client.bmi.toFixed(1) : "-"}</p>
-            </div>
-            {client.latestProgress && (
-              <div style={{ marginTop: "0.5rem", paddingTop: "0.75rem", borderTop: "1px solid #e5e7eb" }}>
-                <p className="admin-card__label" style={{ fontSize: "0.75rem", marginBottom: "0.25rem" }}>
-                  Last Updated: {formatDate(client.latestProgress.date)}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Address */}
-        <div className="admin-card">
-          <h2 className="admin-card__title" style={{ marginBottom: "0.75rem" }}>
-            Address
-          </h2>
-          {client.address && (client.address.line1 || client.address.city || client.address.state) ? (
-            <div style={{ display: "grid", gap: "0.35rem", fontSize: "0.9rem" }}>
-              {client.address.phoneNumber && <p>{client.address.phoneNumber}</p>}
-              {client.address.line1 && <p>{client.address.line1}</p>}
-              {client.address.line2 && <p>{client.address.line2}</p>}
-              {client.address.neighborhood && <p>{client.address.neighborhood}</p>}
-              <p>
-                {[client.address.city, client.address.state, client.address.postalCode]
-                  .filter(Boolean)
-                  .join(", ")}
-              </p>
-              {client.address.country && <p>{client.address.country}</p>}
-            </div>
-          ) : (
-            <p className="admin-page-header__subtitle">No address provided</p>
-          )}
-        </div>
-
-        {/* Plan Overview */}
-        <div className="admin-card">
-          <h2 className="admin-card__title" style={{ marginBottom: "0.75rem" }}>
-            Plan Overview
-          </h2>
-
-          {client.planSummary?.current ? (
-            <div
-              className="admin-card"
-              style={{
-                backgroundColor: "#eff6ff",
-                borderColor: "#bfdbfe",
-                borderWidth: 1,
-              }}
-            >
-              <p
-                className="admin-card__label"
-                style={{ textTransform: "uppercase", color: "#2563eb", fontSize: "0.75rem" }}
-              >
-                Current Plan
-              </p>
-              <h4 className="admin-card__title" style={{ marginTop: "0.25rem" }}>
-                {client.planSummary.current.planTitle || "Plan"}
-              </h4>
-              <div
-                style={{
-                  marginTop: "0.5rem",
-                  display: "grid",
-                  gap: "0.35rem",
-                  fontSize: "0.85rem",
-                }}
-              >
-                <span>Type: {client.planSummary.current.type === "subscription" ? "Subscription" : "Default"}</span>
-                {client.planSummary.current.durationWeeks && (
-                  <span>Duration: {client.planSummary.current.durationWeeks} weeks</span>
-                )}
-                {typeof client.planSummary.current.price === "number" && (
-                  <span>Price: ₹{client.planSummary.current.price.toFixed(2)}</span>
-                )}
-                {client.planSummary.current.type === "subscription" && (
-                  <span>Ends: {formatDate(client.planSummary.current.endDate)}</span>
-                )}
-              </div>
-            </div>
-          ) : client.planSummary?.defaultPlan ? (
-            <div
-              className="admin-card"
-              style={{
-                backgroundColor: "#f9fafb",
-                borderColor: "#e5e7eb",
-                borderWidth: 1,
-              }}
-            >
-              <p
-                className="admin-card__label"
-                style={{ textTransform: "uppercase", fontSize: "0.75rem", color: "#6b7280" }}
-              >
-                Default Template
-              </p>
-              <h4 className="admin-card__title" style={{ marginTop: "0.25rem" }}>
-                {client.planSummary.defaultPlan.title || "Plan"}
-              </h4>
-              <div
-                style={{
-                  marginTop: "0.5rem",
-                  display: "grid",
-                  gap: "0.35rem",
-                  fontSize: "0.85rem",
-                }}
-              >
-                {client.planSummary.defaultPlan.durationWeeks && (
-                  <span>Duration: {client.planSummary.defaultPlan.durationWeeks} weeks</span>
-                )}
-                {typeof client.planSummary.defaultPlan.price === "number" && (
-                  <span>Price: ₹{client.planSummary.defaultPlan.price.toFixed(2)}</span>
-                )}
-              </div>
-            </div>
-          ) : (
-            <p className="admin-page-header__subtitle">No plan assigned yet.</p>
-          )}
-        </div>
-      </div>
-
-      {/* Plan Requests */}
-      <div className="admin-card" style={{ marginTop: "1.5rem" }}>
-        <h3 className="admin-card__title" style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>
-          Plan Requests
-        </h3>
-        {loadingRequests ? (
-          <p className="admin-page-header__subtitle">Loading requests...</p>
-        ) : planRequests.length ? (
-          <div className="admin-card-grid" style={{ rowGap: "0.75rem", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
-            {planRequests.map((req) => (
-              <div key={req._id} className="admin-card">
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem" }}>
-                  <div>
-                    <p className="admin-card__label">
-                      {req.planId?.title ?? "Plan removed"}
-                    </p>
-                    <p className="admin-page-header__subtitle" style={{ fontSize: "0.8rem" }}>
-                      Requested {formatDate(req.createdAt)}
-                    </p>
-                    {req.notes && (
-                      <p
-                        className="admin-page-header__subtitle"
-                        style={{ fontSize: "0.8rem", marginTop: "0.25rem" }}
-                      >
-                        Notes: {req.notes}
-                      </p>
+                <div className="flex items-center gap-3">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-white/30 bg-white/15">
+                    {client.avatarUrl ? (
+                      <Image
+                        src={client.avatarUrl}
+                        alt={client.fullName}
+                        fill
+                        sizes="64px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="grid h-full w-full place-items-center text-lg font-semibold text-white">
+                        {client.fullName?.charAt(0)?.toUpperCase() || "C"}
+                      </span>
                     )}
                   </div>
-                  <span
-                    style={{
-                      alignSelf: "flex-start",
-                      borderRadius: "999px",
-                      padding: "0.15rem 0.6rem",
-                      fontSize: "0.75rem",
-                      fontWeight: 600,
-                      textTransform: "capitalize",
-                      ...getStatusColor(req.status),
-                      backgroundColor: getStatusColor(req.status).bg,
-                      color: getStatusColor(req.status).text,
-                    }}
-                  >
-                    {req.status}
-                  </span>
-                </div>
-                {req.status === "pending" && (
-                  <div
-                    style={{
-                      marginTop: "0.75rem",
-                      display: "flex",
-                      gap: "0.5rem",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <button
-                      type="button"
-                      disabled={approveMutation.isPending || declineMutation.isPending}
-                      onClick={() => approveMutation.mutate(req._id)}
-                      className="btn btn--primary"
-                    >
-                      {approveMutation.isPending ? "Approving..." : "Approve"}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={approveMutation.isPending || declineMutation.isPending}
-                      onClick={() => declineMutation.mutate(req._id)}
-                      className="btn btn--danger"
-                    >
-                      {declineMutation.isPending ? "Declining..." : "Decline"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="admin-page-header__subtitle">No requests yet.</p>
-        )}
-      </div>
 
-      {/* Orders History */}
-      <div className="admin-card" style={{ marginTop: "1.5rem" }}>
-        <h3 className="admin-card__title" style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>
-          Orders History
-        </h3>
-        {loadingOrders ? (
-          <p className="admin-page-header__subtitle">Loading orders...</p>
-        ) : orders.length ? (
-          <>
-            <div style={{ overflowX: "auto" }}>
-              <table className="admin-table" style={{ width: "100%", minWidth: "600px" }}>
-                <thead>
-                  <tr>
-                    {/* <th>Order ID</th> */}
-                    <th>Items</th>
-                    <th>Amount</th>
-                    <th>Payment</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((order: any) => (
-                    <tr key={order._id}>
-                      {/* <td style={{ fontFamily: "monospace", fontSize: "0.85rem" }}>
-                        #{order._id.slice(-6)}
-                      </td> */}
-                      <td>
-                        {order.items?.length || 0} item(s)
-                        {order.items && order.items.length > 0 && (
-                          <div style={{ fontSize: "0.8rem", color: "#6b7280", marginTop: "0.25rem" }}>
-                            {order.items.map((item: any, idx: number) => (
-                              <div key={idx}>
-                                {item.name} x{item.quantity}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </td>
-                      <td>₹{order.finalAmount?.toFixed(2) || "0.00"}</td>
-                      <td style={{ textTransform: "capitalize" }}>{order.paymentMode || "-"}</td>
-                      <td>
-                        <span
-                          style={{
-                            borderRadius: "999px",
-                            padding: "0.15rem 0.6rem",
-                            fontSize: "0.75rem",
-                            fontWeight: 600,
-                            textTransform: "capitalize",
-                            ...getStatusColor(order.status),
-                            backgroundColor: getStatusColor(order.status).bg,
-                            color: getStatusColor(order.status).text,
-                          }}
-                        >
-                          {order.status}
-                        </span>
-                      </td>
-                      <td style={{ fontSize: "0.85rem" }}>{formatDate(order.createdAt)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {ordersPagination && ordersPagination.totalPages > 1 && (
-              <div className="admin-pagination" style={{ marginTop: "1rem" }}>
-                <p className="admin-page-header__subtitle">
-                  Page {ordersPagination.page} of {ordersPagination.totalPages}
-                </p>
-                <div className="admin-pagination__controls">
-                  <button
-                    type="button"
-                    disabled={ordersPagination.page <= 1}
-                    onClick={() => setOrdersPage((p) => Math.max(1, p - 1))}
-                    className="btn btn--outline"
-                  >
-                    Prev
-                  </button>
-                  <button
-                    type="button"
-                    disabled={ordersPagination.page >= ordersPagination.totalPages}
-                    onClick={() => setOrdersPage((p) => p + 1)}
-                    className="btn btn--outline"
-                  >
-                    Next
-                  </button>
+                  <CardTitle className="min-w-0 text-3xl font-bold tracking-tight text-white md:text-4xl">
+                    {client.fullName}
+                  </CardTitle>
                 </div>
+
+                <CardDescription className="max-w-2xl text-sm !text-white/90 md:text-base">
+                  Complete profile and activity history for this client.
+                </CardDescription>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                <Link href="/coach/clients">
+                  <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                  </Button>
+                </Link>
+                <Link href={`/coach/chat?clientId=${id}`}>
+                  <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                    <MessageSquare className="h-4 w-4" />
+                    Chat
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-3 pt-2 sm:grid-cols-3">
+              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-blue-100">Member since</p>
+                <p className="mt-1 text-base font-semibold">{formatDate(client.createdAt)}</p>
+              </div>
+              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-blue-100">Plan requests</p>
+                <p className="mt-1 text-base font-semibold">{loadingRequests ? "--" : planRequests.length}</p>
+              </div>
+              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-blue-100">Order history</p>
+                <p className="mt-1 text-base font-semibold">{loadingOrders ? "--" : clientOrders.length}</p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.04 }}
+        className="grid gap-4 lg:grid-cols-[1.7fr_1fr]"
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <UserRound className="h-4 w-4" />
+              </span>
+              Profile overview
+            </CardTitle>
+            <CardDescription>Primary contact and account details.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <p className="mb-1 inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-slate-500">
+                <Mail className="h-3.5 w-3.5" />
+                Email
+              </p>
+              <p className="text-sm font-semibold text-slate-800 break-all">{client.email || "-"}</p>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <p className="mb-1 inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-slate-500">
+                <Phone className="h-3.5 w-3.5" />
+                Phone
+              </p>
+              <p className="text-sm font-semibold text-slate-800">{client.phone || "-"}</p>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <p className="mb-1 text-xs uppercase tracking-wide text-slate-500">WhatsApp</p>
+              <p className="text-sm font-semibold text-slate-800">{client.whatsappNumber || "-"}</p>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <p className="mb-1 inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-slate-500">
+                <CalendarDays className="h-3.5 w-3.5" />
+                Latest progress update
+              </p>
+              <p className="text-sm font-semibold text-slate-800">{formatDate(client.latestProgress?.date)}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <ClipboardList className="h-4 w-4" />
+              </span>
+              Plan overview
+            </CardTitle>
+            <CardDescription>Current subscription or default template details.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {activePlan ? (
+              <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 px-3 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-indigo-600">Current plan</p>
+                <p className="mt-1 text-base font-semibold text-slate-900">
+                  {activePlan.planTitle || "Plan"}
+                </p>
+                <div className="mt-2 space-y-1 text-sm text-slate-600">
+                  <p>
+                    Type: {activePlan.type === "subscription" ? "Subscription" : "Default"}
+                  </p>
+                  {activePlan.durationWeeks ? <p>Duration: {activePlan.durationWeeks} weeks</p> : null}
+                  {typeof activePlan.price === "number" ? (
+                    <p>Price: ₹{activePlan.price.toFixed(2)}</p>
+                  ) : null}
+                  {activePlan.type === "subscription" ? (
+                    <p>Ends: {formatDate(activePlan.endDate)}</p>
+                  ) : null}
+                </div>
+              </div>
+            ) : defaultPlan ? (
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">Default template</p>
+                <p className="mt-1 text-base font-semibold text-slate-900">{defaultPlan.title || "Plan"}</p>
+                <div className="mt-2 space-y-1 text-sm text-slate-600">
+                  {defaultPlan.durationWeeks ? <p>Duration: {defaultPlan.durationWeeks} weeks</p> : null}
+                  {typeof defaultPlan.price === "number" ? (
+                    <p>Price: ₹{defaultPlan.price.toFixed(2)}</p>
+                  ) : null}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-4 text-sm text-slate-600">
+                No plan assigned yet.
               </div>
             )}
-          </>
-        ) : (
-          <p className="admin-page-header__subtitle">No orders yet.</p>
-        )}
-      </div>
+          </CardContent>
+        </Card>
+      </motion.section>
 
-      {/* Progress History - Charts */}
-      <div style={{ marginTop: "1.5rem" }}>
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.08 }}
+        className="grid gap-4 md:grid-cols-2"
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Activity className="h-4 w-4" />
+              </span>
+              Health information
+            </CardTitle>
+            <CardDescription>Latest body metrics captured for this client.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Weight</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">
+                {typeof client.weight === "number" ? `${client.weight} kg` : "-"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Height</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">
+                {typeof client.height === "number" ? `${client.height} cm` : "-"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3 sm:col-span-2">
+              <p className="text-xs uppercase tracking-wide text-slate-500">BMI</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">
+                {typeof client.bmi === "number" ? client.bmi.toFixed(1) : "-"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <MapPin className="h-4 w-4" />
+              </span>
+              Address
+            </CardTitle>
+            <CardDescription>Billing and delivery contact location.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {address && (address.line1 || address.city || address.state) ? (
+              <div className="space-y-1.5 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3 text-sm text-slate-700">
+                {address.phoneNumber ? <p>{address.phoneNumber}</p> : null}
+                {address.line1 ? <p>{address.line1}</p> : null}
+                {address.line2 ? <p>{address.line2}</p> : null}
+                {address.neighborhood ? <p>{address.neighborhood}</p> : null}
+                {addressLine ? <p>{addressLine}</p> : null}
+                {address.country ? <p>{address.country}</p> : null}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-4 text-sm text-slate-600">
+                No address provided.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.1 }}
+      >
+        <ClientProgressPhotos clientId={id} clientName={client.fullName} />
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.12 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <ClipboardList className="h-4 w-4" />
+              </span>
+              Plan requests
+            </CardTitle>
+            <CardDescription>Approve or decline incoming plan requests from this client.</CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-3">
+            {loadingRequests ? (
+              <p className="text-sm text-slate-500">Loading requests...</p>
+            ) : planRequests.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-8 text-center">
+                <p className="text-sm font-medium text-slate-700">No requests yet.</p>
+                <p className="mt-1 text-xs text-slate-500">Incoming requests will appear here.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3 lg:grid-cols-2">
+                {planRequests.map((req: PlanRequest, index: number) => (
+                  <motion.article
+                    key={req._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: index * 0.02 }}
+                    className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-slate-900">
+                          {req.planId?.title ?? "Plan removed"}
+                        </p>
+                        <p className="text-xs text-slate-500">Requested {formatDate(req.createdAt)}</p>
+                        {req.notes ? (
+                          <p className="pt-1 text-sm text-slate-600">Notes: {req.notes}</p>
+                        ) : null}
+                      </div>
+
+                      <span
+                        className={cn(
+                          "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize",
+                          getStatusTone(req.status)
+                        )}
+                      >
+                        {req.status}
+                      </span>
+                    </div>
+
+                    {req.status === "pending" ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => approveMutation.mutate(req._id)}
+                          disabled={approveMutation.isPending || declineMutation.isPending}
+                          className="bg-emerald-600 text-white hover:bg-emerald-700"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                          {approveMutation.isPending ? "Approving..." : "Approve"}
+                        </Button>
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => declineMutation.mutate(req._id)}
+                          disabled={approveMutation.isPending || declineMutation.isPending}
+                        >
+                          <XCircle className="h-4 w-4" />
+                          {declineMutation.isPending ? "Declining..." : "Decline"}
+                        </Button>
+                      </div>
+                    ) : null}
+                  </motion.article>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.14 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <ShoppingBag className="h-4 w-4" />
+              </span>
+              Orders history
+            </CardTitle>
+            <CardDescription>Latest order activity and payment details for this client.</CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {loadingOrders ? (
+              <p className="text-sm text-slate-500">Loading orders...</p>
+            ) : orders.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-8 text-center">
+                <p className="text-sm font-medium text-slate-700">No orders yet.</p>
+                <p className="mt-1 text-xs text-slate-500">Client purchases will appear here once available.</p>
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto rounded-xl border border-slate-200">
+                  <table className="min-w-[680px] w-full text-sm">
+                    <caption className="sr-only">Order history table for {client.fullName}</caption>
+                    <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                      <tr>
+                        <th className="px-3 py-2.5 font-semibold">Items</th>
+                        <th className="px-3 py-2.5 font-semibold">Amount</th>
+                        <th className="px-3 py-2.5 font-semibold">Payment</th>
+                        <th className="px-3 py-2.5 font-semibold">Status</th>
+                        <th className="px-3 py-2.5 font-semibold">Date</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {orders.map((order) => (
+                        <tr key={order._id} className="border-t border-slate-200/80 align-top">
+                          <td className="px-3 py-3 text-slate-700">
+                            {(order.items ?? []).length} item(s)
+                            {order.items && order.items.length > 0 ? (
+                              <div className="mt-1 space-y-1 text-xs text-slate-500">
+                                {order.items.map((item, idx) => (
+                                  <p key={`${order._id}-item-${idx}`}>
+                                    {item.name || "Item"} x{item.quantity ?? 1}
+                                  </p>
+                                ))}
+                              </div>
+                            ) : null}
+                          </td>
+
+                          <td className="px-3 py-3 font-semibold text-slate-900">
+                            ₹{Number(order.finalAmount ?? 0).toFixed(2)}
+                          </td>
+
+                          <td className="px-3 py-3 capitalize text-slate-700">{order.paymentMode || "-"}</td>
+
+                          <td className="px-3 py-3">
+                            <span
+                              className={cn(
+                                "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize",
+                                getStatusTone(order.status)
+                              )}
+                            >
+                              {order.status || "unknown"}
+                            </span>
+                          </td>
+
+                          <td className="px-3 py-3 text-slate-600">{formatDate(order.createdAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {ordersPagination.totalPages > 1 ? (
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                    <p className="text-sm text-slate-600">
+                      Page {ordersPagination.page} of {ordersPagination.totalPages}
+                      {Number.isFinite(ordersPagination.total)
+                        ? ` • ${ordersPagination.total} total`
+                        : ""}
+                    </p>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={ordersPagination.page <= 1}
+                        onClick={() => setOrdersPage((p) => Math.max(1, p - 1))}
+                      >
+                        Prev
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={ordersPagination.page >= ordersPagination.totalPages}
+                        onClick={() => setOrdersPage((p) => p + 1)}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.16 }}
+      >
         <DetailedProgressCharts clientId={id} viewerRole="coach" />
-      </div>
+      </motion.section>
     </div>
   );
 }

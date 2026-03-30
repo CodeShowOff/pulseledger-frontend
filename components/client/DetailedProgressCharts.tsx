@@ -8,6 +8,7 @@ import {
   fetchClientProgressEntries,
 } from "@/lib/queries/clientProgress";
 import api from "@/lib/axios";
+import { LineChart } from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -17,6 +18,16 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 type ChartPoint = {
   date: string; // label used on X axis
@@ -133,147 +144,186 @@ export default function DetailedProgressCharts({ clientId, viewerRole = "client"
 
   if (isLoading) {
     return (
-      <div className="client-card">
-        <p className="client-card__subtitle">Loading charts...</p>
-      </div>
+      <Card className="border-slate-200/80 bg-white/95">
+        <CardContent className="p-5">
+          <p className="text-sm text-slate-500">Loading charts...</p>
+        </CardContent>
+      </Card>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="client-card">
-        <p className="client-card__subtitle">No data available for charts yet. Add your first progress entry!</p>
-      </div>
+      <Card className="border-slate-200/80 bg-white/95">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+              <LineChart className="h-4 w-4" />
+            </span>
+            Progress charts
+          </CardTitle>
+          <CardDescription>
+            Health metrics over time.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-8 text-center text-sm text-slate-600">
+            No data available for charts yet. Add your first progress entry!
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="client-card">
-      <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.5rem" }}>
-        <div>
-          <h2 className="client-card__section-title">Progress Charts</h2>
-          <p className="client-card__section-subtitle">Visual representation of your health metrics over time (Last 7 entries)</p>
-        </div>
-        {hasData && filteredData.length > 7 && (
-          <button
-            type="button"
-            className="btn btn--outline"
-            onClick={handleViewFullChart}
-            style={{ fontSize: "0.85rem" }}
-          >
-            View Full Chart
-          </button>
-        )}
-      </div>
-
-      {/* Chart Selector Buttons */}
-      <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", overflowY: "hidden", flexWrap: "nowrap", marginBottom: "1.5rem", paddingBottom: "0.5rem", scrollBehavior: "smooth" }}>
-        {charts.map((chart) => (
-          <button
-            key={chart.id}
-            type="button"
-            className={`btn ${activeChart === chart.id ? "btn--primary" : "btn--outline"}`}
-            onClick={() => setActiveChart(chart.id)}
-            style={{ fontSize: "0.85rem", flexShrink: 0, whiteSpace: "nowrap" }}
-          >
-            {chart.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Chart Display */}
-      <div style={{ background: "linear-gradient(to bottom, #f8fafc, #ffffff)", borderRadius: "12px", padding: "1.5rem", border: "1px solid #e2e8f0" }}>
-        <h3 style={{ fontSize: "1.125rem", fontWeight: "600", marginBottom: "1rem", color: "#1e293b" }}>
-          {currentChart.label} {currentChart.unit && `(${currentChart.unit})`}
-        </h3>
-        
-        {!hasData ? (
-          <div style={{ textAlign: "center", padding: "3rem 0", color: "#64748b" }}>
-            <p>No data available for {currentChart.label}</p>
+    <Card className="border-slate-200/80 bg-white/95">
+      <CardHeader className="pb-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <LineChart className="h-4 w-4" />
+              </span>
+              Progress charts
+            </CardTitle>
+            <CardDescription>
+              Last 7 entries.
+            </CardDescription>
           </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={350}>
-            <AreaChart data={data} margin={{ top: 5, right: 15, left: 0, bottom: 5 }}>
-              <defs>
-                <linearGradient id={`gradient-${currentChart.id}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={currentChart.color} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={currentChart.color} stopOpacity={0.05} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis 
-                dataKey="isoDate" 
-                stroke="#64748b"
-                tickFormatter={(value: string) => {
-                  try {
-                    return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                  } catch {
-                    return value;
-                  }
-                }}
-                style={{ fontSize: "0.75rem" }}
-              />
-              <YAxis 
-                stroke="#64748b"
-                style={{ fontSize: "0.75rem" }}
-                width={35}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#ffffff",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                }}
-                labelFormatter={(value: unknown) => {
-                  if (typeof value !== "string" && typeof value !== "number" && !(value instanceof Date)) {
-                    return value as React.ReactNode;
-                  }
-                  const date = new Date(value);
-                  if (Number.isNaN(date.getTime())) {
-                    return String(value);
-                  }
-                  return date.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-                }}
-                labelStyle={{ color: "#1e293b", fontWeight: "600" }}
-              />
-              <Area
-                type="monotone"
-                dataKey={currentChart.dataKey}
-                stroke={currentChart.color}
-                strokeWidth={3}
-                fill={`url(#gradient-${currentChart.id})`}
-                dot={{ fill: currentChart.color, r: 4 }}
-                activeDot={{ r: 6, strokeWidth: 2, stroke: "#ffffff" }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        )}
 
-        {hasData && (
-          <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid #e2e8f0" }}>
-            <div style={{ display: "flex", justifyContent: "space-around", fontSize: "0.875rem", color: "#64748b" }}>
-              <div style={{ textAlign: "center" }}>
-                <p style={{ fontWeight: "600", color: "#1e293b", fontSize: "1.125rem" }}>
-                  {filteredData.length}
-                </p>
-                <p>Total Entries</p>
+          {hasData && filteredData.length > 7 ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handleViewFullChart}
+              className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            >
+              View full chart
+            </Button>
+          ) : null}
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {charts.map((chart) => {
+            const active = activeChart === chart.id;
+            return (
+              <button
+                key={chart.id}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setActiveChart(chart.id)}
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
+                  active
+                    ? "border-indigo-600 bg-indigo-600 text-white"
+                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                )}
+              >
+                {chart.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-4 md:p-5">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-slate-900 md:text-base">
+              {currentChart.label} {currentChart.unit && `(${currentChart.unit})`}
+            </h3>
+            <Badge variant="secondary" className="normal-case tracking-normal">
+              Last {Math.min(data.length, 7)} entries
+            </Badge>
+          </div>
+
+          {!hasData ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-10 text-center text-sm text-slate-600">
+              No data available for {currentChart.label}
+            </div>
+          ) : (
+            <div className="h-[350px] w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data} margin={{ top: 5, right: 15, left: 0, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id={`gradient-${currentChart.id}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={currentChart.color} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={currentChart.color} stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis
+                    dataKey="isoDate"
+                    stroke="#64748b"
+                    tickFormatter={(value: string) => {
+                      try {
+                        return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                      } catch {
+                        return value;
+                      }
+                    }}
+                    style={{ fontSize: "0.75rem" }}
+                  />
+                  <YAxis
+                    stroke="#64748b"
+                    style={{ fontSize: "0.75rem" }}
+                    width={35}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                    }}
+                    labelFormatter={(value: unknown) => {
+                      if (typeof value !== "string" && typeof value !== "number" && !(value instanceof Date)) {
+                        return value as React.ReactNode;
+                      }
+                      const date = new Date(value);
+                      if (Number.isNaN(date.getTime())) {
+                        return String(value);
+                      }
+                      return date.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+                    }}
+                    labelStyle={{ color: "#1e293b", fontWeight: "600" }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey={currentChart.dataKey}
+                    stroke={currentChart.color}
+                    strokeWidth={3}
+                    fill={`url(#gradient-${currentChart.id})`}
+                    dot={{ fill: currentChart.color, r: 4 }}
+                    activeDot={{ r: 6, strokeWidth: 2, stroke: "#ffffff" }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {hasData ? (
+            <div className="mt-4 grid gap-3 border-t border-slate-200 pt-4 sm:grid-cols-3">
+              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-center">
+                <p className="text-lg font-semibold text-slate-900">{filteredData.length}</p>
+                <p className="text-xs text-slate-500">Total entries</p>
               </div>
-              <div style={{ textAlign: "center" }}>
-                <p style={{ fontWeight: "600", color: "#1e293b", fontSize: "1.125rem" }}>
+
+              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-center">
+                <p className="text-lg font-semibold text-slate-900">
                   {(() => {
-                    // Data is already filtered to only include non-null values for this field
-                    // Get the last entry (most recent)
                     if (data.length === 0) return "-";
                     const latestPoint = data[data.length - 1];
                     const value = latestPoint[currentChart.dataKey];
                     return typeof value === "number" ? value.toFixed(1) : value || "-";
                   })()}
                 </p>
-                <p>Latest</p>
+                <p className="text-xs text-slate-500">Latest</p>
               </div>
-              <div style={{ textAlign: "center" }}>
-                <p style={{ fontWeight: "600", color: "#1e293b", fontSize: "1.125rem" }}>
+
+              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-center">
+                <p className="text-lg font-semibold text-slate-900">
                   {(() => {
                     const values = filteredData
                       .map((d) => d[currentChart.dataKey])
@@ -283,12 +333,12 @@ export default function DetailedProgressCharts({ clientId, viewerRole = "client"
                     return avg.toFixed(1);
                   })()}
                 </p>
-                <p>Overall Average</p>
+                <p className="text-xs text-slate-500">Overall average</p>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
+          ) : null}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

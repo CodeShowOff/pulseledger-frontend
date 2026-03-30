@@ -319,8 +319,10 @@ export default function NotificationsPage() {
                   >
                     <div
                       className={cn(
-                        "rounded-2xl border border-slate-200 bg-slate-50/60 p-4 transition-colors hover:border-indigo-200 hover:bg-indigo-50/25",
-                        !n.readAt && "border-indigo-200 bg-indigo-50/45"
+                        "rounded-2xl border p-4 transition-colors",
+                        !n.readAt
+                          ? "border-amber-200 bg-amber-50/75 hover:border-amber-300 hover:bg-amber-100/70"
+                          : "border-slate-200 bg-slate-50/60 hover:border-indigo-200 hover:bg-indigo-50/25"
                       )}
                     >
                       <div className="flex items-start gap-3">

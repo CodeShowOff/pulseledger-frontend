@@ -3620,6 +3620,112 @@ body.chat-page-active .coach-content__inner {
   margin-top: 0.5rem;
 }
 
+/* Scoped refresh for /client/progress */
+.client-progress-refresh .client-progress-data {
+  gap: 1rem;
+}
+
+.client-progress-refresh .client-progress-data__tabs {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 0.9rem;
+  padding: 0.25rem;
+}
+
+.client-progress-refresh .client-progress-data__tab-btn.btn {
+  border-radius: 0.68rem;
+  border: 1px solid #d8e0ef;
+  background: #ffffff;
+  color: #334155;
+  box-shadow: none;
+  min-height: 34px;
+}
+
+.client-progress-refresh .client-progress-data__tab-btn.btn.btn--primary {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #ffffff;
+  box-shadow: 0 8px 20px -14px rgba(79, 70, 229, 0.6);
+}
+
+.client-progress-refresh .client-progress-data__tab-btn.btn.btn--outline:hover {
+  border-color: #c7d2fe;
+  background: #f8faff;
+  color: #4338ca;
+}
+
+.client-progress-refresh .profile-card.client-progress-data__card {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 1rem;
+  box-shadow: 0 14px 34px -28px rgba(15, 23, 42, 0.35);
+  padding: 1rem;
+}
+
+.client-progress-refresh .client-card__section-title {
+  margin-bottom: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.client-progress-refresh .profile-field {
+  border-radius: 0.8rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 0.75rem 0.85rem;
+}
+
+.client-progress-refresh .profile-field__label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #64748b;
+}
+
+.client-progress-refresh .profile-field__value {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.client-progress-refresh .client-form__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.client-progress-refresh .client-form__control {
+  border-radius: 0.75rem;
+  border-color: #d9e2ef;
+  padding: 0.52rem 0.72rem;
+}
+
+.client-progress-refresh .client-form__control:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+}
+
+.client-progress-refresh .btn.btn--outline,
+.client-progress-refresh .btn.btn--ghost,
+.client-progress-refresh .btn.btn--primary {
+  border-radius: 0.72rem;
+  min-height: 34px;
+}
+
+@media (min-width: 768px) {
+  .client-progress-refresh .profile-card.client-progress-data__card {
+    padding: 1.2rem;
+  }
+
+  .client-progress-refresh .client-progress-data {
+    gap: 1.1rem;
+  }
+}
+
 /* Footer pages: match Pricing page vibe (blue/purple gradients) */
 .footer-page .client-page__header {
   text-align: center;

@@ -2,14 +2,48 @@
 
 import { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, keepPreviousData, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useCartStore } from "@/lib/cartStore";
 import { useAuthStore } from "@/lib/store";
+import { motion } from "framer-motion";
+import {
+  Boxes,
+  Minus,
+  Package,
+  Plus,
+  RefreshCw,
+  Search,
+  ShoppingBag,
+  ShoppingCart,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+};
+
+type ProductsResponse = {
+  success: boolean;
+  data: any[];
+  pagination?: { total: number; page: number; totalPages: number };
+};
 
 export default function ProductsPage() {
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -20,14 +54,7 @@ export default function ProductsPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  type ProductsResponse = {
-    success: boolean;
-    data: any[];
-    pagination?: { total: number; page: number; totalPages: number };
-  };
-
-
-  const { data, isLoading, error } = useQuery<ProductsResponse>({
+  const { data, isLoading, isFetching, error } = useQuery<ProductsResponse>({
     queryKey: ["products", page, debouncedSearch],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -87,239 +114,309 @@ export default function ProductsPage() {
     toast.success("Added to cart");
   };
 
-  if (isLoading) return <p className="client-card__subtitle">Loading products...</p>;
+  if (isLoading)
+    return (
+      <div className="space-y-4 pt-4 md:pt-6" aria-live="polite">
+        <div className="h-[210px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+        <div className="h-[120px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+        <div className="h-[320px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+      </div>
+    );
+
   if (error)
     return (
-      <p className="client-card__subtitle" style={{ color: "#b91c1c" }}>
-        Failed to load products.
-      </p>
+      <div className="pt-4 md:pt-6">
+        <Card className="border-rose-200 bg-rose-50">
+          <CardContent className="py-6">
+            <p className="text-sm font-medium text-rose-700">Failed to load products.</p>
+          </CardContent>
+        </Card>
+      </div>
     );
 
   return (
-    <div className="client-page__sections">
-      <header className="client-page__header">
-        <h1 className="client-page__title">Products</h1>
-        <div style={{ marginTop: "0.75rem", maxWidth: 360 }}>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search products by name or description"
-            className="auth-form__input"
-          />
-        </div>
-      </header>
-      <div className="client-card">
-            <div
-              className="client-card__header"
-              style={{
-                marginBottom: "0.75rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "0.75rem",
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ minWidth: 0 }}>
-                <p className="client-card__title">Available Products</p>
-                
+    <div className="space-y-5 pt-4 md:pt-6">
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28 }}
+      >
+        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
+          <CardHeader className="gap-4 p-6 md:p-7">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                <Badge className="w-fit border-white/25 bg-white/15 text-white">Storefront</Badge>
+                <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+                  Products
+                </CardTitle>
+                <CardDescription className="max-w-xl text-sm !text-white/90 md:text-base">
+                  Discover your coach’s products and add them to cart.
+                </CardDescription>
               </div>
-              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                <Link 
-                  href="/client/cart" 
-                  className="client-button"
-                  style={{ position: "relative" }}
-                >
-                  My Cart
-                  {cartItemsCount > 0 && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: "-8px",
-                        right: "-8px",
-                        backgroundColor: "#dc2626",
-                        color: "white",
-                        borderRadius: "50%",
-                        width: "24px",
-                        height: "24px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.75rem",
-                        fontWeight: "600",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                      }}
-                    >
-                      {cartItemsCount > 99 ? "99+" : cartItemsCount}
-                    </span>
-                  )}
+
+              <div className="flex w-full flex-nowrap gap-1.5 sm:w-auto sm:gap-2 md:justify-end">
+                <Link href="/client/cart" className="min-w-0 flex-1 sm:flex-none">
+                  <Button
+                    variant="outline"
+                    className="relative h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
+                  >
+                    <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="sm:hidden">My Cart</span>
+                    <span className="hidden sm:inline">My Cart</span>
+                    {cartItemsCount > 0 ? (
+                      <span className="absolute -right-1 -top-1 inline-flex min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white sm:static sm:ml-1 sm:min-w-5 sm:px-1.5 sm:text-[10px]">
+                        {cartItemsCount > 99 ? "99+" : cartItemsCount}
+                      </span>
+                    ) : null}
+                  </Button>
                 </Link>
-                {/* Voucher selection moved to My Cart page */}
-                {role === "client" && (
-                  <Link href="/client/orders" className="client-button client-button--outline">
-                    Order History
+
+                {role === "client" ? (
+                  <Link href="/client/orders" className="min-w-0 flex-1 sm:flex-none">
+                    <Button
+                      variant="outline"
+                      className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
+                    >
+                      <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="sm:hidden">Order History</span>
+                      <span className="hidden sm:inline">Order History</span>
+                    </Button>
                   </Link>
-                )}
+                ) : null}
               </div>
             </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-                gap: "0.75rem",
-              }}
-            >
-              {data?.data?.length ? (
-                data.data.map((p: any) => {
+
+          </CardHeader>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.05 }}
+      >
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Search className="h-4 w-4" />
+              </span>
+              Find products
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="pt-0">
+            <div className="flex items-center gap-2">
+              <div className="relative min-w-0 flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Search products"
+                  className="h-9 pl-9"
+                />
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => queryClient.invalidateQueries({ queryKey: ["products"] })}
+                disabled={isFetching}
+                className="h-11 w-11 shrink-0 rounded-xl border-slate-300 px-0 text-slate-700 hover:bg-slate-100"
+                aria-label="Refresh products"
+                title="Refresh products"
+              >
+                <RefreshCw className={cn("h-7 w-7 stroke-[2.5]", isFetching ? "animate-spin" : "")} />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.1 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Boxes className="h-4 w-4" />
+              </span>
+              Product catalog
+            </CardTitle>
+            <CardDescription>Browse pricing, discounts, and categories.</CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {data?.data?.length ? (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                {data.data.map((p: any, index: number) => {
                   const cartItem = itemsById.get(p._id);
                   const inCart = Boolean(cartItem);
+                  const hasDiscount = Number.isFinite(p.mrp) && Number(p.mrp) > Number(p.price);
+
                   return (
-                    <div key={p._id} className="client-card" style={{ boxShadow: "none", display: "flex", flexDirection: "column" }}>
-                      {p.imageUrl && (
-                        <div style={{ marginBottom: "0.5rem" }}>
-                          <Image
-                            src={p.imageUrl}
-                            alt={p.name}
-                            width={150}
-                            height={150}
-                            style={{
-                              width: "100%",
-                              height: 150,
-                              objectFit: "contain",
-                              backgroundColor: "#f9fafb",
-                              borderRadius: 12,
-                              border: "1px solid #e5e7eb",
-                            }}
-                          />
-                        </div>
-                      )}
-                      <div className="client-card__header" style={{ marginBottom: "0.5rem" }}>
-                        <div>
-                          <p className="client-card__title" style={{ fontSize: "0.95rem" }}>
-                            {p.name}
-                          </p>
-                          {p.description && (
-                            <DescriptionWithToggle text={p.description} />
+                    <motion.article
+                      key={p._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.22, delay: index * 0.02 }}
+                      whileHover={{ y: -3 }}
+                      className="h-full"
+                    >
+                      <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-3 transition-all hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.55)]">
+                        <div className="relative mb-3 flex h-[170px] items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                          {p.imageUrl ? (
+                            <Image
+                              src={p.imageUrl}
+                              alt={p.name}
+                              width={180}
+                              height={160}
+                              className="h-[150px] w-full object-contain p-2"
+                            />
+                          ) : (
+                            <span className="grid h-10 w-10 place-items-center rounded-xl bg-white text-slate-400 shadow-sm">
+                              <Package className="h-5 w-5" />
+                            </span>
                           )}
                         </div>
-                      </div>
-                      <div className="client-meta-row" style={{ marginTop: 0, flexDirection: "column", alignItems: "flex-start", gap: "0.25rem", flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                          {p.mrp && p.mrp > p.price && (
-                            <>
-                              <span style={{ textDecoration: "line-through", color: "#9ca3af", fontSize: "0.85rem" }}>
-                                ₹{(p.mrp ?? 0).toFixed(2)}
+
+                        <div className="flex flex-1 flex-col">
+                          <h3 className="text-sm font-semibold text-slate-900">{p.name}</h3>
+
+                          {p.description ? <DescriptionWithToggle text={p.description} /> : null}
+
+                          <div className="mt-3 space-y-1.5 rounded-xl border border-slate-200 bg-slate-50/70 p-2.5">
+                            <div className="flex items-center gap-2">
+                              {hasDiscount ? (
+                                <span className="text-xs text-slate-400 line-through">
+                                  ₹{(p.mrp ?? 0).toFixed(2)}
+                                </span>
+                              ) : null}
+
+                              <span className="text-base font-semibold text-slate-900">
+                                ₹{(p.price ?? 0).toFixed(2)}
                               </span>
-                              <span style={{ color: "#059669", fontWeight: "600", fontSize: "0.85rem" }}>
+                            </div>
+
+                            {hasDiscount ? (
+                              <p className="text-xs font-medium text-emerald-700">
                                 {Math.round(((p.mrp - p.price) / p.mrp) * 100)}% off
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <span style={{ fontSize: "1.1rem", fontWeight: "600" }}>₹{(p.price ?? 0).toFixed(2)}</span>
-                        {p.category && (
-                          <span className="client-pill" style={{ marginTop: "0.25rem" }}>
-                            {p.category}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ marginTop: "0.6rem" }}>
-                        {inCart ? (
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              borderRadius: "999px",
-                              border: "1px solid #e5e7eb",
-                              padding: "0.25rem 0.5rem",
-                              fontSize: "0.8rem",
-                            }}
-                          >
-                            <button
-                              type="button"
-                              style={{
-                                padding: "0.15rem 0.5rem",
-                                borderRadius: "999px",
-                                border: "none",
-                                background: "transparent",
-                                cursor: "pointer",
-                              }}
-                              onClick={() =>
-                                updateQuantity(
-                                  p._id,
-                                  Math.max(0, (cartItem?.quantity ?? 1) - 1)
-                                )
-                              }
-                              aria-label="Decrease quantity"
-                            >
-                              −
-                            </button>
-                            <span>{cartItem?.quantity ?? 0}</span>
-                            <button
-                              type="button"
-                              style={{
-                                padding: "0.15rem 0.5rem",
-                                borderRadius: "999px",
-                                border: "none",
-                                background: "transparent",
-                                cursor: "pointer",
-                              }}
-                              onClick={() =>
-                                updateQuantity(p._id, (cartItem?.quantity ?? 0) + 1)
-                              }
-                              aria-label="Increase quantity"
-                            >
-                              +
-                            </button>
+                              </p>
+                            ) : null}
+
+                            {p.category ? (
+                              <Badge
+                                variant="secondary"
+                                className="mt-1 px-2 py-0.5 text-[10px] normal-case tracking-normal"
+                              >
+                                {p.category}
+                              </Badge>
+                            ) : null}
                           </div>
-                        ) : (
-                          <button
-                            type="button"
-                            className="client-button"
-                            onClick={() => handleAdd(p)}
-                          >
-                            Add to Cart
-                          </button>
-                        )}
+
+                          <div className="mt-3">
+                            {inCart ? (
+                              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-2 py-1.5">
+                                <button
+                                  type="button"
+                                  className="grid h-8 w-8 place-items-center rounded-md text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-900"
+                                  onClick={() =>
+                                    updateQuantity(
+                                      p._id,
+                                      Math.max(0, (cartItem?.quantity ?? 1) - 1)
+                                    )
+                                  }
+                                  aria-label="Decrease quantity"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </button>
+
+                                <span className="text-sm font-semibold text-slate-800">
+                                  {cartItem?.quantity ?? 0}
+                                </span>
+
+                                <button
+                                  type="button"
+                                  className="grid h-8 w-8 place-items-center rounded-md text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-900"
+                                  onClick={() =>
+                                    updateQuantity(p._id, (cartItem?.quantity ?? 0) + 1)
+                                  }
+                                  aria-label="Increase quantity"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <Button
+                                type="button"
+                                className="w-full"
+                                onClick={() => handleAdd(p)}
+                              >
+                                <ShoppingCart className="h-4 w-4" />
+                                Add to Cart
+                              </Button>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    </motion.article>
                   );
-                })
-              ) : (
-                <p className="client-card__subtitle">No products found.</p>
-              )}
-            </div>
-            {data?.pagination && (
-              <div className="client-card" style={{ marginTop: "1rem" }}>
-                <div className="admin-pagination" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
-                  <p className="client-card__subtitle" style={{ margin: 0 }}>
-                    Page {data.pagination.page} of {data.pagination.totalPages}
-                  </p>
-                  <div className="admin-pagination__controls" style={{ display: "flex", gap: "0.5rem" }}>
-                    <button
-                      type="button"
-                      disabled={data.pagination.page <= 1}
-                      onClick={() => setPage(p => Math.max(1, p - 1))}
-                      className="btn btn--outline"
-                    >
-                      Prev
-                    </button>
-                    <button
-                      type="button"
-                      disabled={data.pagination.page >= data.pagination.totalPages}
-                      onClick={() => setPage(p => p + 1)}
-                      className="btn btn--outline"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-10 text-center">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-slate-500 shadow-sm">
+                  <Package className="h-5 w-5" />
+                </span>
+                <p className="mt-3 text-sm font-semibold text-slate-700">No products found</p>
+                <p className="mt-1 text-xs text-slate-500">Try changing your search.</p>
               </div>
             )}
-          </div>
-        </div>
-    // </div>
+
+            {data?.pagination ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                <p className="text-sm text-slate-600">
+                  Page {data.pagination.page} of {data.pagination.totalPages}
+                  {Number.isFinite(data.pagination.total)
+                    ? ` • ${data.pagination.total} total`
+                    : ""}
+                </p>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={data.pagination.page <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  >
+                    Prev
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={data.pagination.page >= data.pagination.totalPages}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      </motion.section>
+    </div>
   );
 }
 
@@ -328,48 +425,31 @@ function DescriptionWithToggle({ text }: { text: string }) {
 
   if (!expanded) {
     return (
-      <p className="client-card__subtitle" style={{ fontSize: "0.8rem" }}>
+      <div className="mt-2">
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          style={{
-            padding: 0,
-            border: "none",
-            background: "none",
-            color: "#3b82f6",
-            fontWeight: 600,
-            cursor: "pointer",
-            textDecoration: "none",
-          }}
+          className="text-xs font-semibold text-indigo-600 transition-colors hover:text-indigo-700"
         >
           View details
         </button>
-      </p>
+      </div>
     );
   }
 
   return (
-    <div>
-      <p className="client-card__subtitle" style={{ fontSize: "0.8rem" }}>
-        {text}
-      </p>
-      <p className="client-card__subtitle" style={{ fontSize: "0.8rem" }}>
+    <div className="mt-2 space-y-1">
+      <p className="text-xs leading-5 text-slate-600">{text}</p>
+
+      <div>
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          style={{
-            padding: 0,
-            border: "none",
-            background: "none",
-            color: "#3b82f6",
-            fontWeight: 600,
-            cursor: "pointer",
-            textDecoration: "none",
-          }}
+          className="text-xs font-semibold text-indigo-600 transition-colors hover:text-indigo-700"
         >
           Hide details
         </button>
-      </p>
+      </div>
     </div>
   );
 }

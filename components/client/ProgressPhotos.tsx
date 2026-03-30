@@ -5,7 +5,16 @@ import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import getErrorMessage from "@/lib/getErrorMessage";
-import { Camera, Trash2, X } from "lucide-react";
+import { Camera, ImagePlus, Loader2, Trash2, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface ProgressPhoto {
   _id: string;
@@ -112,332 +121,233 @@ export default function ProgressPhotos() {
   const photos = photosData?.data || [];
 
   return (
-    <div>
-      {/* Photos Gallery */}
-      <div className="client-card" style={{ marginBottom: "1.5rem" }}>
-        <div style={{ marginBottom: "1rem" }}>
-          <p className="client-card__section-title">
-            My Progress Photos ({photos.length})
-          </p>
-          <p className="client-card__section-subtitle">
-            Your transformation journey in photos
-          </p>
-        </div>
+    <div className="space-y-5">
+      <Card className="border-slate-200/80 bg-white/95">
+        <CardHeader className="pb-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <ImagePlus className="h-4 w-4" />
+                </span>
+                Progress photo journal
+              </CardTitle>
+              <CardDescription>
+                Photo timeline.
+              </CardDescription>
+            </div>
+            <Badge variant="secondary" className="normal-case tracking-normal">
+              {photos.length} photo{photos.length !== 1 ? "s" : ""}
+            </Badge>
+          </div>
+        </CardHeader>
 
-        {isLoading ? (
-          <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>Loading photos...</p>
-        ) : photos.length === 0 ? (
-          <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
-            No photos uploaded yet. Upload your first progress photo above!
-          </p>
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            {photos.map((photo: ProgressPhoto) => (
-              <div
-                key={photo._id}
-                style={{
-                  position: "relative",
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  cursor: "pointer",
-                  transition: "transform 0.2s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-                onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                onClick={() => setSelectedPhoto(photo)}
-              >
-                <Image
-                  src={photo.url}
-                  alt={photo.caption || "Progress photo"}
-                  width={250}
-                  height={250}
-                  style={{
-                    width: "100%",
-                    height: "250px",
-                    objectFit: "cover",
-                  }}
-                  loading="lazy"
-                />
-                {photo.caption && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      background: "linear-gradient(transparent, rgba(0, 0, 0, 0.7))",
-                      color: "white",
-                      padding: "1rem 0.75rem 0.5rem",
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    {photo.caption}
-                  </div>
-                )}
+        <CardContent>
+          {isLoading ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, idx) => (
                 <div
-                  style={{
-                    position: "absolute",
-                    top: "8px",
-                    right: "8px",
-                    background: "rgba(0, 0, 0, 0.6)",
-                    borderRadius: "8px",
-                    padding: "0.25rem",
-                  }}
+                  key={`photo-skeleton-${idx}`}
+                  className="h-[220px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70"
+                />
+              ))}
+            </div>
+          ) : photos.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-12 text-center">
+              <p className="text-sm font-medium text-slate-700">No photos uploaded yet</p>
+              <p className="mt-1 text-xs text-slate-500">Upload your first photo.</p>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {photos.map((photo: ProgressPhoto) => (
+                <article
+                  key={photo._id}
+                  className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.55)]"
                 >
                   <button
+                    type="button"
+                    onClick={() => setSelectedPhoto(photo)}
+                    className="block w-full text-left"
+                    aria-label={`Open photo uploaded on ${new Date(photo.uploadedAt).toLocaleDateString()}`}
+                  >
+                    <Image
+                      src={photo.url}
+                      alt={photo.caption || "Progress photo"}
+                      width={420}
+                      height={420}
+                      className="h-[220px] w-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+
+                  {photo.caption ? (
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/75 to-transparent px-3 pb-3 pt-8 text-xs font-medium text-white">
+                      {photo.caption}
+                    </div>
+                  ) : null}
+
+                  <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDelete(photo);
                     }}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      color: "white",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "0.25rem",
-                    }}
+                    className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-black/55 text-white transition-colors hover:bg-rose-600"
                     title="Delete photo"
+                    aria-label="Delete photo"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 className="h-4 w-4" />
                   </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Upload Section */}
-      <div className="client-card">
-        <div style={{ marginBottom: "1rem" }}>
-          <p className="client-card__section-title">Upload Progress Photo</p>
-          <p className="client-card__section-subtitle">
-            Share your transformation journey with your coach
-          </p>
-        </div>
-
-        {!previewUrl ? (
-          <div>
-            <label
-              htmlFor="photo-upload"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                padding: "0.75rem 1.5rem",
-                backgroundColor: "#3b82f6",
-                color: "white",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "0.95rem",
-                fontWeight: 500,
-                border: "none",
-                transition: "background-color 0.2s",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#2563eb")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#3b82f6")}
-            >
-              <Camera size={20} />
-              Choose Photo
-            </label>
-            <input
-              id="photo-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              style={{ display: "none" }}
-            />
-            <p style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: "#6b7280" }}>
-              Max file size: 5MB. Supported formats: JPG, PNG, WEBP
-            </p>
-          </div>
-        ) : (
-          <div>
-            <div
-              style={{
-                position: "relative",
-                width: "100%",
-                maxWidth: "400px",
-                marginBottom: "1rem",
-              }}
-            >
-              <Image
-                src={previewUrl}
-                alt="Preview"
-                width={400}
-                height={400}
-                style={{
-                  width: "100%",
-                  height: "auto",
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                }}
-              />
-              <button
-                onClick={() => {
-                  setSelectedFile(null);
-                  setPreviewUrl(null);
-                  setCaption("");
-                }}
-                style={{
-                  position: "absolute",
-                  top: "8px",
-                  right: "8px",
-                  background: "rgba(0, 0, 0, 0.6)",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: "32px",
-                  height: "32px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                }}
-              >
-                <X size={18} />
-              </button>
+                </article>
+              ))}
             </div>
+          )}
+        </CardContent>
+      </Card>
 
-            <div style={{ marginBottom: "1rem" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "0.9rem",
-                  fontWeight: 500,
-                  marginBottom: "0.5rem",
-                  color: "#374151",
-                }}
-              >
-                Caption (optional)
-              </label>
+      <Card className="border-slate-200/80 bg-white/95">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+              <Camera className="h-4 w-4" />
+            </span>
+            Upload progress photo
+          </CardTitle>
+          <CardDescription>
+            Max file size: 5MB.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {!previewUrl ? (
+            <div>
               <input
-                type="text"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                placeholder="Add a note about this photo..."
-                maxLength={200}
-                className="client-form__control"
-                style={{ width: "100%", maxWidth: "500px" }}
+                id="photo-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="sr-only"
               />
-              <p style={{ marginTop: "0.25rem", fontSize: "0.85rem", color: "#6b7280" }}>
-                {caption.length}/200 characters
-              </p>
+              <label
+                htmlFor="photo-upload"
+                className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-10 text-center transition-colors hover:border-indigo-300 hover:bg-indigo-50/40"
+              >
+                <span className="mb-3 grid h-11 w-11 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm">
+                  <Camera className="h-5 w-5" />
+                </span>
+                <p className="text-sm font-semibold text-slate-700">Choose photo</p>
+                <p className="mt-1 text-xs text-slate-500">JPG, PNG, WEBP up to 5MB</p>
+              </label>
             </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="relative w-full max-w-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  width={420}
+                  height={420}
+                  className="h-auto w-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setPreviewUrl(null);
+                    setCaption("");
+                  }}
+                  className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
+                  aria-label="Remove selected photo"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
 
-            <button
-              onClick={handleUpload}
-              disabled={uploading}
-              className="client-button"
-              style={{ marginRight: "0.5rem" }}
-            >
-              {uploading ? "Uploading..." : "Upload Photo"}
-            </button>
-            <button
-              onClick={() => {
-                setSelectedFile(null);
-                setPreviewUrl(null);
-                setCaption("");
-              }}
-              className="client-button client-button--outline"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
-      </div>
+              <div className="max-w-[520px]">
+                <label htmlFor="photo-caption" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Caption (optional)
+                </label>
+                <input
+                  id="photo-caption"
+                  type="text"
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  placeholder="Add a note about this photo..."
+                  maxLength={200}
+                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus-visible:ring-2 focus-visible:ring-indigo-300/70"
+                />
+                <p className="mt-1 text-xs text-slate-500">{caption.length}/200 characters</p>
+              </div>
 
-      {/* Photo Modal */}
-      {selectedPhoto && (
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" onClick={handleUpload} disabled={uploading}>
+                  {uploading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    "Upload photo"
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setPreviewUrl(null);
+                    setCaption("");
+                  }}
+                  disabled={uploading}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {selectedPhoto ? (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.9)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: "2rem",
-          }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 p-4"
           onClick={() => setSelectedPhoto(null)}
         >
           <div
-            style={{
-              position: "relative",
-              maxWidth: "90vw",
-              maxHeight: "90vh",
-            }}
+            className="relative max-h-[92vh] w-full max-w-5xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
+              type="button"
               onClick={() => setSelectedPhoto(null)}
-              style={{
-                position: "absolute",
-                top: "-40px",
-                right: "0",
-                background: "transparent",
-                border: "none",
-                color: "white",
-                cursor: "pointer",
-                fontSize: "2rem",
-              }}
+              className="absolute right-0 top-0 z-10 inline-flex h-10 w-10 -translate-y-12 items-center justify-center rounded-lg border border-white/20 bg-black/40 text-white transition-colors hover:bg-black/60"
+              aria-label="Close photo preview"
             >
-              <X size={32} />
+              <X className="h-5 w-5" />
             </button>
-            <Image
-              src={selectedPhoto.url}
-              alt={selectedPhoto.caption || "Progress photo"}
-              width={800}
-              height={800}
-              style={{
-                maxWidth: "100%",
-                maxHeight: "85vh",
-                width: "auto",
-                height: "auto",
-                borderRadius: "12px",
-                objectFit: "contain",
-              }}
-              priority
-            />
-            {selectedPhoto.caption && (
-              <div
-                style={{
-                  marginTop: "1rem",
-                  color: "white",
-                  fontSize: "1rem",
-                  textAlign: "center",
-                }}
-              >
-                {selectedPhoto.caption}
-              </div>
-            )}
-            <div
-              style={{
-                marginTop: "0.5rem",
-                color: "#d1d5db",
-                fontSize: "0.85rem",
-                textAlign: "center",
-              }}
-            >
-              {new Date(selectedPhoto.uploadedAt).toLocaleDateString()}
+
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
+              <Image
+                src={selectedPhoto.url}
+                alt={selectedPhoto.caption || "Progress photo"}
+                width={1200}
+                height={1200}
+                className="max-h-[80vh] w-full object-contain"
+                priority
+              />
+            </div>
+
+            <div className="mt-3 space-y-1 text-center">
+              {selectedPhoto.caption ? (
+                <p className="text-sm font-medium text-white">{selectedPhoto.caption}</p>
+              ) : null}
+              <p className="text-xs text-slate-300">
+                {new Date(selectedPhoto.uploadedAt).toLocaleDateString()}
+              </p>
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -361,7 +361,11 @@ export default function ProgressDataCards() {
   );
 
   if (isLoading) {
-    return <p className="client-card__subtitle">Loading progress data...</p>;
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white/95 px-4 py-5 text-sm text-slate-500">
+        Loading progress data...
+      </div>
+    );
   }
 
   const sections = [
@@ -373,14 +377,14 @@ export default function ProgressDataCards() {
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <div className="client-progress-data" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       {/* Section Switcher */}
-      <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", overflowY: "hidden", flexWrap: "nowrap", paddingBottom: "0.5rem", scrollBehavior: "smooth" }}>
+      <div className="client-progress-data__tabs" style={{ display: "flex", gap: "0.5rem", overflowX: "auto", overflowY: "hidden", flexWrap: "nowrap", paddingBottom: "0.5rem", scrollBehavior: "smooth" }}>
         {sections.map((section) => (
           <button
             key={section.id}
             type="button"
-            className={`btn ${activeSection === section.id ? "btn--primary" : "btn--outline"}`}
+            className={`btn client-progress-data__tab-btn ${activeSection === section.id ? "btn--primary" : "btn--outline"}`}
             onClick={() => {
               setActiveSection(section.id);
               setEditingSection(null);
@@ -394,7 +398,7 @@ export default function ProgressDataCards() {
 
       {/* Basic Info Card */}
       {activeSection === "basic" && (
-        <div className="profile-card">
+        <div className="profile-card client-progress-data__card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
           <h2 className="client-card__section-title">Basic Measurements</h2>
           {editingSection !== "basic" && (
@@ -516,7 +520,7 @@ export default function ProgressDataCards() {
 
       {/* Smart Scale Card */}
       {activeSection === "scale" && (
-      <div className="profile-card">
+      <div className="profile-card client-progress-data__card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
           <h2 className="client-card__section-title">Smart Scale Measurements</h2>
           {editingSection !== "scale" && (
@@ -652,7 +656,7 @@ export default function ProgressDataCards() {
 
       {/* Lifestyle Card */}
       {activeSection === "lifestyle" && (
-      <div className="profile-card">
+      <div className="profile-card client-progress-data__card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
           <h2 className="client-card__section-title">Lifestyle & Habits</h2>
           {editingSection !== "lifestyle" && (
@@ -752,7 +756,7 @@ export default function ProgressDataCards() {
 
       {/* Health History Card */}
       {activeSection === "health" && (
-      <div className="profile-card">
+      <div className="profile-card client-progress-data__card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
           <h2 className="client-card__section-title">Health History</h2>
           {editingSection !== "health" && (
@@ -855,7 +859,7 @@ export default function ProgressDataCards() {
 
       {/* Vitals Card */}
       {activeSection === "vitals" && (
-      <div className="profile-card">
+      <div className="profile-card client-progress-data__card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
           <h2 className="client-card__section-title">Vitals</h2>
           {editingSection !== "vitals" && (

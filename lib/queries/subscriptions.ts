@@ -51,9 +51,58 @@ export type CurrentPlanResponse =
     }
   | null;
 
+export type ClientSubscriptionsPagination = {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+};
+
+export type ClientSubscriptionsPageResponse = {
+  items: SubscriptionPlan[];
+  pagination: ClientSubscriptionsPagination;
+};
+
+type ClientSubscriptionsPageParams = {
+  page: number;
+  limit?: number;
+  sort?: "latest" | "oldest";
+};
+
 const fetchClientSubscriptions = async (): Promise<SubscriptionPlan[]> => {
   const res = await api.get("/subscriptions/my");
   return res.data.data ?? [];
+};
+
+const fetchClientSubscriptionsPage = async ({
+  page,
+  limit = 5,
+  sort = "latest",
+}: ClientSubscriptionsPageParams): Promise<ClientSubscriptionsPageResponse> => {
+  const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+  const safeLimit = Number.isFinite(limit) && Number(limit) > 0 ? Math.floor(limit) : 5;
+
+  const res = await api.get("/subscriptions/my", {
+    params: {
+      page: safePage,
+      limit: safeLimit,
+      sort,
+    },
+  });
+
+  const items = (res.data.data ?? []) as SubscriptionPlan[];
+  const pagination = res.data.pagination as ClientSubscriptionsPagination | undefined;
+
+  return {
+    items,
+    pagination:
+      pagination ?? {
+        currentPage: safePage,
+        totalPages: Math.max(1, Math.ceil(items.length / safeLimit)),
+        totalItems: items.length,
+        itemsPerPage: safeLimit,
+      },
+  };
 };
 
 const fetchCurrentPlan = async (): Promise<CurrentPlanResponse> => {
@@ -65,6 +114,16 @@ export function useClientSubscriptions() {
   return useQuery({
     queryKey: CLIENT_SUBSCRIPTIONS_KEY,
     queryFn: fetchClientSubscriptions,
+  });
+}
+
+export function useClientSubscriptionsPage(params: ClientSubscriptionsPageParams) {
+  const { page, limit = 5, sort = "latest" } = params;
+
+  return useQuery({
+    queryKey: [...CLIENT_SUBSCRIPTIONS_KEY, { page, limit, sort }],
+    queryFn: () => fetchClientSubscriptionsPage({ page, limit, sort }),
+    placeholderData: (previousData) => previousData,
   });
 }
 
