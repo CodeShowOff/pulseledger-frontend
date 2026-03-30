@@ -107,7 +107,8 @@ export default function CoachClients() {
       </Card>
 
       <div className={styles.list}>
-        {paginatedClients.map((client, idx) => (
+        {paginatedClients.map((client, idx) => {
+          return (
             <motion.div
               key={client._id}
               initial={{ opacity: 0, y: 10 }}
@@ -160,7 +161,8 @@ export default function CoachClients() {
                 </CardContent>
               </Card>
             </motion.div>
-          ))}
+          );
+        })}
       </div>
 
       {!clients.length ? (

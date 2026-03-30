@@ -221,29 +221,33 @@ export default function ClientDashboardPage() {
               transition={{ duration: 0.22, delay: 0.05 + index * 0.03 }}
               whileHover={{ y: -2 }}
             >
-              <Link href={item.href} className="group block h-full">
+              <Link href={item.href} className="group block h-full cursor-pointer focus-visible:outline-none">
                 <div
                   className={cn(
-                    "relative flex h-full min-h-[78px] items-center gap-2.5 overflow-hidden rounded-2xl border border-slate-200 p-3 transition-all duration-200 hover:border-indigo-200 hover:shadow-[0_12px_24px_-20px_rgba(79,70,229,0.55)] md:min-h-[112px] md:items-start md:p-4",
+                    "relative flex h-full min-h-[78px] items-center gap-2.5 overflow-hidden rounded-2xl border-2 border-white p-3 transition-all duration-200 shadow-[0_12px_24px_-20px_rgba(15,23,42,0.35)] hover:border-white hover:shadow-[0_16px_30px_-20px_rgba(15,23,42,0.45)] active:scale-[0.98] group-focus-visible:ring-2 group-focus-visible:ring-white group-focus-visible:ring-offset-2 md:min-h-[112px] md:items-start md:p-4",
                     `bg-gradient-to-br ${item.cardTone}`
                   )}
                 >
                   <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-white/60 blur-xl" />
 
-                  <div className="relative z-[1] flex min-w-0 items-center gap-2.5 md:items-start md:gap-3">
-                    <span
-                      className={cn(
-                        "grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br text-white shadow-sm",
-                        item.iconTone
-                      )}
-                    >
-                      <item.Icon className="h-4 w-4" />
-                    </span>
+                  <div className="relative z-[1] flex w-full min-w-0 items-center justify-between gap-2 md:items-start md:gap-3">
+                    <div className="flex min-w-0 items-center gap-2.5 md:items-start md:gap-3">
+                      <span
+                        className={cn(
+                          "grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br text-white shadow-sm",
+                          item.iconTone
+                        )}
+                      >
+                        <item.Icon className="h-4 w-4" />
+                      </span>
 
-                    <div className="min-w-0 space-y-1">
-                      <h2 className="text-sm font-semibold leading-tight text-slate-900">{item.title}</h2>
-                      <p className="hidden text-xs leading-5 text-slate-600 md:block">{item.description}</p>
+                      <div className="min-w-0 space-y-1">
+                        <h2 className="text-sm font-semibold leading-tight text-slate-900">{item.title}</h2>
+                        <p className="hidden text-xs leading-5 text-slate-600 md:block">{item.description}</p>
+                      </div>
                     </div>
+
+                    <ArrowRight className="h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-indigo-700" />
                   </div>
                 </div>
               </Link>
@@ -327,7 +331,7 @@ export default function ClientDashboardPage() {
 
                       <div className="space-y-2">
                         <h2 className="text-sm font-semibold text-slate-900">{item.title}</h2>
-                        <p className="text-xs leading-5 text-slate-600">{item.description}</p>
+                        <p className="hidden text-xs leading-5 text-slate-600 sm:block">{item.description}</p>
                       </div>
 
                       <p className="text-xs font-semibold text-indigo-700 transition-colors group-hover:text-indigo-900">

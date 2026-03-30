@@ -334,7 +334,7 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
       <div style={{
         background: "linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%)",
         borderRadius: rootRadius,
-        border: "1px solid #e0f2fe",
+        border: "1.5px solid #ffffff",
         padding: rootPadding,
         height: compact ? "100%" : "auto",
         display: "flex",
@@ -460,19 +460,21 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
             {errors.goalWeight && <p style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: "0.25rem" }}>{errors.goalWeight.message}</p>}
           </div>
           
-          <div style={{ display: "flex", gap: "0.4rem" }}>
+          <div style={{ display: "flex", gap: compact ? "0.35rem" : "0.4rem", flexDirection: compact ? "column" : "row" }}>
             <button
               type="submit"
               disabled={isSubmitting}
               style={{
-                flex: 1,
-                padding: "0.625rem 1rem",
+                flex: compact ? undefined : 1,
+                width: compact ? "100%" : undefined,
+                minWidth: 0,
+                padding: compact ? "0.55rem 0.75rem" : "0.625rem 1rem",
                 background: "#0ea5e9",
                 color: "#ffffff",
                 border: "none",
                 borderRadius: "0.5rem",
                 cursor: isSubmitting ? "not-allowed" : "pointer",
-                fontSize: "0.875rem",
+                fontSize: compact ? "0.8125rem" : "0.875rem",
                 fontWeight: "500",
                 display: "flex",
                 alignItems: "center",
@@ -481,7 +483,7 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
                 opacity: isSubmitting ? 0.6 : 1
               }}
             >
-              <Check style={{ width: "1rem", height: "1rem" }} />
+              <Check style={{ width: compact ? "0.9rem" : "1rem", height: compact ? "0.9rem" : "1rem" }} />
               {isSubmitting ? "Saving..." : "Save"}
             </button>
             <button
@@ -489,21 +491,24 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
               onClick={handleCancelEdit}
               disabled={isSubmitting}
               style={{
-                padding: "0.625rem 1rem",
+                width: compact ? "100%" : undefined,
+                minWidth: 0,
+                padding: compact ? "0.55rem 0.75rem" : "0.625rem 1rem",
                 background: "#f3f4f6",
                 color: "#6b7280",
                 border: "1px solid #e5e7eb",
                 borderRadius: "0.5rem",
                 cursor: isSubmitting ? "not-allowed" : "pointer",
-                fontSize: "0.875rem",
+                fontSize: compact ? "0.8125rem" : "0.875rem",
                 fontWeight: "500",
                 display: "flex",
                 alignItems: "center",
+                justifyContent: "center",
                 gap: "0.35rem",
                 opacity: isSubmitting ? 0.6 : 1
               }}
             >
-              <X style={{ width: "1rem", height: "1rem" }} />
+              <X style={{ width: compact ? "0.9rem" : "1rem", height: compact ? "0.9rem" : "1rem" }} />
               Cancel
             </button>
           </div>
@@ -616,10 +621,10 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
               transform: "translate(-50%, -50%)",
               textAlign: "center"
             }}>
-              <div style={{ fontSize: compact ? "1.55rem" : "2rem", fontWeight: "700", color: "#111827", lineHeight: "1" }}>
+              <div style={{ fontSize: compact ? "0.9rem" : "1.2rem", fontWeight: "700", color: "#111827", lineHeight: "1" }}>
                 {Math.round(progressPercentage)}%
               </div>
-              <div style={{ fontSize: compact ? "0.6rem" : "0.7rem", color: "#6b7280", marginTop: compact ? "0.2rem" : "0.35rem" }}>
+              <div style={{ fontSize: compact ? "0.54rem" : "0.64rem", color: "#6b7280", marginTop: compact ? "0.2rem" : "0.35rem" }}>
                 Achieved
               </div>
             </div>

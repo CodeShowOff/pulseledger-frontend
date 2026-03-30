@@ -321,7 +321,7 @@ export default function NotificationsPage() {
                       className={cn(
                         "rounded-2xl border p-4 transition-colors",
                         !n.readAt
-                          ? "border-amber-200 bg-amber-50/75 hover:border-amber-300 hover:bg-amber-100/70"
+                          ? "border-amber-300 bg-amber-100/90 hover:border-amber-400 hover:bg-amber-200/80"
                           : "border-slate-200 bg-slate-50/60 hover:border-indigo-200 hover:bg-indigo-50/25"
                       )}
                     >

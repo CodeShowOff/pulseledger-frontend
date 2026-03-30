@@ -125,8 +125,14 @@ const Navbar = React.memo(function Navbar() {
     return guestLinks;
   }, [user]);
 
+  const isPublicCoachProfileRoute = pathname === "/public" || pathname?.startsWith("/public/");
+  const shouldHideNavbarForGuest = isPublicCoachProfileRoute && !user;
+
   const isChatRoute = pathname?.startsWith("/client/chat") || pathname?.startsWith("/coach/chat");
-  const showMobileBottomNav = (pathname !== "/" || !!user) && !(isChatRoute && !!activeConversationId);
+  const showMobileBottomNav =
+    !shouldHideNavbarForGuest &&
+    (pathname !== "/" || !!user) &&
+    !(isChatRoute && !!activeConversationId);
 
   useEffect(() => {
     const body = document.body;
@@ -154,6 +160,10 @@ const Navbar = React.memo(function Navbar() {
       router.replace("/auth/login");
     }
   }, [logout, router]);
+
+  if (shouldHideNavbarForGuest) {
+    return null;
+  }
 
   return (
     <>

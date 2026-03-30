@@ -223,7 +223,7 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
     <div style={{
       background: "linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%)",
       borderRadius: widgetRadius,
-      border: "1px solid #dcfce7",
+      border: "1.5px solid #ffffff",
       padding: widgetPadding,
       height: compact ? "100%" : "auto",
       display: "flex",
@@ -311,10 +311,10 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
             transform: "translate(-50%, -50%)",
             textAlign: "center"
           }}>
-            <div style={{ fontSize: compact ? "1.55rem" : "2rem", fontWeight: "700", color: "#111827", lineHeight: "1" }}>
+            <div style={{ fontSize: compact ? "0.9rem" : "1.2rem", fontWeight: "700", color: "#111827", lineHeight: "1" }}>
               {Math.round(percentage)}%
             </div>
-            <div style={{ fontSize: compact ? "0.6rem" : "0.7rem", color: "#6b7280", marginTop: compact ? "0.2rem" : "0.35rem" }}>
+            <div style={{ fontSize: compact ? "0.54rem" : "0.64rem", color: "#6b7280", marginTop: compact ? "0.2rem" : "0.35rem" }}>
               Hydrated
             </div>
           </div>

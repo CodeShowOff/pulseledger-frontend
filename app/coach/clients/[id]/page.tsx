@@ -21,6 +21,7 @@ import {
   ClipboardList,
   Mail,
   MapPin,
+  MessageCircle,
   MessageSquare,
   Phone,
   ShoppingBag,
@@ -115,6 +116,11 @@ function formatDate(value?: string | null) {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "-";
   return parsed.toLocaleDateString();
+}
+
+function normalizeForWhatsApp(number?: string | null) {
+  if (!number) return "";
+  return number.replace(/[^\d]/g, "");
 }
 
 function getStatusTone(status?: string) {
@@ -275,9 +281,26 @@ export default function ClientDetailPage() {
     .join(", ");
   const activePlan = client.planSummary?.current;
   const defaultPlan = client.planSummary?.defaultPlan;
+  const whatsappTarget = normalizeForWhatsApp(
+    client.whatsappNumber || client.phone || address?.phoneNumber
+  );
+  const whatsappHref = whatsappTarget
+    ? `https://wa.me/${whatsappTarget}?text=${encodeURIComponent(
+        `Hi ${client.fullName}, this is your coach from FitCoach.`
+      )}`
+    : null;
 
   return (
     <div className="space-y-5 pt-4 md:pt-6">
+      <div className="flex items-center">
+        <Link href="/coach/clients">
+          <Button variant="outline">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Clients
+          </Button>
+        </Link>
+      </div>
+
       <motion.section
         variants={fadeInUp}
         initial="initial"
@@ -329,15 +352,21 @@ export default function ClientDetailPage() {
                 </CardDescription>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                <Link href="/coach/clients">
-                  <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back
-                  </Button>
-                </Link>
+              <div className="flex flex-nowrap items-center gap-2 md:justify-end">
+                {whatsappHref ? (
+                  <a
+                    href={whatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-xl border border-emerald-500 bg-gradient-to-r from-emerald-600 to-green-500 px-4 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.85)] transition-all hover:brightness-105"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    WhatsApp
+                  </a>
+                ) : null}
+
                 <Link href={`/coach/chat?clientId=${id}`}>
-                  <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                  <Button variant="outline" className="whitespace-nowrap border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
                     <MessageSquare className="h-4 w-4" />
                     Chat
                   </Button>

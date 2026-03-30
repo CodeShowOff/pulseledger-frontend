@@ -1,35 +1,72 @@
 "use client";
 
 import { useMemo } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { CLIENT_PLANS_KEY, useClientPlans } from "@/lib/queries/plans";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  CLIENT_SUBSCRIPTIONS_KEY,
-  CURRENT_PLAN_KEY,
+  ArrowRight,
+  CalendarClock,
+  ClipboardList,
+  CreditCard,
+  Sparkles,
+  Target,
+  User,
+} from "lucide-react";
+import { useClientPlans } from "@/lib/queries/plans";
+import {
   useClientSubscriptions,
   useCurrentPlan,
 } from "@/lib/queries/subscriptions";
 import {
-  CLIENT_PLAN_REQUESTS_KEY,
   useClientPlanRequests,
 } from "@/lib/queries/planRequests";
-import api from "@/lib/axios";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+};
+
+const formatDate = (value?: string | null) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString();
+};
+
+const formatAmount = (value?: number | null) => `₹${Number(value ?? 0).toFixed(2)}`;
+
+const getRequestStatusVariant = (status?: string) => {
+  switch ((status ?? "").toLowerCase()) {
+    case "approved":
+      return "success" as const;
+    case "declined":
+      return "danger" as const;
+    case "pending":
+      return "warning" as const;
+    default:
+      return "secondary" as const;
+  }
+};
 
 export default function MyPlanPage() {
+  const router = useRouter();
   const { data: plans = [], isLoading, error } = useClientPlans();
   const { data: currentPlan } = useCurrentPlan();
   const { data: subscriptions = [] } = useClientSubscriptions();
   const { data: planRequests = [] } = useClientPlanRequests();
-  const queryClient = useQueryClient();
-
-  // One-click request: removing modal state
 
   const templates = plans; // All plans are subscription plans
-
-  const personalPlans: typeof plans = []; // No more personal plans
-
-  const selectedPlan = null; // modal removed
 
   const activePlanId = useMemo(() => {
     if (!currentPlan) return null;
@@ -54,33 +91,19 @@ export default function MyPlanPage() {
     return ids;
   }, [subscriptions, planRequests]);
 
-  const createPlanRequest = useMutation({
-    mutationFn: async (planId: string) => {
-      // No longer directly submitting - redirect to payment page instead
-      return planId;
-    },
-    onSuccess: (planId: string) => {
-      // Redirect to payment page
-      window.location.href = `/client/plan-payment/${planId}`;
-    },
-    onError: (err: unknown) => {
-      const error = err as { response?: { data?: { message?: string } } };
-      const message = error?.response?.data?.message ?? "Unable to proceed";
-      toast.error(message);
-    },
-  });
+  const pendingRequestsCount = planRequests.filter((req) => req.status === "pending").length;
 
   const handleRequest = (planId: string) => {
-    createPlanRequest.mutate(planId);
+    router.push(`/client/plan-payment/${planId}`);
   };
-
-  // Modal submit removed
 
   if (isLoading) {
     return (
-      <div className="client-page__sections">
-        <div className="client-card">
-          <p className="client-card__subtitle">Loading plans...</p>
+      <div className="space-y-4 pt-4 md:pt-6" aria-live="polite">
+        <div className="h-[205px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="h-[170px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+          <div className="h-[170px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
         </div>
       </div>
     );
@@ -88,162 +111,259 @@ export default function MyPlanPage() {
 
   if (error) {
     return (
-      <div className="client-page__sections">
-        <div className="client-card">
-          <p className="client-card__subtitle" style={{ color: "#dc2626" }}>
+      <div className="pt-4 md:pt-6">
+        <Card className="border-rose-200 bg-rose-50">
+          <CardContent className="py-6">
+            <p className="text-sm font-medium text-rose-700">
             Failed to load available plans.
-          </p>
-        </div>
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="client-page__sections">
-      <header className="client-page__header">
-          <h1 className="client-page__title">Available Plans</h1>
-        </header>
-
-        {personalPlans.length ? (
-        <section>
-            <h2 className="client-section-title">My Assigned Plans</h2>
-            {personalPlans.map((plan) => (
-              <div key={plan._id} className="client-card">
-                <div className="client-card__header">
-                  <h3 className="client-card__title">{plan.title}</h3>
-                  {plan.status && (
-                    <span className="client-pill">Status: {plan.status}</span>
-                  )}
-                </div>
-                {plan.description && (
-                  <p className="client-card__subtitle">{plan.description}</p>
-                )}
-                <div className="client-meta-row">
-                  <span>Duration: {plan.durationWeeks ?? "-"} weeks</span>
-                  {plan.startDate && (
-                    <span>Start: {new Date(plan.startDate).toLocaleDateString()}</span>
-                  )}
-                </div>
+    <div className="space-y-5 pt-4 md:pt-6">
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28 }}
+      >
+        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
+          <CardHeader className="gap-4 p-6 md:p-7">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                <Badge className="w-fit border-white/25 bg-white/15 text-white">Subscription center</Badge>
+                <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+                  Available Plans
+                </CardTitle>
+                <CardDescription className="max-w-2xl text-xs !text-white/85 md:text-sm">
+                  Explore coach plans, compare pricing and duration, then continue to payment in one step.
+                </CardDescription>
               </div>
-            ))}
-          </section>
-        ) : null}
 
-        {templates.length ? (
-          <section>
-            {templates.map((plan) => {
-            const price = typeof plan.price === "number" ? plan.price : Number(plan.price ?? 0);
-            const isActive = activePlanId === plan._id;
-            const isPending = pendingPlanIds.has(plan._id);
-            const buttonLabel = isActive
-              ? "Current Plan"
-              : isPending
-              ? "Awaiting Approval"
-              : "Request Plan";
-
-            return (
-              <div key={plan._id} className="client-card">
-                <div className="client-card__header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.75rem" }}>
-                  <div>
-                    <h3 className="client-card__title">{plan.title}</h3>
-                    {plan.goal && (
-                      <p className="client-card__subtitle" style={{ textTransform: "uppercase", fontSize: "0.75rem", color: "#1d4ed8" }}>
-                        Goal: {plan.goal}
-                      </p>
-                    )}
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.35rem" }}>
-                    {plan.isDefault && (
-                      <span className="client-pill">Default Plan</span>
-                    )}
-                    <span className="client-card__subtitle" style={{ fontWeight: 600, color: "#111827" }}>
-                      Rs {price.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-
-                {plan.description && (
-                  <p className="client-card__subtitle">{plan.description}</p>
-                )}
-
-                <div className="client-meta-row">
-                  <span>Duration: {plan.durationWeeks ?? "-"} weeks</span>
-                  <span>Coach: {plan.coachId?.fullName ?? "-"}</span>
-                </div>
-
-                <button
-                  type="button"
-                  disabled={isActive || isPending || createPlanRequest.isPending}
-                  onClick={() => handleRequest(plan._id)}
-                  className={
-                    "client-button" +
-                    (isActive
-                      ? ""
-                      : isPending
-                      ? ""
-                      : "")
-                  }
-                  style={
-                    isActive
-                      ? { backgroundColor: "#ecfdf5", borderColor: "#22c55e", color: "#15803d", width: "100%", marginTop: "0.85rem" }
-                      : isPending
-                      ? { backgroundColor: "#fef9c3", borderColor: "#f59e0b", color: "#92400e", width: "100%", marginTop: "0.85rem" }
-                      : { width: "100%", marginTop: "0.85rem" }
-                  }
+              <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                <Badge className="border-white/25 bg-white/15 text-white">
+                  {templates.length} {templates.length === 1 ? "Plan" : "Plans"}
+                </Badge>
+                <Badge
+                  className={cn(
+                    "border-white/25 bg-white/15 text-white",
+                    pendingRequestsCount > 0 ? "bg-amber-400/20 text-amber-100 border-amber-200/50" : ""
+                  )}
                 >
-                  {isActive || isPending ? buttonLabel : createPlanRequest.isPending ? "Requesting..." : buttonLabel}
-                </button>
+                  {pendingRequestsCount} Pending
+                </Badge>
+                {activePlanId ? (
+                  <Badge className="border-emerald-200/50 bg-emerald-400/20 text-emerald-100">
+                    Active Plan
+                  </Badge>
+                ) : null}
               </div>
-            );
-          })}
-          </section>
-        ) : (
-          <p className="client-card__subtitle">
-            Your coach has not published any shared plans yet. Please check back later or contact your coach.
-          </p>
-        )}
+            </div>
 
-        {/* Plan request history */}
-        {planRequests.length ? (
-        <section>
-            <h2 className="client-section-title">My Plan Requests</h2>
-            {planRequests.map((req) => {
-              const statusStyles: Record<string, string> = {
-                pending: "#f59e0b",
-                approved: "#16a34a",
-                declined: "#dc2626",
-              };
-              return (
-                <div key={req._id} className="client-card">
-                  <div className="client-card__header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.75rem" }}>
-                    <div>
-                      <p className="client-card__title">{req.planId?.title ?? "Plan removed"}</p>
-                      <p className="client-card__subtitle" style={{ fontSize: "0.8rem" }}>
-                        Requested {new Date(req.createdAt).toLocaleDateString()}
-                      </p>
-                      {req.notes && (
-                        <p className="client-card__subtitle" style={{ marginTop: "0.3rem" }}>
-                          Notes: {req.notes}
-                        </p>
-                      )}
-                    </div>
-                    <span
-                      className="client-pill"
-                      style={{
-                        backgroundColor: "#f1f5f9",
-                        color: statusStyles[req.status] || "#4b5563",
-                      }}
+            <div className="flex flex-wrap gap-2">
+              <Link href="/client/subscriptions">
+                <Button
+                  variant="outline"
+                  className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                >
+                  My subscriptions
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.05 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <CreditCard className="h-4 w-4" />
+              </span>
+              Plan catalog
+            </CardTitle>
+            <CardDescription>
+              Select a plan to proceed with payment and create a request for coach approval.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-3">
+            {templates.length ? (
+              <div className="grid gap-3 xl:grid-cols-2">
+                {templates.map((plan, index) => {
+                  const price = typeof plan.price === "number" ? plan.price : Number(plan.price ?? 0);
+                  const isActive = activePlanId === plan._id;
+                  const isPending = pendingPlanIds.has(plan._id);
+                  const buttonLabel = isActive
+                    ? "Current Plan"
+                    : isPending
+                    ? "Awaiting Approval"
+                    : "Continue to Payment";
+
+                  return (
+                    <motion.article
+                      key={plan._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.22, delay: index * 0.03 }}
                     >
-                      {req.status}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </section>
-        ) : null}
+                      <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-slate-50/60 p-4 transition-colors hover:border-indigo-200 hover:bg-indigo-50/20">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="text-sm font-semibold text-slate-900 md:text-base">{plan.title}</h3>
+                              {plan.isDefault ? (
+                                <Badge variant="default" className="px-2 py-0.5 text-[10px] normal-case tracking-normal">
+                                  Default
+                                </Badge>
+                              ) : null}
+                            </div>
 
-        {/* Modal removed for one-click plan requests */}
+                            {plan.goal ? (
+                              <p className="mt-1 flex items-center gap-1 text-[11px] uppercase tracking-wide text-indigo-600">
+                                <Target className="h-3.5 w-3.5" />
+                                {plan.goal}
+                              </p>
+                            ) : null}
+                          </div>
+
+                          <p className="text-base font-semibold text-slate-900 md:text-lg">{formatAmount(price)}</p>
+                        </div>
+
+                        {plan.description ? (
+                          <p className="mt-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-600">
+                            {plan.description}
+                          </p>
+                        ) : null}
+
+                        <div className="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
+                          <div className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
+                            <CalendarClock className="h-3.5 w-3.5 text-slate-400" />
+                            <span>{plan.durationWeeks ?? "-"} weeks</span>
+                          </div>
+                          <div className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
+                            <User className="h-3.5 w-3.5 text-slate-400" />
+                            <span className="truncate">{plan.coachId?.fullName ?? "Coach not assigned"}</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-4">
+                          <Button
+                            type="button"
+                            onClick={() => handleRequest(plan._id)}
+                            disabled={isActive || isPending}
+                            className={cn(
+                              "w-full",
+                              isActive
+                                ? "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
+                                : isPending
+                                ? "border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-50"
+                                : ""
+                            )}
+                          >
+                            {buttonLabel}
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-10 text-center">
+                <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-white text-slate-500 shadow-sm">
+                  <Sparkles className="h-5 w-5" />
+                </span>
+                <p className="mt-3 text-sm font-semibold text-slate-700">No published plans yet</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Your coach has not published any shared plans yet. Please check back later.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.1 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <ClipboardList className="h-4 w-4" />
+              </span>
+              My plan requests
+            </CardTitle>
+            <CardDescription>
+              Track approval status and notes for your latest plan requests.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-3">
+            {planRequests.length ? (
+              <div className="grid gap-3 xl:grid-cols-2">
+                {planRequests.map((req, index) => (
+                  <motion.article
+                    key={req._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.22, delay: index * 0.02 }}
+                    className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-slate-900">
+                          {req.planId?.title ?? "Plan removed"}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">Requested on {formatDate(req.createdAt)}</p>
+                      </div>
+
+                      <Badge
+                        variant={getRequestStatusVariant(req.status)}
+                        className="px-2 py-0.5 text-[10px] capitalize tracking-normal"
+                      >
+                        {req.status}
+                      </Badge>
+                    </div>
+
+                    {req.notes ? (
+                      <div className="mt-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+                        <p className="font-semibold text-slate-700">Notes</p>
+                        <p className="mt-1 leading-5">{req.notes}</p>
+                      </div>
+                    ) : null}
+                  </motion.article>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-10 text-center">
+                <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-white text-slate-500 shadow-sm">
+                  <ClipboardList className="h-5 w-5" />
+                </span>
+                <p className="mt-3 text-sm font-semibold text-slate-700">No requests submitted yet</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Once you choose a plan and continue to payment, request status will show here.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.section>
     </div>
   );
 }

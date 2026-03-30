@@ -163,7 +163,7 @@ export default function ClientTodayWorkoutPage() {
       }
     },
     onSuccess: () => {
-      toast.success("🎉 Workout completed! Great job!");
+      toast.success("Workout completed! Great job!");
       queryClient.invalidateQueries({ queryKey: CLIENT_TODAY_WORKOUT_KEY });
       queryClient.invalidateQueries({ queryKey: CLIENT_WORKOUT_PLANS_KEY });
       queryClient.invalidateQueries({ queryKey: CLIENT_WORKOUT_LOGS_KEY });
@@ -243,7 +243,7 @@ export default function ClientTodayWorkoutPage() {
 
   const completeExercise = () => {
     setCompletedExercises((prev) => new Set(prev).add(currentExerciseIndex));
-    toast.success(`✅ ${exerciseName} completed!`);
+    toast.success(`${exerciseName} completed!`);
     setIsExerciseTimerRunning(false);
 
     // Start rest period

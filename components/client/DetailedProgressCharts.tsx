@@ -3,6 +3,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import {
   CLIENT_PROGRESS_QUERY_KEY,
   fetchClientProgressEntries,
@@ -41,6 +42,7 @@ interface DetailedProgressChartsProps {
 }
 
 export default function DetailedProgressCharts({ clientId, viewerRole = "client" }: DetailedProgressChartsProps = {}) {
+  const router = useRouter();
   const [activeChart, setActiveChart] = useState<string>("weight");
 
   const charts = useMemo(
@@ -139,7 +141,7 @@ export default function DetailedProgressCharts({ clientId, viewerRole = "client"
       // Client viewing own data
       url = `/client/progress/detailed?chart=${activeChart}`;
     }
-    window.location.href = url;
+    router.push(url);
   };
 
   if (isLoading) {

@@ -57,3 +57,17 @@ export function useUploadMyDocumentMutation() {
     },
   });
 }
+
+export function useDeleteMyDocumentMutation() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (documentId: string) => {
+      await api.delete(`/documents/${documentId}`);
+      return documentId;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: DOCUMENTS_QK.mine });
+    },
+  });
+}

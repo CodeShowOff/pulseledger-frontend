@@ -90,6 +90,8 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
     return allData.filter((point) => point[chartConfig.dataKey] != null);
   }, [allData, chartConfig.dataKey]);
 
+  const shouldEnableHorizontalScroll = data.length > 8;
+
   // Calculate chart height based on number of entries to avoid clutter
   const chartHeight = useMemo(() => {
     const baseHeight = 400;
@@ -104,9 +106,47 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
     const entries = data.length;
     if (entries > 50) return Math.floor(entries / 10);
     if (entries > 30) return Math.floor(entries / 8);
-    if (entries > 15) return Math.floor(entries / 6);
+    if (entries > 18) return 2;
+    if (entries > 10) return 1;
     return 0; // Show all ticks
   }, [data.length]);
+
+  const values = useMemo(
+    () =>
+      data
+        .map((d) => d[chartConfig.dataKey])
+        .filter((v) => v != null && typeof v === "number") as number[],
+    [data, chartConfig.dataKey]
+  );
+
+  const minValue = values.length > 0 ? Math.min(...values) : 0;
+  const maxValue = values.length > 0 ? Math.max(...values) : 0;
+  const latestValue = data[data.length - 1]?.[chartConfig.dataKey];
+
+  const yAxisDomain = useMemo<[number, number]>(() => {
+    if (values.length === 0) return [0, 100];
+
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+
+    if (!Number.isFinite(min) || !Number.isFinite(max)) {
+      return [0, 100];
+    }
+
+    if (min === max) {
+      const padding = Math.max(1, Math.abs(min) * 0.03);
+      const lower = Math.max(0, min - padding);
+      const upper = max + padding;
+      return [Number(lower.toFixed(2)), Number(upper.toFixed(2))];
+    }
+
+    const range = max - min;
+    const padding = Math.max(range * 0.15, 0.5);
+    const lower = Math.max(0, min - padding);
+    const upper = max + padding;
+
+    return [Number(lower.toFixed(2)), Number(upper.toFixed(2))];
+  }, [values]);
 
   if (isLoading) {
     return (
@@ -123,14 +163,6 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
       </div>
     );
   }
-
-  const values = data
-    .map((d) => d[chartConfig.dataKey])
-    .filter((v) => v != null && typeof v === "number") as number[];
-
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
-  const latestValue = data[data.length - 1]?.[chartConfig.dataKey];
 
   return (
     <div className="client-card">
@@ -192,9 +224,9 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
         borderRadius: "12px", 
         padding: "1.5rem", 
         border: "1px solid #e2e8f0",
-        overflowX: data.length > 15 ? "auto" : "visible"
+        overflowX: shouldEnableHorizontalScroll ? "auto" : "visible"
       }}>
-        <div style={{ minWidth: data.length > 15 ? `${data.length * 50}px` : "100%" }}>
+        <div style={{ minWidth: shouldEnableHorizontalScroll ? `${Math.max(data.length * 58, 560)}px` : "100%" }}>
           <ResponsiveContainer width="100%" height={chartHeight}>
             <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
               <defs>
@@ -228,7 +260,9 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
               <YAxis 
                 stroke="#64748b"
                 style={{ fontSize: "0.75rem" }}
-                width={45}
+                width={52}
+                allowDecimals
+                domain={yAxisDomain}
               />
               <Tooltip
                 contentStyle={{
@@ -261,13 +295,14 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
                 stroke={chartConfig.color}
                 strokeWidth={2}
                 fill={`url(#gradient-full-${chartConfig.id})`}
+                baseValue="dataMin"
                 dot={{ fill: chartConfig.color, r: 3 }}
                 activeDot={{ r: 5, strokeWidth: 2, stroke: "#ffffff" }}
               />
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        {data.length > 15 && (
+        {shouldEnableHorizontalScroll && (
           <p style={{ 
             marginTop: "1rem", 
             fontSize: "0.75rem", 

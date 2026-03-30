@@ -330,7 +330,7 @@ export default function PlanPaymentPage() {
         <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem" }}>
           <button
             type="button"
-            onClick={() => router.back()}
+            onClick={() => router.push("/client/plan")}
             className="client-button"
             style={{ flex: 1, backgroundColor: "#ffffff", color: "#4b5563" }}
           >
