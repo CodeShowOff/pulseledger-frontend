@@ -2,8 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { Heart, Shield, ChevronDown } from "lucide-react";
+import { ChevronDown, Instagram, Twitter, Youtube } from "lucide-react";
 
 const Footer = React.memo(function Footer() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -23,10 +22,16 @@ const Footer = React.memo(function Footer() {
 
   const supportLinks = [
     { href: "/footer-pages/report-bugs", label: "Report Bugs" },
-    { href: "/footer-pages/feedback", label: "Give Feedback" },
+    { href: "/footer-pages/feedback", label: "Feedback" },
   ];
 
   const allLinks = [...productLinks, ...legalLinks, ...supportLinks];
+
+  const socialLinks = [
+    { href: "#", label: "Instagram", icon: Instagram },
+    { href: "#", label: "Twitter", icon: Twitter },
+    { href: "#", label: "YouTube", icon: Youtube },
+  ];
 
   return (
     <footer className="footer-modern">
@@ -36,25 +41,11 @@ const Footer = React.memo(function Footer() {
           {/* Brand Section */}
           <div className="footer-modern__brand">
             <Link href="/" className="footer-modern__logo">
-              <span className="footer-modern__logo-mark" aria-hidden="true">
-                <Image src="/logo.png" alt="" width={28} height={28} className="footer-modern__logo-icon" />
-              </span>
-              <span className="footer-modern__logo-text">FitCoach</span>
+              <span className="footer-modern__logo-text">FITCOACH</span>
             </Link>
             <p className="footer-modern__tagline">
-              The all-in-one platform connecting health coaches and clients.
-              Track progress, manage plans, and achieve wellness goals together.
+              Transform your fitness journey with personalized coaching.
             </p>
-            <div className="footer-modern__trust-badges">
-              <div className="footer-modern__trust-badge">
-                <Shield size={14} />
-                <span>HIPAA Compliant</span>
-              </div>
-              <div className="footer-modern__trust-badge">
-                <Heart size={14} />
-                <span>100+ Coaches</span>
-              </div>
-            </div>
           </div>
 
           {/* Links Grid - Desktop */}
@@ -109,8 +100,8 @@ const Footer = React.memo(function Footer() {
               <ChevronDown
                 size={18}
                 style={{
-                  transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
-                  transition: 'transform 0.2s ease',
+                  transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0)",
+                  transition: "transform 0.2s ease",
                 }}
               />
             </button>
@@ -136,9 +127,19 @@ const Footer = React.memo(function Footer() {
           <p className="footer-modern__copyright">
             © {new Date().getFullYear()} FitCoach. All rights reserved.
           </p>
-          <div className="footer-modern__bottom-links">
-            <Link href="/footer-pages/privacy-policy">Privacy</Link>
-            <Link href="/footer-pages/terms-and-conditions">Terms</Link>
+          <div className="footer-modern__bottom-right">
+            <div className="footer-modern__socials" aria-label="Social links">
+              {socialLinks.map(({ href, label, icon: Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  className="footer-modern__social-link"
+                  aria-label={label}
+                >
+                  <Icon size={20} />
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </div>

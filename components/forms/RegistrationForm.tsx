@@ -113,8 +113,9 @@ export const RegisterForm: React.FC = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
       <div className="auth-form__field">
-        <label>Full Name</label>
+        <label htmlFor="register-full-name">Full Name</label>
         <input
+          id="register-full-name"
           type="text"
           {...register("fullName")}
           className="auth-form__input"
@@ -126,8 +127,9 @@ export const RegisterForm: React.FC = () => {
       </div>
 
       <div className="auth-form__field">
-        <label>Email</label>
+        <label htmlFor="register-email">Email</label>
         <input
+          id="register-email"
           type="email"
           {...register("email")}
           className="auth-form__input"
@@ -139,8 +141,9 @@ export const RegisterForm: React.FC = () => {
       </div>
 
       <div className="auth-form__field">
-        <label>Phone (with country code)</label>
+        <label htmlFor="register-phone">Phone (with country code)</label>
         <input
+          id="register-phone"
           type="tel"
           {...register("phone")}
           className="auth-form__input"
@@ -150,8 +153,9 @@ export const RegisterForm: React.FC = () => {
       </div>
 
       <div className="auth-form__field">
-        <label>WhatsApp Number</label>
+        <label htmlFor="register-whatsapp">WhatsApp Number</label>
         <input
+          id="register-whatsapp"
           type="tel"
           {...register("whatsappNumber")}
           className="auth-form__input"
@@ -163,8 +167,9 @@ export const RegisterForm: React.FC = () => {
       </div>
 
       <div className="auth-form__field">
-        <label>Password</label>
+        <label htmlFor="register-password">Password</label>
         <input
+          id="register-password"
           type="password"
           {...register("password")}
           className="auth-form__input"
@@ -176,20 +181,22 @@ export const RegisterForm: React.FC = () => {
       </div>
       <div className="auth-form__field">
         <label>Registering as</label>
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2">
+        <div className="auth-form__role-group">
+          <label className="auth-form__role-option">
             <input
               type="radio"
               value="client"
               {...register("role")}
+              className="auth-form__role-input"
             />
             <span>Client</span>
           </label>
-          <label className="flex items-center gap-2">
+          <label className="auth-form__role-option">
             <input
               type="radio"
               value="coach"
               {...register("role")}
+              className="auth-form__role-input"
             />
             <span>Coach</span>
           </label>
@@ -220,7 +227,7 @@ export const RegisterForm: React.FC = () => {
               placeholder="e.g., AB-4J7XZ2"
               className="auth-form__input"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="auth-form__hint">
               Have a referral code from another coach? Enter it here.
             </p>
             {errors.coachReferralCode && (
@@ -252,18 +259,16 @@ export const RegisterForm: React.FC = () => {
         {isSubmitting ? "Creating account..." : "Register"}
       </button>
 
-      <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-gray-200"></div>
-        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">or</span>
-        <div className="flex-1 h-px bg-gray-200"></div>
+      <div className="auth-form__switch-inline" role="group" aria-label="Account switch">
+        <span>Already have an account?</span>
+        <button
+          type="button"
+          onClick={() => router.push("/auth/login")}
+          className="auth-form__switch-link auth-form__switch-link--login"
+        >
+          Login
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={() => router.push("/auth/login")}
-        className="w-full rounded-full border-2 border-blue-600 text-blue-700 bg-transparent py-2.5 px-5 text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-blue-50 hover:text-blue-800"
-      >
-        Login to your Account
-      </button>
     </form>
   );
 };

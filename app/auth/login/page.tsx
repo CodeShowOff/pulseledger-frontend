@@ -22,7 +22,7 @@ export default function LoginPage() {
   }, [hydrated, accessToken, role, router]);
 
   return (
-    <AuthCard title="Welcome Back" subtitle="Sign in to continue">
+    <AuthCard title="Welcome Back" subtitle="Sign in to continue" variant="split">
       <LoginForm />
     </AuthCard>
   );

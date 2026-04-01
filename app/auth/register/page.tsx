@@ -22,10 +22,15 @@ export default function RegisterPage() {
   }, [hydrated, accessToken, role, router]);
 
   return (
-    <AuthCard title="Create Account" subtitle="Join as a coach or client">
-      <div style={{ marginBottom: "1rem", padding: "0.75rem", backgroundColor: "#f9fafb", borderRadius: "0.5rem", border: "1px solid #e5e7eb" }}>
-        <p style={{ fontSize: "0.75rem", color: "#6b7280", lineHeight: "1.4", margin: 0 }}>
-          <strong>Note:</strong> If you want to use this platform without any coach, use referral code: <span style={{ fontWeight: 600, color: "#1f2937" }}>FC-CLIENTS</span>
+    <AuthCard
+      title="Create Account"
+      subtitle="Join as a coach or client"
+      variant="split"
+    >
+      <div className="auth-note">
+        <p className="auth-note__text">
+          <strong>Note:</strong> If you want to use this platform without any
+          coach, use referral code: <span className="auth-note__code">FC-CLIENTS</span>
         </p>
       </div>
       <Suspense fallback={<p className="text-sm text-gray-500">Loading form…</p>}>

@@ -187,7 +187,6 @@ export default function PricingPage() {
                 "Continuous platform access",
                 "Priority support",
                 "Regular feature updates",
-                "Secure payment via QR code",
               ].map((feature, idx) => (
                 <li
                   key={idx}

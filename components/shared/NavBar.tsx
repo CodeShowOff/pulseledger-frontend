@@ -16,8 +16,6 @@ import {
   Package,
   Users,
   ClipboardList,
-  Mail,
-  BookOpen,
   MessagesSquare,
 } from "lucide-react";
 
@@ -87,12 +85,6 @@ const Navbar = React.memo(function Navbar() {
     [pathname]
   );
 
-  // Role-aware links WITH icons now
-  const guestLinks = [
-    { label: "About", href: "/footer-pages/about", icon: BookOpen },
-    { label: "Contact", href: "/footer-pages/contact", icon: Mail },
-  ];
-
   const clientLinks = [
     { label: "Dashboard", href: "/client/dashboard", icon: LayoutDashboard },
     { label: "Plan", href: "/client/subscriptions", icon: CreditCard },
@@ -118,20 +110,16 @@ const Navbar = React.memo(function Navbar() {
   ];
 
   const links = useMemo(() => {
-    if (!user) return guestLinks;
+    if (!user) return [];
     if (user.role === "client") return clientLinks;
     if (user.role === "coach") return coachLinks;
     if (user.role === "admin") return adminLinks;
-    return guestLinks;
+    return [];
   }, [user]);
-
-  const isPublicCoachProfileRoute = pathname === "/public" || pathname?.startsWith("/public/");
-  const shouldHideNavbarForGuest = isPublicCoachProfileRoute && !user;
 
   const isChatRoute = pathname?.startsWith("/client/chat") || pathname?.startsWith("/coach/chat");
   const showMobileBottomNav =
-    !shouldHideNavbarForGuest &&
-    (pathname !== "/" || !!user) &&
+    !!user &&
     !(isChatRoute && !!activeConversationId);
 
   useEffect(() => {
@@ -161,61 +149,54 @@ const Navbar = React.memo(function Navbar() {
     }
   }, [logout, router]);
 
-  if (shouldHideNavbarForGuest) {
+  if (!user) {
     return null;
   }
 
   return (
     <>
-      <nav className={`navbar-modern ${isVisible ? "navbar-modern--visible" : "navbar-modern--hidden"}`}>
+      <nav
+        className={`navbar-modern ${isVisible ? "navbar-modern--visible" : "navbar-modern--hidden"}`}
+      >
         <div className="navbar-modern__container">
-        {/* Logo */}
-        <Link href="/" className="navbar-modern__logo">
-          <span className="navbar-modern__logo-text">FitCoach</span>
-        </Link>
+          {/* Logo */}
+          <Link href="/" className="navbar-modern__logo">
+            <span className="navbar-modern__logo-text">FitCoach</span>
+          </Link>
 
-        {/* Desktop Navigation - in center */}
-        <div className="navbar-modern__nav">
-          {(pathname !== "/" || user) && (
-            <div className="navbar-modern__links">
-              {links.map((link) => {
-                const isChatLink = link.href === "/coach/chat" || link.href === "/client/chat";
-                const showBadge = isChatLink && unreadCount > 0;
+          {/* Desktop Navigation - in center */}
+          <div className="navbar-modern__nav">
+            {links.length > 0 && (
+              <div className="navbar-modern__links">
+                {links.map((link) => {
+                  const isChatLink =
+                    link.href === "/coach/chat" || link.href === "/client/chat";
+                  const showBadge = isChatLink && unreadCount > 0;
 
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`navbar-modern__link ${isActive(link.href) ? "navbar-modern__link--active" : ""}`}
-                  >
-                    {link.label}
-                    {showBadge && (
-                      <span className="navbar-modern__badge">
-                        {unreadCount > 99 ? "99+" : unreadCount}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`navbar-modern__link ${isActive(link.href) ? "navbar-modern__link--active" : ""}`}
+                    >
+                      {link.label}
+                      {showBadge && (
+                        <span className="navbar-modern__badge">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-        {/* Right Actions */}
-        <div className="navbar-modern__actions">
-          {!user ? (
-            <>
-              <Link href="/auth/login" className="navbar-modern__btn navbar-modern__btn--ghost">
-                Sign In
-              </Link>
-              <Link href="/auth/register" className="navbar-modern__btn navbar-modern__btn--primary">
-                Get Started
-              </Link>
-            </>
-          ) : (
+          {/* Right Actions */}
+          <div className="navbar-modern__actions">
             <div className="navbar-modern__user" ref={menuRef}>
               <NotificationBell />
-              
+
               <button
                 type="button"
                 onClick={() => setMenuOpen((open) => !open)}
@@ -239,8 +220,12 @@ const Navbar = React.memo(function Navbar() {
               {menuOpen && (
                 <div className="navbar-modern__dropdown">
                   <div className="navbar-modern__dropdown-header">
-                    <span className="navbar-modern__dropdown-name">{user.fullName}</span>
-                    <span className="navbar-modern__dropdown-role">{user.role}</span>
+                    <span className="navbar-modern__dropdown-name">
+                      {user.fullName}
+                    </span>
+                    <span className="navbar-modern__dropdown-role">
+                      {user.role}
+                    </span>
                   </div>
                   <div className="navbar-modern__dropdown-divider" />
                   <button
@@ -291,19 +276,21 @@ const Navbar = React.memo(function Navbar() {
                 </div>
               )}
             </div>
-          )}
-        </div>
+          </div>
         </div>
       </nav>
 
       {/* Secondary Navigation Row - shows on mobile with icons, hidden on desktop */}
-      {showMobileBottomNav && (
+      {showMobileBottomNav && links.length > 0 && (
         <div className="navbar-modern__secondary">
           <div className="navbar-modern__secondary-inner">
             {links.map((link) => {
               const Icon = link.icon;
-              const MobileIcon = link.href.endsWith("/dashboard") ? House : Icon;
-              const isChatLink = link.href === "/coach/chat" || link.href === "/client/chat";
+              const MobileIcon = link.href.endsWith("/dashboard")
+                ? House
+                : Icon;
+              const isChatLink =
+                link.href === "/coach/chat" || link.href === "/client/chat";
               const showBadge = isChatLink && unreadCount > 0;
 
               return (
@@ -320,7 +307,9 @@ const Navbar = React.memo(function Navbar() {
                       </span>
                     )}
                   </span>
-                  <span className="navbar-modern__secondary-label">{link.label}</span>
+                  <span className="navbar-modern__secondary-label">
+                    {link.label}
+                  </span>
                 </Link>
               );
             })}

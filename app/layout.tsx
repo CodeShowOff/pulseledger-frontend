@@ -10,10 +10,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import ThemeProvider from "@/providers/ThemeProvider";
 import ToastProvider from "@/providers/ToastProvider";
 import Navbar from "@/components/shared/NavBar";
+import PublicNavbar from "@/components/shared/PublicNavbar";
 import AuthCookieSync from "@/components/shared/AuthCookieSync";
 import Footer from "@/components/shared/Footer";
 import QueryProvider from "@/providers/QueryProvider";
 import InstallPrompt from "@/components/shared/InstallPrompt";
+import { publicRoutePrefixes, publicRoutes } from "@/lib/auth";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,6 +29,9 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
+  const isPublicNavbarRoute =
+    publicRoutes.includes(pathname) ||
+    publicRoutePrefixes.some((prefix) => pathname === prefix || pathname?.startsWith(`${prefix}/`));
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -50,7 +55,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} site-shell bg-slate-50/80 text-gray-900 antialiased`}>
         <QueryProvider>
-          <Navbar />
+          {isPublicNavbarRoute ? <PublicNavbar /> : <Navbar />}
           <ThemeProvider>
               <AuthCookieSync />
               <main className="site-main">

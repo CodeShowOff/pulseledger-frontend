@@ -78,8 +78,9 @@ export const LoginForm: React.FC = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
       <div className="auth-form__field">
-        <label>Email</label>
+        <label htmlFor="login-email">Email</label>
         <input
+          id="login-email"
           type="email"
           {...register("email")}
           className="auth-form__input"
@@ -91,8 +92,9 @@ export const LoginForm: React.FC = () => {
       </div>
 
       <div className="auth-form__field">
-        <label>Password</label>
+        <label htmlFor="login-password">Password</label>
         <input
+          id="login-password"
           type="password"
           {...register("password")}
           className="auth-form__input"
@@ -122,23 +124,21 @@ export const LoginForm: React.FC = () => {
       </button>
 
       {deactivatedMessage && (
-        <p className="auth-form__error" style={{ marginTop: "0.75rem" }}>
+        <p className="auth-form__error auth-form__error--block">
           {deactivatedMessage}
         </p>
       )}
 
-      <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-gray-200"></div>
-        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">or</span>
-        <div className="flex-1 h-px bg-gray-200"></div>
+      <div className="auth-form__switch-inline" role="group" aria-label="Account switch">
+        <span>Don&apos;t have an account yet?</span>
+        <button
+          type="button"
+          onClick={() => router.push("/auth/register")}
+          className="auth-form__switch-link auth-form__switch-link--register"
+        >
+          Sign Up
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={() => router.push("/auth/register")}
-        className="w-full rounded-full border-2 border-green-600 text-green-700 bg-transparent py-2.5 px-5 text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-green-50 hover:text-green-800"
-      >
-        Create an Account
-      </button>
     </form>
   );
 };
