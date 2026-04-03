@@ -1352,10 +1352,7 @@ body.chat-page-active .coach-content__inner {
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #9ca3a0;
 }
 
 .footer-modern__tagline {
