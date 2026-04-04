@@ -39,7 +39,7 @@ const PublicNavbar = React.memo(function PublicNavbar() {
     <nav className="public-navbar" aria-label="Public navigation">
       <div className="public-navbar__container">
         <Link href="/" className="public-navbar__brand">
-          FITCOACH
+          FitCoach
         </Link>
 
         <div className="public-navbar__links" role="navigation" aria-label="Primary">

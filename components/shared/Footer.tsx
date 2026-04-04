@@ -28,9 +28,15 @@ const Footer = React.memo(function Footer() {
   const allLinks = [...productLinks, ...legalLinks, ...supportLinks];
 
   const socialLinks = [
-    { href: "#", label: "Instagram", icon: Instagram },
-    { href: "#", label: "Twitter", icon: Twitter },
-    { href: "#", label: "YouTube", icon: Youtube },
+    {
+      href: "https://instagram.com/fitcoach.os",
+      label: "Instagram",
+      icon: Instagram,
+      username: "fitcoach.os",
+      disabled: false,
+    },
+    { href: "#", label: "Twitter", icon: Twitter, disabled: true },
+    { href: "#", label: "YouTube", icon: Youtube, disabled: true },
   ];
 
   return (
@@ -129,16 +135,31 @@ const Footer = React.memo(function Footer() {
           </p>
           <div className="footer-modern__bottom-right">
             <div className="footer-modern__socials" aria-label="Social links">
-              {socialLinks.map(({ href, label, icon: Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  className="footer-modern__social-link"
-                  aria-label={label}
-                >
-                  <Icon size={20} />
-                </a>
-              ))}
+              {socialLinks.map(({ href, label, icon: Icon, username, disabled }) =>
+                disabled ? (
+                  <span
+                    key={label}
+                    className="footer-modern__social-link cursor-not-allowed opacity-35"
+                    aria-label={`${label} (coming soon)`}
+                    aria-disabled="true"
+                    title={`${label} coming soon`}
+                  >
+                    <Icon size={20} />
+                  </span>
+                ) : (
+                  <a
+                    key={label}
+                    href={href}
+                    className="footer-modern__social-link"
+                    aria-label={`${label} (${username})`}
+                    title={`${label}: ${username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Icon size={20} />
+                  </a>
+                ),
+              )}
             </div>
           </div>
         </div>

@@ -10,11 +10,28 @@ export default function PricingPage() {
       <div className="client-page__header">
         <h1 className="client-page__title">Platform Pricing</h1>
         <p className="client-page__subtitle">
-          Transparent pricing for health coaches. Start with a free trial, then pay as you grow.
+          Client app is free to use. Coaches get 30 days free, then choose ₹99 or ₹199 per month.
         </p>
       </div>
 
       <div className="client-page__sections">
+        <div
+          className="client-card"
+          style={{
+            marginBottom: "1.5rem",
+            textAlign: "center",
+            background: "linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%)",
+            border: "1px solid #c7d2fe",
+          }}
+        >
+          <h2 className="client-card__title" style={{ marginBottom: "0.5rem" }}>
+            Client App Pricing
+          </h2>
+          <p style={{ margin: 0, color: "#475569", fontSize: "0.95rem" }}>
+            The FitCoach client app is free for clients. Coach subscription covers platform usage.
+          </p>
+        </div>
+
         {/* Pricing Cards */}
         <div
           style={{
@@ -51,7 +68,7 @@ export default function PricingPage() {
                 Free Trial
               </h2>
               <p style={{ fontSize: "0.9rem", color: "#64748b" }}>
-                Get started with full access
+                For coaches getting started
               </p>
             </div>
 
@@ -60,19 +77,16 @@ export default function PricingPage() {
                 Free
               </div>
               <div style={{ fontSize: "0.875rem", color: "#64748b" }}>
-                for 28 days
+                for 30 days
               </div>
             </div>
 
             <ul style={{ listStyle: "none", padding: 0, marginBottom: "2rem" }}>
               {[
-                "Full platform access",
-                "Unlimited clients",
-                "Custom workout plans",
-                "Custom diet plans",
-                "All coaching features",
-                "Progress tracking",
-                "No payment required",
+                "Unlimited active clients",
+                "All Coach Basic features included",
+                "Plans, chat, reminders, and progress tracking",
+                "No payment required for 30 days",
               ].map((feature, idx) => (
                 <li
                   key={idx}
@@ -111,7 +125,7 @@ export default function PricingPage() {
                 background: "linear-gradient(135deg, #3b82f6, #60a5fa)",
               }}
             >
-              Start Free Trial
+              Start 30-Day Trial
             </Link>
           </div>
 
@@ -159,10 +173,10 @@ export default function PricingPage() {
                 <TrendingUp size={28} color="#fff" />
               </div>
               <h2 className="client-card__title" style={{ marginBottom: "0.5rem" }}>
-                Monthly Plan
+                Coach Basic
               </h2>
               <p style={{ fontSize: "0.9rem", color: "#64748b" }}>
-                Pay monthly, cancel anytime
+                Standard platform fee
               </p>
             </div>
 
@@ -174,19 +188,17 @@ export default function PricingPage() {
                 </span>
               </div>
               <div style={{ fontSize: "0.875rem", color: "#64748b" }}>
-                30 days of access per payment
+                Billed monthly
               </div>
             </div>
 
             <ul style={{ listStyle: "none", padding: 0, marginBottom: "2rem" }}>
               {[
-                "Everything in Free Trial",
-                "Workout plan builder",
-                "Diet plan builder",
-                "Plan templates library",
-                "Continuous platform access",
-                "Priority support",
-                "Regular feature updates",
+                "Unlimited active clients",
+                "Same core feature set as the free trial",
+                "No feature restrictions on core tools",
+                "Plans, chat, reminders, and progress tracking",
+                "Continuous access for ₹99/month",
               ].map((feature, idx) => (
                 <li
                   key={idx}
@@ -225,7 +237,118 @@ export default function PricingPage() {
                 background: "linear-gradient(135deg, #7c3aed, #a855f7)",
               }}
             >
-              Get Started
+              Choose ₹99 Plan
+            </Link>
+          </div>
+
+          {/* Pro Plan */}
+          <div
+            className="client-card"
+            style={{
+              background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
+              border: "2px solid #86efac",
+              position: "relative",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                top: "-12px",
+                right: "20px",
+                background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                color: "#fff",
+                padding: "0.375rem 1rem",
+                borderRadius: "999px",
+                fontSize: "0.75rem",
+                fontWeight: "700",
+                textTransform: "uppercase",
+                boxShadow: "0 4px 12px rgba(22, 163, 74, 0.35)",
+              }}
+            >
+              Advanced
+            </div>
+
+            <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "60px",
+                  height: "60px",
+                  background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                  borderRadius: "50%",
+                  marginBottom: "1rem",
+                }}
+              >
+                <Users size={28} color="#fff" />
+              </div>
+              <h2 className="client-card__title" style={{ marginBottom: "0.5rem" }}>
+                Coach Pro
+              </h2>
+              <p style={{ fontSize: "0.9rem", color: "#64748b" }}>
+                Added insights and premium support
+              </p>
+            </div>
+
+            <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+              <div style={{ fontSize: "3rem", fontWeight: "800", color: "#166534" }}>
+                ₹199
+                <span style={{ fontSize: "1.25rem", fontWeight: "600", color: "#94a3b8" }}>
+                  /month
+                </span>
+              </div>
+              <div style={{ fontSize: "0.875rem", color: "#64748b" }}>
+                Billed monthly
+              </div>
+            </div>
+
+            <ul style={{ listStyle: "none", padding: 0, marginBottom: "2rem" }}>
+              {[
+                "Everything in Coach Basic",
+                "Unlimited active clients",
+                "AI features",
+                "Summary reports",
+                "Priority customer support",
+              ].map((feature, idx) => (
+                <li
+                  key={idx}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    marginBottom: "0.75rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      background: "#16a34a",
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Check size={12} color="#fff" strokeWidth={3} />
+                  </div>
+                  <span style={{ fontSize: "0.9rem", color: "#475569" }}>{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <Link
+              href="/auth/register"
+              className="client-button"
+              style={{
+                width: "100%",
+                textAlign: "center",
+                background: "linear-gradient(135deg, #16a34a, #22c55e)",
+              }}
+            >
+              Choose ₹199 Plan
             </Link>
           </div>
         </div>
@@ -249,7 +372,7 @@ export default function PricingPage() {
               {
                 step: "1",
                 title: "Start Free Trial",
-                description: "Register as a coach and get 28 days of free access to all features.",
+                description: "Register as a coach and get 30 days of free access to all core features.",
               },
               {
                 step: "2",
@@ -258,13 +381,13 @@ export default function PricingPage() {
               },
               {
                 step: "3",
-                title: "Continue with ₹99/month",
-                description: "After trial, pay ₹99 per month to continue using the platform.",
+                title: "Choose ₹99 or ₹199 Plan",
+                description: "After trial, continue with Coach Basic (₹99) or Coach Pro (₹199).",
               },
               {
                 step: "4",
                 title: "Upload Payment Proof",
-                description: "Submit payment via admin's QR code and upload screenshot for approval.",
+                description: "Submit payment via admin QR and upload screenshot for approval and activation.",
               },
             ].map((item) => (
               <div key={item.step}>
@@ -310,7 +433,7 @@ export default function PricingPage() {
                 <strong>Payment Method:</strong> UPI or bank transfer via admin-provided QR code
               </li>
               <li>
-                <strong>Amount:</strong> ₹99 per month (30 days of access)
+                <strong>Amount:</strong> ₹99/month (Coach Basic) or ₹199/month (Coach Pro)
               </li>
               <li>
                 <strong>Payment Proof:</strong> Upload screenshot of successful payment transaction
@@ -328,10 +451,10 @@ export default function PricingPage() {
             </h3>
             <ul className="client-list">
               <li>
-                <strong>Trial:</strong> Free 28-day trial with full platform access
+                <strong>Trial:</strong> Free 30-day trial with full core coach access
               </li>
               <li>
-                <strong>Active:</strong> Paid subscription with valid access (30 days per payment)
+                <strong>Active:</strong> Paid Basic or Pro subscription with valid monthly access
               </li>
               <li>
                 <strong>Expired:</strong> Subscription period ended, renewal required
@@ -346,7 +469,9 @@ export default function PricingPage() {
             </h3>
             <ul className="client-list">
               <li>Trial starts automatically upon coach registration</li>
+              <li>Clients can use the app for free under their coach</li>
               <li>No credit card required for trial period</li>
+              <li>Choose ₹99 Basic or ₹199 Pro after trial ends</li>
               <li>Notifications sent 3 days and 1 day before expiration</li>
               <li>Access blocked after subscription expires</li>
               <li>Payment history available in your dashboard</li>
@@ -428,7 +553,7 @@ export default function PricingPage() {
             Ready to Start Coaching?
           </h2>
           <p style={{ fontSize: "1.1rem", marginBottom: "2rem", opacity: 0.95 }}>
-            Join hundreds of health coaches using FitCoach to grow their business.
+            Start your 30-day trial, then continue with the plan that matches your coaching needs.
           </p>
           <Link
             href="/auth/register"
@@ -442,7 +567,7 @@ export default function PricingPage() {
               fontWeight: "700",
             }}
           >
-            Start Your Free 28-Day Trial
+            Start Your Free 30-Day Trial
           </Link>
         </div>
       </div>

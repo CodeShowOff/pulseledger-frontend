@@ -381,6 +381,15 @@ export default function TermsAndConditionsPage() {
                 <li>Active subscriptions are honored at original terms until expiry</li>
                 <li>Coaches will be notified of changes via email and platform notifications</li>
               </ul>
+
+              <h3 className="client-card__subsection-title">6.12 Platform Fee and Feature Access Changes</h3>
+              <ul className="client-list">
+                <li>Platform fees, plan names, included benefits, and feature access under any plan (including trial, Basic, and Pro) are subject to change at FitCoach&apos;s sole discretion</li>
+                <li>We may add, remove, limit, replace, or reclassify features across plans based on product updates, operational needs, legal requirements, or business decisions</li>
+                <li>Any such changes apply prospectively and do not retroactively invalidate benefits already delivered during an active paid period</li>
+                <li>Where reasonably possible, material changes affecting paid access will be communicated in advance through in-app notifications, email, or updates to this Terms page</li>
+                <li>Your continued use of the Service after such updates constitutes acceptance of the revised platform fee and feature-access terms</li>
+              </ul>
             </div>
           </div>
 
