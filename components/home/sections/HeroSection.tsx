@@ -1,7 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { useAuthStore } from "@/lib/store";
+import { getAllowedBasePath } from "@/lib/auth";
 import { cardShadowClass, headingClass, textMuted } from "@/components/home/homeTheme";
 
 export default function HeroSection() {
+  const user = useAuthStore((s) => s.user);
+  const dashboardHref = user?.role ? `${getAllowedBasePath(user.role)}/dashboard` : "/dashboard";
+  const primaryCtaHref = user ? dashboardHref : "/auth/register";
+  const primaryCtaLabel = user ? "Go to Dashboard" : "Get started";
+
   return (
     <section className="relative overflow-hidden bg-[#F8FAFC] pt-10 pb-12 sm:pt-14 md:h-[calc(100svh-68px)] md:pt-0 md:pb-0">
       <div className="px-4 sm:px-6 md:hidden">
@@ -23,10 +32,10 @@ export default function HeroSection() {
 
           <div className="mb-7 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
             <Link
-              href="/auth/register"
+              href={primaryCtaHref}
               className="inline-flex w-full items-center justify-center rounded-xl border border-[#6366F14D] bg-white/70 px-6 py-3.5 text-sm font-medium text-[#312E81] sm:w-auto sm:text-base"
             >
-              Get started
+              {primaryCtaLabel}
             </Link>
             <Link
               href="/#how-it-works"
@@ -96,10 +105,10 @@ export default function HeroSection() {
 
           <div className="flex flex-wrap items-center gap-4">
             <Link
-              href="/auth/register"
+              href={primaryCtaHref}
               className="inline-flex items-center justify-center rounded-xl border border-[#6366F14D] bg-white/70 px-6 py-3.5 text-base font-medium text-[#312E81]"
             >
-              Get started
+              {primaryCtaLabel}
             </Link>
             <Link
               href="/#how-it-works"
