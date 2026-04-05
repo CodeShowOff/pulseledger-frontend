@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import axios from "axios";
 import { fetchClientProgressEntries, CLIENT_PROGRESS_QUERY_KEY } from "@/lib/queries/clientProgress";
-import { Scale, Target, Edit2, X, Check } from "lucide-react";
+import { Edit2, X, Check, Weight } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -55,6 +55,13 @@ const fetchGoalWeight = async (): Promise<GoalWeightSettings> => {
 type GoalWeightWidgetProps = {
   compact?: boolean;
 };
+
+const formatWeightCompact = (value: number) => {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(1);
+};
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetProps) {
   const queryClient = useQueryClient();
@@ -211,439 +218,330 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
     reset();
   };
 
-  // Progress calculation with improved messages
+  // Progress calculation with display fallbacks
+  const hasGoalSettings = startWeight != null && goalWeight != null;
+  const displayWeight = currentWeight ?? startWeight ?? null;
+
+  let isWeightGain = hasGoalSettings ? goalWeight! > startWeight! : false;
   let progressPercentage = 0;
   let remainingKg = 0;
-  let isWeightGain = false;
 
-  const hasAllWeights = startWeight != null && goalWeight != null && currentWeight != null;
-
-  if (hasAllWeights) {
+  if (hasGoalSettings && displayWeight != null) {
     const denominator = goalWeight! - startWeight!;
-    const numerator = currentWeight! - startWeight!;
+    const numerator = displayWeight - startWeight!;
 
-    // Determine direction from start -> goal
     isWeightGain = denominator > 0;
 
     if (denominator === 0) {
-      // Start and goal are the same (shouldn't happen after validation)
-      progressPercentage = currentWeight === goalWeight ? 100 : 0;
+      progressPercentage = displayWeight === goalWeight ? 100 : 0;
     } else {
       progressPercentage = (numerator / denominator) * 100;
-
-      // Handle edge cases and generate appropriate messages
-      if (progressPercentage >= 100) {
-        progressPercentage = 100;
-        remainingKg = 0;
-      } else if (progressPercentage < 0) {
-        // Client is going in wrong direction
-        progressPercentage = 0;
-      } else {
-        // Normal progress (0-100%)
-        remainingKg = Math.abs(goalWeight! - currentWeight!);
-      }
     }
 
-    // Clamp percentage between 0-100
-    progressPercentage = Math.min(100, Math.max(0, progressPercentage));
+    progressPercentage = clamp(progressPercentage, 0, 100);
+    remainingKg = progressPercentage >= 100 ? 0 : Math.max(0, Math.abs(goalWeight! - displayWeight));
   }
+
+  const currentWeightLabel = displayWeight != null ? formatWeightCompact(displayWeight) : "--";
+  const goalWeightLabel = goalWeight != null ? formatWeightCompact(goalWeight) : "--";
+  const ratioText = `${currentWeightLabel}/${goalWeightLabel}kg`;
+  const isLongRatio = ratioText.length >= 9;
 
   const tone = isWeightGain
     ? {
         accent: "#0f766e",
         accentStrong: "#134e4a",
-        softBg: "#f0fdfa",
-        panelBg: "#f4fbf9",
-        border: "#d5ebe4",
-        track: "#d6efe6",
-        fill: "linear-gradient(90deg, #14b8a6 0%, #2dd4bf 100%)",
+        border: "#bfe8dd",
+        cardBg: "#f5fcf9",
+        ringTrack: "rgba(15, 118, 110, 0.2)",
+        ringFrom: "#2dd4bf",
+        ringMid: "#14b8a6",
+        ringTo: "#0f766e",
+        iconBg: "#e9faf4",
         badgeBg: "#d9f6ef",
-        iconBg: "#e7f9f4",
       }
     : {
         accent: "#b45309",
         accentStrong: "#7c2d12",
-        softBg: "#fff7ed",
-        panelBg: "#fff9f3",
-        border: "#f5e3cf",
-        track: "#fde6ce",
-        fill: "linear-gradient(90deg, #fb923c 0%, #f97316 100%)",
+        border: "#f5dcc2",
+        cardBg: "#fff8f1",
+        ringTrack: "rgba(234, 88, 12, 0.2)",
+        ringFrom: "#fb923c",
+        ringMid: "#f97316",
+        ringTo: "#c2410c",
+        iconBg: "#fff1e3",
         badgeBg: "#ffedd5",
-        iconBg: "#fff2e2",
       };
 
-  const rootPadding = compact ? "0.9rem" : "1.15rem";
-  const rootRadius = compact ? "0.95rem" : "1.15rem";
-  const panelPadding = compact ? "0.72rem" : "0.9rem";
-  const titleSize = compact ? "0.9rem" : "1rem";
+  const ringSize = compact ? "h-36 w-36" : "h-[min(74vw,15rem)] w-[min(74vw,15rem)] sm:h-64 sm:w-64";
+  const ringStrokeWidth = compact ? 11 : 14;
+  const ringCenter = 120;
+  const ringRadius = 94;
+  const circumference = 2 * Math.PI * ringRadius;
+  const gaugeGapDegrees = compact ? 66 : 70;
+  const gaugeVisibleDegrees = 360 - gaugeGapDegrees;
+  const arcLength = (circumference * gaugeVisibleDegrees) / 360;
+  const gapLength = circumference - arcLength;
+  const progressArcLength = (arcLength * progressPercentage) / 100;
+  const gaugeRotationDeg = 122;
+  const ringGradientId = React.useId();
 
   return (
     <>
-      <style jsx>{`
-        @keyframes shimmer {
-          0% {
-            background-position: 200% 0;
-          }
-          100% {
-            background-position: -200% 0;
-          }
-        }
-      `}</style>
-
       <div
-        style={{
-          background: "linear-gradient(160deg, #fbfbff 0%, #ffffff 100%)",
-          borderRadius: rootRadius,
-          border: "1px solid #e8e7f1",
-          padding: rootPadding,
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          gap: compact ? "0.7rem" : "0.9rem",
-          boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
-        }}
+        className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br from-orange-50/35 via-white to-emerald-50/35 shadow-[0_20px_40px_-30px_rgba(15,23,42,0.35)] ${
+          compact ? "h-full p-3" : "p-4 sm:p-5"
+        }`}
+        style={{ borderColor: tone.border }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: compact ? "0.55rem" : "0.65rem", minWidth: 0 }}>
-            <span
-              style={{
-                width: compact ? "2rem" : "2.2rem",
-                height: compact ? "2rem" : "2.2rem",
-                borderRadius: "0.75rem",
-                background: tone.iconBg,
-                border: `1px solid ${tone.border}`,
-                display: "grid",
-                placeItems: "center",
-                flexShrink: 0,
-              }}
-            >
-              <Target style={{ width: compact ? "1rem" : "1.1rem", height: compact ? "1rem" : "1.1rem", color: tone.accent }} />
-            </span>
+        <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-sky-200/30 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-orange-200/25 blur-3xl" />
 
-            <div style={{ minWidth: 0 }}>
-              <h3
-                style={{
-                  fontSize: titleSize,
-                  fontWeight: 700,
-                  color: "#0f172a",
-                  marginTop: "0",
-                  marginRight: "0",
-                  marginBottom: "0",
-                  marginLeft: "0",
-                  lineHeight: 1.2,
-                }}
-              >
+        <div className="relative z-[1] space-y-3 sm:space-y-4">
+          <div className="flex min-h-8 items-center justify-between gap-2.5">
+            <div className="min-w-0">
+              <h3 className={`truncate font-bold leading-tight text-slate-900 ${compact ? "text-sm" : "text-base"}`}>
                 Weight Goal
               </h3>
             </div>
+
+            <span
+              className="rounded-full border px-2 py-0.5 text-xs font-semibold"
+              style={{ borderColor: tone.border, color: tone.accentStrong, background: tone.badgeBg }}
+            >
+              {Math.round(progressPercentage)}%
+            </span>
           </div>
 
-          {!isEditing && (
-            <button
-              onClick={handleStartEdit}
-              style={{
-                width: compact ? "1.9rem" : "2rem",
-                height: compact ? "1.9rem" : "2rem",
-                background: tone.softBg,
-                border: `1px solid ${tone.border}`,
-                borderRadius: "0.65rem",
-                cursor: "pointer",
-                display: "grid",
-                placeItems: "center",
-                transition: "all 0.2s ease",
-                flexShrink: 0,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0px)";
-              }}
-              aria-label="Edit weight values"
-            >
-              <Edit2 style={{ width: compact ? "0.82rem" : "0.9rem", height: compact ? "0.82rem" : "0.9rem", color: tone.accent }} />
-            </button>
-          )}
-        </div>
-
-        {isEditing && (
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            style={{
-              background: "#ffffff",
-              border: `1px solid ${tone.border}`,
-              borderRadius: "0.9rem",
-              padding: panelPadding,
-            }}
-          >
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))", gap: compact ? "0.55rem" : "0.65rem" }}>
-              <div>
-                <label style={{ fontSize: "0.72rem", color: "#475569", marginBottom: "0.32rem", display: "block", fontWeight: 600 }}>
-                  Start Weight (kg)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  {...register("startWeight", { valueAsNumber: true })}
-                  placeholder={currentWeight ? `e.g., ${currentWeight}` : "e.g., 75"}
-                  style={{
-                    width: "100%",
-                    padding: compact ? "0.55rem 0.65rem" : "0.6rem 0.72rem",
-                    borderRadius: "0.6rem",
-                    border: "1px solid #dbe4e3",
-                    fontSize: "0.86rem",
-                    outline: "none",
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = tone.accent;
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#dbe4e3";
-                  }}
-                />
-                {errors.startWeight && <p style={{ fontSize: "0.72rem", color: "#dc2626", marginTop: "0.24rem", marginBottom: 0 }}>{errors.startWeight.message}</p>}
-              </div>
-
-              <div>
-                <label style={{ fontSize: "0.72rem", color: "#475569", marginBottom: "0.32rem", display: "block", fontWeight: 600 }}>
-                  Current Weight (kg)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  {...register("weight", { valueAsNumber: true })}
-                  placeholder="e.g., 75.5"
-                  style={{
-                    width: "100%",
-                    padding: compact ? "0.55rem 0.65rem" : "0.6rem 0.72rem",
-                    borderRadius: "0.6rem",
-                    border: "1px solid #dbe4e3",
-                    fontSize: "0.86rem",
-                    outline: "none",
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = tone.accent;
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#dbe4e3";
-                  }}
-                />
-                {errors.weight && <p style={{ fontSize: "0.72rem", color: "#dc2626", marginTop: "0.24rem", marginBottom: 0 }}>{errors.weight.message}</p>}
-              </div>
-
-              <div>
-                <label style={{ fontSize: "0.72rem", color: "#475569", marginBottom: "0.32rem", display: "block", fontWeight: 600 }}>
-                  Goal Weight (kg)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  {...register("goalWeight", { valueAsNumber: true })}
-                  placeholder="e.g., 70"
-                  style={{
-                    width: "100%",
-                    padding: compact ? "0.55rem 0.65rem" : "0.6rem 0.72rem",
-                    borderRadius: "0.6rem",
-                    border: "1px solid #dbe4e3",
-                    fontSize: "0.86rem",
-                    outline: "none",
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = tone.accent;
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#dbe4e3";
-                  }}
-                />
-                {errors.goalWeight && <p style={{ fontSize: "0.72rem", color: "#dc2626", marginTop: "0.24rem", marginBottom: 0 }}>{errors.goalWeight.message}</p>}
+          {isLoadingGoal || isLoadingProgress ? (
+            <div className="space-y-3">
+              <div className={`mx-auto ${ringSize} rounded-full border-[14px] border-slate-200/70 animate-pulse`} />
+              <div className={`grid grid-cols-2 ${compact ? "gap-2" : "gap-2.5"}`}>
+                <div className="h-[58px] animate-pulse rounded-xl bg-slate-200/75" />
+                <div className="h-[58px] animate-pulse rounded-xl bg-slate-200/75" />
               </div>
             </div>
+          ) : (
+            <>
+              <div className="mx-auto w-full text-center">
+                <div className={`relative mx-auto ${ringSize}`} aria-label={`${Math.round(progressPercentage)} percent weight goal progress`}>
+                  <svg viewBox="0 0 240 240" className="h-full w-full" role="presentation">
+                    <defs>
+                      <linearGradient id={ringGradientId} x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={tone.ringFrom} />
+                        <stop offset="55%" stopColor={tone.ringMid} />
+                        <stop offset="100%" stopColor={tone.ringTo} />
+                      </linearGradient>
+                    </defs>
 
-            <div style={{ display: "flex", flexWrap: "wrap", gap: compact ? "0.42rem" : "0.5rem", marginTop: compact ? "0.65rem" : "0.75rem" }}>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                style={{
-                  padding: compact ? "0.52rem 0.82rem" : "0.58rem 0.95rem",
-                  background: tone.accent,
-                  color: "#ffffff",
-                  border: "none",
-                  borderRadius: "0.6rem",
-                  cursor: isSubmitting ? "not-allowed" : "pointer",
-                  fontSize: compact ? "0.8rem" : "0.84rem",
-                  fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.35rem",
-                  opacity: isSubmitting ? 0.72 : 1,
-                }}
-              >
-                <Check style={{ width: compact ? "0.88rem" : "0.95rem", height: compact ? "0.88rem" : "0.95rem" }} />
-                {isSubmitting ? "Saving..." : "Save"}
-              </button>
+                    <circle
+                      cx={ringCenter}
+                      cy={ringCenter}
+                      r={ringRadius}
+                      fill="none"
+                      stroke={tone.ringTrack}
+                      strokeWidth={ringStrokeWidth}
+                      strokeDasharray={`${arcLength} ${gapLength}`}
+                      style={{
+                        transform: `rotate(${gaugeRotationDeg}deg)`,
+                        transformOrigin: "50% 50%",
+                      }}
+                    />
 
-              <button
-                type="button"
-                onClick={handleCancelEdit}
-                disabled={isSubmitting}
-                style={{
-                  padding: compact ? "0.52rem 0.82rem" : "0.58rem 0.95rem",
-                  background: "#f8fafc",
-                  color: "#475569",
-                  border: "1px solid #dbe4e3",
-                  borderRadius: "0.6rem",
-                  cursor: isSubmitting ? "not-allowed" : "pointer",
-                  fontSize: compact ? "0.8rem" : "0.84rem",
-                  fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.35rem",
-                  opacity: isSubmitting ? 0.72 : 1,
-                }}
-              >
-                <X style={{ width: compact ? "0.88rem" : "0.95rem", height: compact ? "0.88rem" : "0.95rem" }} />
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
+                    <circle
+                      cx={ringCenter}
+                      cy={ringCenter}
+                      r={ringRadius}
+                      fill="none"
+                      stroke={`url(#${ringGradientId})`}
+                      strokeWidth={ringStrokeWidth}
+                      strokeLinecap={progressArcLength > 0 ? "round" : "butt"}
+                      strokeDasharray={`${progressArcLength} ${circumference}`}
+                      style={{
+                        transform: `rotate(${gaugeRotationDeg}deg)`,
+                        transformOrigin: "50% 50%",
+                        transition: "stroke-dasharray 900ms cubic-bezier(0.22, 1, 0.36, 1)",
+                      }}
+                      className="motion-reduce:transition-none"
+                    />
+                  </svg>
 
-        {isLoadingGoal || isLoadingProgress ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: compact ? "0.58rem" : "0.7rem" }}>
-            <div
-              style={{
-                height: compact ? "68px" : "78px",
-                borderRadius: "0.9rem",
-                background: "linear-gradient(90deg, #f1f5f9 0%, #e8eef5 50%, #f1f5f9 100%)",
-                backgroundSize: "200% 100%",
-                animation: "shimmer 1.3s linear infinite",
-              }}
-            />
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-5 text-center">
+                    <p
+                      className={`max-w-[92%] whitespace-nowrap tabular-nums font-extrabold leading-none tracking-tight ${
+                        compact
+                          ? isLongRatio
+                            ? "text-[1.03rem]"
+                            : "text-[1.17rem]"
+                          : isLongRatio
+                            ? "text-[1.3rem] sm:text-[1.55rem]"
+                            : "text-[1.45rem] sm:text-[1.75rem]"
+                      }`}
+                    >
+                      <span style={{ color: tone.accent }}>{currentWeightLabel}</span>
+                      <span className="text-slate-900">/{goalWeightLabel}</span>
+                      <span className={`ml-1 font-semibold text-slate-500 ${compact ? "text-[0.66rem]" : "text-[0.8rem] sm:text-[0.92rem]"}`}>
+                        kg
+                      </span>
+                    </p>
+                  </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: compact ? "0.42rem" : "0.55rem" }}>
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  style={{
-                    height: compact ? "48px" : "56px",
-                    borderRadius: "0.72rem",
-                    background: "linear-gradient(90deg, #f1f5f9 0%, #e8eef5 50%, #f1f5f9 100%)",
-                    backgroundSize: "200% 100%",
-                    animation: "shimmer 1.3s linear infinite",
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        ) : hasAllWeights ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: compact ? "0.55rem" : "0.68rem" }}>
-            <div
-              style={{
-                background: tone.panelBg,
-                border: `1px solid ${tone.border}`,
-                borderRadius: "0.9rem",
-                padding: panelPadding,
-                display: "flex",
-                flexDirection: "column",
-                gap: compact ? "0.46rem" : "0.58rem",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem" }}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: "0.35rem", minWidth: 0 }}>
-                  <span style={{ margin: 0, fontSize: compact ? "1.12rem" : "1.26rem", fontWeight: 700, color: tone.accent, lineHeight: 1 }}>
-                    {currentWeight?.toFixed(1)} kg
-                  </span>
-                  <span style={{ margin: 0, fontSize: compact ? "0.72rem" : "0.78rem", color: "#64748b" }}>
-                    / {goalWeight?.toFixed(1)} kg
-                  </span>
+                  <div className="absolute left-1/2 top-[83.5%] -translate-x-1/2 -translate-y-1/2">
+                    <button
+                      type="button"
+                      onClick={handleStartEdit}
+                      className={`group relative grid place-items-center rounded-full border bg-white/95 shadow-[0_10px_25px_-14px_rgba(2,132,199,0.35)] transition-all duration-300 ease-out motion-reduce:transition-none hover:-translate-y-0.5 active:translate-y-0 ${
+                        compact ? "h-11 w-11" : "h-12 w-12 sm:h-14 sm:w-14"
+                      }`}
+                      style={{ borderColor: tone.border, color: tone.accentStrong }}
+                      aria-label="Edit weight values"
+                    >
+                      <Weight size={compact ? 22 : 26} color={tone.accent} strokeWidth={2.25} />
+                      <span
+                        className={`absolute -top-1 -right-1 grid place-items-center rounded-full text-white shadow-sm ${
+                          compact ? "h-[17px] w-[17px]" : "h-4 w-4 sm:h-[18px] sm:w-[18px]"
+                        }`}
+                        style={{ background: tone.accent }}
+                        aria-hidden="true"
+                      >
+                        <Edit2 className={compact ? "h-2.5 w-2.5" : "h-2.5 w-2.5 sm:h-3 sm:w-3"} />
+                      </span>
+                    </button>
+                  </div>
                 </div>
-
-                <span
-                  style={{
-                    fontSize: compact ? "0.75rem" : "0.82rem",
-                    fontWeight: 700,
-                    color: tone.accentStrong,
-                    background: tone.badgeBg,
-                    border: `1px solid ${tone.border}`,
-                    borderRadius: "999px",
-                    padding: compact ? "0.24rem 0.5rem" : "0.3rem 0.6rem",
-                    lineHeight: 1,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {Math.round(progressPercentage)}%
-                </span>
               </div>
 
               <div
-                style={{
-                  width: "100%",
-                  height: compact ? "0.42rem" : "0.5rem",
-                  background: tone.track,
-                  borderRadius: "999px",
-                  overflow: "hidden",
-                }}
-                aria-label={`${Math.round(progressPercentage)} percent weight goal progress`}
+                className={`grid grid-cols-2 pt-2 ${compact ? "gap-1.5 text-center" : "gap-3 text-left"}`}
+                style={{ borderTopWidth: 1, borderTopStyle: "solid", borderTopColor: tone.border }}
               >
-                <div
-                  style={{
-                    width: `${progressPercentage}%`,
-                    height: "100%",
-                    background: tone.fill,
-                    borderRadius: "999px",
-                    transition: "width 620ms cubic-bezier(0.22, 1, 0.36, 1)",
-                  }}
-                />
+                <div className="min-w-0">
+                  <p className={compact ? "text-[10px] font-semibold leading-tight text-slate-500" : "text-[11px] font-medium uppercase tracking-wide text-slate-500"}>
+                    Current
+                  </p>
+                  <p className={compact ? "mt-0.5 whitespace-nowrap text-[1.02rem] font-bold leading-tight text-slate-900" : "mt-1 text-sm font-bold text-slate-900 sm:text-base"}>
+                    {displayWeight != null ? `${currentWeightLabel} kg` : "--"}
+                  </p>
+                </div>
+
+                <div className="min-w-0">
+                  <p className={compact ? "text-[10px] font-semibold leading-tight text-slate-500" : "text-[11px] font-medium uppercase tracking-wide text-slate-500"}>
+                    Remaining
+                  </p>
+                  <p className={compact ? "mt-0.5 whitespace-nowrap text-[1.02rem] font-bold leading-tight text-slate-900" : "mt-1 text-sm font-bold text-slate-900 sm:text-base"}>
+                    {hasGoalSettings && displayWeight != null ? `${formatWeightCompact(remainingKg)} kg` : "--"}
+                  </p>
+                </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", fontSize: compact ? "0.66rem" : "0.72rem", color: "#64748b" }}>
-                <span>Start {startWeight} kg</span>
-                <span>
-                  {progressPercentage === 100
-                    ? "Goal achieved"
-                    : `${remainingKg.toFixed(1)} kg to ${isWeightGain ? "gain" : "lose"}`}
-                </span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div
-            style={{
-              textAlign: "center",
-              padding: compact ? "0.95rem 0.7rem" : "1.2rem 0.9rem",
-              background: "#fafbff",
-              border: "1px dashed #dbe2f2",
-              borderRadius: "0.9rem",
-            }}
-          >
-            <Scale style={{ width: compact ? "1.45rem" : "1.7rem", height: compact ? "1.45rem" : "1.7rem", color: "#94a3b8", margin: compact ? "0 auto 0.45rem" : "0 auto 0.6rem" }} />
-            <p style={{ fontSize: compact ? "0.7rem" : "0.77rem", color: "#475569", marginTop: "0", marginRight: "0", marginBottom: "0", marginLeft: "0" }}>
-              {goalWeight == null || startWeight == null
-                ? "Set your start and goal weight to begin tracking."
-                : "Add a current weight entry to view your progress."}
-            </p>
-
-            {(goalWeight == null || startWeight == null) && (
-              <button
-                onClick={handleStartEdit}
-                style={{
-                  marginTop: "0.7rem",
-                  padding: compact ? "0.46rem 0.72rem" : "0.5rem 0.82rem",
-                  borderRadius: "0.6rem",
-                  border: `1px solid ${tone.border}`,
-                  background: tone.softBg,
-                  color: tone.accentStrong,
-                  fontSize: compact ? "0.74rem" : "0.78rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                Set Start & Goal Weight
-              </button>
-            )}
-          </div>
-        )}
+              {!hasGoalSettings ? (
+                <p className={`text-center font-medium text-slate-500 ${compact ? "text-[11px] leading-snug" : "text-xs"}`}>
+                  Tap the weighted icon to set your start and goal weight.
+                </p>
+              ) : null}
+            </>
+          )}
+        </div>
       </div>
+
+      {isEditing ? (
+        <div
+          className="fixed inset-0 z-[1000] flex items-end justify-center bg-slate-900/45 p-3 pb-24 backdrop-blur-[1px] sm:items-center sm:p-4 sm:pb-4"
+          onClick={handleCancelEdit}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="weight-edit-modal-title"
+            className="w-full max-w-md max-h-[calc(100dvh-8rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90dvh] sm:p-5"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h4 id="weight-edit-modal-title" className="text-base font-semibold text-slate-900">
+                Edit weight goal
+              </h4>
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50"
+                aria-label="Close weight goal editor"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+              <div className="space-y-1.5">
+                <label htmlFor="start-weight" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Start Weight (kg)
+                </label>
+                <input
+                  id="start-weight"
+                  type="number"
+                  step="0.1"
+                  {...register("startWeight", { valueAsNumber: true })}
+                  placeholder={currentWeight ? `e.g. ${currentWeight}` : "e.g. 75"}
+                  className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-sky-300"
+                />
+                {errors.startWeight ? <p className="text-xs text-rose-600">{errors.startWeight.message}</p> : null}
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="current-weight" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Current Weight (kg)
+                </label>
+                <input
+                  id="current-weight"
+                  type="number"
+                  step="0.1"
+                  {...register("weight", { valueAsNumber: true })}
+                  placeholder="e.g. 75.5"
+                  className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-sky-300"
+                />
+                {errors.weight ? <p className="text-xs text-rose-600">{errors.weight.message}</p> : null}
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="goal-weight" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Goal Weight (kg)
+                </label>
+                <input
+                  id="goal-weight"
+                  type="number"
+                  step="0.1"
+                  {...register("goalWeight", { valueAsNumber: true })}
+                  placeholder="e.g. 70"
+                  className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-sky-300"
+                />
+                {errors.goalWeight ? <p className="text-xs text-rose-600">{errors.goalWeight.message}</p> : null}
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white transition-colors ${
+                    isSubmitting ? "cursor-not-allowed bg-sky-400" : "bg-sky-600 hover:bg-sky-700"
+                  }`}
+                >
+                  <Check className="h-4 w-4" />
+                  {isSubmitting ? "Saving..." : "Save"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed"
+                >
+                  <X className="h-4 w-4" />
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

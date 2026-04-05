@@ -31,15 +31,15 @@ const fadeInUp = {
 
 const todayCoreActions = [
   {
-    title: "Today's Workout",
-    description: "Open your workout plan for today and track execution quickly.",
+    title: "Workout",
+    description: "Open your workout plan and track execution quickly.",
     href: "/client/workouts/today",
     Icon: Dumbbell,
     iconTone: "from-orange-500 to-amber-500",
     cardTone: "from-orange-50 to-amber-50",
   },
   {
-    title: "Today's Nutrition",
+    title: "Nutrition",
     description: "Follow your current meal plan and stay consistent with intake.",
     href: "/client/diet/today",
     Icon: Utensils,
@@ -111,8 +111,8 @@ function ConnectedWithCompanyName({ companyName }: { companyName: string }) {
 
   if (!shouldMarquee || marqueeShiftPx <= 0) {
     return (
-      <div ref={containerRef} className="min-w-0 w-[44vw] max-w-[220px]">
-        <span ref={textRef} className="block truncate text-xs font-semibold text-white sm:text-sm">
+      <div ref={containerRef} className="min-w-0 max-w-[55vw] sm:max-w-[220px]">
+        <span ref={textRef} className="block truncate text-xs font-semibold text-slate-700 sm:text-sm">
           {companyName}
         </span>
       </div>
@@ -122,10 +122,10 @@ function ConnectedWithCompanyName({ companyName }: { companyName: string }) {
   const durationSeconds = Math.max(4, marqueeShiftPx / 22);
 
   return (
-    <div ref={containerRef} className="min-w-0 w-[44vw] max-w-[220px] overflow-hidden" aria-label={companyName}>
+    <div ref={containerRef} className="min-w-0 max-w-[55vw] overflow-hidden sm:max-w-[220px]" aria-label={companyName}>
       <span
         ref={textRef}
-        className="block whitespace-nowrap text-xs font-semibold text-white [will-change:transform] sm:text-sm"
+        className="block whitespace-nowrap text-xs font-semibold text-slate-700 [will-change:transform] sm:text-sm"
         style={
           {
             animation: `clientDashboardMarquee ${durationSeconds.toFixed(2)}s cubic-bezier(0.33, 1, 0.68, 1) infinite alternate`,
@@ -141,6 +141,17 @@ function ConnectedWithCompanyName({ companyName }: { companyName: string }) {
 
 export default function ClientDashboardPage() {
   const { data: coach, isLoading } = useMyCoachQuery();
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+    const handleChange = () => setIsMobileViewport(mediaQuery.matches);
+
+    handleChange();
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   return (
     <div className="client-page__sections space-y-4 md:space-y-5">
@@ -183,18 +194,15 @@ export default function ClientDashboardPage() {
                 Track workouts, nutrition, hydration, and progress from one focused dashboard.
               </CardDescription>
             </div>
-
-            {!isLoading ? (
-              <div className="inline-flex max-w-full min-w-0 flex-nowrap items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-2.5 py-1 sm:gap-2 sm:px-3 sm:py-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-blue-100" aria-hidden="true" />
-                <span className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-blue-100 sm:text-[11px]">Connected with</span>
-                <ConnectedWithCompanyName companyName={coach?.companyName || "FitCoach"} />
-              </div>
-            ) : (
-              <p className="text-sm text-blue-100">Checking coach assignment...</p>
-            )}
           </CardHeader>
         </Card>
+
+        {!isLoading && coach ? (
+          <div className="mt-2 flex min-w-0 items-center justify-center gap-1.5 text-center">
+            <span className="whitespace-nowrap text-xs text-slate-600 sm:text-sm">Connected with</span>
+            <ConnectedWithCompanyName companyName={coach.companyName || "FitCoach"} />
+          </div>
+        ) : null}
       </motion.section>
 
       <motion.section
@@ -202,6 +210,32 @@ export default function ClientDashboardPage() {
         initial="initial"
         animate="animate"
         transition={{ duration: 0.28, delay: 0.04 }}
+        aria-labelledby="wellness-widgets-heading"
+        className="space-y-4"
+      >
+        <div className="flex items-center gap-2 px-1">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
+            <Waves className="h-4 w-4" />
+          </span>
+          <h2 id="wellness-widgets-heading" className="text-base font-semibold text-slate-900 md:text-lg">
+            Wellness & Goals
+          </h2>
+        </div>
+        <div className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-1 sm:gap-4 xl:grid-cols-2">
+          <div className="min-w-0 h-full">
+            <WaterIntakeWidget compact={isMobileViewport} />
+          </div>
+          <div className="min-w-0 h-full">
+            <GoalWeightWidget compact={isMobileViewport} />
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.08 }}
         className="space-y-2 sm:space-y-3"
       >
         <div className="flex items-center gap-2 px-1">
@@ -223,61 +257,28 @@ export default function ClientDashboardPage() {
               <Link href={item.href} className="group block h-full cursor-pointer focus-visible:outline-none">
                 <div
                   className={cn(
-                    "relative flex h-full min-h-[78px] items-center gap-2.5 overflow-hidden rounded-2xl border-2 border-white p-3 transition-all duration-200 shadow-[0_12px_24px_-20px_rgba(15,23,42,0.35)] hover:border-white hover:shadow-[0_16px_30px_-20px_rgba(15,23,42,0.45)] active:scale-[0.98] group-focus-visible:ring-2 group-focus-visible:ring-white group-focus-visible:ring-offset-2 md:min-h-[112px] md:items-start md:p-4",
+                    "relative flex h-full min-h-[104px] cursor-pointer select-none items-center justify-center overflow-hidden rounded-2xl border-4 border-white p-3 transition-all duration-200 shadow-[0_14px_24px_-20px_rgba(15,23,42,0.4)] hover:-translate-y-0.5 hover:border-white hover:brightness-[1.02] hover:shadow-[0_20px_30px_-20px_rgba(15,23,42,0.48)] active:translate-y-[1px] active:scale-[0.99] active:shadow-[0_10px_22px_-20px_rgba(15,23,42,0.42)] group-focus-visible:ring-4 group-focus-visible:ring-indigo-200 group-focus-visible:ring-offset-2 md:min-h-[124px] md:p-4",
                     `bg-gradient-to-br ${item.cardTone}`
                   )}
                 >
                   <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-white/60 blur-xl" />
 
-                  <div className="relative z-[1] flex w-full min-w-0 items-center justify-between gap-2 md:items-start md:gap-3">
-                    <div className="flex min-w-0 items-center gap-2.5 md:items-start md:gap-3">
-                      <span
-                        className={cn(
-                          "grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br text-white shadow-sm",
-                          item.iconTone
-                        )}
-                      >
-                        <item.Icon className="h-4 w-4" />
-                      </span>
+                  <div className="relative z-[1] flex w-full flex-col items-center justify-center text-center">
+                    <span
+                      className={cn(
+                        "mb-2 grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md",
+                        item.iconTone
+                      )}
+                    >
+                      <item.Icon className="h-6 w-6" />
+                    </span>
 
-                      <div className="min-w-0 space-y-1">
-                        <h2 className="text-sm font-semibold leading-tight text-slate-900">{item.title}</h2>
-                        <p className="hidden text-xs leading-5 text-slate-600 md:block">{item.description}</p>
-                      </div>
-                    </div>
-
-                    <ArrowRight className="h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-indigo-700" />
+                    <h2 className="text-sm font-semibold leading-tight text-slate-900 md:text-base">{item.title}</h2>
                   </div>
                 </div>
               </Link>
             </motion.div>
           ))}
-        </div>
-      </motion.section>
-
-      <motion.section
-        variants={fadeInUp}
-        initial="initial"
-        animate="animate"
-        transition={{ duration: 0.28, delay: 0.08 }}
-        aria-labelledby="wellness-widgets-heading"
-        className="space-y-4"
-      >
-        <div className="flex items-center gap-2 px-1">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
-            <Waves className="h-4 w-4" />
-          </span>
-          <h2 id="wellness-widgets-heading" className="text-base font-semibold text-slate-900 md:text-lg">
-            Wellness & Goals
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
-          <div className="min-w-0 h-full">
-            <WaterIntakeWidget />
-          </div>
-          <div className="min-w-0 h-full">
-            <GoalWeightWidget />
-          </div>
         </div>
       </motion.section>
 
