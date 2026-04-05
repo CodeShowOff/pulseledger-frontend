@@ -161,6 +161,10 @@ export type CompleteWorkoutPayload = {
   notes?: string;
 };
 
+export type MarkWorkoutMissedPayload = {
+  reason?: string;
+};
+
 export type ExerciseLog = {
   exerciseId?: string;
   exerciseName: string;
@@ -625,6 +629,21 @@ export function useCompleteWorkoutLog() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CLIENT_WORKOUT_LOGS_KEY });
+    },
+  });
+}
+
+export function useMarkWorkoutMissed() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data?: MarkWorkoutMissedPayload }) => {
+      const res = await api.post(`/client/workouts/${id}/miss`, data || {});
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CLIENT_WORKOUT_LOGS_KEY });
+      queryClient.invalidateQueries({ queryKey: CLIENT_TODAY_WORKOUT_KEY });
+      queryClient.invalidateQueries({ queryKey: CLIENT_WORKOUT_PLANS_KEY });
     },
   });
 }

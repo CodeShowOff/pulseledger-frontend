@@ -78,7 +78,7 @@ const PublicNavbar = React.memo(function PublicNavbar() {
             aria-controls="public-navbar-mobile-menu"
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            {mobileMenuOpen ? <X size={20} color="#000000" /> : <Menu size={20} color="#000000" />}
           </button>
         </div>
       </div>

@@ -1,25 +1,64 @@
-// app/client/diet/history/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowLeft,
   Calendar,
-  Flame,
-  ChevronRight,
   ChevronLeft,
+  ChevronRight,
+  Flame,
+  Target,
   TrendingUp,
+  Utensils,
 } from "lucide-react";
-import { useClientDietLogs, useClientDietStats, ClientDietLog } from "@/lib/queries/diet";
+import { ClientDietLog, useClientDietLogs, useClientDietStats } from "@/lib/queries/diet";
+import { cn } from "@/lib/utils";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
-// Helper function to format date in local timezone (avoids UTC conversion issues)
+type DayStatus = "great" | "okay" | "low" | "none";
+
+const statusStyles: Record<DayStatus, { dot: string; tile: string; badge: string; label: string }> = {
+  great: {
+    dot: "bg-emerald-500",
+    tile: "border-emerald-300 bg-emerald-50",
+    badge: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    label: "Great",
+  },
+  okay: {
+    dot: "bg-amber-500",
+    tile: "border-amber-300 bg-amber-50",
+    badge: "border-amber-200 bg-amber-50 text-amber-700",
+    label: "Okay",
+  },
+  low: {
+    dot: "bg-rose-500",
+    tile: "border-rose-300 bg-rose-50",
+    badge: "border-rose-200 bg-rose-50 text-rose-700",
+    label: "Low",
+  },
+  none: {
+    dot: "bg-slate-200",
+    tile: "border-slate-200 bg-white",
+    badge: "border-slate-200 bg-slate-50 text-slate-600",
+    label: "No log",
+  },
+};
+
 const formatLocalDate = (date: Date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -27,71 +66,128 @@ const formatLocalDate = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
+const deriveStatus = (log?: ClientDietLog): DayStatus => {
+  if (!log) return "none";
+  const adherence = log.adherenceScore || 0;
+
+  if (adherence >= 80) return "great";
+  if (adherence >= 60) return "okay";
+  return "low";
+};
+
+const formatMealType = (value?: string) => {
+  if (!value) return "Meal";
+  return value.replace(/_/g, " ");
+};
+
 export default function DietHistoryPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(formatLocalDate(new Date()));
 
-  // Get the date range for the current month view
-  const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-  const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+  const startOfMonth = useMemo(
+    () => new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1),
+    [currentMonth]
+  );
+  const endOfMonth = useMemo(
+    () => new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0),
+    [currentMonth]
+  );
 
-  // Fetch diet logs for the month
   const { data: logsData, isLoading } = useClientDietLogs({
     startDate: formatLocalDate(startOfMonth),
     endDate: formatLocalDate(endOfMonth),
-    limit: 50,
+    limit: 62,
   });
 
-  // Fetch stats for the last 30 days
   const { data: stats } = useClientDietStats(30);
 
-  const logs = logsData?.data || [];
+  const logs = (logsData?.data || []) as ClientDietLog[];
 
-  // Create a map of date -> log for quick lookup
-  const logMap = new Map<string, ClientDietLog>();
-  logs.forEach((log: ClientDietLog) => {
-    const dateKey = formatLocalDate(new Date(log.date));
-    logMap.set(dateKey, log);
-  });
+  const logMap = useMemo(() => {
+    const map = new Map<string, ClientDietLog>();
 
-  // Generate calendar days
-  const generateCalendarDays = () => {
-    const days = [];
-    const firstDay = startOfMonth.getDay();
+    logs.forEach((log) => {
+      const dateKey = formatLocalDate(new Date(log.date));
+      const existing = map.get(dateKey);
+
+      if (!existing) {
+        map.set(dateKey, log);
+        return;
+      }
+
+      const existingTime = new Date(existing.createdAt).getTime();
+      const currentTime = new Date(log.createdAt).getTime();
+      map.set(dateKey, currentTime > existingTime ? log : existing);
+    });
+
+    return map;
+  }, [logs]);
+
+  const monthDays = useMemo(() => {
+    const items: Array<{
+      day: number;
+      date: string;
+      log?: ClientDietLog;
+      status: DayStatus;
+      isToday: boolean;
+      isFuture: boolean;
+    }> = [];
+
     const totalDays = endOfMonth.getDate();
 
-    // Empty cells before the first day
-    for (let i = 0; i < firstDay; i++) {
-      days.push(null);
-    }
-
-    // Days of the month
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayKey = formatLocalDate(today);
-    
-    for (let day = 1; day <= totalDays; day++) {
+
+    for (let day = 1; day <= totalDays; day += 1) {
       const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
       date.setHours(0, 0, 0, 0);
       const dateKey = formatLocalDate(date);
-      const isFuture = date > today;
-      
-      days.push({
+      const log = logMap.get(dateKey);
+
+      items.push({
         day,
         date: dateKey,
-        log: logMap.get(dateKey),
+        log,
+        status: deriveStatus(log),
         isToday: dateKey === todayKey,
-        isFuture,
+        isFuture: date > today,
       });
     }
 
-    return days;
-  };
+    return items;
+  }, [currentMonth, endOfMonth, logMap]);
 
-  const calendarDays = generateCalendarDays();
+  const calendarDays = useMemo(() => {
+    const padded: Array<null | (typeof monthDays)[number]> = [];
+    const firstWeekday = startOfMonth.getDay();
+
+    for (let index = 0; index < firstWeekday; index += 1) {
+      padded.push(null);
+    }
+
+    monthDays.forEach((day) => padded.push(day));
+    return padded;
+  }, [monthDays, startOfMonth]);
+
   const selectedLog = selectedDate ? logMap.get(selectedDate) : null;
 
-  const prevMonth = () => {
+  const selectedDateLabel = useMemo(() => {
+    if (!selectedDate) return null;
+    const [year, month, day] = selectedDate.split("-").map((piece) => Number(piece));
+    const parsedDate = new Date(year, month - 1, day);
+
+    return parsedDate.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  }, [selectedDate]);
+
+  const loggedDaysCount = logMap.size;
+
+  const previousMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
     setSelectedDate(null);
   };
@@ -101,325 +197,243 @@ export default function DietHistoryPage() {
     setSelectedDate(null);
   };
 
-  const getAdherenceColor = (score?: number) => {
-    if (!score) return "#e5e7eb";
-    if (score >= 80) return "#22c55e";
-    if (score >= 60) return "#eab308";
-    return "#ef4444";
-  };
-
   return (
-    <div className="client-page__sections">
-      {/* Header */}
-      <header className="client-page__header" style={{ marginBottom: "1rem" }}>
-        <Link
-          href="/client/diet"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            color: "var(--text-secondary)",
-            marginBottom: "0.5rem",
-            fontSize: "0.9rem",
-          }}
-        >
-          <ArrowLeft style={{ width: 18, height: 18 }} />
-          Back to Nutrition
-        </Link>
-        <h1 className="client-page__title">
-          <Calendar
-            style={{
-              width: 28,
-              height: 28,
-              marginRight: "0.5rem",
-              color: "#16a34a",
-            }}
-          />
-          Nutrition History
-        </h1>
+    <div className="client-page__sections space-y-4 pb-6">
+      <header className="space-y-2">
+        <div className="min-w-0">
+          <h1 className="client-page__title !text-[1.15rem] !font-semibold leading-tight sm:!text-[1.2rem]">
+            Nutrition history
+          </h1>
+          <p className="mt-1 text-[11px] font-medium text-emerald-600">Progress timeline</p>
+        </div>
       </header>
 
-      {/* Stats Summary */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-          gap: "0.75rem",
-          marginBottom: "1.5rem",
-        }}
-      >
-        <div
-          className="client-card"
-          style={{
-            padding: "0.75rem",
-            textAlign: "center",
-            background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
-          }}
-        >
-          <Flame style={{ width: 20, height: 20, color: "#f59e0b", margin: "0 auto 0.25rem" }} />
-          <p style={{ fontSize: "1.25rem", fontWeight: 700, color: "#f59e0b" }}>
-            {stats?.averageCalories || 0}
-          </p>
-          <p style={{ fontSize: "0.65rem", color: "#6b7280" }}>Avg Calories</p>
-        </div>
+      <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+        <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-slate-100 bg-slate-50/70">
+          <div className="border-b border-r border-slate-100 px-3 py-2.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-orange-700">
+              <Flame className="h-3.5 w-3.5 text-orange-500" />
+              Avg calories
+            </div>
+            <p className="mt-1 text-base font-semibold text-slate-900">{stats?.averageCalories || 0}</p>
+          </div>
 
-        <div
-          className="client-card"
-          style={{
-            padding: "0.75rem",
-            textAlign: "center",
-            background: "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)",
-          }}
-        >
-          <TrendingUp style={{ width: 20, height: 20, color: "#3b82f6", margin: "0 auto 0.25rem" }} />
-          <p style={{ fontSize: "1.25rem", fontWeight: 700, color: "#3b82f6" }}>
-            {stats?.averageAdherence || 0}%
-          </p>
-          <p style={{ fontSize: "0.65rem", color: "#6b7280" }}>Avg Adherence</p>
-        </div>
-      </div>
+          <div className="border-b border-slate-100 px-3 py-2.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-cyan-700">
+              <TrendingUp className="h-3.5 w-3.5 text-cyan-600" />
+              Avg adherence
+            </div>
+            <p className="mt-1 text-base font-semibold text-slate-900">{stats?.averageAdherence || 0}%</p>
+          </div>
 
-      {/* Calendar */}
-      <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
-        {/* Month Navigation */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1rem",
-          }}
-        >
+          <div className="border-r border-slate-100 px-3 py-2.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-violet-700">
+              <Calendar className="h-3.5 w-3.5 text-violet-600" />
+              Days logged
+            </div>
+            <p className="mt-1 text-base font-semibold text-slate-900">{loggedDaysCount}</p>
+          </div>
+
+          <div className="px-3 py-2.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-700">
+              <Target className="h-3.5 w-3.5 text-emerald-600" />
+              Good days
+            </div>
+            <p className="mt-1 text-base font-semibold text-slate-900">
+              {monthDays.filter((day) => day.status === "great" || day.status === "okay").length}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between">
           <button
-            onClick={prevMonth}
-            style={{
-              padding: "0.5rem",
-              background: "var(--bg-secondary)",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-            }}
+            onClick={previousMonth}
+            className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-slate-600 transition hover:bg-slate-100"
           >
-            <ChevronLeft style={{ width: 20, height: 20 }} />
+            <ChevronLeft className="h-4 w-4" />
           </button>
-          <h3 style={{ fontSize: "1rem", fontWeight: 600 }}>
+
+          <p className="text-sm font-semibold text-slate-900">
             {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-          </h3>
+          </p>
+
           <button
             onClick={nextMonth}
-            style={{
-              padding: "0.5rem",
-              background: "var(--bg-secondary)",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-            }}
+            className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-slate-600 transition hover:bg-slate-100"
           >
-            <ChevronRight style={{ width: 20, height: 20 }} />
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Day Headers */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(7, 1fr)",
-            gap: "0.25rem",
-            marginBottom: "0.5rem",
-          }}
-        >
+        <div className="mb-2 grid grid-cols-7 gap-1">
           {DAYS.map((day) => (
             <div
               key={day}
-              style={{
-                textAlign: "center",
-                fontSize: "0.7rem",
-                fontWeight: 600,
-                color: "var(--text-secondary)",
-                padding: "0.25rem",
-              }}
+              className="py-1 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:text-[11px]"
             >
               {day}
             </div>
           ))}
         </div>
 
-        {/* Calendar Grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(7, 1fr)",
-            gap: "0.25rem",
-          }}
-        >
-          {calendarDays.map((dayData, index) => (
-            <button
-              key={index}
-              onClick={() => dayData && !dayData.isFuture && setSelectedDate(dayData.date)}
-              disabled={!dayData || dayData?.isFuture}
-              style={{
-                aspectRatio: "1",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                background: dayData?.isToday
-                  ? "#16a34a"
-                  : selectedDate === dayData?.date
-                  ? "#dcfce7"
-                  : dayData?.log
-                  ? `${getAdherenceColor(dayData.log.adherenceScore)}20`
-                  : "transparent",
-                border: dayData?.log
-                  ? `2px solid ${getAdherenceColor(dayData.log.adherenceScore)}`
-                  : "1px solid var(--border-color)",
-                borderRadius: "8px",
-                cursor: dayData && !dayData.isFuture ? "pointer" : "default",
-                fontSize: "0.85rem",
-                fontWeight: dayData?.isToday ? 700 : 500,
-                color: dayData?.isToday ? "white" : dayData?.isFuture ? "#9ca3af" : "inherit",
-                opacity: dayData?.isFuture ? 0.4 : 1,
-              }}
-            >
-              {dayData?.day}
-              {dayData?.log && (
+        <div className="grid grid-cols-7 gap-1">
+          {calendarDays.map((dayData, index) => {
+            if (!dayData) {
+              return (
                 <div
-                  style={{
-                    width: "6px",
-                    height: "6px",
-                    borderRadius: "50%",
-                    background: getAdherenceColor(dayData.log.adherenceScore),
-                    marginTop: "2px",
-                  }}
+                  key={`empty-${index}`}
+                  className="aspect-square min-h-[38px] rounded-lg border border-transparent sm:rounded-xl"
                 />
-              )}
-            </button>
+              );
+            }
+
+            const statusConfig = statusStyles[dayData.status];
+
+            return (
+              <button
+                key={dayData.date}
+                onClick={() => (!dayData.isFuture ? setSelectedDate(dayData.date) : undefined)}
+                disabled={dayData.isFuture}
+                className={cn(
+                  "relative aspect-square min-h-[38px] rounded-lg border text-center text-[11px] font-semibold transition sm:rounded-xl sm:text-xs",
+                  dayData.isFuture
+                    ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
+                    : selectedDate === dayData.date
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-900"
+                      : statusConfig.tile,
+                  dayData.isToday && "ring-2 ring-emerald-300"
+                )}
+              >
+                <span>{dayData.day}</span>
+                {dayData.log ? (
+                  <span
+                    className={cn(
+                      "absolute bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full",
+                      statusConfig.dot
+                    )}
+                  />
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 flex items-center gap-3 text-[10px] text-slate-500 sm:text-[11px]">
+          {(["great", "okay", "low"] as DayStatus[]).map((status) => (
+            <span key={status} className="inline-flex items-center gap-1">
+              <span className={cn("h-1.5 w-1.5 rounded-full", statusStyles[status].dot)} />
+              {statusStyles[status].label}
+            </span>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* Selected Day Details */}
-      {selectedDate && (
-        <div className="client-card" style={{ padding: "1rem" }}>
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-            {new Date(selectedDate).toLocaleDateString("en-US", {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
-          </h3>
+      {selectedDate ? (
+        <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-900">{selectedDateLabel}</h2>
 
           {selectedLog ? (
             <>
-              {/* Daily Totals */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
-                  gap: "0.5rem",
-                  marginBottom: "1rem",
-                  padding: "0.75rem",
-                  background: "var(--bg-secondary)",
-                  borderRadius: "8px",
-                }}
-              >
-                <div style={{ textAlign: "center" }}>
-                  <p style={{ fontSize: "1rem", fontWeight: 700, color: "#f97316" }}>
-                    {selectedLog.dailyTotals?.calories || 0}
-                  </p>
-                  <p style={{ fontSize: "0.65rem", color: "#6b7280" }}>kcal</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold",
+                    statusStyles[deriveStatus(selectedLog)].badge
+                  )}
+                >
+                  {statusStyles[deriveStatus(selectedLog)].label}
+                </span>
+                <span className="text-xs text-slate-500">Adherence: {selectedLog.adherenceScore || 0}%</span>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-center">
+                  <p className="font-semibold text-orange-700">{selectedLog.dailyTotals?.calories || 0}</p>
+                  <p className="text-[10px] text-slate-500">kcal</p>
                 </div>
-                <div style={{ textAlign: "center" }}>
-                  <p style={{ fontSize: "1rem", fontWeight: 700, color: "#ef4444" }}>
-                    {selectedLog.dailyTotals?.protein || 0}g
-                  </p>
-                  <p style={{ fontSize: "0.65rem", color: "#6b7280" }}>Protein</p>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-center">
+                  <p className="font-semibold text-rose-700">{selectedLog.dailyTotals?.protein || 0}g</p>
+                  <p className="text-[10px] text-slate-500">Protein</p>
                 </div>
-                <div style={{ textAlign: "center" }}>
-                  <p style={{ fontSize: "1rem", fontWeight: 700, color: "#3b82f6" }}>
-                    {selectedLog.dailyTotals?.carbs || 0}g
-                  </p>
-                  <p style={{ fontSize: "0.65rem", color: "#6b7280" }}>Carbs</p>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-center">
+                  <p className="font-semibold text-cyan-700">{selectedLog.dailyTotals?.carbs || 0}g</p>
+                  <p className="text-[10px] text-slate-500">Carbs</p>
                 </div>
-                <div style={{ textAlign: "center" }}>
-                  <p style={{ fontSize: "1rem", fontWeight: 700, color: "#eab308" }}>
-                    {selectedLog.dailyTotals?.fat || 0}g
-                  </p>
-                  <p style={{ fontSize: "0.65rem", color: "#6b7280" }}>Fat</p>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-center">
+                  <p className="font-semibold text-amber-700">{selectedLog.dailyTotals?.fat || 0}g</p>
+                  <p className="text-[10px] text-slate-500">Fat</p>
                 </div>
               </div>
 
-              {/* Meals */}
-              {selectedLog.meals && selectedLog.meals.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              {selectedLog.meals?.length ? (
+                <div className="mt-3 space-y-2">
                   {selectedLog.meals.map((meal, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        padding: "0.75rem",
-                        border: "1px solid var(--border-color)",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                        <span style={{ fontWeight: 500, textTransform: "capitalize" }}>
-                          {meal.mealType.replace(/_/g, " ")}
-                        </span>
-                        <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                          {meal.time}
-                        </span>
+                    <article key={`${meal.mealType}-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-slate-900">{formatMealType(meal.mealType)}</p>
+                        <p className="text-xs text-slate-500">{meal.time || "-"}</p>
                       </div>
-                      {meal.foods && meal.foods.length > 0 && (
-                        <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-                          {meal.foods.map((food, i) => (
-                            <span key={i}>
-                              {food.foodName}
-                              {i < meal.foods!.length - 1 && ", "}
-                            </span>
-                          ))}
-                        </div>
+
+                      {meal.foods?.length ? (
+                        <p className="mt-1 text-xs text-slate-600">
+                          {meal.foods.map((food) => food.foodName).filter(Boolean).join(" · ")}
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-xs text-slate-500">No food items recorded.</p>
                       )}
-                    </div>
+                    </article>
                   ))}
                 </div>
               ) : (
-                <p style={{ textAlign: "center", color: "var(--text-secondary)", padding: "1rem" }}>
-                  No meals logged this day
+                <p className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                  No meals logged on this date.
                 </p>
               )}
+
+              {selectedLog.notes ? (
+                <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  <span className="font-semibold">Notes:</span> {selectedLog.notes}
+                </p>
+              ) : null}
             </>
           ) : (
-            <div style={{ textAlign: "center", padding: "2rem" }}>
-              <p style={{ color: "var(--text-secondary)", marginBottom: "1rem" }}>
-                No nutrition data logged for this day
-              </p>
+            <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
+              <Utensils className="mx-auto h-7 w-7 text-slate-300" />
+              <p className="mt-2 text-sm text-slate-600">No nutrition log found for this day.</p>
               <Link
                 href="/client/diet/log"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.75rem 1.5rem",
-                  background: "linear-gradient(135deg, #16a34a 0%, #22c55e 100%)",
-                  color: "white",
-                  borderRadius: "8px",
-                  textDecoration: "none",
-                  fontWeight: 500,
-                }}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold !text-white transition hover:bg-slate-800"
               >
-                Log a Meal
-                <ChevronRight style={{ width: 18, height: 18 }} />
+                Log a meal
+                <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           )}
-        </div>
-      )}
+        </section>
+      ) : null}
 
-      {isLoading && (
-        <div style={{ textAlign: "center", padding: "2rem" }}>
-          <p style={{ color: "var(--text-secondary)" }}>Loading history...</p>
+      {isLoading ? (
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500 shadow-sm">
+          Loading nutrition history...
         </div>
-      )}
+      ) : null}
+
+      {!isLoading && logs.length === 0 ? (
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+          <Calendar className="mx-auto h-9 w-9 text-slate-300" />
+          <h3 className="mt-3 text-base font-semibold text-slate-900">No history yet</h3>
+          <p className="mt-1 text-sm text-slate-500">Log your first meal and your timeline will show up here.</p>
+          <Link
+            href="/client/diet/log"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold !text-white transition hover:bg-slate-800"
+          >
+            Log meal
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }

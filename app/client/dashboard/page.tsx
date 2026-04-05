@@ -2,7 +2,6 @@
 "use client";
 
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -12,13 +11,13 @@ import {
   Dumbbell,
   Sparkles,
   UserCircle2,
+  Utensils,
   Waves,
 } from "lucide-react";
 import ClientStats from "@/components/client/ClientStats";
-const ProgressCharts = dynamic(() => import("@/components/client/ProgressCharts"), { ssr: false });
 import AssignedPlans from "@/components/client/AssignedPlans";
 import WaterIntakeWidget from "@/components/client/WaterIntakeWidget";
-import GoalWeightWidget from "@/components/client/GoalWeightWidget";
+import GoalWeightWidget from "../../../components/client/GoalWeightWidget";
 import { useMyCoachQuery } from "@/lib/queries/coach";
 import RoleGuard from "@/components/shared/RoleGuard";
 import { Button } from "@/components/ui/button";
@@ -43,7 +42,7 @@ const todayCoreActions = [
     title: "Today's Nutrition",
     description: "Follow your current meal plan and stay consistent with intake.",
     href: "/client/diet/today",
-    Icon: Waves,
+    Icon: Utensils,
     iconTone: "from-emerald-500 to-lime-500",
     cardTone: "from-emerald-50 to-lime-50",
   },
@@ -262,22 +261,22 @@ export default function ClientDashboardPage() {
         animate="animate"
         transition={{ duration: 0.28, delay: 0.08 }}
         aria-labelledby="wellness-widgets-heading"
-        className="space-y-3"
+        className="space-y-4"
       >
         <div className="flex items-center gap-2 px-1">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
             <Waves className="h-4 w-4" />
           </span>
           <h2 id="wellness-widgets-heading" className="text-base font-semibold text-slate-900 md:text-lg">
-            Daily Wellness Widgets
+            Wellness & Goals
           </h2>
         </div>
-        <div className="grid grid-cols-2 items-stretch gap-2 sm:gap-3">
+        <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
           <div className="min-w-0 h-full">
-            <WaterIntakeWidget compact />
+            <WaterIntakeWidget />
           </div>
           <div className="min-w-0 h-full">
-            <GoalWeightWidget compact />
+            <GoalWeightWidget />
           </div>
         </div>
       </motion.section>
@@ -330,7 +329,7 @@ export default function ClientDashboardPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <h2 className="text-sm font-semibold text-slate-900">{item.title}</h2>
+                        <h2 className="text-lg font-semibold leading-tight text-slate-900 md:text-xl">{item.title}</h2>
                         <p className="hidden text-xs leading-5 text-slate-600 sm:block">{item.description}</p>
                       </div>
 
@@ -368,14 +367,10 @@ export default function ClientDashboardPage() {
 
       <motion.section variants={fadeInUp} initial="initial" animate="animate" transition={{ duration: 0.28, delay: 0.16 }}>
         <Card className="border-slate-200/80 bg-white/95">
-          <CardContent className="p-4 sm:p-5">
+          <CardContent className="p-4 pt-5 sm:p-5">
             <ClientStats />
           </CardContent>
         </Card>
-      </motion.section>
-
-      <motion.section variants={fadeInUp} initial="initial" animate="animate" transition={{ duration: 0.28, delay: 0.18 }}>
-        <ProgressCharts />
       </motion.section>
 
     </div>

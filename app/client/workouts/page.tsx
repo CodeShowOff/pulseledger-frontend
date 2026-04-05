@@ -1,1155 +1,495 @@
-// app/client/workouts/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Dumbbell,
   Calendar,
-  Clock,
-  CheckCircle2,
   ChevronRight,
-  Target,
+  Clock3,
+  Dumbbell,
   Flame,
-  Trophy,
+  ListChecks,
   Play,
-  ArrowLeft,
-  SkipForward,
-  Circle,
-  ChevronDown,
-  ChevronUp,
-  Timer,
-  Pause,
+  Sparkles,
+  Target,
+  Trophy,
 } from "lucide-react";
-import {
-  useClientWorkoutPlans,
-  useClientTodayWorkout,
-  useClientWorkoutStats,
-  CLIENT_WORKOUT_PLANS_KEY,
-  CLIENT_WORKOUT_LOGS_KEY,
-  CLIENT_TODAY_WORKOUT_KEY,
-} from "@/lib/queries/workouts";
-import api from "@/lib/axios";
 import ExerciseAnimation from "@/components/shared/ExerciseAnimation";
-import { toast } from "sonner";
+import {
+  ClientTodayWorkout,
+  useClientTodayWorkout,
+  useClientWorkoutPlans,
+  useClientWorkoutStats,
+} from "@/lib/queries/workouts";
 import { formatISTDate, getISTDayOfWeek } from "@/lib/ist";
+import { cn } from "@/lib/utils";
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+type PageView = "today" | "plans";
 
-interface Exercise {
-  exerciseId?:
-    | string
-    | {
-        _id: string;
-        name: string;
-        category?: string;
-        muscleGroups?: string[];
-        animationUrl?: string;
-        thumbnailUrl?: string;
-        instructions?: string[];
-      };
-  exerciseName?: string;
-  name?: string;
-  sets?: number;
-  reps?: number;
-  repsMin?: number;
-  repsMax?: number;
-  duration?: number;
-  restSeconds?: number;
-  weight?: string;
-  notes?: string;
-}
+const DAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+const TAB_OPTIONS: Array<{ key: PageView; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+  { key: "today", label: "Today", icon: Sparkles },
+  { key: "plans", label: "Plans", icon: ListChecks },
+];
+
+const PREVIEW_ROW_THEMES = [
+  "border-violet-200 bg-violet-50/90",
+  "border-cyan-200 bg-cyan-50/90",
+  "border-emerald-200 bg-emerald-50/90",
+  "border-amber-200 bg-amber-50/90",
+];
+
+const formatDuration = (seconds: number) => {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "0m";
+  return `${Math.ceil(seconds / 60)}m`;
+};
+
+const formatFocusText = (value?: string) => {
+  if (!value) return "Full Body";
+  return value.replace(/_/g, " ");
+};
+
+const getExerciseName = (exercise: any) => {
+  const data = typeof exercise?.exerciseId === "string" ? undefined : exercise?.exerciseId;
+  return data?.name || exercise?.exerciseName || exercise?.name || "Exercise";
+};
+
+const getExerciseReps = (exercise: any) => {
+  if (exercise?.repsMin && exercise?.repsMax) {
+    return `${exercise.repsMin}-${exercise.repsMax}`;
+  }
+
+  if (exercise?.reps) {
+    return `${exercise.reps}`;
+  }
+
+  return "-";
+};
 
 export default function ClientWorkoutsPage() {
-  const queryClient = useQueryClient();
-  const [view, setView] = useState<"today" | "plans" | "history">("today");
+  const [view, setView] = useState<PageView>("today");
   const [selectedTodayPlanId, setSelectedTodayPlanId] = useState<string | null>(null);
-  
-  // Workout execution state
-  const [isWorkoutStarted, setIsWorkoutStarted] = useState(false);
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-  const [completedExercises, setCompletedExercises] = useState<Set<number>>(new Set());
-  const [isResting, setIsResting] = useState(false);
-  const [restTimeLeft, setRestTimeLeft] = useState(0);
-  const [showInstructions, setShowInstructions] = useState(false);
-  const [isExerciseTimerRunning, setIsExerciseTimerRunning] = useState(false);
-  const [exerciseTimeLeft, setExerciseTimeLeft] = useState(0);
-  const [workoutStartTime, setWorkoutStartTime] = useState<Date | null>(null);
 
-  // Fetch assigned workout plans
+  const { data: todayWorkouts = [], isLoading: todayLoading, isError: todayError } = useClientTodayWorkout();
   const { data: plans = [], isLoading: plansLoading } = useClientWorkoutPlans();
-
-  // Fetch today's workout
-  const { data: todayWorkouts = [], isLoading: todayLoading } = useClientTodayWorkout();
-
-  // Fetch workout stats
-  const { data: stats } = useClientWorkoutStats();
+  const { data: stats } = useClientWorkoutStats(30);
 
   const today = new Date();
   const dayOfWeek = getISTDayOfWeek(today);
-  const todayDateString = formatISTDate(today);
+  const todayDate = formatISTDate(today);
 
   useEffect(() => {
     if (selectedTodayPlanId) return;
-    if (!todayWorkouts || todayWorkouts.length === 0) return;
-    const first = todayWorkouts[0];
-    setSelectedTodayPlanId((first.workoutPlanId || first.planId) ?? null);
-  }, [todayWorkouts, selectedTodayPlanId]);
+    if (!todayWorkouts.length) return;
+
+    const preferredWorkout =
+      todayWorkouts.find((workout) => !workout.isRestDay && (workout.exercises?.length || 0) > 0) ||
+      todayWorkouts[0];
+
+    setSelectedTodayPlanId((preferredWorkout.workoutPlanId || preferredWorkout.planId) ?? null);
+  }, [selectedTodayPlanId, todayWorkouts]);
 
   const selectedTodayWorkout =
-    todayWorkouts.find((w: any) => (w.workoutPlanId || w.planId) === selectedTodayPlanId) ||
-    todayWorkouts[0] ||
-    null;
+    (todayWorkouts.find((workout) => (workout.workoutPlanId || workout.planId) === selectedTodayPlanId) ||
+      todayWorkouts[0] ||
+      null) as ClientTodayWorkout | null;
 
-  // Get exercises from today's workout
-  const exercises: Exercise[] = selectedTodayWorkout?.exercises || [];
-  const currentExercise = exercises[currentExerciseIndex];
+  const exercises = selectedTodayWorkout?.exercises || [];
 
-  // Get exercise details
-  const exerciseData = currentExercise?.exerciseId;
-  const exerciseObj = typeof exerciseData === "string" ? undefined : exerciseData;
-  const exerciseName =
-    exerciseObj?.name || currentExercise?.exerciseName || currentExercise?.name || "Exercise";
-  const animationUrl = exerciseObj?.animationUrl;
-  const repsDisplay = currentExercise?.reps || 
-    (currentExercise?.repsMin && currentExercise?.repsMax 
-      ? `${currentExercise.repsMin}-${currentExercise.repsMax}` 
-      : null);
+  const heroExercise = exercises[0];
+  const heroExerciseData = heroExercise?.exerciseId;
+  const heroExerciseObj = typeof heroExerciseData === "string" ? undefined : heroExerciseData;
 
-  // Complete workout mutation
-  const completeWorkoutMutation = useMutation({
-    mutationFn: async () => {
-      const duration = workoutStartTime
-        ? Math.round((new Date().getTime() - workoutStartTime.getTime()) / 60000)
-        : 0;
-      
-      // Build exercise logs from completed exercises
-      const exerciseLogs = exercises.map((ex, index) => ({
-        exerciseId: typeof ex.exerciseId === "string" ? ex.exerciseId : ex.exerciseId?._id,
-        exerciseName:
-          (typeof ex.exerciseId === "string" ? undefined : ex.exerciseId?.name) ||
-          ex.exerciseName ||
-          ex.name,
-        completedSets: completedExercises.has(index) ? (ex.sets || 1) : 0,
-        completed: completedExercises.has(index),
-      }));
+  const heroExerciseName =
+    heroExerciseObj?.name || heroExercise?.exerciseName || heroExercise?.name || "Exercise preview";
 
-      // Use the log ID from today's workout
-      if (selectedTodayWorkout?._id) {
-        const res = await api.post(`/client/workouts/${selectedTodayWorkout._id}/complete`, {
-          exerciseLogs,
-          actualDuration: duration,
-          clientNotes: `Completed ${completedExercises.size} of ${exercises.length} exercises`,
-        });
-        return res.data;
-      } else {
-        throw new Error("No workout log found for today");
-      }
-    },
-    onSuccess: () => {
-      toast.success("Workout completed! Great job!");
-      queryClient.invalidateQueries({ queryKey: CLIENT_TODAY_WORKOUT_KEY });
-      queryClient.invalidateQueries({ queryKey: CLIENT_WORKOUT_PLANS_KEY });
-      queryClient.invalidateQueries({ queryKey: CLIENT_WORKOUT_LOGS_KEY });
-      setIsWorkoutStarted(false);
-      setCurrentExerciseIndex(0);
-      setCompletedExercises(new Set());
-      setWorkoutStartTime(null);
-    },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to complete workout. Please try again.");
-    },
-  });
+  const totalSeconds = useMemo(
+    () => exercises.reduce((total, exercise) => total + (exercise.duration || 20), 0),
+    [exercises]
+  );
 
-  // Rest timer effect
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isResting && restTimeLeft > 0) {
-      timer = setTimeout(() => {
-        setRestTimeLeft((prev) => {
-          if (prev <= 1) {
-            setIsResting(false);
-            toast("Rest complete! Ready for next exercise 💪");
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else if (isResting && restTimeLeft === 0) {
-      setIsResting(false);
-    }
-    return () => clearTimeout(timer);
-  }, [isResting, restTimeLeft]);
+  const streakValue = stats?.todayCompleted
+    ? stats?.streak || 0
+    : stats?.yesterdayCompleted
+      ? stats?.streak || 0
+      : 0;
 
-  // Exercise timer effect
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isExerciseTimerRunning && exerciseTimeLeft > 0) {
-      timer = setTimeout(() => {
-        setExerciseTimeLeft((prev) => {
-          if (prev <= 1) {
-            setIsExerciseTimerRunning(false);
-            toast.success("⏱️ Time's up! Complete the exercise.");
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else if (isExerciseTimerRunning && exerciseTimeLeft === 0) {
-      setIsExerciseTimerRunning(false);
-    }
-    return () => clearTimeout(timer);
-  }, [isExerciseTimerRunning, exerciseTimeLeft]);
-
-  // Reset exercise timer when exercise changes
-  useEffect(() => {
-    const duration = currentExercise?.duration || 20;
-    setExerciseTimeLeft(duration);
-    setIsExerciseTimerRunning(false);
-  }, [currentExerciseIndex, currentExercise?.duration]);
-
-  // Start workout
-  const startWorkout = () => {
-    setIsWorkoutStarted(true);
-    setCurrentExerciseIndex(0);
-    setCompletedExercises(new Set());
-    setWorkoutStartTime(new Date());
-  };
-
-  // Exit workout
-  const exitWorkout = () => {
-    if (completedExercises.size > 0) {
-      if (confirm("You have progress. Do you want to exit? Your progress will be lost.")) {
-        setIsWorkoutStarted(false);
-        setCurrentExerciseIndex(0);
-        setCompletedExercises(new Set());
-        setWorkoutStartTime(null);
-      }
-    } else {
-      setIsWorkoutStarted(false);
-      setWorkoutStartTime(null);
-    }
-  };
-
-  // Complete current exercise
-  const completeExercise = () => {
-    // Mark current exercise as completed
-    setCompletedExercises((prev) => new Set([...prev, currentExerciseIndex]));
-    toast.success(`${exerciseName} completed!`);
-
-    // Move to next uncompleted exercise
-    const nextIndex = exercises.findIndex(
-      (_, i) => i > currentExerciseIndex && !completedExercises.has(i)
-    );
-    if (nextIndex !== -1) {
-      setCurrentExerciseIndex(nextIndex);
-      const restTime = exercises[nextIndex]?.restSeconds || 20;
-      setRestTimeLeft(restTime);
-      setIsResting(true);
-    }
-    // Reset exercise timer
-    setIsExerciseTimerRunning(false);
-    setExerciseTimeLeft(0);
-  };
-
-  // Skip exercise
-  const skipExercise = () => {
-    // Mark current as completed (skipped still counts as completed)
-    setCompletedExercises((prev) => new Set([...prev, currentExerciseIndex]));
-    
-    const nextIndex = exercises.findIndex(
-      (_, i) => i > currentExerciseIndex && !completedExercises.has(i)
-    );
-    if (nextIndex !== -1) {
-      setCurrentExerciseIndex(nextIndex);
-      setIsResting(false);
-      setRestTimeLeft(0);
-    }
-    // Reset exercise timer
-    setIsExerciseTimerRunning(false);
-    setExerciseTimeLeft(0);
-  };
-
-  // Go to specific exercise
-  const goToExercise = (index: number) => {
-    // Allow redoing any exercise, even if completed
-    setCurrentExerciseIndex(index);
-    setIsResting(false);
-    setIsExerciseTimerRunning(false);
-    setExerciseTimeLeft(0);
-    // Remove from completed if clicking on it again
-    if (completedExercises.has(index)) {
-      const newCompleted = new Set(completedExercises);
-      newCompleted.delete(index);
-      setCompletedExercises(newCompleted);
-    }
-  };
-
-  // Skip rest
-  const skipRest = () => {
-    setIsResting(false);
-    setRestTimeLeft(0);
-  };
-
-  // Start exercise timer
-  const startExerciseTimer = () => {
-    const duration = currentExercise?.duration || 20;
-    setExerciseTimeLeft(duration);
-    setIsExerciseTimerRunning(true);
-  };
-
-  // Stop exercise timer
-  const stopExerciseTimer = () => {
-    setIsExerciseTimerRunning(false);
-  };
-
-  // Finish workout
-  const finishWorkout = () => {
-    if (completedExercises.size === 0) {
-      toast.error("Complete at least one exercise to log your workout.");
-      return;
-    }
-    completeWorkoutMutation.mutate();
-  };
-
-  // Render active workout UI
-  const renderActiveWorkout = () => (
-    <div>
-      {/* Progress Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "1rem",
-        }}
-      >
-        <button
-          onClick={exitWorkout}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.25rem",
-            color: "#6b7280",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: "0.85rem",
-          }}
-        >
-          <ArrowLeft style={{ width: 16, height: 16 }} />
-          Exit
-        </button>
-        <span style={{ fontSize: "0.85rem", color: "#6b7280" }}>
-          {completedExercises.size}/{exercises.length} completed
-        </span>
-      </div>
-
-      {/* Progress Bar */}
-      <div
-        style={{
-          height: "6px",
-          backgroundColor: "#e5e7eb",
-          borderRadius: "3px",
-          marginBottom: "1.5rem",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            height: "100%",
-            width: `${(completedExercises.size / exercises.length) * 100}%`,
-            backgroundColor: "#16a34a",
-            transition: "width 0.3s",
-          }}
-        />
-      </div>
-
-      {/* Rest Timer Overlay */}
-      {isResting && (
-        <div
-          className="client-card"
-          style={{
-            padding: "2rem",
-            textAlign: "center",
-            background: "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)",
-            marginBottom: "1rem",
-          }}
-        >
-          <Clock style={{ width: 32, height: 32, color: "#2563eb", margin: "0 auto 0.5rem" }} />
-          <p style={{ fontSize: "0.9rem", color: "#1d4ed8", marginBottom: "0.5rem" }}>Rest Time</p>
-          <p style={{ fontSize: "3rem", fontWeight: 700, color: "#1e40af" }}>{restTimeLeft}s</p>
-          <button
-            onClick={skipRest}
-            style={{
-              marginTop: "1rem",
-              padding: "0.5rem 1.5rem",
-              backgroundColor: "#fff",
-              border: "1px solid #2563eb",
-              borderRadius: "8px",
-              color: "#2563eb",
-              cursor: "pointer",
-              fontSize: "0.9rem",
-            }}
-          >
-            Skip Rest
-          </button>
+  const renderPlansSection = () => {
+    if (plansLoading) {
+      return (
+        <div className="space-y-2">
+          {[1, 2, 3].map((item) => (
+            <div
+              key={`plan-loading-${item}`}
+              className="h-[88px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100"
+            />
+          ))}
         </div>
-      )}
+      );
+    }
 
-      {/* Current Exercise */}
-      {currentExercise && !isResting && (
-        <div className="client-card" style={{ overflow: "hidden", marginBottom: "1rem" }}>
-          {/* Animation Display */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "1.5rem",
-              backgroundColor: "#111",
-            }}
-          >
+    if (!plans.length) {
+      return (
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-5 text-center">
+          <Dumbbell className="mx-auto h-7 w-7 text-slate-300" />
+          <p className="mt-2 text-sm font-semibold text-slate-800">No workout plans yet</p>
+          <p className="mt-1 text-xs text-slate-500">Your coach will assign one soon.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-2.5">
+        {plans.map((plan: any, index: number) => {
+          const intensity = Math.max(25, Math.min(95, ((plan.daysPerWeek || 1) / 7) * 100));
+
+          return (
+            <Link
+              key={plan._id}
+              href={`/client/workouts/plan/${plan._id}`}
+              className="block rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-slate-900">{plan.name}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {(plan.goal || plan.category || "fitness").replace(/_/g, " ")} · {plan.difficulty || "all levels"}
+                  </p>
+                  <p className="mt-1.5 text-[11px] font-medium text-indigo-600">
+                    {plan.daysPerWeek || 0} days/week · {plan.durationWeeks || 0} weeks
+                  </p>
+                </div>
+
+                <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+              </div>
+
+              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className={cn(
+                    "h-full rounded-full",
+                    index % 3 === 0
+                      ? "bg-gradient-to-r from-indigo-500 to-violet-500"
+                      : index % 3 === 1
+                        ? "bg-gradient-to-r from-cyan-500 to-emerald-500"
+                        : "bg-gradient-to-r from-amber-500 to-orange-500"
+                  )}
+                  style={{ width: `${intensity}%` }}
+                />
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderTodaySpotlight = () => {
+    if (todayLoading) {
+      return (
+        <div className="space-y-3 px-4 pb-4">
+          <div className="h-[230px] animate-pulse rounded-[22px] border border-white/70 bg-white/80" />
+          <div className="h-10 animate-pulse rounded-xl border border-white/70 bg-white/80" />
+        </div>
+      );
+    }
+
+    if (todayError) {
+      return (
+        <div className="px-4 pb-4">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-center">
+            <p className="text-sm font-semibold text-rose-800">Couldn&apos;t load today&apos;s workout</p>
+            <p className="mt-1 text-xs text-rose-700">Please refresh or try again in a moment.</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!selectedTodayWorkout) {
+      return (
+        <div className="px-4 pb-4">
+          <div className="rounded-2xl border border-slate-200 bg-white/85 px-4 py-6 text-center">
+            <Dumbbell className="mx-auto h-8 w-8 text-slate-300" />
+            <p className="mt-2 text-sm font-semibold text-slate-800">No workout assigned today</p>
+            <p className="mt-1 text-xs text-slate-500">Your coach hasn&apos;t assigned one yet.</p>
+            <Link
+              href="/client/workouts/history"
+              className="mt-3 inline-flex h-9 items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700"
+            >
+              View history
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    if (selectedTodayWorkout.isRestDay) {
+      return (
+        <div className="px-4 pb-4">
+          <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 px-4 py-6 text-center">
+            <p className="text-3xl">🧘</p>
+            <p className="mt-2 text-sm font-semibold text-amber-900">Recovery day</p>
+            <p className="mt-1 text-xs text-amber-700">
+              Light stretching, hydration, and sleep are your workout today.
+            </p>
+            <Link
+              href="/client/workouts/history"
+              className="mt-3 inline-flex h-9 items-center justify-center gap-1 rounded-xl border border-amber-300 bg-white/90 px-3 text-xs font-semibold text-amber-800"
+            >
+              Open history
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="px-4 pb-4">
+          <div className="rounded-[24px] border border-white/80 bg-white/80 p-3">
             <ExerciseAnimation
-              animationUrl={animationUrl}
-              thumbnailUrl={exerciseObj?.thumbnailUrl}
-              exerciseName={exerciseName}
+              animationUrl={heroExerciseObj?.animationUrl}
+              thumbnailUrl={heroExerciseObj?.thumbnailUrl}
+              exerciseName={heroExerciseName}
               size="large"
-              showControls={true}
+              showControls={false}
             />
           </div>
 
-          {/* Exercise Info */}
-          <div style={{ padding: "1.5rem" }}>
-            <h2 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "1rem" }}>
-              {exerciseName}
-            </h2>
-
-            {/* Reps/Duration/Weight */}
-            <div
-              style={{
-                display: "flex",
-                gap: "1rem",
-                padding: "1rem",
-                backgroundColor: "#f9fafb",
-                borderRadius: "12px",
-                marginBottom: "1rem",
-              }}
-            >
-              {repsDisplay && (
-                <div style={{ flex: 1, textAlign: "center" }}>
-                  <p style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                    REPS
-                  </p>
-                  <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "#111" }}>
-                    {repsDisplay}
-                  </p>
-                </div>
-              )}
-              <div style={{ flex: 1, textAlign: "center" }}>
-                <p style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                  TIME
-                </p>
-                <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "#111" }}>
-                  {currentExercise.duration || 20}s
-                </p>
-              </div>
-              {currentExercise.weight && (
-                <div style={{ flex: 1, textAlign: "center" }}>
-                  <p style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                    WEIGHT
-                  </p>
-                  <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "#111" }}>
-                    {currentExercise.weight}
-                  </p>
-                </div>
-              )}
+          <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] font-semibold text-slate-700">
+            <div className="rounded-xl border border-white/80 bg-white/80 px-3 py-2">
+              Exercise <span className="text-indigo-600">{exercises.length}</span>
             </div>
-
-            {/* Instructions Toggle */}
-            {exerciseObj?.instructions && exerciseObj.instructions.length > 0 && (
-              <>
-                <button
-                  onClick={() => setShowInstructions(!showInstructions)}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "0.75rem",
-                    backgroundColor: "#f3f4f6",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    marginBottom: "1rem",
-                  }}
-                >
-                  <span style={{ fontWeight: 500, color: "#374151" }}>How to perform</span>
-                  {showInstructions ? (
-                    <ChevronUp style={{ width: 18, height: 18, color: "#6b7280" }} />
-                  ) : (
-                    <ChevronDown style={{ width: 18, height: 18, color: "#6b7280" }} />
-                  )}
-                </button>
-
-                {showInstructions && (
-                  <div
-                    style={{
-                      padding: "1rem",
-                      backgroundColor: "#f9fafb",
-                      borderRadius: "8px",
-                      marginBottom: "1rem",
-                    }}
-                  >
-                    <ol style={{ margin: 0, paddingLeft: "1.25rem" }}>
-                      {exerciseObj.instructions.map((inst: string, idx: number) => (
-                        <li
-                          key={idx}
-                          style={{ fontSize: "0.85rem", color: "#4b5563", marginBottom: "0.5rem" }}
-                        >
-                          {inst}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Exercise Timer Display */}
-            {isExerciseTimerRunning && (
-              <div
-                style={{
-                  padding: "1rem",
-                  backgroundColor: "#fef3c7",
-                  borderRadius: "8px",
-                  marginBottom: "1rem",
-                  textAlign: "center",
-                }}
-              >
-                <p style={{ fontSize: "0.85rem", color: "#92400e", marginBottom: "0.25rem" }}>
-                  Exercise Timer
-                </p>
-                <p style={{ fontSize: "2rem", fontWeight: 700, color: "#b45309" }}>
-                  {exerciseTimeLeft}s
-                </p>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div style={{ display: "flex", gap: "0.75rem", marginBottom: "0.75rem" }}>
-              <button
-                onClick={isExerciseTimerRunning ? stopExerciseTimer : startExerciseTimer}
-                style={{
-                  flex: 1,
-                  padding: "0.875rem",
-                  backgroundColor: isExerciseTimerRunning ? "#fef3c7" : "#dbeafe",
-                  border: "none",
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.5rem",
-                  fontSize: "0.9rem",
-                  color: isExerciseTimerRunning ? "#92400e" : "#1e40af",
-                  fontWeight: 500,
-                }}
-              >
-                {isExerciseTimerRunning ? (
-                  <>
-                    <Pause style={{ width: 18, height: 18 }} />
-                    Stop
-                  </>
-                ) : (
-                  <>
-                    <Timer style={{ width: 18, height: 18 }} />
-                    Start Timer
-                  </>
-                )}
-              </button>
-              <button
-                onClick={skipExercise}
-                style={{
-                  flex: 1,
-                  padding: "0.875rem",
-                  backgroundColor: "#fee2e2",
-                  border: "none",
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.5rem",
-                  fontSize: "0.9rem",
-                  color: "#991b1b",
-                  fontWeight: 500,
-                }}
-              >
-                <SkipForward style={{ width: 18, height: 18 }} />
-                Skip
-              </button>
+            <div className="rounded-xl border border-white/80 bg-white/80 px-3 py-2 text-right">
+              Total <span className="text-indigo-600">{formatDuration(totalSeconds)}</span>
             </div>
-            <button
-              onClick={completeExercise}
-              className="client-button"
-              style={{
-                width: "100%",
-                padding: "0.875rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem",
-              }}
-            >
-              <CheckCircle2 style={{ width: 18, height: 18 }} />
-              Complete Exercise
-            </button>
           </div>
         </div>
-      )}
 
-      {/* Exercise List */}
-      <div className="client-card" style={{ padding: "1rem" }}>
-        <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-          All Exercises
-        </h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          {exercises.map((exercise, index) => {
-            const isCompleted = completedExercises.has(index);
-            const isCurrent = index === currentExerciseIndex;
-            const exData = exercise.exerciseId;
-            const exObj = typeof exData === "string" ? undefined : exData;
-            const exName = exObj?.name || exercise.exerciseName || exercise.name || "Exercise";
+        <div className="rounded-t-[28px] border-t border-white/70 bg-white px-4 pb-4 pt-3">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">{formatFocusText(selectedTodayWorkout.focus)}</p>
+              <p className="mt-0.5 text-xs text-slate-500">{selectedTodayWorkout.planName || "Today plan"}</p>
+            </div>
+
+            <span
+              className={cn(
+                "rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide",
+                selectedTodayWorkout.completed || selectedTodayWorkout.status === "completed"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-indigo-100 text-indigo-700"
+              )}
+            >
+              {selectedTodayWorkout.completed || selectedTodayWorkout.status === "completed" ? "Completed" : "Ready"}
+            </span>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {exercises.slice(0, 4).map((exercise, index) => (
+              <div
+                key={`${getExerciseName(exercise)}-${index}`}
+                className={cn("rounded-2xl border px-3 py-2", PREVIEW_ROW_THEMES[index % PREVIEW_ROW_THEMES.length])}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900">
+                      {index + 1}. {getExerciseName(exercise)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-600">
+                      {getExerciseReps(exercise)} reps · {exercise.duration || 20}s
+                    </p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+                </div>
+              </div>
+            ))}
+
+            {exercises.length > 4 ? (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-center text-xs font-medium text-slate-600">
+                +{exercises.length - 4} more exercises in today&apos;s queue
+              </div>
+            ) : null}
+          </div>
+
+          <div className="mt-3">
+            <Link
+              href="/client/workouts/today"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              <Play className="h-4 w-4" />
+              {selectedTodayWorkout.completed || selectedTodayWorkout.status === "completed"
+                ? "Redo workout"
+                : "Start workout"}
+            </Link>
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  const renderTodayView = () => {
+    return (
+      <>
+        {todayWorkouts.length > 1 ? (
+          <section className="-mx-1 overflow-x-auto px-1 pb-1">
+            <div className="flex min-w-max gap-2">
+              {todayWorkouts.map((workout, index) => {
+                const id = workout.workoutPlanId || workout.planId;
+                const selected = id === selectedTodayPlanId;
+
+                return (
+                  <button
+                    key={id ?? `${workout.planName ?? "plan"}-${index}`}
+                    onClick={() => setSelectedTodayPlanId(id ?? null)}
+                    className={cn(
+                      "rounded-2xl border px-3 py-2 text-left transition-all",
+                      selected
+                        ? "border-indigo-500 bg-indigo-50 shadow-sm"
+                        : "border-slate-200 bg-white hover:border-indigo-200 hover:bg-indigo-50/40"
+                    )}
+                  >
+                    <p className="text-xs font-semibold text-slate-900">
+                      {workout.planName || workout.workoutPlanName || `Plan ${index + 1}`}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-slate-500">
+                      {workout.isRestDay ? "Rest day" : `${workout.exercises?.length || 0} exercises`}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="overflow-hidden rounded-[30px] border border-violet-200 bg-gradient-to-br from-violet-100 via-fuchsia-50 to-white shadow-sm">
+          <div className="flex items-center justify-between px-4 py-3">
+            <span className="rounded-full border border-white/70 bg-white/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
+              Workout summary
+            </span>
+            <span className="rounded-full border border-white/70 bg-white/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
+              Today&apos;s focus
+            </span>
+          </div>
+
+          {renderTodaySpotlight()}
+        </section>
+      </>
+    );
+  };
+
+  const renderPlansView = () => {
+    return (
+      <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Plan library</p>
+            <p className="text-xs text-slate-500">Open any plan to view schedule and drills.</p>
+          </div>
+
+          <Link
+            href="/client/workouts/today"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600"
+          >
+            Today
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        {renderPlansSection()}
+      </section>
+    );
+  };
+
+  return (
+    <div className="client-page__sections space-y-4 pb-6 md:space-y-5">
+      <header className="space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="client-page__title !text-[1.15rem] !font-semibold leading-tight sm:!text-[1.2rem]">
+              Workout Studio
+            </h1>
+            <p className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+              <span className="font-semibold text-indigo-600">{DAY_LABELS[dayOfWeek]}</span>
+              <span className="h-1 w-1 rounded-full bg-slate-300" />
+              <span>{todayDate}</span>
+            </p>
+          </div>
+
+          <Link
+            href="/client/workouts/history"
+            className="inline-flex h-10 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <Calendar className="h-3.5 w-3.5" />
+            History
+          </Link>
+        </div>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-slate-100 bg-slate-50/70">
+            <div className="border-b border-r border-slate-100 px-3 py-2.5">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-700">
+                <Trophy className="h-3.5 w-3.5 text-emerald-600" />
+                Completed sessions
+              </div>
+              <p className="mt-1 text-base font-semibold text-slate-900">{stats?.completed || 0}</p>
+            </div>
+
+            <div className="border-b border-slate-100 px-3 py-2.5">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium text-orange-700">
+                <Flame className="h-3.5 w-3.5 text-orange-500" />
+                Current streak
+              </div>
+              <p className="mt-1 text-base font-semibold text-slate-900">{streakValue}</p>
+            </div>
+
+            <div className="border-r border-slate-100 px-3 py-2.5">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium text-cyan-700">
+                <Target className="h-3.5 w-3.5 text-cyan-600" />
+                Completion rate
+              </div>
+              <p className="mt-1 text-base font-semibold text-slate-900">{stats?.completionRate || 0}%</p>
+            </div>
+
+            <div className="px-3 py-2.5">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium text-violet-700">
+                <Clock3 className="h-3.5 w-3.5 text-violet-600" />
+                Minutes trained
+              </div>
+              <p className="mt-1 text-base font-semibold text-slate-900">{stats?.totalDuration || 0}</p>
+            </div>
+          </div>
+        </section>
+      </header>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+        <div className="grid grid-cols-2 gap-1.5">
+          {TAB_OPTIONS.map((tab) => {
+            const Icon = tab.icon;
+            const selected = view === tab.key;
 
             return (
               <button
-                key={index}
-                onClick={() => goToExercise(index)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                  padding: "0.75rem",
-                  backgroundColor: isCurrent ? "#dcfce7" : isCompleted ? "#f0fdf4" : "#f9fafb",
-                  border: isCurrent ? "2px solid #16a34a" : "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  textAlign: "left",
-                }}
-              >
-                {isCompleted ? (
-                  <CheckCircle2 style={{ width: 20, height: 20, color: "#16a34a" }} />
-                ) : (
-                  <Circle style={{ width: 20, height: 20, color: "#d1d5db" }} />
+                key={tab.key}
+                type="button"
+                onClick={() => setView(tab.key)}
+                className={cn(
+                  "flex h-10 items-center justify-center gap-1.5 rounded-xl text-xs font-semibold transition",
+                  selected ? "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200" : "text-slate-600 hover:bg-slate-50"
                 )}
-                <span
-                  style={{
-                    flex: 1,
-                    fontWeight: isCurrent ? 600 : 400,
-                    color: isCompleted ? "#16a34a" : "#374151",
-                  }}
-                >
-                  {index + 1}. {exName}
-                </span>
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {tab.label}
               </button>
             );
           })}
         </div>
-      </div>
+      </section>
 
-      {/* Finish Workout Button */}
-      {completedExercises.size > 0 && (
-        <button
-          onClick={finishWorkout}
-          disabled={completeWorkoutMutation.isPending}
-          style={{
-            width: "100%",
-            padding: "1rem",
-            backgroundColor: completeWorkoutMutation.isPending 
-              ? "#9ca3af" 
-              : completedExercises.size === exercises.length ? "#16a34a" : "#f59e0b",
-            color: "#fff",
-            border: "none",
-            borderRadius: "12px",
-            fontSize: "1rem",
-            fontWeight: 600,
-            cursor: completeWorkoutMutation.isPending ? "not-allowed" : "pointer",
-            marginTop: "1rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.5rem",
-            opacity: completeWorkoutMutation.isPending ? 0.7 : 1,
-          }}
-        >
-          <Trophy style={{ width: 20, height: 20 }} />
-          {completeWorkoutMutation.isPending
-            ? "Saving..."
-            : completedExercises.size === exercises.length
-            ? "Complete Workout"
-            : `Finish Early (${completedExercises.size}/${exercises.length})`}
-        </button>
-      )}
-    </div>
-  );
-
-  // Render workout preview
-  const renderWorkoutPreview = () => (
-    <div className="client-card" style={{ overflow: "hidden" }}>
-      <div
-        style={{
-          padding: "1rem",
-          background: "linear-gradient(135deg, #16a34a 0%, #22c55e 100%)",
-          color: "#fff",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div>
-            <p style={{ fontSize: "0.8rem", opacity: 0.9 }}>
-              {DAYS[dayOfWeek]}, {todayDateString}
-            </p>
-            <h2 style={{ fontSize: "1.25rem", fontWeight: 700 }}>
-              {selectedTodayWorkout?.focus || "Today's Workout"}
-            </h2>
-            {exercises.length > 0 && (
-              <p style={{ fontSize: "0.75rem", opacity: 0.8, marginTop: "0.25rem" }}>
-                ⏱️ {exercises.reduce((total, ex) => total + (ex.duration || 20), 0)}s total
-              </p>
-            )}
-          </div>
-          {selectedTodayWorkout?.completed ? (
-            <CheckCircle2 style={{ width: 28, height: 28 }} />
-          ) : (
-            <Dumbbell style={{ width: 28, height: 28 }} />
-          )}
-        </div>
-      </div>
-
-      <div style={{ padding: "1rem" }}>
-        {selectedTodayWorkout?.isRestDay ? (
-          <div style={{ textAlign: "center", padding: "2rem 1rem" }}>
-            <p style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🧘</p>
-            <h3 style={{ fontSize: "1.1rem", fontWeight: 600 }}>Rest Day</h3>
-            <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
-              Take it easy and recover. You deserve it!
-            </p>
-          </div>
-        ) : exercises.length > 0 ? (
-          <>
-            <h3 style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: "1rem", paddingTop: "0.5rem" }}>
-              Today&apos;s Exercises
-            </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              {exercises.map((exercise: Exercise, index: number) => {
-                const exData = exercise.exerciseId;
-                const exObj = typeof exData === "string" ? undefined : exData;
-                const exName = exObj?.name || exercise.exerciseName || exercise.name || "Exercise";
-                const exAnimation = exObj?.animationUrl;
-                const reps = exercise.repsMin && exercise.repsMax
-                  ? `${exercise.repsMin}-${exercise.repsMax}`
-                  : exercise.reps;
-
-                return (
-                  <div
-                    key={index}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "1rem",
-                      padding: "0.75rem",
-                      backgroundColor: "#f9fafb",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <ExerciseAnimation
-                      animationUrl={exAnimation}
-                      thumbnailUrl={exObj?.thumbnailUrl}
-                      exerciseName={exName}
-                      size="small"
-                      showControls={false}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontWeight: 500, fontSize: "0.9rem", marginBottom: "0.25rem" }}>
-                        {index + 1}. {exName}
-                      </p>
-                      <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                        {reps && (
-                          <span style={{ fontSize: "0.75rem", color: "#2563eb" }}>
-                            {reps} reps
-                          </span>
-                        )}
-                        <span style={{ fontSize: "0.75rem", color: "#d97706" }}>
-                          {exercise.duration || 20}s
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <button
-              onClick={startWorkout}
-              className="client-button"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem",
-                marginTop: "1rem",
-                width: "100%",
-              }}
-            >
-              <Play style={{ width: 18, height: 18 }} />
-              {selectedTodayWorkout?.completed ? "Redo Workout" : "Start Workout"}
-            </button>
-          </>
-        ) : (
-          <div style={{ textAlign: "center", padding: "2rem 1rem" }}>
-            <p style={{ color: "#6b7280" }}>
-              No exercises scheduled for today
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="client-page__sections">
-      {/* Show header only when not in active workout */}
-      {!isWorkoutStarted && (
-        <>
-          <header className="client-page__header">
-            <h1 className="client-page__title">
-              <Dumbbell
-                style={{
-                  width: 28,
-                  height: 28,
-                  marginRight: "0.5rem",
-                  color: "var(--brand-primary)",
-                }}
-              />
-              My Workouts
-            </h1>
-            <p style={{ color: "var(--text-secondary)", marginTop: "0.25rem" }}>
-              Track your fitness journey and complete your daily workouts
-            </p>
-          </header>
-
-          {/* Stats Overview */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-              gap: "1rem",
-              marginBottom: "1.5rem",
-            }}
-          >
-            <div
-              className="client-card"
-              style={{
-                padding: "1rem",
-                textAlign: "center",
-                background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
-              }}
-            >
-              <Trophy style={{ width: 24, height: 24, color: "#16a34a", margin: "0 auto 0.5rem" }} />
-              <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "#16a34a" }}>
-                {stats?.totalWorkouts || 0}
-              </p>
-              <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Total Workouts</p>
-            </div>
-
-            <div
-              className="client-card"
-              style={{
-                padding: "1rem",
-                textAlign: "center",
-            background: stats?.todayCompleted 
-              ? "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)"
-              : "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)",
-          }}
-        >
-          <Flame style={{ 
-            width: 24, 
-            height: 24, 
-            color: stats?.todayCompleted ? "#d97706" : "#9ca3af", 
-            margin: "0 auto 0.5rem" 
-          }} />
-          <p style={{ 
-            fontSize: "1.5rem", 
-            fontWeight: 700, 
-            color: stats?.todayCompleted ? "#d97706" : "#9ca3af",
-            opacity: stats?.todayCompleted ? 1 : 0.6,
-          }}>
-            {stats?.todayCompleted 
-              ? (stats?.streak || 0)
-              : (stats?.yesterdayCompleted ? (stats?.streak || 0) : 0)}
-          </p>
-          <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Day Streak</p>
-          {!stats?.todayCompleted && stats?.yesterdayCompleted && (
-            <p style={{ fontSize: "0.6rem", color: "#9ca3af", marginTop: "0.25rem" }}>
-              Complete today to increase!
-            </p>
-          )}
-        </div>
-
-        <div
-          className="client-card"
-          style={{
-            padding: "1rem",
-            textAlign: "center",
-            background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
-          }}
-        >
-          <Target style={{ width: 24, height: 24, color: "#2563eb", margin: "0 auto 0.5rem" }} />
-          <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "#2563eb" }}>
-            {stats?.completionRate || 0}%
-          </p>
-          <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Completion Rate</p>
-        </div>
-
-            <div
-              className="client-card"
-              style={{
-                padding: "1rem",
-                textAlign: "center",
-                background: "linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)",
-              }}
-            >
-              <Clock style={{ width: 24, height: 24, color: "#db2777", margin: "0 auto 0.5rem" }} />
-              <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "#db2777" }}>
-                {stats?.totalDuration || 0}
-              </p>
-              <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Total Minutes</p>
-            </div>
-          </div>
-
-          {/* Tab Navigation */}
-          <div
-            style={{
-              display: "flex",
-              gap: "0.5rem",
-              marginBottom: "1.5rem",
-              borderBottom: "2px solid #e5e7eb",
-              paddingBottom: "0.5rem",
-            }}
-          >
-            {[
-              { key: "today", label: "Today" },
-              { key: "plans", label: "My Plans" },
-              { key: "history", label: "History" },
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setView(tab.key as any)}
-                style={{
-                  padding: "0.5rem 1rem",
-                  fontSize: "0.9rem",
-                  fontWeight: view === tab.key ? 600 : 400,
-                  color: view === tab.key ? "var(--brand-primary)" : "#6b7280",
-                  backgroundColor: "transparent",
-                  border: "none",
-                  borderBottom:
-                    view === tab.key ? "2px solid var(--brand-primary)" : "2px solid transparent",
-                  marginBottom: "-0.6rem",
-                  cursor: "pointer",
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Today's Workout */}
-      {view === "today" && (
-        <div>
-          {todayLoading ? (
-            <div
-              className="client-card"
-              style={{ padding: "2rem", textAlign: "center" }}
-            >
-              Loading today&apos;s workout...
-            </div>
-          ) : selectedTodayWorkout ? (
-            <>
-              {todayWorkouts.length > 1 && !isWorkoutStarted && (
-                <div
-                  className="client-card"
-                  style={{ padding: "1rem", marginBottom: "1rem" }}
-                >
-                  <h3 style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-                    Today&apos;s Workouts
-                  </h3>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    {todayWorkouts.map((w: any) => {
-                      const id = (w.workoutPlanId || w.planId) as string | undefined;
-                      const selected = !!id && id === selectedTodayPlanId;
-                      return (
-                        <button
-                          key={id}
-                          onClick={() => setSelectedTodayPlanId(id ?? null)}
-                          style={{
-                            textAlign: "left",
-                            padding: "0.75rem",
-                            borderRadius: "10px",
-                            border: selected ? "2px solid var(--brand-primary)" : "1px solid #e5e7eb",
-                            background: "transparent",
-                            cursor: "pointer",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            gap: "0.75rem",
-                          }}
-                        >
-                          <div style={{ minWidth: 0 }}>
-                            <div style={{ fontWeight: 600, fontSize: "0.95rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {w.planName || w.workoutPlanName || "Workout Plan"}
-                            </div>
-                            <div style={{ fontSize: "0.8rem", color: "#6b7280" }}>
-                              {w.isRestDay ? "Rest day" : `${(w.exercises?.length || 0)} exercises`}
-                            </div>
-                          </div>
-                          {w.completed ? (
-                            <CheckCircle2 style={{ width: 18, height: 18, color: "var(--brand-primary)" }} />
-                          ) : (
-                            <ChevronRight style={{ width: 18, height: 18, color: "#9ca3af" }} />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {isWorkoutStarted ? renderActiveWorkout() : renderWorkoutPreview()}
-            </>
-          ) : (
-            <div
-              className="client-card"
-              style={{ padding: "2rem", textAlign: "center" }}
-            >
-              <Dumbbell
-                style={{
-                  width: 48,
-                  height: 48,
-                  color: "#d1d5db",
-                  margin: "0 auto 1rem",
-                }}
-              />
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-                No Workout Plan Assigned
-              </h3>
-              <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
-                Your coach hasn&apos;t assigned a workout plan yet. Check back soon!
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* My Plans */}
-      {view === "plans" && !isWorkoutStarted && (
-        <div>
-          {plansLoading ? (
-            <div
-              className="client-card"
-              style={{ padding: "2rem", textAlign: "center" }}
-            >
-              Loading plans...
-            </div>
-          ) : plans.length > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {plans.map((plan: any) => (
-                <Link
-                  key={plan._id}
-                  href={`/client/workouts/plan/${plan._id}`}
-                  className="client-card"
-                  style={{
-                    display: "block",
-                    textDecoration: "none",
-                    color: "inherit",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "1rem",
-                    }}
-                  >
-                    <div>
-                      <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.25rem" }}>
-                        {plan.name}
-                      </h3>
-                      <p style={{ fontSize: "0.85rem", color: "#6b7280" }}>
-                        {plan.goal?.replace(/_/g, " ")} •{" "}
-                        {plan.difficulty} •{" "}
-                        {plan.durationWeeks} weeks
-                      </p>
-                    </div>
-                    <ChevronRight style={{ width: 20, height: 20, color: "#9ca3af" }} />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div
-              className="client-card"
-              style={{ padding: "2rem", textAlign: "center" }}
-            >
-              <Calendar
-                style={{
-                  width: 48,
-                  height: 48,
-                  color: "#d1d5db",
-                  margin: "0 auto 1rem",
-                }}
-              />
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-                No Plans Yet
-              </h3>
-              <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
-                Your coach will assign workout plans to you.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* History */}
-      {view === "history" && !isWorkoutStarted && (
-        <div>
-          <Link
-            href="/client/workouts/history"
-            className="client-card"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "1rem",
-              textDecoration: "none",
-              color: "inherit",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <Calendar style={{ width: 20, height: 20, color: "var(--brand-primary)" }} />
-              <span style={{ fontWeight: 500 }}>View Workout History</span>
-            </div>
-            <ChevronRight style={{ width: 20, height: 20, color: "#9ca3af" }} />
-          </Link>
-        </div>
-      )}
+      {view === "today" ? renderTodayView() : null}
+      {view === "plans" ? renderPlansView() : null}
     </div>
   );
 }

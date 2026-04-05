@@ -220,7 +220,7 @@ export default function PlanPaymentPage() {
                   style={{ cursor: "pointer" }}
                 />
                 <span className="client-card__subtitle" style={{ fontWeight: 500 }}>
-                  Cash on Delivery
+                  Cash Payment
                 </span>
               </label>
 

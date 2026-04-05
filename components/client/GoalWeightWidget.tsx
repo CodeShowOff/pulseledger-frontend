@@ -1,12 +1,12 @@
-// Goal Weight Progress Widget - Circular progress indicator
+// Goal Weight Progress Widget - progress indicator
 "use client";
 
-import React, { useId, useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import axios from "axios";
 import { fetchClientProgressEntries, CLIENT_PROGRESS_QUERY_KEY } from "@/lib/queries/clientProgress";
-import { Scale, Target, TrendingDown, TrendingUp, Edit2, X, Check } from "lucide-react";
+import { Scale, Target, Edit2, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -59,7 +59,6 @@ type GoalWeightWidgetProps = {
 export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetProps) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const ringGradientId = useId();
 
   const { data: goalSettings, isLoading: isLoadingGoal } = useQuery({
     queryKey: ["goalWeight"],
@@ -113,6 +112,17 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
     },
   });
 
+  // Get latest weight from progress data
+  const progressEntries = progressData?.data || [];
+  const currentWeight =
+    progressEntries.length > 0
+      ? progressEntries.reduce((latest: any, entry: any) => {
+          if (!entry.weight) return latest;
+          if (!latest) return entry;
+          return new Date(entry.date) > new Date(latest.date) ? entry : latest;
+        }, null)?.weight || null
+      : null;
+
   const onSubmit = async (data: WeightEditFormData) => {
     try {
       // Validate weight logic based on goal type
@@ -123,7 +133,7 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
       // If we have enough data to determine goal type, validate
       if (start != null && goal != null && current != null) {
         const isGainGoal = goal > start;
-        
+
         if (isGainGoal) {
           // For weight gain: current should not be less than start
           if (current < start) {
@@ -131,10 +141,9 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
             return;
           }
         } else if (goal < start) {
-          // For weight loss: current should not be more than start (though we allow it with warning)
+          // For weight loss: current can be higher than start, but show warning
           if (current > start) {
             toast.warning(`Current weight (${current} kg) is higher than your starting weight (${start} kg). Keep going!`);
-            // Allow it to proceed - just a warning
           }
         }
       }
@@ -146,13 +155,13 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
       }
 
       const promises = [];
-      
+
       // Update current weight if provided
       if (data.weight !== undefined && !isNaN(data.weight)) {
         promises.push(updateWeightMutation.mutateAsync({ weight: data.weight }));
       }
-      
-      // Update goal weight if provided
+
+      // Update goal/start weight if provided
       const shouldUpdateGoalSettings =
         (data.goalWeight !== undefined && !isNaN(data.goalWeight)) ||
         (data.startWeight !== undefined && !isNaN(data.startWeight));
@@ -165,14 +174,14 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
           })
         );
       }
-      
+
       if (promises.length === 0) {
         toast.error("Please enter at least one weight value");
         return;
       }
-      
+
       await Promise.all(promises);
-      
+
       toast.success("Weight updated successfully");
       setIsEditing(false);
       reset();
@@ -202,21 +211,10 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
     reset();
   };
 
-  // Get latest weight from progress data
-  const progressEntries = progressData?.data || [];
-  const currentWeight = progressEntries.length > 0 
-    ? progressEntries.reduce((latest: any, entry: any) => {
-        if (!entry.weight) return latest;
-        if (!latest) return entry;
-        return new Date(entry.date) > new Date(latest.date) ? entry : latest;
-      }, null)?.weight || null
-    : null;
-
   // Progress calculation with improved messages
   let progressPercentage = 0;
   let remainingKg = 0;
   let isWeightGain = false;
-  let progressMessage = "";
 
   const hasAllWeights = startWeight != null && goalWeight != null && currentWeight != null;
 
@@ -230,7 +228,6 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
     if (denominator === 0) {
       // Start and goal are the same (shouldn't happen after validation)
       progressPercentage = currentWeight === goalWeight ? 100 : 0;
-      progressMessage = currentWeight === goalWeight ? "Goal achieved 🎯" : "Set a different goal weight";
     } else {
       progressPercentage = (numerator / denominator) * 100;
 
@@ -238,29 +235,12 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
       if (progressPercentage >= 100) {
         progressPercentage = 100;
         remainingKg = 0;
-        progressMessage = "Goal achieved 🎯";
       } else if (progressPercentage < 0) {
         // Client is going in wrong direction
         progressPercentage = 0;
-        if (isWeightGain) {
-          // Weight gain goal but current < start
-          const deficit = startWeight! - currentWeight!;
-          progressMessage = `You've lost ${deficit.toFixed(1)} kg from start. Focus on gaining!`;
-        } else {
-          // Weight loss goal but current > start
-          const excess = currentWeight! - startWeight!;
-          progressMessage = `You've gained ${excess.toFixed(1)} kg from start. Stay focused!`;
-        }
       } else {
         // Normal progress (0-100%)
         remainingKg = Math.abs(goalWeight! - currentWeight!);
-        if (isWeightGain) {
-          const gained = currentWeight! - startWeight!;
-          progressMessage = `Gained ${gained.toFixed(1)} kg! ${remainingKg.toFixed(1)} kg more to go.`;
-        } else {
-          const lost = startWeight! - currentWeight!;
-          progressMessage = `Lost ${lost.toFixed(1)} kg! ${remainingKg.toFixed(1)} kg more to go.`;
-        }
       }
     }
 
@@ -268,26 +248,34 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
     progressPercentage = Math.min(100, Math.max(0, progressPercentage));
   }
 
-  const strokeWidth = compact ? 8 : 10;
-  const size = compact ? 94 : 140;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
-  const ringAnimationStyle: React.CSSProperties = {
-    transition: `stroke-dashoffset ${compact ? "720ms" : "620ms"} cubic-bezier(0.22, 1, 0.36, 1)`,
-    willChange: "stroke-dashoffset",
-    backfaceVisibility: "hidden",
-  };
+  const tone = isWeightGain
+    ? {
+        accent: "#0f766e",
+        accentStrong: "#134e4a",
+        softBg: "#f0fdfa",
+        panelBg: "#f4fbf9",
+        border: "#d5ebe4",
+        track: "#d6efe6",
+        fill: "linear-gradient(90deg, #14b8a6 0%, #2dd4bf 100%)",
+        badgeBg: "#d9f6ef",
+        iconBg: "#e7f9f4",
+      }
+    : {
+        accent: "#b45309",
+        accentStrong: "#7c2d12",
+        softBg: "#fff7ed",
+        panelBg: "#fff9f3",
+        border: "#f5e3cf",
+        track: "#fde6ce",
+        fill: "linear-gradient(90deg, #fb923c 0%, #f97316 100%)",
+        badgeBg: "#ffedd5",
+        iconBg: "#fff2e2",
+      };
 
-  const rootPadding = compact ? "0.7rem" : "1rem";
-  const rootRadius = compact ? "0.65rem" : "0.75rem";
-  const headerTitleSize = compact ? "0.8rem" : "0.95rem";
-  const iconSize = compact ? "0.85rem" : "1rem";
-  const statPad = compact ? "0.4rem" : "0.5rem";
-  const statLabelSize = compact ? "0.58rem" : "0.65rem";
-  const statValueSize = compact ? "0.82rem" : "0.95rem";
-  const statLabelMb = compact ? "0.08rem" : "0.15rem";
-  const statCardMinHeight = compact ? 48 : undefined;
+  const rootPadding = compact ? "0.9rem" : "1.15rem";
+  const rootRadius = compact ? "0.95rem" : "1.15rem";
+  const panelPadding = compact ? "0.72rem" : "0.9rem";
+  const titleSize = compact ? "0.9rem" : "1rem";
 
   return (
     <>
@@ -300,427 +288,361 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
             background-position: -200% 0;
           }
         }
-        .goal-widget-stats {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0.5rem;
-          width: 100%;
-        }
-        .goal-widget-progress-info {
-          display: flex;
-        }
-
-        .goal-widget-stats--compact {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 0.35rem;
-        }
-
-        .goal-widget-stats--compact > div:last-child {
-          grid-column: 1 / -1;
-        }
-
-        @media (max-width: 640px) {
-          .goal-widget-stats {
-            grid-template-columns: repeat(2, 1fr);
-          }
-          .goal-widget-stats > div:last-child {
-            grid-column: 1 / -1;
-          }
-          .goal-widget-progress-info {
-            display: none !important;
-          }
-        }
       `}</style>
-      <div style={{
-        background: "linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%)",
-        borderRadius: rootRadius,
-        border: "1.5px solid #ffffff",
-        padding: rootPadding,
-        height: compact ? "100%" : "auto",
-        display: "flex",
-        flexDirection: "column",
-        boxShadow: "0 10px 25px rgba(15, 23, 42, 0.06)"
-      }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: compact ? "0.65rem" : "1rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-          <Target style={{ width: iconSize, height: iconSize, color: isWeightGain ? "#0ea5e9" : "#f97316" }} />
-          <h3 style={{ 
-            fontSize: headerTitleSize, 
-            fontWeight: "600", 
-            color: "#111827",
-            marginTop: "0",
-            marginRight: "0",
-            marginBottom: "0",
-            marginLeft: "0"
-          }}>
-            Weight Goal
-          </h3>
-        </div>
-        {!isEditing && (
-          <button
-            onClick={handleStartEdit}
-            style={{
-              padding: compact ? "0.28rem" : "0.4rem",
-              background: isWeightGain ? "#f0f9ff" : "#fff7ed",
-              border: isWeightGain ? "1px solid #e0f2fe" : "1px solid #fed7aa",
-              borderRadius: "0.4rem",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: "all 0.2s"
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = isWeightGain ? "#e0f2fe" : "#fed7aa"}
-            onMouseLeave={(e) => e.currentTarget.style.background = isWeightGain ? "#f0f9ff" : "#fff7ed"}
-          >
-            <Edit2 style={{ width: compact ? "0.78rem" : "0.9rem", height: compact ? "0.78rem" : "0.9rem", color: isWeightGain ? "#0ea5e9" : "#f97316" }} />
-          </button>
-        )}
-      </div>
 
-      {/* Weight Edit Form */}
-      {isEditing && (
-        <form onSubmit={handleSubmit(onSubmit)} style={{
-          background: "#ffffff",
-          padding: "0.75rem",
-          borderRadius: "0.5rem",
-          border: "1px solid #e0f2fe",
-          marginBottom: "1rem"
-        }}>
-          <div style={{ marginBottom: "0.75rem" }}>
-            <label style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.35rem", display: "block", fontWeight: "500" }}>
-              Start Weight (kg)
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              {...register("startWeight", { valueAsNumber: true })}
-              placeholder={currentWeight ? `e.g., ${currentWeight}` : "e.g., 75"}
-              className="client-form__control"
+      <div
+        style={{
+          background: "linear-gradient(160deg, #fbfbff 0%, #ffffff 100%)",
+          borderRadius: rootRadius,
+          border: "1px solid #e8e7f1",
+          padding: rootPadding,
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          gap: compact ? "0.7rem" : "0.9rem",
+          boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: compact ? "0.55rem" : "0.65rem", minWidth: 0 }}>
+            <span
               style={{
-                width: "100%",
-                padding: "0.625rem 0.875rem",
-                borderRadius: "0.5rem",
-                border: "1px solid #e5e7eb",
-                fontSize: "0.9375rem",
-                outline: "none"
-              }}
-              onFocus={(e) => e.target.style.borderColor = "#3b82f6"}
-              onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
-            />
-            {errors.startWeight && <p style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: "0.25rem" }}>{errors.startWeight.message}</p>}
-          </div>
-
-          <div style={{ marginBottom: "0.75rem" }}>
-            <label style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.35rem", display: "block", fontWeight: "500" }}>
-              Current Weight (kg)
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              {...register("weight", { valueAsNumber: true })}
-              placeholder="e.g., 75.5"
-              className="client-form__control"
-              style={{
-                width: "100%",
-                padding: "0.625rem 0.875rem",
-                borderRadius: "0.5rem",
-                border: "1px solid #e5e7eb",
-                fontSize: "0.9375rem",
-                outline: "none"
-              }}
-              onFocus={(e) => e.target.style.borderColor = "#3b82f6"}
-              onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
-            />
-            {errors.weight && <p style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: "0.25rem" }}>{errors.weight.message}</p>}
-          </div>
-          
-          <div style={{ marginBottom: "0.75rem" }}>
-            <label style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.35rem", display: "block", fontWeight: "500" }}>
-              Goal Weight (kg)
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              {...register("goalWeight", { valueAsNumber: true })}
-              placeholder="e.g., 70"
-              className="client-form__control"
-              style={{
-                width: "100%",
-                padding: "0.625rem 0.875rem",
-                borderRadius: "0.5rem",
-                border: "1px solid #e5e7eb",
-                fontSize: "0.9375rem",
-                outline: "none"
-              }}
-              onFocus={(e) => e.target.style.borderColor = "#3b82f6"}
-              onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
-            />
-            {errors.goalWeight && <p style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: "0.25rem" }}>{errors.goalWeight.message}</p>}
-          </div>
-          
-          <div style={{ display: "flex", gap: compact ? "0.35rem" : "0.4rem", flexDirection: compact ? "column" : "row" }}>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              style={{
-                flex: compact ? undefined : 1,
-                width: compact ? "100%" : undefined,
-                minWidth: 0,
-                padding: compact ? "0.55rem 0.75rem" : "0.625rem 1rem",
-                background: "#0ea5e9",
-                color: "#ffffff",
-                border: "none",
-                borderRadius: "0.5rem",
-                cursor: isSubmitting ? "not-allowed" : "pointer",
-                fontSize: compact ? "0.8125rem" : "0.875rem",
-                fontWeight: "500",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.35rem",
-                opacity: isSubmitting ? 0.6 : 1
+                width: compact ? "2rem" : "2.2rem",
+                height: compact ? "2rem" : "2.2rem",
+                borderRadius: "0.75rem",
+                background: tone.iconBg,
+                border: `1px solid ${tone.border}`,
+                display: "grid",
+                placeItems: "center",
+                flexShrink: 0,
               }}
             >
-              <Check style={{ width: compact ? "0.9rem" : "1rem", height: compact ? "0.9rem" : "1rem" }} />
-              {isSubmitting ? "Saving..." : "Save"}
-            </button>
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              disabled={isSubmitting}
-              style={{
-                width: compact ? "100%" : undefined,
-                minWidth: 0,
-                padding: compact ? "0.55rem 0.75rem" : "0.625rem 1rem",
-                background: "#f3f4f6",
-                color: "#6b7280",
-                border: "1px solid #e5e7eb",
-                borderRadius: "0.5rem",
-                cursor: isSubmitting ? "not-allowed" : "pointer",
-                fontSize: compact ? "0.8125rem" : "0.875rem",
-                fontWeight: "500",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.35rem",
-                opacity: isSubmitting ? 0.6 : 1
-              }}
-            >
-              <X style={{ width: compact ? "0.9rem" : "1rem", height: compact ? "0.9rem" : "1rem" }} />
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
+              <Target style={{ width: compact ? "1rem" : "1.1rem", height: compact ? "1rem" : "1.1rem", color: tone.accent }} />
+            </span>
 
-      {/* Loading State */}
-      {(isLoadingGoal || isLoadingProgress) ? (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? "0.65rem" : "1rem", padding: compact ? "0.65rem" : "1rem" }}>
-          {/* Skeleton Circle */}
-          <div style={{
-            width: size,
-            height: size,
-            borderRadius: "50%",
-            background: "linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%)",
-            backgroundSize: "200% 100%",
-            animation: "shimmer 1.5s infinite",
-            position: "relative"
-          }}>
-            <div style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "60%",
-              height: "60%",
-              borderRadius: "50%",
-              background: "#ffffff"
-            }}></div>
-          </div>
-
-          {/* Skeleton Stats Grid */}
-          <div className={compact ? "goal-widget-stats goal-widget-stats--compact" : "goal-widget-stats"}>
-            {[1, 2, 3].map((i) => (
-              <div key={i} style={{ textAlign: "center", padding: statPad, background: "#f0f9ff", borderRadius: "0.4rem" }}>
-                <div style={{
-                  height: compact ? "0.58rem" : "0.65rem",
-                  width: "60%",
-                  margin: `0 auto ${statLabelMb}`,
-                  borderRadius: "0.25rem",
-                  background: "linear-gradient(90deg, #e0f2fe 0%, #bae6fd 50%, #e0f2fe 100%)",
-                  backgroundSize: "200% 100%",
-                  animation: "shimmer 1.5s infinite"
-                }}></div>
-                <div style={{
-                  height: compact ? "0.82rem" : "0.95rem",
-                  width: "80%",
-                  margin: "0 auto",
-                  borderRadius: "0.25rem",
-                  background: "linear-gradient(90deg, #e0f2fe 0%, #bae6fd 50%, #e0f2fe 100%)",
-                  backgroundSize: "200% 100%",
-                  animation: "shimmer 1.5s infinite"
-                }}></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* Progress Circle */}
-          {startWeight != null && goalWeight != null && currentWeight != null ? (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? "0.65rem" : "1rem" }}>
-          {/* SVG Circle */}
-          <div style={{ position: "relative", width: size, height: size }}>
-            <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-              {/* Background circle */}
-              <circle
-                cx={size / 2}
-                cy={size / 2}
-                r={radius}
-                fill="none"
-                stroke="#e0f2fe"
-                strokeWidth={strokeWidth}
-              />
-              {/* Progress circle */}
-              <circle
-                cx={size / 2}
-                cy={size / 2}
-                r={radius}
-                fill="none"
-                stroke={`url(#${ringGradientId})`}
-                strokeWidth={strokeWidth}
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                style={ringAnimationStyle}
-              />
-              <defs>
-                <linearGradient id={ringGradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-                  {isWeightGain ? (
-                    <>
-                      <stop offset="0%" stopColor="#0ea5e9" />
-                      <stop offset="100%" stopColor="#06b6d4" />
-                    </>
-                  ) : (
-                    <>
-                      <stop offset="0%" stopColor="#f97316" />
-                      <stop offset="100%" stopColor="#ef4444" />
-                    </>
-                  )}
-                </linearGradient>
-              </defs>
-            </svg>
-            
-            {/* Center content */}
-            <div style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              textAlign: "center"
-            }}>
-              <div style={{ fontSize: compact ? "0.9rem" : "1.2rem", fontWeight: "700", color: "#111827", lineHeight: "1" }}>
-                {Math.round(progressPercentage)}%
-              </div>
-              <div style={{ fontSize: compact ? "0.54rem" : "0.64rem", color: "#6b7280", marginTop: compact ? "0.2rem" : "0.35rem" }}>
-                Achieved
-              </div>
+            <div style={{ minWidth: 0 }}>
+              <h3
+                style={{
+                  fontSize: titleSize,
+                  fontWeight: 700,
+                  color: "#0f172a",
+                  marginTop: "0",
+                  marginRight: "0",
+                  marginBottom: "0",
+                  marginLeft: "0",
+                  lineHeight: 1.2,
+                }}
+              >
+                Weight Goal
+              </h3>
             </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className={compact ? "goal-widget-stats goal-widget-stats--compact" : "goal-widget-stats"}>
-            <div style={{ textAlign: "center", padding: statPad, background: isWeightGain ? "#f0f9ff" : "#fff7ed", borderRadius: "0.4rem", minHeight: statCardMinHeight, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <div style={{ fontSize: statLabelSize, color: "#6b7280", marginBottom: statLabelMb }}>Current</div>
-              <div style={{ fontSize: statValueSize, fontWeight: "700", lineHeight: "1.1", color: isWeightGain ? "#0ea5e9" : "#f97316" }}>{currentWeight} kg</div>
-            </div>
-            <div style={{ textAlign: "center", padding: statPad, background: isWeightGain ? "#f0f9ff" : "#fff7ed", borderRadius: "0.4rem", minHeight: statCardMinHeight, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <div style={{ fontSize: statLabelSize, color: "#6b7280", marginBottom: statLabelMb }}>Goal</div>
-              <div style={{ fontSize: statValueSize, fontWeight: "700", lineHeight: "1.1", color: isWeightGain ? "#0284c7" : "#ea580c" }}>{goalWeight} kg</div>
-            </div>
-            <div style={{ textAlign: "center", padding: statPad, background: isWeightGain ? "#f0f9ff" : "#fff7ed", borderRadius: "0.4rem", minHeight: statCardMinHeight, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <div style={{ fontSize: statLabelSize, color: "#6b7280", marginBottom: statLabelMb }}>
-                {progressPercentage === 100 ? "Done!" : isWeightGain ? "To Gain" : "To Lose"}
-              </div>
-              <div style={{ fontSize: statValueSize, fontWeight: "700", lineHeight: "1.1", color: isWeightGain ? "#0369a1" : "#c2410c" }}>
-                {progressPercentage === 100 ? "✓" : `${remainingKg.toFixed(1)} kg`}
-              </div>
-            </div>
-          </div>
-
-          {/* Progress Info */}
-          {!compact && progressPercentage > 0 && progressPercentage < 100 && (
-            <div className="goal-widget-progress-info" style={{
-              width: "100%",
-              padding: "0.65rem 0.75rem",
-              background: isWeightGain 
-                ? "linear-gradient(135deg, #dbeafe, #bfdbfe)" 
-                : "linear-gradient(135deg, #fed7aa, #fdba74)",
-              borderRadius: "0.5rem",
-              alignItems: "center",
-              gap: "0.5rem"
-            }}>
-              {isWeightGain ? (
-                <TrendingUp style={{ width: "1.15rem", height: "1.15rem", color: "#1e40af" }} />
-              ) : (
-                <TrendingDown style={{ width: "1.15rem", height: "1.15rem", color: "#c2410c" }} />
-              )}
-              <div>
-                <div style={{ fontSize: "0.75rem", fontWeight: "600", color: isWeightGain ? "#1e40af" : "#c2410c" }}>
-                  {progressMessage}
-                </div>
-                <div style={{ fontSize: "0.65rem", color: isWeightGain ? "#1e3a8a" : "#9a3412", marginTop: "0.1rem" }}>
-                  Keep up the great work! 💪
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {!compact && progressPercentage === 100 && (
-            <div style={{
-              width: "100%",
-              padding: "0.65rem 0.75rem",
-              background: "linear-gradient(135deg, #fef3c7, #fde68a)",
-              borderRadius: "0.5rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem"
-            }}>
-              <div style={{ fontSize: "1.25rem" }}>🎉</div>
-              <div>
-                <div style={{ fontSize: "0.75rem", fontWeight: "600", color: "#92400e" }}>
-                  {progressMessage}
-                </div>
-                <div style={{ fontSize: "0.65rem", color: "#78350f", marginTop: "0.1rem" }}>
-                  Maintain your healthy weight! 🌟
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div style={{ textAlign: "center", padding: compact ? "1rem 0.75rem" : "1.5rem 1rem" }}>
-          <Scale style={{ width: compact ? "1.5rem" : "2rem", height: compact ? "1.5rem" : "2rem", color: "#cbd5e1", margin: compact ? "0 auto 0.5rem" : "0 auto 0.75rem" }} />
-          <p style={{ fontSize: compact ? "0.65rem" : "0.75rem", color: "#6b7280", marginTop: "0", marginRight: "0", marginBottom: compact ? "0.35rem" : "0.5rem", marginLeft: "0" }}>
-            {goalWeight == null || startWeight == null
-              ? "Set your start weight and goal weight to start tracking progress"
-              : "Add weight entries in Progress page to see your progress"}
-          </p>
-          {(goalWeight == null || startWeight == null) && (
+          {!isEditing && (
             <button
               onClick={handleStartEdit}
-              className="client-button"
-              style={{ marginTop: "0.75rem", padding: "0.5rem 1rem", fontSize: "0.75rem" }}
+              style={{
+                width: compact ? "1.9rem" : "2rem",
+                height: compact ? "1.9rem" : "2rem",
+                background: tone.softBg,
+                border: `1px solid ${tone.border}`,
+                borderRadius: "0.65rem",
+                cursor: "pointer",
+                display: "grid",
+                placeItems: "center",
+                transition: "all 0.2s ease",
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0px)";
+              }}
+              aria-label="Edit weight values"
             >
-              Set Start & Goal Weight
+              <Edit2 style={{ width: compact ? "0.82rem" : "0.9rem", height: compact ? "0.82rem" : "0.9rem", color: tone.accent }} />
             </button>
           )}
         </div>
-      )}
-        </>
-      )}
+
+        {isEditing && (
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            style={{
+              background: "#ffffff",
+              border: `1px solid ${tone.border}`,
+              borderRadius: "0.9rem",
+              padding: panelPadding,
+            }}
+          >
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))", gap: compact ? "0.55rem" : "0.65rem" }}>
+              <div>
+                <label style={{ fontSize: "0.72rem", color: "#475569", marginBottom: "0.32rem", display: "block", fontWeight: 600 }}>
+                  Start Weight (kg)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  {...register("startWeight", { valueAsNumber: true })}
+                  placeholder={currentWeight ? `e.g., ${currentWeight}` : "e.g., 75"}
+                  style={{
+                    width: "100%",
+                    padding: compact ? "0.55rem 0.65rem" : "0.6rem 0.72rem",
+                    borderRadius: "0.6rem",
+                    border: "1px solid #dbe4e3",
+                    fontSize: "0.86rem",
+                    outline: "none",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = tone.accent;
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#dbe4e3";
+                  }}
+                />
+                {errors.startWeight && <p style={{ fontSize: "0.72rem", color: "#dc2626", marginTop: "0.24rem", marginBottom: 0 }}>{errors.startWeight.message}</p>}
+              </div>
+
+              <div>
+                <label style={{ fontSize: "0.72rem", color: "#475569", marginBottom: "0.32rem", display: "block", fontWeight: 600 }}>
+                  Current Weight (kg)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  {...register("weight", { valueAsNumber: true })}
+                  placeholder="e.g., 75.5"
+                  style={{
+                    width: "100%",
+                    padding: compact ? "0.55rem 0.65rem" : "0.6rem 0.72rem",
+                    borderRadius: "0.6rem",
+                    border: "1px solid #dbe4e3",
+                    fontSize: "0.86rem",
+                    outline: "none",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = tone.accent;
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#dbe4e3";
+                  }}
+                />
+                {errors.weight && <p style={{ fontSize: "0.72rem", color: "#dc2626", marginTop: "0.24rem", marginBottom: 0 }}>{errors.weight.message}</p>}
+              </div>
+
+              <div>
+                <label style={{ fontSize: "0.72rem", color: "#475569", marginBottom: "0.32rem", display: "block", fontWeight: 600 }}>
+                  Goal Weight (kg)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  {...register("goalWeight", { valueAsNumber: true })}
+                  placeholder="e.g., 70"
+                  style={{
+                    width: "100%",
+                    padding: compact ? "0.55rem 0.65rem" : "0.6rem 0.72rem",
+                    borderRadius: "0.6rem",
+                    border: "1px solid #dbe4e3",
+                    fontSize: "0.86rem",
+                    outline: "none",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = tone.accent;
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#dbe4e3";
+                  }}
+                />
+                {errors.goalWeight && <p style={{ fontSize: "0.72rem", color: "#dc2626", marginTop: "0.24rem", marginBottom: 0 }}>{errors.goalWeight.message}</p>}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: compact ? "0.42rem" : "0.5rem", marginTop: compact ? "0.65rem" : "0.75rem" }}>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                style={{
+                  padding: compact ? "0.52rem 0.82rem" : "0.58rem 0.95rem",
+                  background: tone.accent,
+                  color: "#ffffff",
+                  border: "none",
+                  borderRadius: "0.6rem",
+                  cursor: isSubmitting ? "not-allowed" : "pointer",
+                  fontSize: compact ? "0.8rem" : "0.84rem",
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.35rem",
+                  opacity: isSubmitting ? 0.72 : 1,
+                }}
+              >
+                <Check style={{ width: compact ? "0.88rem" : "0.95rem", height: compact ? "0.88rem" : "0.95rem" }} />
+                {isSubmitting ? "Saving..." : "Save"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                disabled={isSubmitting}
+                style={{
+                  padding: compact ? "0.52rem 0.82rem" : "0.58rem 0.95rem",
+                  background: "#f8fafc",
+                  color: "#475569",
+                  border: "1px solid #dbe4e3",
+                  borderRadius: "0.6rem",
+                  cursor: isSubmitting ? "not-allowed" : "pointer",
+                  fontSize: compact ? "0.8rem" : "0.84rem",
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.35rem",
+                  opacity: isSubmitting ? 0.72 : 1,
+                }}
+              >
+                <X style={{ width: compact ? "0.88rem" : "0.95rem", height: compact ? "0.88rem" : "0.95rem" }} />
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+
+        {isLoadingGoal || isLoadingProgress ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: compact ? "0.58rem" : "0.7rem" }}>
+            <div
+              style={{
+                height: compact ? "68px" : "78px",
+                borderRadius: "0.9rem",
+                background: "linear-gradient(90deg, #f1f5f9 0%, #e8eef5 50%, #f1f5f9 100%)",
+                backgroundSize: "200% 100%",
+                animation: "shimmer 1.3s linear infinite",
+              }}
+            />
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: compact ? "0.42rem" : "0.55rem" }}>
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  style={{
+                    height: compact ? "48px" : "56px",
+                    borderRadius: "0.72rem",
+                    background: "linear-gradient(90deg, #f1f5f9 0%, #e8eef5 50%, #f1f5f9 100%)",
+                    backgroundSize: "200% 100%",
+                    animation: "shimmer 1.3s linear infinite",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        ) : hasAllWeights ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: compact ? "0.55rem" : "0.68rem" }}>
+            <div
+              style={{
+                background: tone.panelBg,
+                border: `1px solid ${tone.border}`,
+                borderRadius: "0.9rem",
+                padding: panelPadding,
+                display: "flex",
+                flexDirection: "column",
+                gap: compact ? "0.46rem" : "0.58rem",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "0.35rem", minWidth: 0 }}>
+                  <span style={{ margin: 0, fontSize: compact ? "1.12rem" : "1.26rem", fontWeight: 700, color: tone.accent, lineHeight: 1 }}>
+                    {currentWeight?.toFixed(1)} kg
+                  </span>
+                  <span style={{ margin: 0, fontSize: compact ? "0.72rem" : "0.78rem", color: "#64748b" }}>
+                    / {goalWeight?.toFixed(1)} kg
+                  </span>
+                </div>
+
+                <span
+                  style={{
+                    fontSize: compact ? "0.75rem" : "0.82rem",
+                    fontWeight: 700,
+                    color: tone.accentStrong,
+                    background: tone.badgeBg,
+                    border: `1px solid ${tone.border}`,
+                    borderRadius: "999px",
+                    padding: compact ? "0.24rem 0.5rem" : "0.3rem 0.6rem",
+                    lineHeight: 1,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {Math.round(progressPercentage)}%
+                </span>
+              </div>
+
+              <div
+                style={{
+                  width: "100%",
+                  height: compact ? "0.42rem" : "0.5rem",
+                  background: tone.track,
+                  borderRadius: "999px",
+                  overflow: "hidden",
+                }}
+                aria-label={`${Math.round(progressPercentage)} percent weight goal progress`}
+              >
+                <div
+                  style={{
+                    width: `${progressPercentage}%`,
+                    height: "100%",
+                    background: tone.fill,
+                    borderRadius: "999px",
+                    transition: "width 620ms cubic-bezier(0.22, 1, 0.36, 1)",
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", fontSize: compact ? "0.66rem" : "0.72rem", color: "#64748b" }}>
+                <span>Start {startWeight} kg</span>
+                <span>
+                  {progressPercentage === 100
+                    ? "Goal achieved"
+                    : `${remainingKg.toFixed(1)} kg to ${isWeightGain ? "gain" : "lose"}`}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div
+            style={{
+              textAlign: "center",
+              padding: compact ? "0.95rem 0.7rem" : "1.2rem 0.9rem",
+              background: "#fafbff",
+              border: "1px dashed #dbe2f2",
+              borderRadius: "0.9rem",
+            }}
+          >
+            <Scale style={{ width: compact ? "1.45rem" : "1.7rem", height: compact ? "1.45rem" : "1.7rem", color: "#94a3b8", margin: compact ? "0 auto 0.45rem" : "0 auto 0.6rem" }} />
+            <p style={{ fontSize: compact ? "0.7rem" : "0.77rem", color: "#475569", marginTop: "0", marginRight: "0", marginBottom: "0", marginLeft: "0" }}>
+              {goalWeight == null || startWeight == null
+                ? "Set your start and goal weight to begin tracking."
+                : "Add a current weight entry to view your progress."}
+            </p>
+
+            {(goalWeight == null || startWeight == null) && (
+              <button
+                onClick={handleStartEdit}
+                style={{
+                  marginTop: "0.7rem",
+                  padding: compact ? "0.46rem 0.72rem" : "0.5rem 0.82rem",
+                  borderRadius: "0.6rem",
+                  border: `1px solid ${tone.border}`,
+                  background: tone.softBg,
+                  color: tone.accentStrong,
+                  fontSize: compact ? "0.74rem" : "0.78rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Set Start & Goal Weight
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </>
   );

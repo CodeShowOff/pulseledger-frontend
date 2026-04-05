@@ -389,26 +389,60 @@
 
 .cpp-hero__social {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
   margin-top: 0.5rem;
 }
 
 .cpp-social-link {
-  width: 36px;
-  height: 36px;
-  display: flex;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--cpp-white);
-  border-radius: 8px;
+  background: transparent;
+  border-radius: 0;
   color: var(--cpp-gray-700);
-  border: 1px solid var(--cpp-gray-100);
-  transition: var(--cpp-transition);
+  border: none;
+  padding: 0;
+  line-height: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.cpp-social-link svg {
+  width: 22px;
+  height: 22px;
+  display: block;
 }
 
 .cpp-social-link:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--cpp-shadow-sm);
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.cpp-social-link--instagram {
+  color: #e1306c;
+}
+
+.cpp-social-link--facebook {
+  color: #1877f2;
+}
+
+.cpp-social-link--twitter {
+  color: #111827;
+}
+
+.cpp-social-link--linkedin {
+  color: #0a66c2;
+}
+
+.cpp-social-link--youtube {
+  color: #ff0000;
+}
+
+.cpp-social-link--website {
+  color: #334155;
 }
 
 /* ========================================
@@ -615,6 +649,22 @@
   flex-shrink: 0;
 }
 
+.cpp-stats__icon--clients {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.cpp-stats__icon--plans {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.cpp-stats__icon--products {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.cpp-stats__icon--experience {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+}
+
 .cpp-stats__content {
   display: flex;
   flex-direction: column;
@@ -685,7 +735,32 @@
 }
 
 .cpp-section__title svg {
-  color: var(--cpp-primary);
+  color: var(--cpp-gray-500);
+}
+
+.cpp-about .cpp-section__title svg {
+  color: #ec4899;
+}
+
+.cpp-gallery--awards .cpp-section__title svg {
+  color: #f59e0b;
+}
+
+.cpp-gallery--results .cpp-section__title svg {
+  color: #10b981;
+}
+
+.cpp-plans .cpp-section__title svg {
+  color: #8b5cf6;
+}
+
+.cpp-progress .cpp-section__title svg {
+  color: #06b6d4;
+}
+
+.cpp-reviews .cpp-section__title svg {
+  color: #f59e0b;
+  fill: #fde68a;
 }
 
 .cpp-section__subtitle {
@@ -862,6 +937,23 @@
   cursor: pointer;
 }
 
+.cpp-gallery__pager-btn--icon {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--cpp-gray-200);
+  border-radius: var(--cpp-radius-full);
+  background: var(--cpp-white);
+  padding: 0;
+}
+
+.cpp-gallery__pager-btn--icon:hover:not(:disabled) {
+  border-color: var(--cpp-primary-light);
+  color: var(--cpp-primary);
+}
+
 .cpp-gallery__pager-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -912,23 +1004,98 @@
   flex: 1;
   overflow: hidden;
   border-radius: var(--cpp-radius-lg);
+  position: relative;
+}
+
+.cpp-gallery__thumbs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0.55rem auto 0;
+  overflow-x: auto;
+  padding: 0.1rem 0 0.2rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cpp-gray-300) transparent;
+}
+
+.cpp-gallery__thumb {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 2px solid var(--cpp-gray-200);
+  background: var(--cpp-white);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: var(--cpp-transition-fast);
+}
+
+.cpp-gallery__thumb:hover {
+  border-color: var(--cpp-primary-light);
+  transform: translateY(-1px);
+}
+
+.cpp-gallery__thumb--active {
+  border-color: var(--cpp-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.14);
+}
+
+.cpp-gallery__thumb-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: var(--cpp-gray-100);
+}
+
+.cpp-gallery__thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--cpp-gray-400);
 }
 
 /* Responsive: show carousel on small screens and hide desktop grid */
 @media (max-width: 768px) {
   .cpp-gallery__grid { display: none; }
-  /* stack carousel vertically on mobile so the image is on top, controls below */
+  /* stack carousel vertically on mobile with arrows overlaid on image */
   .cpp-gallery__carousel-mobile { display: flex; align-items: stretch; flex-direction: column; }
   .cpp-gallery__image { /* default smaller screens may still crop for grid, we'll override mobile viewport below */
     aspect-ratio: 1 / 1;
     height: auto;
     max-width: 100%;
   }
-  .cpp-gallery__nav { width: 40px; height: 40px; display: flex; }
-  /* ensure navs and pager appear below the image */
-  .cpp-gallery__viewport-mobile { order: 1; padding: 0; flex: 1; }
-  .cpp-gallery__carousel-mobile .cpp-gallery__nav { order: 2; margin: 0.5rem auto 0; }
-  .cpp-gallery__pager--mobile { order: 3; margin-top: 0.5rem; }
+  .cpp-gallery__nav { width: 38px; height: 38px; display: flex; }
+  /* keep image first, thumbnails below */
+  .cpp-gallery__viewport-mobile { order: 1; padding: 0; flex: 1; overflow: visible; }
+  .cpp-gallery__thumbs { order: 2; }
+  /* place nav controls on left/right of the image itself */
+  .cpp-gallery__viewport-mobile .cpp-gallery__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    margin: 0;
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--cpp-gray-200);
+    backdrop-filter: blur(4px);
+  }
+  .cpp-gallery__viewport-mobile .cpp-gallery__nav--prev {
+    left: 0;
+    transform: translate(-50%, -50%);
+  }
+  .cpp-gallery__viewport-mobile .cpp-gallery__nav--next {
+    right: 0;
+    transform: translate(50%, -50%);
+  }
   /* make the image respect its original aspect ratio on mobile and avoid cropping */
   .cpp-gallery__viewport-mobile .cpp-gallery__image {
     width: 100%;
@@ -942,7 +1109,18 @@
   /* hide any leftover switch button markup and ensure pager is used */
   .cpp-gallery__switch { display: none !important; }
   .cpp-gallery__pager { display: none; }
-  .cpp-gallery__pager--mobile { display: flex; }
+}
+
+@media (max-width: 480px) {
+  .cpp-gallery__thumb {
+    width: 34px;
+    height: 34px;
+    border-radius: 7px;
+  }
+
+  .cpp-gallery__thumbs {
+    gap: 0.34rem;
+  }
 }
 
 /* ========================================
@@ -1577,8 +1755,12 @@
     gap: 1rem;
   }
   
-  .cpp-gallery__nav {
+  .cpp-gallery__carousel > .cpp-gallery__nav {
     display: none;
+  }
+
+  .cpp-gallery__viewport-mobile .cpp-gallery__nav {
+    display: flex;
   }
   
   .cpp-gallery__image {

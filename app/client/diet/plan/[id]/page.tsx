@@ -1,71 +1,104 @@
-// app/client/diet/plan/[id]/page.tsx
 "use client";
 
 import React, { useState } from "react";
-import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   ArrowLeft,
-  Utensils,
-  Target,
-  Flame,
-  Clock,
-  AlertCircle,
+  Calendar,
   CheckCircle2,
-  Coffee,
-  Sun,
-  Moon,
-  Dumbbell,
   ChevronDown,
   ChevronUp,
+  CircleAlert,
+  Clock3,
+  Coffee,
+  Dumbbell,
+  Flame,
+  Moon,
+  Pill,
+  Sparkles,
+  Sun,
+  Target,
+  Utensils,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useClientDietPlan } from "@/lib/queries/diet";
+import { cn } from "@/lib/utils";
 
-const MEAL_ICONS: Record<string, React.ElementType> = {
-  breakfast: Coffee,
-  mid_morning_snack: Sun,
-  lunch: Sun,
-  afternoon_snack: Sun,
-  dinner: Moon,
-  evening_snack: Moon,
-  pre_workout: Dumbbell,
-  post_workout: Dumbbell,
-  bedtime_snack: Moon,
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+const MEAL_META: Record<string, { icon: LucideIcon; chip: string; card: string }> = {
+  breakfast: {
+    icon: Coffee,
+    chip: "bg-amber-100 text-amber-700",
+    card: "border-amber-200 bg-amber-50/50",
+  },
+  mid_morning_snack: {
+    icon: Sun,
+    chip: "bg-lime-100 text-lime-700",
+    card: "border-lime-200 bg-lime-50/50",
+  },
+  lunch: {
+    icon: Sun,
+    chip: "bg-emerald-100 text-emerald-700",
+    card: "border-emerald-200 bg-emerald-50/50",
+  },
+  afternoon_snack: {
+    icon: Sun,
+    chip: "bg-cyan-100 text-cyan-700",
+    card: "border-cyan-200 bg-cyan-50/50",
+  },
+  dinner: {
+    icon: Moon,
+    chip: "bg-violet-100 text-violet-700",
+    card: "border-violet-200 bg-violet-50/50",
+  },
+  evening_snack: {
+    icon: Moon,
+    chip: "bg-fuchsia-100 text-fuchsia-700",
+    card: "border-fuchsia-200 bg-fuchsia-50/50",
+  },
+  pre_workout: {
+    icon: Dumbbell,
+    chip: "bg-pink-100 text-pink-700",
+    card: "border-pink-200 bg-pink-50/50",
+  },
+  post_workout: {
+    icon: Dumbbell,
+    chip: "bg-rose-100 text-rose-700",
+    card: "border-rose-200 bg-rose-50/50",
+  },
+  bedtime_snack: {
+    icon: Moon,
+    chip: "bg-indigo-100 text-indigo-700",
+    card: "border-indigo-200 bg-indigo-50/50",
+  },
 };
 
-const MEAL_COLORS: Record<string, string> = {
-  breakfast: "#f59e0b",
-  mid_morning_snack: "#84cc16",
-  lunch: "#22c55e",
-  afternoon_snack: "#14b8a6",
-  dinner: "#6366f1",
-  evening_snack: "#8b5cf6",
-  pre_workout: "#ec4899",
-  post_workout: "#f43f5e",
-  bedtime_snack: "#a855f7",
+const formatText = (value?: string) => {
+  if (!value) return "-";
+  return value.replace(/_/g, " ");
 };
 
 export default function ClientDietPlanDetailPage() {
   const params = useParams();
-  const planId = params.id as string;
+  const planId = params?.id as string;
+
   const [expandedDays, setExpandedDays] = useState<number[]>([]);
 
   const { data: plan, isLoading, error } = useClientDietPlan(planId);
 
-  const toggleDay = (dayIndex: number) => {
-    setExpandedDays(prev => 
-      prev.includes(dayIndex) 
-        ? prev.filter(i => i !== dayIndex)
-        : [...prev, dayIndex]
+  const toggleDay = (index: number) => {
+    setExpandedDays((previous) =>
+      previous.includes(index) ? previous.filter((dayIndex) => dayIndex !== index) : [...previous, index]
     );
   };
 
   if (isLoading) {
     return (
-      <div className="client-page__sections">
-        <div style={{ textAlign: "center", padding: "3rem" }}>
-          <div className="loading-spinner" style={{ margin: "0 auto 1rem" }} />
-          <p style={{ color: "var(--text-secondary)" }}>Loading diet plan...</p>
+      <div className="client-page__sections space-y-4">
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
+          Loading diet plan...
         </div>
       </div>
     );
@@ -73,38 +106,20 @@ export default function ClientDietPlanDetailPage() {
 
   if (error || !plan) {
     return (
-      <div className="client-page__sections">
-        <header className="client-page__header" style={{ marginBottom: "1rem" }}>
-          <Link
-            href="/client/diet"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              color: "var(--text-secondary)",
-              marginBottom: "0.5rem",
-              fontSize: "0.9rem",
-            }}
-          >
-            <ArrowLeft style={{ width: 18, height: 18 }} />
-            Back to Nutrition
-          </Link>
-        </header>
-        <div
-          className="client-card"
-          style={{
-            padding: "3rem",
-            textAlign: "center",
-          }}
+      <div className="client-page__sections space-y-4">
+        <Link
+          href="/client/diet"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-slate-700"
         >
-          <AlertCircle
-            style={{ width: 48, height: 48, color: "#ef4444", margin: "0 auto 1rem" }}
-          />
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-            Diet Plan Not Found
-          </h2>
-          <p style={{ color: "var(--text-secondary)" }}>
-            This diet plan may not be assigned to you or doesn&apos;t exist.
+          <ArrowLeft className="h-4 w-4" />
+          Back to nutrition
+        </Link>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+          <CircleAlert className="mx-auto h-9 w-9 text-rose-400" />
+          <h2 className="mt-3 text-base font-semibold text-slate-900">Diet plan not found</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            This plan may be inactive or no longer assigned to your account.
           </p>
         </div>
       </div>
@@ -112,538 +127,293 @@ export default function ClientDietPlanDetailPage() {
   }
 
   return (
-    <div className="client-page__sections">
-      {/* Header */}
-      <header className="client-page__header" style={{ marginBottom: "1rem" }}>
-        <Link
-          href="/client/diet"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            color: "var(--text-secondary)",
-            marginBottom: "0.5rem",
-            fontSize: "0.9rem",
-          }}
-        >
-          <ArrowLeft style={{ width: 18, height: 18 }} />
-          Back to Nutrition
-        </Link>
-        <h1 className="client-page__title">
-          <Utensils
-            style={{
-              width: 28,
-              height: 28,
-              marginRight: "0.5rem",
-              color: "#16a34a",
-            }}
-          />
-          {plan.name}
-        </h1>
-        {plan.description && (
-          <p style={{ color: "var(--text-secondary)", marginTop: "0.25rem" }}>
-            {plan.description}
-          </p>
-        )}
-      </header>
-
-      {/* Plan Info */}
-      <div
-        className="client-card"
-        style={{
-          padding: "1rem",
-          marginBottom: "1rem",
-          background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
-        }}
+    <div className="client-page__sections space-y-4 pb-6">
+      <Link
+        href="/client/diet"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-slate-700"
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
-          <Target style={{ width: 20, height: 20, color: "#16a34a" }} />
-          <span style={{ fontWeight: 600 }}>Goal: {plan.goal || "Healthy Eating"}</span>
-        </div>
-        {plan.dietaryType && (
-          <span
-            style={{
-              display: "inline-block",
-              padding: "0.25rem 0.75rem",
-              background: "#dcfce7",
-              borderRadius: "20px",
-              fontSize: "0.8rem",
-              color: "#16a34a",
-              fontWeight: 500,
-            }}
-          >
-            {plan.dietaryType}
-          </span>
-        )}
-      </div>
+        <ArrowLeft className="h-4 w-4" />
+        Back to nutrition
+      </Link>
 
-      {/* Daily Targets */}
-      {plan.dailyTargets && (
-        <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-            Daily Targets
-          </h3>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: "0.5rem",
-            }}
-          >
-            {plan.dailyTargets.calories && (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "0.75rem",
-                  background: "#fff7ed",
-                  borderRadius: "8px",
-                }}
-              >
-                <Flame style={{ width: 20, height: 20, color: "#f97316", margin: "0 auto 0.25rem" }} />
-                <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#f97316" }}>
-                  {plan.dailyTargets.calories}
-                </p>
-                <p style={{ fontSize: "0.65rem", color: "#6b7280" }}>kcal</p>
-              </div>
-            )}
-            {plan.dailyTargets.protein && (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "0.75rem",
-                  background: "#fef2f2",
-                  borderRadius: "8px",
-                }}
-              >
-                <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#ef4444" }}>
-                  {plan.dailyTargets.protein}g
-                </p>
-                <p style={{ fontSize: "0.65rem", color: "#6b7280" }}>Protein</p>
-              </div>
-            )}
-            {plan.dailyTargets.carbohydrates && (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "0.75rem",
-                  background: "#eff6ff",
-                  borderRadius: "8px",
-                }}
-              >
-                <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#3b82f6" }}>
-                  {plan.dailyTargets.carbohydrates}g
-                </p>
-                <p style={{ fontSize: "0.65rem", color: "#6b7280" }}>Carbs</p>
-              </div>
-            )}
-            {plan.dailyTargets.fat && (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "0.75rem",
-                  background: "#fefce8",
-                  borderRadius: "8px",
-                }}
-              >
-                <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#eab308" }}>
-                  {plan.dailyTargets.fat}g
-                </p>
-                <p style={{ fontSize: "0.65rem", color: "#6b7280" }}>Fat</p>
-              </div>
-            )}
+      <section className="overflow-hidden rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div className="flex items-start gap-3">
+          <div className="rounded-2xl border border-slate-200 p-2.5 text-slate-700">
+            <Utensils className="h-5 w-5" />
           </div>
 
-          {plan.dailyTargets.water && (
-            <div
-              style={{
-                marginTop: "0.75rem",
-                padding: "0.75rem",
-                background: "#f0f9ff",
-                borderRadius: "8px",
-                textAlign: "center",
-              }}
-            >
-              <p style={{ fontSize: "0.85rem", color: "#0ea5e9" }}>
-                💧 Water Goal: <strong>{plan.dailyTargets.water}L</strong> per day
-              </p>
-            </div>
-          )}
+          <div className="min-w-0">
+            <h1 className="text-xl font-semibold tracking-tight text-slate-900">{plan.name}</h1>
+            {plan.description ? <p className="mt-1 text-sm text-slate-600">{plan.description}</p> : null}
+          </div>
         </div>
-      )}
 
-      {/* Weekly Schedule */}
-      {plan.weeklySchedule && plan.weeklySchedule.length > 0 ? (
-        <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-            📅 Weekly Meal Plan
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            {plan.weeklySchedule.map((day, dayIndex) => {
-              const dayName = day.dayName || ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][day.dayOfWeek] || `Day ${dayIndex + 1}`;
-              const isExpanded = expandedDays.includes(dayIndex);
-              
-              return (
-                <div
-                  key={dayIndex}
-                  style={{
-                    border: "2px solid #e5e7eb",
-                    borderRadius: "12px",
-                    background: "#fff",
-                    overflow: "hidden",
-                  }}
+        <div className="mt-4 grid grid-cols-2 gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
+          {plan.goal ? (
+            <span className="rounded-full border border-slate-200 px-2.5 py-1 text-center">
+              <Target className="mr-1 inline h-3 w-3" />
+              {formatText(plan.goal)}
+            </span>
+          ) : null}
+
+          {plan.dietaryType ? (
+            <span className="rounded-full border border-slate-200 px-2.5 py-1 text-center">
+              <Sparkles className="mr-1 inline h-3 w-3" />
+              {formatText(plan.dietaryType)}
+            </span>
+          ) : null}
+
+          {plan.mealsPerDay ? (
+            <span className="rounded-full border border-slate-200 px-2.5 py-1 text-center">
+              <Clock3 className="mr-1 inline h-3 w-3" />
+              {plan.mealsPerDay} meals/day
+            </span>
+          ) : null}
+
+          {plan.daysPerWeek ? (
+            <span className="rounded-full border border-slate-200 px-2.5 py-1 text-center">
+              <Calendar className="mr-1 inline h-3 w-3" />
+              {plan.daysPerWeek} days/week
+            </span>
+          ) : null}
+        </div>
+      </section>
+
+      {plan.dailyTargets ? (
+        <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-900">Daily targets</h2>
+
+          <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+            <div className="rounded-xl border border-orange-200 bg-orange-50 px-2 py-2 text-center">
+              <Flame className="mx-auto h-4 w-4 text-orange-600" />
+              <p className="mt-1 font-semibold text-orange-700">{plan.dailyTargets.calories || 0}</p>
+              <p className="text-[10px] text-orange-600">kcal</p>
+            </div>
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-2 py-2 text-center">
+              <p className="font-semibold text-rose-700">{plan.dailyTargets.protein || 0}g</p>
+              <p className="text-[10px] text-rose-600">Protein</p>
+            </div>
+            <div className="rounded-xl border border-cyan-200 bg-cyan-50 px-2 py-2 text-center">
+              <p className="font-semibold text-cyan-700">{plan.dailyTargets.carbohydrates || 0}g</p>
+              <p className="text-[10px] text-cyan-600">Carbs</p>
+            </div>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-2 py-2 text-center">
+              <p className="font-semibold text-amber-700">{plan.dailyTargets.fat || 0}g</p>
+              <p className="text-[10px] text-amber-600">Fat</p>
+            </div>
+          </div>
+
+          {plan.dailyTargets.water ? (
+            <p className="mt-3 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-medium text-sky-700">
+              💧 Water goal: {plan.dailyTargets.water}L/day
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
+      {plan.weeklySchedule?.length ? (
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Weekly schedule</h2>
+
+          {plan.weeklySchedule.map((day, dayIndex) => {
+            const isExpanded = expandedDays.includes(dayIndex);
+            const dayName = day.dayName || (typeof day.dayOfWeek === "number" ? DAY_NAMES[day.dayOfWeek] : `Day ${dayIndex + 1}`);
+            const meals = day.meals || [];
+
+            return (
+              <article key={`${dayName}-${dayIndex}`} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => toggleDay(dayIndex)}
+                  className="flex w-full items-center justify-between gap-2 px-3 py-3 text-left"
                 >
-                  <div
-                    onClick={() => toggleDay(dayIndex)}
-                    style={{
-                      padding: "1rem",
-                      background: "#f9fafb",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      borderBottom: isExpanded ? "2px solid #e5e7eb" : "none",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <h4 style={{ fontSize: "0.95rem", fontWeight: 600, color: "#1f2937", margin: 0 }}>
-                        {dayName}
-                      </h4>
-                      <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
-                        ({day.meals?.length || 0} meals)
-                      </span>
-                    </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900">{dayName}</p>
+                    <p className="mt-0.5 text-xs text-slate-500">{meals.length} meal(s)</p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                      {meals.length}
+                    </span>
                     {isExpanded ? (
-                      <ChevronUp style={{ width: 20, height: 20, color: "#6b7280" }} />
+                      <ChevronUp className="h-4 w-4 text-slate-400" />
                     ) : (
-                      <ChevronDown style={{ width: 20, height: 20, color: "#6b7280" }} />
+                      <ChevronDown className="h-4 w-4 text-slate-400" />
                     )}
                   </div>
-                  
-                  {isExpanded && (
-                    <div style={{ padding: "1rem" }}>
-                  {day.notes && (
-                    <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem", fontStyle: "italic" }}>
-                      💡 {day.notes}
-                    </p>
-                  )}
-                  {day.meals && day.meals.length > 0 && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                      {day.meals.map((meal, mealIndex) => {
-                        const Icon = MEAL_ICONS[meal.mealType] || Utensils;
-                        const color = MEAL_COLORS[meal.mealType] || "#6b7280";
+                </button>
+
+                {isExpanded ? (
+                  <div className="space-y-2 border-t border-slate-200 px-3 py-3">
+                    {day.notes ? (
+                      <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                        <span className="font-semibold">Coach note:</span> {day.notes}
+                      </p>
+                    ) : null}
+
+                    {meals.length ? (
+                      meals.map((meal, mealIndex) => {
+                        const meta = MEAL_META[meal.mealType] || {
+                          icon: Utensils,
+                          chip: "bg-slate-100 text-slate-700",
+                          card: "border-slate-200 bg-slate-50/70",
+                        };
+                        const MealIcon = meta.icon;
 
                         return (
-                          <div
-                            key={mealIndex}
-                            style={{
-                              padding: "1rem",
-                              border: `2px solid ${color}20`,
-                              borderRadius: "12px",
-                              background: `${color}08`,
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                marginBottom: "0.5rem",
-                              }}
-                            >
-                              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                <Icon style={{ width: 20, height: 20, color }} />
-                                <span style={{ fontWeight: 600, textTransform: "capitalize" }}>
-                                  {meal.mealType.replace(/_/g, " ")}
-                                </span>
+                          <div key={`${meal.mealType}-${mealIndex}`} className={cn("rounded-2xl border p-3", meta.card)}>
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <MealIcon className="h-4 w-4 text-slate-600" />
+                                <p className="text-sm font-semibold text-slate-900">{formatText(meal.mealType)}</p>
                               </div>
-                              {meal.time && (
-                                <span
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "0.25rem",
-                                    fontSize: "0.75rem",
-                                    color: "var(--text-secondary)",
-                                  }}
-                                >
-                                  <Clock style={{ width: 14, height: 14 }} />
-                                  {meal.time}
-                                </span>
-                              )}
+                              <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", meta.chip)}>
+                                {meal.time || "Flexible"}
+                              </span>
                             </div>
 
-                            {meal.name && (
-                              <p style={{ fontSize: "0.9rem", fontWeight: 500, marginBottom: "0.5rem" }}>
-                                {meal.name}
-                              </p>
-                            )}
+                            {meal.name ? <p className="mt-1 text-xs text-slate-600">{meal.name}</p> : null}
 
-                            {meal.foods && meal.foods.length > 0 && (
-                              <div style={{ marginTop: "0.5rem" }}>
+                            {meal.foods?.length ? (
+                              <div className="mt-2 space-y-1.5">
                                 {meal.foods.map((food, foodIndex) => (
                                   <div
-                                    key={foodIndex}
-                                    style={{
-                                      display: "flex",
-                                      justifyContent: "space-between",
-                                      alignItems: "center",
-                                      padding: "0.5rem 0",
-                                      borderBottom:
-                                        foodIndex < meal.foods!.length - 1
-                                          ? "1px solid var(--border-color)"
-                                          : "none",
-                                    }}
+                                    key={`${food.foodName}-${foodIndex}`}
+                                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2"
                                   >
-                                    <div>
-                                      <p style={{ fontSize: "0.85rem" }}>{food.foodName}</p>
-                                      <p style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
-                                        {food.quantity} {food.unit}
+                                    <div className="min-w-0">
+                                      <p className="truncate text-xs font-medium text-slate-800">{food.foodName}</p>
+                                      <p className="text-[11px] text-slate-500">
+                                        {food.quantity} {food.unit || "g"}
                                       </p>
                                     </div>
-                                    {food.calories && (
-                                      <span style={{ fontSize: "0.75rem", color: "#f97316", fontWeight: 500 }}>
-                                        {food.calories} kcal
-                                      </span>
-                                    )}
+                                    {food.calories ? (
+                                      <span className="text-[11px] font-semibold text-orange-600">{food.calories} kcal</span>
+                                    ) : null}
                                   </div>
                                 ))}
                               </div>
-                            )}
+                            ) : null}
 
-                            {meal.notes && (
-                              <p
-                                style={{
-                                  marginTop: "0.5rem",
-                                  padding: "0.5rem",
-                                  background: "white",
-                                  borderRadius: "6px",
-                                  fontSize: "0.8rem",
-                                  color: "var(--text-secondary)",
-                                  fontStyle: "italic",
-                                }}
-                              >
-                                💡 {meal.notes}
+                            {meal.notes ? (
+                              <p className="mt-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+                                {meal.notes}
                               </p>
-                            )}
+                            ) : null}
                           </div>
                         );
-                      })}
-                    </div>
-                  )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : plan.meals && plan.meals.length > 0 ? (
-        <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-            Planned Meals ({plan.mealsPerDay || plan.meals.length}/day)
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            {plan.meals.map((meal, index) => {
-              const Icon = MEAL_ICONS[meal.mealType] || Utensils;
-              const color = MEAL_COLORS[meal.mealType] || "#6b7280";
-
-              return (
-                <div
-                  key={index}
-                  style={{
-                    padding: "1rem",
-                    border: `2px solid ${color}20`,
-                    borderRadius: "12px",
-                    background: `${color}08`,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <Icon style={{ width: 20, height: 20, color }} />
-                      <span style={{ fontWeight: 600, textTransform: "capitalize" }}>
-                        {meal.mealType.replace(/_/g, " ")}
-                      </span>
-                    </div>
-                    {meal.time && (
-                      <span
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.25rem",
-                          fontSize: "0.75rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
-                        <Clock style={{ width: 14, height: 14 }} />
-                        {meal.time}
-                      </span>
+                      })
+                    ) : (
+                      <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                        No meals configured for this day.
+                      </p>
                     )}
                   </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </section>
+      ) : plan.meals?.length ? (
+        <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-900">Meal structure</h2>
 
-                  {meal.name && (
-                    <p style={{ fontSize: "0.9rem", fontWeight: 500, marginBottom: "0.5rem" }}>
-                      {meal.name}
-                    </p>
-                  )}
+          <div className="mt-3 space-y-2.5">
+            {plan.meals.map((meal, index) => {
+              const meta = MEAL_META[meal.mealType] || {
+                icon: Utensils,
+                chip: "bg-slate-100 text-slate-700",
+                card: "border-slate-200 bg-slate-50/70",
+              };
+              const MealIcon = meta.icon;
 
-                  {meal.foods && meal.foods.length > 0 && (
-                    <div style={{ marginTop: "0.5rem" }}>
-                      {meal.foods.map((food, foodIndex) => (
-                        <div
-                          key={foodIndex}
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            padding: "0.5rem 0",
-                            borderBottom:
-                              foodIndex < meal.foods!.length - 1
-                                ? "1px solid var(--border-color)"
-                                : "none",
-                          }}
-                        >
-                          <div>
-                            <p style={{ fontSize: "0.85rem" }}>{food.foodName}</p>
-                            <p style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
-                              {food.quantity} {food.unit}
-                            </p>
-                          </div>
-                          {food.calories && (
-                            <span style={{ fontSize: "0.75rem", color: "#f97316", fontWeight: 500 }}>
-                              {food.calories} kcal
-                            </span>
-                          )}
-                        </div>
-                      ))}
+              return (
+                <div key={`${meal.mealType}-${index}`} className={cn("rounded-2xl border p-3", meta.card)}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <MealIcon className="h-4 w-4 text-slate-600" />
+                      <p className="text-sm font-semibold text-slate-900">{formatText(meal.mealType)}</p>
                     </div>
-                  )}
+                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", meta.chip)}>
+                      {meal.time || "Flexible"}
+                    </span>
+                  </div>
 
-                  {meal.notes && (
-                    <p
-                      style={{
-                        marginTop: "0.5rem",
-                        padding: "0.5rem",
-                        background: "white",
-                        borderRadius: "6px",
-                        fontSize: "0.8rem",
-                        color: "var(--text-secondary)",
-                        fontStyle: "italic",
-                      }}
-                    >
-                      💡 {meal.notes}
+                  {meal.foods?.length ? (
+                    <p className="mt-1 text-xs text-slate-600">
+                      {meal.foods.map((food) => food.foodName).filter(Boolean).join(" · ")}
                     </p>
-                  )}
+                  ) : null}
                 </div>
               );
             })}
           </div>
-        </div>
+        </section>
       ) : null}
 
-      {/* Foods to Avoid */}
-      {plan.foodsToAvoid && plan.foodsToAvoid.length > 0 && (
-        <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-            ⚠️ Foods to Avoid
-          </h3>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-            {plan.foodsToAvoid.map((food, index) => (
+      {plan.foodsToAvoid?.length ? (
+        <section className="rounded-3xl border border-rose-200 bg-rose-50/80 p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-rose-900">Foods to avoid</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {plan.foodsToAvoid.map((food) => (
               <span
-                key={index}
-                style={{
-                  padding: "0.25rem 0.75rem",
-                  background: "#fef2f2",
-                  border: "1px solid #fecaca",
-                  borderRadius: "20px",
-                  fontSize: "0.8rem",
-                  color: "#dc2626",
-                }}
+                key={food}
+                className="rounded-full border border-rose-200 bg-white px-2.5 py-1 text-[11px] font-medium text-rose-700"
               >
                 {food}
               </span>
             ))}
           </div>
-        </div>
-      )}
+        </section>
+      ) : null}
 
-      {/* Supplements */}
-      {plan.supplements && plan.supplements.length > 0 && (
-        <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-            💊 Supplements
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+      {plan.supplements?.length ? (
+        <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-900">Supplements</h2>
+          <div className="mt-2 space-y-2">
             {plan.supplements.map((supplement, index) => (
-              <div
-                key={index}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.5rem 0.75rem",
-                  background: "var(--bg-secondary)",
-                  borderRadius: "8px",
-                }}
-              >
-                <CheckCircle2 style={{ width: 16, height: 16, color: "#22c55e" }} />
-                <div>
-                  <p style={{ fontSize: "0.85rem", fontWeight: 500 }}>{supplement.name}</p>
-                  {supplement.dosage && (
-                    <p style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
-                      {supplement.dosage} • {supplement.timing}
+              <div key={`${supplement.name}-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="flex items-start gap-2">
+                  <Pill className="mt-0.5 h-4 w-4 text-emerald-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{supplement.name}</p>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      {[supplement.dosage, supplement.timing].filter(Boolean).join(" · ") || "As advised"}
                     </p>
-                  )}
+                    {supplement.notes ? <p className="mt-1 text-xs text-slate-600">{supplement.notes}</p> : null}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        </section>
+      ) : null}
 
-      {/* Allergy Notes */}
-      {plan.allergyNotes && (
-        <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem", backgroundColor: "#fef2f2", border: "2px solid #fecaca" }}>
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem", color: "#dc2626" }}>
-            ⚠️ Allergy Notes
-          </h3>
-          <p
-            style={{
-              fontSize: "0.85rem",
-              color: "#991b1b",
-              lineHeight: 1.6,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {plan.allergyNotes}
-          </p>
-        </div>
-      )}
+      {plan.allergyNotes ? (
+        <section className="rounded-3xl border border-rose-300 bg-rose-50 p-4 shadow-sm">
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-rose-900">
+            <CircleAlert className="h-4 w-4" />
+            Allergy notes
+          </h2>
+          <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-rose-800">{plan.allergyNotes}</p>
+        </section>
+      ) : null}
 
-      {/* Custom Instructions */}
-      {plan.customInstructions && (
-        <div className="client-card" style={{ padding: "1rem" }}>
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-            📝 Coach&apos;s Notes
-          </h3>
-          <p
-            style={{
-              fontSize: "0.85rem",
-              color: "var(--text-secondary)",
-              lineHeight: 1.6,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {plan.customInstructions}
-          </p>
-        </div>
-      )}
+      {plan.customInstructions ? (
+        <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-900">Coach instructions</h2>
+          <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-slate-600">{plan.customInstructions}</p>
+        </section>
+      ) : null}
+
+      <Link
+        href="/client/diet/today"
+        className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-500 text-sm font-semibold !text-white shadow-sm transition hover:brightness-110"
+      >
+        <CheckCircle2 className="h-4 w-4" />
+        Open today&apos;s nutrition
+      </Link>
     </div>
   );
 }

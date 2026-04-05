@@ -16,7 +16,7 @@ export default function HeroSection() {
       <div className="px-4 sm:px-6 md:hidden">
         <div className="mx-auto max-w-2xl">
           <div className="mb-5">
-            <span className="inline-flex items-center rounded-full border border-[#6366F14D] bg-[#F8FAFC] px-3.5 py-2 font-mono text-xs font-medium uppercase tracking-[0.08em] text-[#6366F1]">
+            <span className="inline-flex items-center rounded-full border border-black bg-white px-3.5 py-2 font-mono text-xs font-medium uppercase tracking-[0.08em] text-black">
               Health Coaching Platform
             </span>
           </div>
@@ -89,7 +89,7 @@ export default function HeroSection() {
           }}
         >
           <div className="mb-6">
-            <span className="inline-flex items-center rounded-full border border-[#6366F14D] bg-[#F8FAFC] px-3.5 py-2 font-mono text-xs font-medium uppercase tracking-[0.08em] text-[#6366F1]">
+            <span className="inline-flex items-center rounded-full border border-black bg-white px-3.5 py-2 font-mono text-xs font-medium uppercase tracking-[0.08em] text-black">
               Health Coaching Platform
             </span>
           </div>

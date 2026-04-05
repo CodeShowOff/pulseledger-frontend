@@ -1,43 +1,125 @@
-// app/client/diet/log/page.tsx
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
-  Plus,
-  Search,
-  X,
   Check,
   ChevronDown,
-  Utensils,
   Coffee,
-  Sun,
-  Moon,
   Dumbbell,
+  Moon,
+  Plus,
+  Search,
+  Sun,
+  Trash2,
+  Utensils,
+  X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 import {
-  useClientDietPlans,
-  useClientDietLogByDate,
-  useAddMealToLog,
-  useCreateDietLog,
-  LoggedFood,
   FoodItem,
+  LoggedFood,
+  useAddMealToLog,
+  useClientDietLogByDate,
+  useClientDietPlans,
+  useCreateDietLog,
 } from "@/lib/queries/diet";
+import { cn } from "@/lib/utils";
 
-const MEAL_TYPES = [
-  { value: "breakfast", label: "Breakfast", icon: Coffee, color: "#f59e0b" },
-  { value: "mid_morning_snack", label: "Morning Snack", icon: Sun, color: "#84cc16" },
-  { value: "lunch", label: "Lunch", icon: Sun, color: "#22c55e" },
-  { value: "afternoon_snack", label: "Afternoon Snack", icon: Sun, color: "#14b8a6" },
-  { value: "dinner", label: "Dinner", icon: Moon, color: "#6366f1" },
-  { value: "evening_snack", label: "Evening Snack", icon: Moon, color: "#8b5cf6" },
-  { value: "pre_workout", label: "Pre-Workout", icon: Dumbbell, color: "#ec4899" },
-  { value: "post_workout", label: "Post-Workout", icon: Dumbbell, color: "#f43f5e" },
+type MealTypeOption = {
+  value: string;
+  label: string;
+  icon: LucideIcon;
+  accent: string;
+  softBg: string;
+  softBorder: string;
+};
+
+type FoodNutritionReference = {
+  servingSize: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
+
+const MEAL_TYPES: MealTypeOption[] = [
+  {
+    value: "breakfast",
+    label: "Breakfast",
+    icon: Coffee,
+    accent: "text-amber-700",
+    softBg: "bg-amber-50",
+    softBorder: "border-amber-200",
+  },
+  {
+    value: "mid_morning_snack",
+    label: "Morning Snack",
+    icon: Sun,
+    accent: "text-lime-700",
+    softBg: "bg-lime-50",
+    softBorder: "border-lime-200",
+  },
+  {
+    value: "lunch",
+    label: "Lunch",
+    icon: Sun,
+    accent: "text-emerald-700",
+    softBg: "bg-emerald-50",
+    softBorder: "border-emerald-200",
+  },
+  {
+    value: "afternoon_snack",
+    label: "Afternoon Snack",
+    icon: Sun,
+    accent: "text-cyan-700",
+    softBg: "bg-cyan-50",
+    softBorder: "border-cyan-200",
+  },
+  {
+    value: "dinner",
+    label: "Dinner",
+    icon: Moon,
+    accent: "text-violet-700",
+    softBg: "bg-violet-50",
+    softBorder: "border-violet-200",
+  },
+  {
+    value: "evening_snack",
+    label: "Evening Snack",
+    icon: Moon,
+    accent: "text-fuchsia-700",
+    softBg: "bg-fuchsia-50",
+    softBorder: "border-fuchsia-200",
+  },
+  {
+    value: "pre_workout",
+    label: "Pre-workout",
+    icon: Dumbbell,
+    accent: "text-pink-700",
+    softBg: "bg-pink-50",
+    softBorder: "border-pink-200",
+  },
+  {
+    value: "post_workout",
+    label: "Post-workout",
+    icon: Dumbbell,
+    accent: "text-rose-700",
+    softBg: "bg-rose-50",
+    softBorder: "border-rose-200",
+  },
 ];
+
+const formatLocalDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 function DietLogContent() {
   const router = useRouter();
@@ -49,30 +131,27 @@ function DietLogContent() {
   const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedFoods, setSelectedFoods] = useState<LoggedFood[]>([]);
+  const [foodNutritionReferences, setFoodNutritionReferences] = useState<
+    Record<string, FoodNutritionReference>
+  >({});
   const [showMealSelector, setShowMealSelector] = useState(false);
-
-  const formatLocalDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
 
   const today = formatLocalDate(new Date());
 
-  // Fetch diet plans and today's log
   const { data: plans = [] } = useClientDietPlans();
-  const { data: todayLog, refetch: refetchLog } = useClientDietLogByDate(today);
+  const { data: todayLog } = useClientDietLogByDate(today);
   const addMealMutation = useAddMealToLog();
   const createLogMutation = useCreateDietLog();
 
-  const activePlan = plans.find((p) => p.isActive);
-  const currentMeal = MEAL_TYPES.find((m) => m.value === selectedMealType);
+  const activePlan = plans.find((plan) => plan.isActive) || plans[0];
 
-  // Search for foods
+  const currentMeal = useMemo(() => {
+    return MEAL_TYPES.find((meal) => meal.value === selectedMealType) || MEAL_TYPES[0];
+  }, [selectedMealType]);
+
   useEffect(() => {
     const searchFoods = async () => {
-      if (searchQuery.length < 2) {
+      if (searchQuery.trim().length < 2) {
         setSearchResults([]);
         return;
       }
@@ -93,80 +172,77 @@ function DietLogContent() {
   }, [searchQuery]);
 
   const addFood = (food: FoodItem) => {
-    const loggedFood: LoggedFood = {
-      foodItemId: food._id,
-      foodName: food.name,
-      quantity: food.servingSize || 100,
-      unit: food.servingUnit || "g",
+    const servingSize = food.servingSize || 100;
+    const nutritionReference: FoodNutritionReference = {
+      servingSize,
       calories: food.nutrition?.calories || 0,
       protein: food.nutrition?.protein || 0,
       carbs: food.nutrition?.carbohydrates || 0,
       fat: food.nutrition?.fat || 0,
     };
-    setSelectedFoods([...selectedFoods, loggedFood]);
+
+    const nextFood: LoggedFood = {
+      foodItemId: food._id,
+      foodName: food.name,
+      quantity: servingSize,
+      unit: food.servingUnit || "g",
+      calories: nutritionReference.calories,
+      protein: nutritionReference.protein,
+      carbs: nutritionReference.carbs,
+      fat: nutritionReference.fat,
+    };
+
+    setSelectedFoods((previous) => [...previous, nextFood]);
+    setFoodNutritionReferences((previous) => ({
+      ...previous,
+      [food._id]: nutritionReference,
+    }));
     setSearchQuery("");
     setSearchResults([]);
   };
 
   const removeFood = (index: number) => {
-    setSelectedFoods(selectedFoods.filter((_, i) => i !== index));
+    setSelectedFoods((previous) => previous.filter((_, i) => i !== index));
   };
 
   const updateFoodQuantity = (index: number, quantity: number) => {
-    const original = searchResults.find((f) => f._id === selectedFoods[index].foodItemId);
-    const ratio = quantity / (original?.servingSize || 100);
+    setSelectedFoods((previous) =>
+      previous.map((food, itemIndex) => {
+        if (itemIndex !== index) return food;
 
-    setSelectedFoods(
-      selectedFoods.map((food, i) =>
-        i === index
-          ? {
-              ...food,
-              quantity,
-              calories: Math.round((original?.nutrition?.calories || 0) * ratio),
-              protein: Math.round((original?.nutrition?.protein || 0) * ratio * 10) / 10,
-              carbs: Math.round((original?.nutrition?.carbohydrates || 0) * ratio * 10) / 10,
-              fat: Math.round((original?.nutrition?.fat || 0) * ratio * 10) / 10,
-            }
-          : food
-      )
+        const sanitizedQuantity = Number.isFinite(quantity) ? Math.max(0, quantity) : 0;
+
+        const reference = food.foodItemId
+          ? foodNutritionReferences[food.foodItemId]
+          : undefined;
+
+        if (reference) {
+          const referenceServingSize = reference.servingSize > 0 ? reference.servingSize : 100;
+          const ratio = sanitizedQuantity / referenceServingSize;
+
+          return {
+            ...food,
+            quantity: sanitizedQuantity,
+            calories: Math.max(0, Math.round(reference.calories * ratio)),
+            protein: Math.max(0, Math.round(reference.protein * ratio * 10) / 10),
+            carbs: Math.max(0, Math.round(reference.carbs * ratio * 10) / 10),
+            fat: Math.max(0, Math.round(reference.fat * ratio * 10) / 10),
+          };
+        }
+
+        const previousQuantity = food.quantity || 1;
+        const ratio = previousQuantity > 0 ? sanitizedQuantity / previousQuantity : 1;
+
+        return {
+          ...food,
+          quantity: sanitizedQuantity,
+          calories: Math.max(0, Math.round((food.calories || 0) * ratio)),
+          protein: Math.max(0, Math.round((food.protein || 0) * ratio * 10) / 10),
+          carbs: Math.max(0, Math.round((food.carbs || 0) * ratio * 10) / 10),
+          fat: Math.max(0, Math.round((food.fat || 0) * ratio * 10) / 10),
+        };
+      })
     );
-  };
-
-  const saveMeal = async () => {
-    if (selectedFoods.length === 0) {
-      toast.error("Please add at least one food item");
-      return;
-    }
-
-    if (!activePlan) {
-      toast.error("No active diet plan found");
-      return;
-    }
-
-    const meal = {
-      mealType: selectedMealType,
-      time: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-      foods: selectedFoods,
-    };
-
-    try {
-      if (todayLog?._id) {
-        // Add meal to existing log
-        await addMealMutation.mutateAsync({ logId: todayLog._id, meal });
-      } else {
-        // Create new log with this meal
-        await createLogMutation.mutateAsync({
-          dietPlanId: activePlan._id,
-          date: today,
-          mealsLogged: [meal],
-        });
-      }
-
-      toast.success(`${currentMeal?.label} logged successfully!`);
-      router.push("/client/diet");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to log meal");
-    }
   };
 
   const totalNutrition = selectedFoods.reduce(
@@ -179,304 +255,244 @@ function DietLogContent() {
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
 
-  return (
-    <div className="client-page__sections">
-      {/* Header */}
-      <header className="client-page__header" style={{ marginBottom: "1rem" }}>
-        <Link
-          href="/client/diet"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            color: "var(--text-secondary)",
-            marginBottom: "0.5rem",
-            fontSize: "0.9rem",
-          }}
-        >
-          <ArrowLeft style={{ width: 18, height: 18 }} />
-          Back to Nutrition
-        </Link>
-        <h1 className="client-page__title">
-          <Utensils
-            style={{
-              width: 28,
-              height: 28,
-              marginRight: "0.5rem",
-              color: currentMeal?.color || "#16a34a",
-            }}
-          />
-          Log {currentMeal?.label || "Meal"}
-        </h1>
-      </header>
+  const isSaving = addMealMutation.isPending || createLogMutation.isPending;
+  const CurrentMealIcon = currentMeal.icon;
 
-      {/* Meal Type Selector */}
-      <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
+  const saveMeal = async () => {
+    if (!selectedFoods.length) {
+      toast.error("Please add at least one food item");
+      return;
+    }
+
+    if (!activePlan) {
+      toast.error("No active diet plan found");
+      return;
+    }
+
+    const mealPayload = {
+      mealType: selectedMealType,
+      time: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+      foods: selectedFoods,
+    };
+
+    try {
+      const existingLogId = todayLog?._id;
+
+      if (existingLogId) {
+        await addMealMutation.mutateAsync({ logId: existingLogId, meal: mealPayload });
+      } else {
+        await createLogMutation.mutateAsync({
+          dietPlanId: activePlan._id,
+          date: today,
+          mealsLogged: [mealPayload],
+        });
+      }
+
+      toast.success(`${currentMeal.label} logged successfully`);
+      router.push("/client/diet");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to log meal");
+    }
+  };
+
+  return (
+    <div className="client-page__sections space-y-4 pb-24">
+      <Link
+        href="/client/diet"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-slate-700"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to nutrition
+      </Link>
+
+      <section className="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
         <button
-          onClick={() => setShowMealSelector(!showMealSelector)}
-          style={{
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0.75rem",
-            background: "var(--bg-secondary)",
-            border: "1px solid var(--border-color)",
-            borderRadius: "8px",
-            cursor: "pointer",
-          }}
+          type="button"
+          onClick={() => setShowMealSelector((previous) => !previous)}
+          className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 text-left"
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            {currentMeal && <currentMeal.icon style={{ width: 20, height: 20, color: currentMeal.color }} />}
-            <span style={{ fontWeight: 500 }}>{currentMeal?.label}</span>
-          </div>
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <CurrentMealIcon className={cn("h-4 w-4", currentMeal.accent)} />
+            {currentMeal.label}
+          </span>
           <ChevronDown
-            style={{
-              width: 20,
-              height: 20,
-              transform: showMealSelector ? "rotate(180deg)" : "rotate(0deg)",
-              transition: "transform 0.2s",
-            }}
+            className={cn("h-4 w-4 text-slate-500 transition-transform", showMealSelector && "rotate-180")}
           />
         </button>
 
-        {showMealSelector && (
-          <div
-            style={{
-              marginTop: "0.5rem",
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: "0.5rem",
-            }}
-          >
-            {MEAL_TYPES.map((meal) => (
-              <button
-                key={meal.value}
-                onClick={() => {
-                  setSelectedMealType(meal.value);
-                  setShowMealSelector(false);
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.75rem",
-                  background: selectedMealType === meal.value ? `${meal.color}20` : "transparent",
-                  border: `1px solid ${selectedMealType === meal.value ? meal.color : "var(--border-color)"}`,
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                }}
-              >
-                <meal.icon style={{ width: 18, height: 18, color: meal.color }} />
-                <span style={{ fontSize: "0.85rem" }}>{meal.label}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+        {showMealSelector ? (
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {MEAL_TYPES.map((meal) => {
+              const MealIcon = meal.icon;
+              const selected = meal.value === selectedMealType;
 
-      {/* Food Search */}
-      <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
-        <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-          Add Foods
-        </h3>
-        <div style={{ position: "relative" }}>
-          <Search
-            style={{
-              position: "absolute",
-              left: "12px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 18,
-              height: 18,
-              color: "var(--text-tertiary)",
-            }}
-          />
+              return (
+                <button
+                  key={meal.value}
+                  type="button"
+                  onClick={() => {
+                    setSelectedMealType(meal.value);
+                    setShowMealSelector(false);
+                  }}
+                  className={cn(
+                    "flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs font-semibold transition",
+                    selected
+                      ? `${meal.softBorder} ${meal.softBg} ${meal.accent}`
+                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                  )}
+                >
+                  <MealIcon className="h-4 w-4" />
+                  {meal.label}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+      </section>
+
+      <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-slate-900">Add foods</h3>
+        <p className="mt-1 text-xs text-slate-500">Search from your food database and tap to add.</p>
+
+        <div className="relative mt-3">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search foods..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "0.75rem 0.75rem 0.75rem 40px",
-              border: "1px solid var(--border-color)",
-              borderRadius: "8px",
-              fontSize: "0.9rem",
-            }}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search food items..."
+            className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white focus:ring-2 focus:ring-emerald-100"
           />
         </div>
 
-        {/* Search Results */}
-        {searchResults.length > 0 && (
-          <div
-            style={{
-              marginTop: "0.5rem",
-              maxHeight: "200px",
-              overflowY: "auto",
-              border: "1px solid var(--border-color)",
-              borderRadius: "8px",
-            }}
-          >
+        {isSearching ? (
+          <p className="mt-3 text-xs text-slate-500">Searching...</p>
+        ) : null}
+
+        {searchResults.length ? (
+          <div className="mt-3 max-h-[260px] space-y-2 overflow-y-auto">
             {searchResults.map((food) => (
               <button
                 key={food._id}
+                type="button"
                 onClick={() => addFood(food)}
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "0.75rem",
-                  borderBottom: "1px solid var(--border-color)",
-                  background: "transparent",
-                  cursor: "pointer",
-                  textAlign: "left",
-                }}
+                className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition hover:border-emerald-200 hover:bg-emerald-50/40"
               >
                 <div>
-                  <p style={{ fontWeight: 500, fontSize: "0.9rem" }}>{food.name}</p>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                    {food.servingSize} {food.servingUnit} • {food.nutrition?.calories} kcal
+                  <p className="text-sm font-semibold text-slate-900">{food.name}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {food.servingSize} {food.servingUnit} · {food.nutrition?.calories || 0} kcal
                   </p>
                 </div>
-                <Plus style={{ width: 20, height: 20, color: "#16a34a" }} />
+                <Plus className="h-4 w-4 text-emerald-600" />
               </button>
             ))}
           </div>
-        )}
+        ) : null}
+      </section>
 
-        {isSearching && (
-          <p style={{ textAlign: "center", padding: "1rem", color: "var(--text-secondary)" }}>
-            Searching...
-          </p>
-        )}
-      </div>
+      <section className="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
+        <button
+          type="button"
+          onClick={saveMeal}
+          disabled={!selectedFoods.length || isSaving}
+          className={cn(
+            "flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-semibold !text-white shadow-lg transition",
+            !selectedFoods.length || isSaving
+              ? "cursor-not-allowed bg-slate-400"
+              : "bg-gradient-to-r from-emerald-600 to-green-500 hover:brightness-110"
+          )}
+        >
+          {isSaving ? <X className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+          {isSaving ? "Saving..." : `Save ${currentMeal.label}`}
+        </button>
+      </section>
 
-      {/* Selected Foods */}
-      {selectedFoods.length > 0 && (
-        <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-            Selected Foods ({selectedFoods.length})
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+      <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-slate-900">Selected foods</h3>
+          <span className="text-xs text-slate-500">{selectedFoods.length} item(s)</span>
+        </div>
+
+        {selectedFoods.length ? (
+          <div className="space-y-2.5">
             {selectedFoods.map((food, index) => (
-              <div
-                key={index}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "0.75rem",
-                  background: "var(--bg-secondary)",
-                  borderRadius: "8px",
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: 500, fontSize: "0.9rem" }}>{food.foodName}</p>
-                  <div style={{ display: "flex", gap: "0.75rem", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                    <span>{food.calories} kcal</span>
-                    <span>P: {food.protein}g</span>
-                    <span>C: {food.carbs}g</span>
-                    <span>F: {food.fat}g</span>
+              <div key={`${food.foodName}-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900">{food.foodName}</p>
+                    <p className="mt-1 text-[11px] text-slate-600">
+                      {food.calories || 0} kcal · P {food.protein || 0}g · C {food.carbs || 0}g · F {food.fat || 0}g
+                    </p>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => removeFood(index)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100"
+                    aria-label={`Remove ${food.foodName}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+
+                <div className="mt-2 flex items-center gap-2">
                   <input
                     type="number"
+                    min={0}
+                    step={1}
                     value={food.quantity}
-                    onChange={(e) => updateFoodQuantity(index, parseFloat(e.target.value) || 0)}
-                    style={{
-                      width: "60px",
-                      padding: "0.25rem 0.5rem",
-                      border: "1px solid var(--border-color)",
-                      borderRadius: "4px",
-                      textAlign: "center",
-                    }}
+                    onChange={(event) => updateFoodQuantity(index, Number(event.target.value))}
+                    className="h-9 w-24 rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
                   />
-                  <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>{food.unit}</span>
-                  <button
-                    onClick={() => removeFood(index)}
-                    style={{
-                      padding: "0.25rem",
-                      background: "#fee2e2",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <X style={{ width: 16, height: 16, color: "#ef4444" }} />
-                  </button>
+                  <span className="text-xs font-medium text-slate-500">{food.unit || "g"}</span>
                 </div>
               </div>
             ))}
           </div>
+        ) : (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-6 text-center">
+            <Utensils className="mx-auto h-6 w-6 text-slate-300" />
+            <p className="mt-2 text-sm font-medium text-slate-700">No foods selected yet</p>
+            <p className="mt-1 text-xs text-slate-500">Search and add foods to build this meal.</p>
+          </div>
+        )}
 
-          {/* Totals */}
-          <div
-            style={{
-              marginTop: "1rem",
-              padding: "0.75rem",
-              background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
-              borderRadius: "8px",
-            }}
-          >
-            <p style={{ fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.5rem" }}>Meal Totals</p>
-            <div style={{ display: "flex", justifyContent: "space-around" }}>
-              <div style={{ textAlign: "center" }}>
-                <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#f97316" }}>{totalNutrition.calories}</p>
-                <p style={{ fontSize: "0.7rem", color: "#6b7280" }}>kcal</p>
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#ef4444" }}>{totalNutrition.protein.toFixed(1)}g</p>
-                <p style={{ fontSize: "0.7rem", color: "#6b7280" }}>Protein</p>
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#3b82f6" }}>{totalNutrition.carbs.toFixed(1)}g</p>
-                <p style={{ fontSize: "0.7rem", color: "#6b7280" }}>Carbs</p>
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#eab308" }}>{totalNutrition.fat.toFixed(1)}g</p>
-                <p style={{ fontSize: "0.7rem", color: "#6b7280" }}>Fat</p>
-              </div>
-            </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+          <div className="rounded-xl border border-orange-200 bg-orange-50 px-2 py-2 text-center">
+            <p className="font-semibold text-orange-700">{totalNutrition.calories}</p>
+            <p className="text-[10px] text-orange-600">kcal</p>
+          </div>
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-2 py-2 text-center">
+            <p className="font-semibold text-rose-700">{totalNutrition.protein.toFixed(1)}g</p>
+            <p className="text-[10px] text-rose-600">Protein</p>
+          </div>
+          <div className="rounded-xl border border-cyan-200 bg-cyan-50 px-2 py-2 text-center">
+            <p className="font-semibold text-cyan-700">{totalNutrition.carbs.toFixed(1)}g</p>
+            <p className="text-[10px] text-cyan-600">Carbs</p>
+          </div>
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-2 py-2 text-center">
+            <p className="font-semibold text-amber-700">{totalNutrition.fat.toFixed(1)}g</p>
+            <p className="text-[10px] text-amber-600">Fat</p>
           </div>
         </div>
-      )}
+      </section>
 
-      {/* Save Button */}
-      <button
-        onClick={saveMeal}
-        disabled={selectedFoods.length === 0 || addMealMutation.isPending || createLogMutation.isPending}
-        style={{
-          width: "100%",
-          padding: "1rem",
-          background: selectedFoods.length === 0 
-            ? "#9ca3af" 
-            : "linear-gradient(135deg, #16a34a 0%, #22c55e 100%)",
-          color: "white",
-          border: "none",
-          borderRadius: "12px",
-          fontSize: "1rem",
-          fontWeight: 600,
-          cursor: selectedFoods.length === 0 ? "not-allowed" : "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "0.5rem",
-          transition: "all 0.2s",
-        }}
-      >
-        <Check style={{ width: 20, height: 20 }} />
-        {addMealMutation.isPending || createLogMutation.isPending ? "Saving..." : `Save ${currentMeal?.label}`}
-      </button>
     </div>
   );
 }
 
 export default function DietLogPage() {
   return (
-    <Suspense fallback={<div className="client-page__sections"><p>Loading...</p></div>}>
+    <Suspense
+      fallback={
+        <div className="client-page__sections">
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
+            Loading meal logger...
+          </div>
+        </div>
+      }
+    >
       <DietLogContent />
     </Suspense>
   );

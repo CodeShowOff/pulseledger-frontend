@@ -324,32 +324,32 @@ function PublicCoachProfileContent() {
             {hasSocialLinks && (
               <div className="cpp-hero__social">
                 {coach.socialMedia?.instagram && (
-                  <a href={coach.socialMedia.instagram} target="_blank" rel="noopener noreferrer" className="cpp-social-link" title="Instagram">
+                  <a href={coach.socialMedia.instagram} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--instagram" title="Instagram">
                     <Instagram size={20} />
                   </a>
                 )}
                 {coach.socialMedia?.facebook && (
-                  <a href={coach.socialMedia.facebook} target="_blank" rel="noopener noreferrer" className="cpp-social-link" title="Facebook">
+                  <a href={coach.socialMedia.facebook} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--facebook" title="Facebook">
                     <Facebook size={20} />
                   </a>
                 )}
                 {coach.socialMedia?.twitter && (
-                  <a href={coach.socialMedia.twitter} target="_blank" rel="noopener noreferrer" className="cpp-social-link" title="Twitter">
+                  <a href={coach.socialMedia.twitter} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--twitter" title="Twitter">
                     <Twitter size={20} />
                   </a>
                 )}
                 {coach.socialMedia?.linkedin && (
-                  <a href={coach.socialMedia.linkedin} target="_blank" rel="noopener noreferrer" className="cpp-social-link" title="LinkedIn">
+                  <a href={coach.socialMedia.linkedin} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--linkedin" title="LinkedIn">
                     <Linkedin size={20} />
                   </a>
                 )}
                 {coach.socialMedia?.youtube && (
-                  <a href={coach.socialMedia.youtube} target="_blank" rel="noopener noreferrer" className="cpp-social-link" title="YouTube">
+                  <a href={coach.socialMedia.youtube} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--youtube" title="YouTube">
                     <Youtube size={20} />
                   </a>
                 )}
                 {coach.socialMedia?.website && (
-                  <a href={coach.socialMedia.website} target="_blank" rel="noopener noreferrer" className="cpp-social-link" title="Website">
+                  <a href={coach.socialMedia.website} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--website" title="Website">
                     <Globe size={20} />
                   </a>
                 )}
@@ -377,7 +377,7 @@ function PublicCoachProfileContent() {
       <section className="cpp-stats">
         <div className="cpp-stats__container">
           <div className="cpp-stats__item">
-            <div className="cpp-stats__icon">
+            <div className="cpp-stats__icon cpp-stats__icon--clients">
               <Users size={24} />
             </div>
             <div className="cpp-stats__content">
@@ -387,7 +387,7 @@ function PublicCoachProfileContent() {
           </div>
           <div className="cpp-stats__divider" />
           <div className="cpp-stats__item">
-            <div className="cpp-stats__icon">
+            <div className="cpp-stats__icon cpp-stats__icon--plans">
               <FileText size={24} />
             </div>
             <div className="cpp-stats__content">
@@ -397,7 +397,7 @@ function PublicCoachProfileContent() {
           </div>
           <div className="cpp-stats__divider" />
           <div className="cpp-stats__item">
-            <div className="cpp-stats__icon">
+            <div className="cpp-stats__icon cpp-stats__icon--products">
               <ShoppingBag size={24} />
             </div>
             <div className="cpp-stats__content">
@@ -409,7 +409,7 @@ function PublicCoachProfileContent() {
             <>
               <div className="cpp-stats__divider" />
               <div className="cpp-stats__item">
-                <div className="cpp-stats__icon">
+                <div className="cpp-stats__icon cpp-stats__icon--experience">
                   <Award size={24} />
                 </div>
                 <div className="cpp-stats__content">
@@ -482,23 +482,55 @@ function PublicCoachProfileContent() {
 
             {/* Mobile carousel (1 item) */}
             <div className="cpp-gallery__carousel-mobile">
-              <button className="cpp-gallery__nav cpp-gallery__nav--prev" disabled={(coach.awards?.length || 0) <= 1} onClick={() => setAwardsIndex((p) => (p - 1 + (coach.awards?.length||1)) % (coach.awards?.length||1))}>
-                <ChevronLeft size={20} />
-              </button>
               <div className="cpp-gallery__viewport-mobile">
+                <button
+                  className="cpp-gallery__nav cpp-gallery__nav--prev"
+                  disabled={(coach.awards?.length || 0) <= 1}
+                  onClick={() => setAwardsIndex((p) => (p - 1 + (coach.awards?.length || 1)) % (coach.awards?.length || 1))}
+                  aria-label="Previous award"
+                >
+                  <ChevronLeft size={18} />
+                </button>
                 {coach.awards?.[awardsIndex]?.url ? (
                   <Image src={coach.awards[awardsIndex].url} alt={`Award`} width={600} height={600} className="cpp-gallery__image" />
                 ) : (
                   <div className="cpp-gallery__placeholder" />
                 )}
+                <button
+                  className="cpp-gallery__nav cpp-gallery__nav--next"
+                  disabled={(coach.awards?.length || 0) <= 1}
+                  onClick={() => setAwardsIndex((p) => (p + 1) % Math.max(1, (coach.awards?.length || 1)))}
+                  aria-label="Next award"
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
-              {/* mobile pager (shows like: Previous  Page X of Y  Next) */}
-              <div className="cpp-gallery__pager cpp-gallery__pager--mobile">
-                <button className="cpp-gallery__pager-btn" disabled={(coach.awards?.length || 0) <= 1} onClick={() => setAwardsIndex(i => (i - 1 + (coach.awards?.length||1)) % (coach.awards?.length||1))}>Previous</button>
-                <div className="cpp-gallery__pager-info">Page {Math.min(awardsIndex + 1, Math.max(1, coach.awards?.length || 1))} of {Math.max(1, coach.awards?.length || 0)}</div>
-                <button className="cpp-gallery__pager-btn" disabled={(coach.awards?.length || 0) <= 1} onClick={() => setAwardsIndex(i => (i + 1) % Math.max(1, (coach.awards?.length || 1)))}>Next</button>
-              </div>
-              {/* prev/next arrows remain (nav may be hidden on very small screens); pager below controls actual navigation */}
+              {(coach.awards?.length || 0) > 0 && (
+                <div className="cpp-gallery__thumbs" aria-label="Award image previews">
+                  {coach.awards!.map((award, i) => (
+                    <button
+                      key={award.publicId || `award-thumb-${i}`}
+                      type="button"
+                      className={`cpp-gallery__thumb ${i === awardsIndex ? "cpp-gallery__thumb--active" : ""}`}
+                      onClick={() => setAwardsIndex(i)}
+                      aria-label={`Show award ${i + 1}`}
+                      aria-current={i === awardsIndex ? "true" : undefined}
+                    >
+                      {award?.url ? (
+                        <Image
+                          src={award.url}
+                          alt={`Award preview ${i + 1}`}
+                          width={84}
+                          height={84}
+                          className="cpp-gallery__thumb-image"
+                        />
+                      ) : (
+                        <span className="cpp-gallery__thumb-placeholder">N/A</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             {/* Dots for mobile carousel */}
             {(coach.awards?.length || 0) > 1 && (
@@ -548,22 +580,55 @@ function PublicCoachProfileContent() {
             )}
 
             <div className="cpp-gallery__carousel-mobile">
-              <button className="cpp-gallery__nav cpp-gallery__nav--prev" disabled={(coach.transformations?.length || 0) <= 1} onClick={() => setTransformsIndex((p) => (p - 1 + (coach.transformations?.length||1)) % (coach.transformations?.length||1))}>
-                <ChevronLeft size={20} />
-              </button>
               <div className="cpp-gallery__viewport-mobile">
+                <button
+                  className="cpp-gallery__nav cpp-gallery__nav--prev"
+                  disabled={(coach.transformations?.length || 0) <= 1}
+                  onClick={() => setTransformsIndex((p) => (p - 1 + (coach.transformations?.length || 1)) % (coach.transformations?.length || 1))}
+                  aria-label="Previous result"
+                >
+                  <ChevronLeft size={18} />
+                </button>
                 {coach.transformations?.[transformsIndex]?.url ? (
                   <Image src={coach.transformations[transformsIndex].url} alt={`Result`} width={600} height={600} className="cpp-gallery__image" />
                 ) : (
                   <div className="cpp-gallery__placeholder" />
                 )}
+                <button
+                  className="cpp-gallery__nav cpp-gallery__nav--next"
+                  disabled={(coach.transformations?.length || 0) <= 1}
+                  onClick={() => setTransformsIndex((p) => (p + 1) % Math.max(1, (coach.transformations?.length || 1)))}
+                  aria-label="Next result"
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
-              <div className="cpp-gallery__pager cpp-gallery__pager--mobile">
-                <button className="cpp-gallery__pager-btn" disabled={(coach.transformations?.length || 0) <= 1} onClick={() => setTransformsIndex(i => (i - 1 + (coach.transformations?.length||1)) % (coach.transformations?.length||1))}>Previous</button>
-                <div className="cpp-gallery__pager-info">Page {Math.min(transformsIndex + 1, Math.max(1, coach.transformations?.length || 1))} of {Math.max(1, coach.transformations?.length || 0)}</div>
-                <button className="cpp-gallery__pager-btn" disabled={(coach.transformations?.length || 0) <= 1} onClick={() => setTransformsIndex(i => (i + 1) % Math.max(1, (coach.transformations?.length || 1)))}>Next</button>
-              </div>
-              {/* prev/next arrows remain (nav may be hidden on very small screens); pager below controls actual navigation */}
+              {(coach.transformations?.length || 0) > 0 && (
+                <div className="cpp-gallery__thumbs" aria-label="Transformation image previews">
+                  {coach.transformations!.map((result, i) => (
+                    <button
+                      key={result.publicId || `result-thumb-${i}`}
+                      type="button"
+                      className={`cpp-gallery__thumb ${i === transformsIndex ? "cpp-gallery__thumb--active" : ""}`}
+                      onClick={() => setTransformsIndex(i)}
+                      aria-label={`Show result ${i + 1}`}
+                      aria-current={i === transformsIndex ? "true" : undefined}
+                    >
+                      {result?.url ? (
+                        <Image
+                          src={result.url}
+                          alt={`Result preview ${i + 1}`}
+                          width={84}
+                          height={84}
+                          className="cpp-gallery__thumb-image"
+                        />
+                      ) : (
+                        <span className="cpp-gallery__thumb-placeholder">N/A</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             {(coach.transformations?.length || 0) > 1 && (
               <div className="cpp-gallery__dots">
@@ -672,11 +737,14 @@ function PublicCoachProfileContent() {
         )}
 
         {/* Client Reviews Section */}
-        <section className="cpp-section">
+        <section className="cpp-section cpp-reviews">
           <div className="cpp-container">
             <div className="cpp-section__header">
               <div>
-                <h2 className="cpp-section__title">Client Reviews</h2>
+                <h2 className="cpp-section__title">
+                  <Star size={24} />
+                  Client Reviews
+                </h2>
                 <p className="cpp-section__subtitle">
                   {stats.totalReviews > 0 ? (
                     <>

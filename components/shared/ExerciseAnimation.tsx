@@ -43,7 +43,12 @@ export default function ExerciseAnimation({
   const sizeStyles = {
     small: { width: "80px", height: "80px" },
     medium: { width: "140px", height: "140px" },
-    large: { width: "100%", height: "280px", maxWidth: "400px" },
+    large: {
+      width: "100%",
+      height: "clamp(180px, 54vw, 300px)",
+      minHeight: "180px",
+      maxWidth: "100%",
+    },
   };
 
   // Detect media type from URL
@@ -289,6 +294,13 @@ export default function ExerciseAnimation({
         .exercise-animation:hover .exercise-animation__controls {
           opacity: 1 !important;
         }
+
+        @media (hover: none) {
+          .exercise-animation .exercise-animation__controls {
+            opacity: 1 !important;
+          }
+        }
+
         @keyframes spin {
           to {
             transform: rotate(360deg);

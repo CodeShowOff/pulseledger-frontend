@@ -1,33 +1,40 @@
-// app/client/workouts/today/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  Dumbbell,
   CheckCircle2,
+  ChevronRight,
   Circle,
-  Clock,
+  Clock3,
+  Pause,
   Play,
   SkipForward,
-  ChevronRight,
-  ChevronDown,
-  ChevronUp,
+  TimerReset,
   Trophy,
-  Timer,
-  Pause,
+  X,
 } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "sonner";
 import ExerciseAnimation from "@/components/shared/ExerciseAnimation";
 import {
   CLIENT_TODAY_WORKOUT_KEY,
-  CLIENT_WORKOUT_PLANS_KEY,
   CLIENT_WORKOUT_LOGS_KEY,
+  CLIENT_WORKOUT_PLANS_KEY,
+  useMarkWorkoutMissed,
+  useClientTodayWorkout,
 } from "@/lib/queries/workouts";
+import { cn } from "@/lib/utils";
+
+const EXERCISE_ROW_THEMES = [
+  "border-violet-200 bg-violet-50/80",
+  "border-cyan-200 bg-cyan-50/80",
+  "border-amber-200 bg-amber-50/80",
+  "border-emerald-200 bg-emerald-50/80",
+];
 
 interface Exercise {
   _id?: string;
@@ -69,101 +76,161 @@ interface TodayWorkout {
   isRestDay?: boolean;
   exercises?: Exercise[];
   completed?: boolean;
+  status?: "rest_day" | "scheduled" | "in_progress" | "completed" | "missed" | "partial";
+  log?: {
+    _id?: string;
+    status?: "rest_day" | "scheduled" | "in_progress" | "completed" | "missed" | "partial";
+  };
 }
+
+const formatDuration = (seconds: number) => {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "0m";
+  return `${Math.ceil(seconds / 60)}m`;
+};
+
+const getExerciseName = (exercise?: Exercise) => {
+  if (!exercise) return "Exercise";
+  const data = typeof exercise.exerciseId === "string" ? undefined : exercise.exerciseId;
+  return data?.name || exercise.exerciseName || "Exercise";
+};
+
+const getRepsDisplay = (exercise?: Exercise) => {
+  if (!exercise) return "-";
+
+  if (exercise.repsMin && exercise.repsMax) {
+    return `${exercise.repsMin}-${exercise.repsMax}`;
+  }
+
+  if (exercise.reps) {
+    return `${exercise.reps}`;
+  }
+
+  return "-";
+};
 
 export default function ClientTodayWorkoutPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
   const [selectedTodayPlanId, setSelectedTodayPlanId] = useState<string | null>(null);
+  const [selectedPreviewIndex, setSelectedPreviewIndex] = useState(0);
 
-  // Workout state
+  const [isWorkoutStarted, setIsWorkoutStarted] = useState(false);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [completedExercises, setCompletedExercises] = useState<Set<number>>(new Set());
+  const [skippedExercises, setSkippedExercises] = useState<Set<number>>(new Set());
   const [isResting, setIsResting] = useState(false);
   const [restTimeLeft, setRestTimeLeft] = useState(0);
   const [showInstructions, setShowInstructions] = useState(false);
   const [workoutStartTime, setWorkoutStartTime] = useState<Date | null>(null);
-  const [isWorkoutStarted, setIsWorkoutStarted] = useState(false);
   const [isExerciseTimerRunning, setIsExerciseTimerRunning] = useState(false);
   const [exerciseTimeLeft, setExerciseTimeLeft] = useState(20);
+
   const [showMoodDialog, setShowMoodDialog] = useState(false);
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [workoutNotes, setWorkoutNotes] = useState("");
+  const markWorkoutMissedMutation = useMarkWorkoutMissed();
 
-  // Fetch today's workout
-  const { data: todayWorkouts = [], isLoading, error } = useQuery({
-    queryKey: CLIENT_TODAY_WORKOUT_KEY,
-    queryFn: async () => {
-      const res = await api.get("/client/workouts/today");
-      const data = res.data.data;
-      return Array.isArray(data) ? (data as TodayWorkout[]) : [];
-    },
-  });
+  const { data: todayWorkouts = [], isLoading, error } = useClientTodayWorkout();
 
   useEffect(() => {
     if (selectedTodayPlanId) return;
-    if (!todayWorkouts || todayWorkouts.length === 0) return;
-    const first = todayWorkouts[0];
-    setSelectedTodayPlanId((first.workoutPlanId || first.planId) ?? null);
+    if (!todayWorkouts.length) return;
+
+    const preferredWorkout =
+      todayWorkouts.find((workout) => !workout.isRestDay && (workout.exercises?.length || 0) > 0) ||
+      todayWorkouts[0];
+
+    setSelectedTodayPlanId((preferredWorkout.workoutPlanId || preferredWorkout.planId) ?? null);
   }, [todayWorkouts, selectedTodayPlanId]);
 
   const selectedTodayWorkout =
-    todayWorkouts.find((w: any) => (w.workoutPlanId || w.planId) === selectedTodayPlanId) ||
-    todayWorkouts[0] ||
+    (todayWorkouts.find((workout) => (workout.workoutPlanId || workout.planId) === selectedTodayPlanId) as
+      | TodayWorkout
+      | undefined) ||
+    (todayWorkouts[0] as TodayWorkout) ||
     null;
 
-  // Reset per-workout state when switching plans
   useEffect(() => {
+    setIsWorkoutStarted(false);
     setCurrentExerciseIndex(0);
     setCompletedExercises(new Set());
+    setSkippedExercises(new Set());
     setIsResting(false);
     setRestTimeLeft(0);
     setShowInstructions(false);
     setWorkoutStartTime(null);
-    setIsWorkoutStarted(false);
     setIsExerciseTimerRunning(false);
     setExerciseTimeLeft(20);
     setShowMoodDialog(false);
     setSelectedMood(null);
     setWorkoutNotes("");
+    setSelectedPreviewIndex(0);
   }, [selectedTodayPlanId]);
 
-  // Complete workout mutation
+  const exercises = selectedTodayWorkout?.exercises || [];
+  const activeExercise = exercises[currentExerciseIndex];
+  const previewExercise = exercises[selectedPreviewIndex] || exercises[0];
+
+  const activeExerciseData = activeExercise?.exerciseId;
+  const activeExerciseObj = typeof activeExerciseData === "string" ? undefined : activeExerciseData;
+
+  const previewExerciseData = previewExercise?.exerciseId;
+  const previewExerciseObj = typeof previewExerciseData === "string" ? undefined : previewExerciseData;
+
+  const activeExerciseName = getExerciseName(activeExercise);
+  const previewExerciseName = getExerciseName(previewExercise);
+
+  const totalSeconds = useMemo(
+    () => exercises.reduce((total, exercise) => total + (exercise.duration || 20), 0),
+    [exercises]
+  );
+
+  const progressPercentage = exercises.length ? (completedExercises.size / exercises.length) * 100 : 0;
+
   const completeWorkoutMutation = useMutation({
     mutationFn: async () => {
+      const workoutLogId = selectedTodayWorkout?.log?._id || selectedTodayWorkout?._id;
+
+      if (!workoutLogId) {
+        throw new Error("No workout log found for today");
+      }
+
       const duration = workoutStartTime
         ? Math.round((new Date().getTime() - workoutStartTime.getTime()) / 60000)
         : 0;
-      
-      // Build exercise logs from completed exercises
-      const exerciseLogs = selectedTodayWorkout?.exercises?.map((ex, index) => ({
-        exerciseId: typeof ex.exerciseId === "string" ? ex.exerciseId : ex.exerciseId?._id,
-        exerciseName:
-          (typeof ex.exerciseId === "string" ? undefined : ex.exerciseId?.name) ||
-          ex.exerciseName,
-        completedSets: completedExercises.has(index) ? 1 : 0,
-        completed: completedExercises.has(index),
-      })) || [];
 
-      // Use the log ID from today's workout if available
-      if (selectedTodayWorkout?._id) {
-        const res = await api.post(`/client/workouts/${selectedTodayWorkout._id}/complete`, {
-          exerciseLogs,
-          actualDuration: duration,
-          moodAfter: selectedMood,
-          clientNotes:
-            workoutNotes ||
-            `Completed ${completedExercises.size} of ${selectedTodayWorkout?.exercises?.length || 0} exercises`,
-        });
-        return res.data;
-      } else {
-        // Fallback: just mark as complete without a log ID
-        throw new Error("No workout log found for today");
-      }
+      const exerciseLogs =
+        selectedTodayWorkout?.exercises?.map((exercise, index) => {
+          const isCompleted = completedExercises.has(index);
+          const isSkipped = skippedExercises.has(index) && !isCompleted;
+
+          return {
+            exerciseId:
+              typeof exercise.exerciseId === "string" ? exercise.exerciseId : exercise.exerciseId?._id,
+            exerciseName:
+              (typeof exercise.exerciseId === "string" ? undefined : exercise.exerciseId?.name) ||
+              exercise.exerciseName,
+            completedSets: isCompleted ? (exercise.sets || 1) : 0,
+            completed: isCompleted,
+            skipped: isSkipped,
+            skipReason: isSkipped ? "Skipped by client" : undefined,
+          };
+        }) || [];
+
+      const response = await api.post(`/client/workouts/${workoutLogId}/complete`, {
+        exerciseLogs,
+        actualDuration: duration,
+        moodAfter: selectedMood,
+        clientNotes:
+          workoutNotes ||
+          `Completed ${completedExercises.size} of ${selectedTodayWorkout.exercises?.length || 0} exercises`,
+      });
+
+      return response.data;
     },
     onSuccess: () => {
-      toast.success("Workout completed! Great job!");
+      toast.success("Workout completed! Great job.");
       queryClient.invalidateQueries({ queryKey: CLIENT_TODAY_WORKOUT_KEY });
       queryClient.invalidateQueries({ queryKey: CLIENT_WORKOUT_PLANS_KEY });
       queryClient.invalidateQueries({ queryKey: CLIENT_WORKOUT_LOGS_KEY });
@@ -174,105 +241,204 @@ export default function ClientTodayWorkoutPage() {
     },
   });
 
-  const exercises = selectedTodayWorkout?.exercises || [];
-  const currentExercise = exercises[currentExerciseIndex];
-  const exerciseData = currentExercise?.exerciseId;
-  const exerciseName = (typeof exerciseData === 'object' && exerciseData?.name) || currentExercise?.exerciseName || "Exercise";
-  const animationUrl = (typeof exerciseData === 'object' && exerciseData?.animationUrl) || currentExercise?.exerciseAnimationUrl;
-  const repsDisplay = currentExercise?.repsMin && currentExercise?.repsMax
-    ? `${currentExercise.repsMin}-${currentExercise.repsMax}`
-    : currentExercise?.reps;
-
-  // Rest timer
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let timer: NodeJS.Timeout;
+
     if (isResting && restTimeLeft > 0) {
-      interval = setInterval(() => {
-        setRestTimeLeft((t) => {
-          if (t <= 1) {
+      timer = setTimeout(() => {
+        setRestTimeLeft((previous) => {
+          if (previous <= 1) {
             setIsResting(false);
-            toast("Rest complete! Ready for next exercise 💪");
+            toast("Rest complete! Let's go.");
             return 0;
           }
-          return t - 1;
+          return previous - 1;
         });
       }, 1000);
     }
-    return () => clearInterval(interval);
+
+    return () => clearTimeout(timer);
   }, [isResting, restTimeLeft]);
 
-  // Exercise timer
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let timer: NodeJS.Timeout;
+
     if (isExerciseTimerRunning && exerciseTimeLeft > 0) {
-      interval = setInterval(() => {
-        setExerciseTimeLeft((t) => {
-          if (t <= 1) {
+      timer = setTimeout(() => {
+        setExerciseTimeLeft((previous) => {
+          if (previous <= 1) {
             setIsExerciseTimerRunning(false);
-            toast.success("⏱️ Time's up! Complete the exercise.");
+            toast.success("Timer done. Finish this move!");
             return 0;
           }
-          return t - 1;
+
+          return previous - 1;
         });
       }, 1000);
     }
-    return () => clearInterval(interval);
-  }, [isExerciseTimerRunning, exerciseTimeLeft]);
 
-  // Reset exercise timer when exercise changes
+    return () => clearTimeout(timer);
+  }, [exerciseTimeLeft, isExerciseTimerRunning]);
+
   useEffect(() => {
-    const duration = currentExercise?.duration || 20;
+    const duration = activeExercise?.duration || 20;
     setExerciseTimeLeft(duration);
     setIsExerciseTimerRunning(false);
-  }, [currentExerciseIndex, currentExercise?.duration]);
+  }, [activeExercise?.duration, currentExerciseIndex]);
+
+  useEffect(() => {
+    if (!exercises.length) {
+      setSelectedPreviewIndex(0);
+      return;
+    }
+
+    setSelectedPreviewIndex((previous) => {
+      if (previous > exercises.length - 1) {
+        return exercises.length - 1;
+      }
+
+      return previous;
+    });
+  }, [exercises]);
 
   const startWorkout = () => {
+    if (!exercises.length) {
+      toast.error("No exercises found for this session.");
+      return;
+    }
+
+    setCurrentExerciseIndex(selectedPreviewIndex || 0);
     setIsWorkoutStarted(true);
     setWorkoutStartTime(new Date());
   };
 
-  const startExerciseTimer = () => {
-    const duration = currentExercise?.duration || 20;
-    setExerciseTimeLeft(duration);
-    setIsExerciseTimerRunning(true);
-  };
+  const exitWorkout = () => {
+    if (completedExercises.size > 0 || skippedExercises.size > 0) {
+      const confirmed = window.confirm("You have unfinished progress. Exit and reset this session?");
+      if (!confirmed) return;
+    }
 
-  const stopExerciseTimer = () => {
+    setIsWorkoutStarted(false);
+    setCurrentExerciseIndex(0);
+    setCompletedExercises(new Set());
+    setSkippedExercises(new Set());
+    setWorkoutStartTime(null);
+    setIsResting(false);
+    setRestTimeLeft(0);
     setIsExerciseTimerRunning(false);
+    setExerciseTimeLeft(0);
+    setShowInstructions(false);
   };
 
   const completeExercise = () => {
-    setCompletedExercises((prev) => new Set(prev).add(currentExerciseIndex));
-    toast.success(`${exerciseName} completed!`);
-    setIsExerciseTimerRunning(false);
+    if (!activeExercise) return;
 
-    // Start rest period
-    setRestTimeLeft(currentExercise?.restSeconds || 20);
-    setIsResting(true);
+    const updatedCompleted = new Set(completedExercises);
+    updatedCompleted.add(currentExerciseIndex);
+    setCompletedExercises(updatedCompleted);
 
-    // Move to next exercise
-    if (currentExerciseIndex < exercises.length - 1) {
-      setCurrentExerciseIndex(currentExerciseIndex + 1);
+    if (skippedExercises.has(currentExerciseIndex)) {
+      const updatedSkipped = new Set(skippedExercises);
+      updatedSkipped.delete(currentExerciseIndex);
+      setSkippedExercises(updatedSkipped);
     }
+
+    toast.success(`${activeExerciseName} completed`);
+
+    const nextIndex = exercises.findIndex(
+      (_, index) => index > currentExerciseIndex && !updatedCompleted.has(index)
+    );
+
+    if (nextIndex !== -1) {
+      setCurrentExerciseIndex(nextIndex);
+      setRestTimeLeft(activeExercise.restSeconds || 20);
+      setIsResting(true);
+    }
+
+    setIsExerciseTimerRunning(false);
+    setExerciseTimeLeft(0);
   };
 
   const skipExercise = () => {
-    setIsExerciseTimerRunning(false);
-    if (currentExerciseIndex < exercises.length - 1) {
-      setCurrentExerciseIndex(currentExerciseIndex + 1);
-      setIsResting(false);
+    if (completedExercises.has(currentExerciseIndex)) {
+      const updatedCompleted = new Set(completedExercises);
+      updatedCompleted.delete(currentExerciseIndex);
+      setCompletedExercises(updatedCompleted);
     }
+
+    const updatedSkipped = new Set(skippedExercises);
+    updatedSkipped.add(currentExerciseIndex);
+    setSkippedExercises(updatedSkipped);
+
+    toast("Exercise skipped");
+
+    const nextIndex = exercises.findIndex(
+      (_, index) =>
+        index > currentExerciseIndex &&
+        !completedExercises.has(index) &&
+        !updatedSkipped.has(index)
+    );
+
+    if (nextIndex !== -1) {
+      setCurrentExerciseIndex(nextIndex);
+    }
+
+    setIsResting(false);
+    setRestTimeLeft(0);
+    setIsExerciseTimerRunning(false);
+    setExerciseTimeLeft(0);
   };
 
   const goToExercise = (index: number) => {
     setCurrentExerciseIndex(index);
     setIsResting(false);
+    setRestTimeLeft(0);
     setIsExerciseTimerRunning(false);
+    setShowInstructions(false);
+
+    if (completedExercises.has(index) || skippedExercises.has(index)) {
+      const nextCompleted = new Set(completedExercises);
+      nextCompleted.delete(index);
+      setCompletedExercises(nextCompleted);
+
+      const nextSkipped = new Set(skippedExercises);
+      nextSkipped.delete(index);
+      setSkippedExercises(nextSkipped);
+    }
   };
 
-  const skipRest = () => {
+  const toggleTimer = () => {
+    if (isExerciseTimerRunning) {
+      setIsExerciseTimerRunning(false);
+      return;
+    }
+
+    setExerciseTimeLeft(activeExercise?.duration || 20);
+    setIsExerciseTimerRunning(true);
+  };
+
+  const goToPreviewExercise = (step: -1 | 1) => {
+    if (!exercises.length) return;
+
+    setSelectedPreviewIndex((previous) => {
+      const next = previous + step;
+      if (next < 0) return exercises.length - 1;
+      if (next > exercises.length - 1) return 0;
+      return next;
+    });
+  };
+
+  const moveExercise = (step: -1 | 1) => {
+    if (!exercises.length) return;
+
+    const next = currentExerciseIndex + step;
+    if (next < 0 || next > exercises.length - 1) return;
+
+    setCurrentExerciseIndex(next);
     setIsResting(false);
     setRestTimeLeft(0);
+    setIsExerciseTimerRunning(false);
+    setShowInstructions(false);
   };
 
   const finishWorkout = () => {
@@ -280,118 +446,111 @@ export default function ClientTodayWorkoutPage() {
       toast.error("Complete at least one exercise to log your workout.");
       return;
     }
+
+    if (selectedTodayWorkout?.status === "rest_day" && !selectedTodayWorkout?.isRestDay) {
+      toast.error("Today's schedule just changed. Refresh once and try again.");
+      return;
+    }
+
     setShowMoodDialog(true);
+  };
+
+  const markTodayWorkoutAsMissed = () => {
+    if (!selectedTodayWorkout) return;
+
+    const workoutLogId = selectedTodayWorkout?.log?._id || selectedTodayWorkout?._id;
+
+    if (!workoutLogId) {
+      toast.error("No workout log found for today.");
+      return;
+    }
+
+    if (selectedTodayWorkout.isRestDay || selectedTodayWorkout.status === "rest_day") {
+      toast.error("Rest days cannot be marked as missed.");
+      return;
+    }
+
+    if (selectedTodayWorkout.status === "completed" || selectedTodayWorkout.completed) {
+      toast.error("This workout is already completed.");
+      return;
+    }
+
+    if (selectedTodayWorkout.status === "partial") {
+      toast.error("This workout already has logged progress.");
+      return;
+    }
+
+    if (selectedTodayWorkout.status === "missed") {
+      toast("This workout is already marked as missed.");
+      return;
+    }
+
+    if (isWorkoutStarted && completedExercises.size > 0) {
+      toast.error("You already logged exercise progress. Use finish workout to save as partial.");
+      return;
+    }
+
+    const confirmed = window.confirm("Mark today's workout as missed?");
+    if (!confirmed) return;
+
+    const reasonInput = window.prompt("Optional reason for missing today (you can leave this blank):", "");
+    const reason = typeof reasonInput === "string" && reasonInput.trim() ? reasonInput.trim() : undefined;
+
+    markWorkoutMissedMutation.mutate(
+      { id: workoutLogId, data: reason ? { reason } : undefined },
+      {
+        onSuccess: () => {
+          toast.success("Workout marked as missed.");
+          queryClient.invalidateQueries({ queryKey: CLIENT_TODAY_WORKOUT_KEY });
+          queryClient.invalidateQueries({ queryKey: CLIENT_WORKOUT_PLANS_KEY });
+          queryClient.invalidateQueries({ queryKey: CLIENT_WORKOUT_LOGS_KEY });
+          setIsWorkoutStarted(false);
+          setCompletedExercises(new Set());
+          setSkippedExercises(new Set());
+          setShowMoodDialog(false);
+          router.push("/client/workouts");
+        },
+        onError: (err: any) => {
+          toast.error(err?.response?.data?.message || "Failed to mark workout as missed.");
+        },
+      }
+    );
   };
 
   const submitWorkout = () => {
     if (selectedMood === null) {
-      toast.error("Please select how you feel after the workout");
+      toast.error("Please pick your post-workout mood.");
       return;
     }
+
     completeWorkoutMutation.mutate();
   };
 
-  if (isLoading) {
-    return (
-      <div className="client-page__sections">
-        <div className="client-card" style={{ padding: "3rem", textAlign: "center" }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              border: "3px solid #e5e7eb",
-              borderTopColor: "#16a34a",
-              borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-              margin: "0 auto",
-            }}
-          />
-          <p style={{ color: "#6b7280", marginTop: "1rem" }}>Loading today&apos;s workout...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !selectedTodayWorkout) {
-    return (
-      <div className="client-page__sections">
-        <header style={{ marginBottom: "1rem" }}>
-          <Link
-            href="/client/workouts"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              color: "#6b7280",
-              textDecoration: "none",
-              fontSize: "0.9rem",
-            }}
-          >
-            <ArrowLeft style={{ width: 18, height: 18 }} />
-            Back to Workouts
-          </Link>
-        </header>
-        <div className="client-card" style={{ padding: "3rem", textAlign: "center" }}>
-          <Dumbbell style={{ width: 48, height: 48, color: "#d1d5db", margin: "0 auto 1rem" }} />
-          <h2 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-            No Workout Scheduled Today
-          </h2>
-          <p style={{ color: "#6b7280" }}>
-            Check your workout plan or contact your coach for a schedule.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   const planSelector =
     todayWorkouts.length > 1 ? (
-      <div className="client-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
-        <h3 style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-          Today&apos;s Workouts
-        </h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          {todayWorkouts.map((w: any) => {
-            const id = (w.workoutPlanId || w.planId) as string | undefined;
-            const selected = !!id && id === selectedTodayPlanId;
+      <div className="-mx-1 overflow-x-auto px-1 pb-1">
+        <div className="flex min-w-max gap-2">
+          {todayWorkouts.map((workout: any, index: number) => {
+            const id = workout.workoutPlanId || workout.planId;
+            const selected = id === selectedTodayPlanId;
+
             return (
               <button
-                key={id}
+                key={id ?? `${workout.planName ?? "plan"}-${index}`}
                 onClick={() => setSelectedTodayPlanId(id ?? null)}
-                style={{
-                  textAlign: "left",
-                  padding: "0.75rem",
-                  borderRadius: "10px",
-                  border: selected ? "2px solid var(--brand-primary)" : "1px solid #e5e7eb",
-                  background: "transparent",
-                  cursor: "pointer",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                }}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontWeight: 600,
-                      fontSize: "0.95rem",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {w.planName || w.workoutPlanName || "Workout Plan"}
-                  </div>
-                  <div style={{ fontSize: "0.8rem", color: "#6b7280" }}>
-                    {w.isRestDay ? "Rest day" : `${(w.exercises?.length || 0)} exercises`}
-                  </div>
-                </div>
-                {w.completed ? (
-                  <CheckCircle2 style={{ width: 18, height: 18, color: "var(--brand-primary)" }} />
-                ) : (
-                  <ChevronRight style={{ width: 18, height: 18, color: "#9ca3af" }} />
+                className={cn(
+                  "rounded-2xl border px-3 py-2 text-left transition-all",
+                  selected
+                    ? "border-indigo-500 bg-indigo-50 shadow-sm"
+                    : "border-slate-200 bg-white hover:border-indigo-200 hover:bg-indigo-50/40"
                 )}
+              >
+                <p className="text-xs font-semibold text-slate-900">
+                  {workout.planName || workout.workoutPlanName || `Plan ${index + 1}`}
+                </p>
+                <p className="mt-0.5 text-[11px] text-slate-500">
+                  {workout.isRestDay ? "Rest day" : `${workout.exercises?.length || 0} exercises`}
+                </p>
               </button>
             );
           })}
@@ -399,674 +558,564 @@ export default function ClientTodayWorkoutPage() {
       </div>
     ) : null;
 
-  // Rest Day
-  if (selectedTodayWorkout.isRestDay) {
+  if (isLoading) {
     return (
-      <div className="client-page__sections">
-        <header style={{ marginBottom: "1rem" }}>
-          <Link
-            href="/client/workouts"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              color: "#6b7280",
-              textDecoration: "none",
-              fontSize: "0.9rem",
-            }}
-          >
-            <ArrowLeft style={{ width: 18, height: 18 }} />
-            Back to Workouts
-          </Link>
-        </header>
-
-        {planSelector}
-        <div
-          className="client-card"
-          style={{
-            padding: "3rem",
-            textAlign: "center",
-            background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
-          }}
-        >
-          <p style={{ fontSize: "3rem", marginBottom: "1rem" }}>🧘‍♀️</p>
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-            Rest Day
-          </h1>
-          <p style={{ color: "#92400e", fontSize: "1rem" }}>
-            Take it easy today and let your muscles recover. You&apos;ve earned it!
-          </p>
-          <div
-            style={{
-              marginTop: "2rem",
-              padding: "1rem",
-              backgroundColor: "rgba(255,255,255,0.7)",
-              borderRadius: "12px",
-            }}
-          >
-            <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-              Recovery Tips:
-            </h3>
-            <ul style={{ fontSize: "0.85rem", color: "#78350f", textAlign: "left", paddingLeft: "1.25rem" }}>
-              <li>Stay hydrated - drink plenty of water</li>
-              <li>Light stretching or yoga can help recovery</li>
-              <li>Get adequate sleep (7-9 hours)</li>
-              <li>Eat nutritious meals with protein</li>
-            </ul>
-          </div>
+      <div className="client-page__sections space-y-4">
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
+          Loading today&apos;s workout...
         </div>
       </div>
     );
   }
 
-  // Workout not started - show overview
-  if (!isWorkoutStarted) {
+  if (error || !selectedTodayWorkout) {
     return (
-      <div className="client-page__sections">
-        <header style={{ marginBottom: "1rem" }}>
-          <Link
-            href="/client/workouts"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              color: "#6b7280",
-              textDecoration: "none",
-              fontSize: "0.9rem",
-            }}
-          >
-            <ArrowLeft style={{ width: 18, height: 18 }} />
-            Back to Workouts
-          </Link>
-        </header>
-
-        {planSelector}
-
-        <div
-          className="client-card"
-          style={{
-            background: "linear-gradient(135deg, #16a34a 0%, #22c55e 100%)",
-            color: "#fff",
-            padding: "1.5rem",
-            marginBottom: "1rem",
-          }}
-        >
-          <h1 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: "0.25rem" }}>
-            {(selectedTodayWorkout.dayName || "Today")}&apos;s Workout
-          </h1>
-          <p style={{ opacity: 0.9 }}>
-            {selectedTodayWorkout.focus || selectedTodayWorkout.planName || selectedTodayWorkout.workoutPlanName}
-          </p>
-          <div style={{ display: "flex", gap: "1rem", marginTop: "1rem", fontSize: "0.85rem" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <Dumbbell style={{ width: 16, height: 16 }} />
-              {exercises.length} exercises
-            </span>
-            <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <Clock style={{ width: 16, height: 16 }} />
-              ⏱️ {exercises.reduce((total, ex) => total + (ex.duration || 20), 0)}s total
-            </span>
-          </div>
-        </div>
-
-        {/* Exercise Preview List */}
-        <div className="client-card" style={{ padding: "1rem" }}>
-          <h3 style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: "1rem" }}>
-            Today&apos;s Exercises
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            {exercises.map((exercise, index) => {
-              const exData = exercise.exerciseId;
-              const exName = (typeof exData === 'object' && exData?.name) || exercise.exerciseName || "Exercise";
-              const exAnimation = (typeof exData === 'object' && exData?.animationUrl) || exercise.exerciseAnimationUrl;
-              const reps = exercise.repsMin && exercise.repsMax
-                ? `${exercise.repsMin}-${exercise.repsMax}`
-                : exercise.reps;
-
-              return (
-                <div
-                  key={index}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "1rem",
-                    padding: "0.75rem",
-                    backgroundColor: "#f9fafb",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <ExerciseAnimation
-                    animationUrl={exAnimation}
-                    exerciseName={exName}
-                    size="small"
-                    showControls={false}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontWeight: 500, fontSize: "0.9rem", marginBottom: "0.25rem" }}>
-                      {index + 1}. {exName}
-                    </p>
-                    <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                      {reps && (
-                        <span style={{ fontSize: "0.75rem", color: "#2563eb" }}>
-                          {reps} reps
-                        </span>
-                      )}
-                      <span style={{ fontSize: "0.75rem", color: "#d97706" }}>
-                        {exercise.duration || 20}s
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Start Button */}
-        <button
-          onClick={startWorkout}
-          className="client-button"
-          style={{
-            width: "100%",
-            padding: "1rem",
-            fontSize: "1rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.5rem",
-            marginTop: "1rem",
-          }}
-        >
-          <Play style={{ width: 20, height: 20 }} />
-          Start Workout
-        </button>
-      </div>
-    );
-  }
-
-  // Active Workout View
-  return (
-    <div className="client-page__sections">
-      {/* Progress Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "1rem",
-        }}
-      >
+      <div className="client-page__sections space-y-4">
         <Link
           href="/client/workouts"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.25rem",
-            color: "#6b7280",
-            textDecoration: "none",
-            fontSize: "0.85rem",
-          }}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700"
         >
-          <ArrowLeft style={{ width: 16, height: 16 }} />
-          Exit
+          <ArrowLeft className="h-4 w-4" />
+          Back to workouts
         </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
-            ⏱️ {exercises.reduce((total, ex) => total + (ex.duration || 20), 0)}s
-          </span>
-          <span style={{ fontSize: "0.85rem", color: "#6b7280" }}>
-            {completedExercises.size}/{exercises.length} completed
-          </span>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+          <Clock3 className="mx-auto h-9 w-9 text-slate-300" />
+          <h2 className="mt-3 text-base font-semibold text-slate-900">No workout scheduled today</h2>
+          <p className="mt-1 text-sm text-slate-500">Please check your plan or contact your coach.</p>
         </div>
       </div>
+    );
+  }
 
-      {/* Progress Bar */}
-      <div
-        style={{
-          height: "6px",
-          backgroundColor: "#e5e7eb",
-          borderRadius: "3px",
-          marginBottom: "1.5rem",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            height: "100%",
-            width: `${(completedExercises.size / exercises.length) * 100}%`,
-            backgroundColor: "#16a34a",
-            transition: "width 0.3s",
-          }}
-        />
-      </div>
-
-      {/* Rest Timer Overlay */}
-      {isResting && (
-        <div
-          className="client-card"
-          style={{
-            padding: "2rem",
-            textAlign: "center",
-            background: "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)",
-            marginBottom: "1rem",
-          }}
+  if (selectedTodayWorkout.isRestDay) {
+    return (
+      <div className="client-page__sections space-y-4">
+        <Link
+          href="/client/workouts"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700"
         >
-          <Clock style={{ width: 32, height: 32, color: "#2563eb", margin: "0 auto 0.5rem" }} />
-          <p style={{ fontSize: "0.9rem", color: "#1d4ed8", marginBottom: "0.5rem" }}>Rest Time</p>
-          <p style={{ fontSize: "3rem", fontWeight: 700, color: "#1e40af" }}>{restTimeLeft}s</p>
-          <button
-            onClick={skipRest}
-            style={{
-              marginTop: "1rem",
-              padding: "0.5rem 1.5rem",
-              backgroundColor: "#fff",
-              border: "1px solid #2563eb",
-              borderRadius: "8px",
-              color: "#2563eb",
-              cursor: "pointer",
-              fontSize: "0.9rem",
-            }}
-          >
-            Skip Rest
-          </button>
+          <ArrowLeft className="h-4 w-4" />
+          Back to workouts
+        </Link>
+
+        {planSelector}
+
+        <div className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6 text-center shadow-sm">
+          <p className="text-3xl">🧘</p>
+          <h2 className="mt-2 text-lg font-semibold text-amber-900">Rest day</h2>
+          <p className="mt-1 text-sm text-amber-700">
+            Let your body recover today. You&apos;ll come back stronger tomorrow.
+          </p>
+
+          <ul className="mt-4 space-y-1 rounded-2xl border border-amber-200 bg-white/70 p-3 text-left text-xs text-amber-800">
+            <li>• Drink enough water</li>
+            <li>• Do light mobility or stretching</li>
+            <li>• Sleep at least 7-8 hours</li>
+            <li>• Keep protein intake on point</li>
+          </ul>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {/* Current Exercise */}
-      {currentExercise && !isResting && (
-        <div className="client-card" style={{ overflow: "hidden", marginBottom: "1rem" }}>
-          {/* Animation Display */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "1.5rem",
-              backgroundColor: "#111",
-            }}
+  return (
+    <div className="client-page__sections space-y-4 pb-24">
+      {!isWorkoutStarted ? (
+        <>
+          <Link
+            href="/client/workouts"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700"
           >
-            <ExerciseAnimation
-              animationUrl={animationUrl}
-              thumbnailUrl={typeof exerciseData === 'object' ? exerciseData?.thumbnailUrl : undefined}
-              exerciseName={exerciseName}
-              size="large"
-              showControls={true}
-            />
-          </div>
+            <ArrowLeft className="h-4 w-4" />
+            Back to workouts
+          </Link>
 
-          {/* Exercise Info */}
-          <div style={{ padding: "1.5rem" }}>
-            <h2 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "1rem" }}>
-              {exerciseName}
-            </h2>
+          {planSelector}
 
-            {/* Reps/Duration */}
-            <div
-              style={{
-                display: "flex",
-                gap: "1rem",
-                padding: "1rem",
-                backgroundColor: "#f9fafb",
-                borderRadius: "12px",
-                marginBottom: "1rem",
-              }}
-            >
-              {repsDisplay && (
-                <div style={{ flex: 1, textAlign: "center" }}>
-                  <p style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                    REPS
-                  </p>
-                  <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "#111" }}>
-                    {repsDisplay}
-                  </p>
-                </div>
-              )}
-              <div style={{ flex: 1, textAlign: "center" }}>
-                <p style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                  TIME
-                </p>
-                <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "#111" }}>
-                  {currentExercise?.duration || 20}s
-                </p>
-              </div>
-              {currentExercise?.weight && (
-                <div style={{ flex: 1, textAlign: "center" }}>
-                  <p style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                    WEIGHT
-                  </p>
-                  <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "#111" }}>
-                    {currentExercise.weight}
-                  </p>
-                </div>
-              )}
+          <section className="overflow-hidden rounded-[30px] border border-violet-200 bg-gradient-to-br from-violet-100 via-fuchsia-50 to-white shadow-sm">
+            <div className="flex items-center justify-between p-3">
+              <span className="rounded-full border border-white/70 bg-white/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
+                Summary
+              </span>
+              <span className="rounded-full border border-white/70 bg-white/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
+                Today plan
+              </span>
             </div>
 
-            {/* Instructions Toggle */}
-            <button
-              onClick={() => setShowInstructions(!showInstructions)}
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0.75rem",
-                backgroundColor: "#f3f4f6",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                marginBottom: "1rem",
-              }}
-            >
-              <span style={{ fontWeight: 500, color: "#374151" }}>How to perform</span>
-              {showInstructions ? (
-                <ChevronUp style={{ width: 18, height: 18, color: "#6b7280" }} />
-              ) : (
-                <ChevronDown style={{ width: 18, height: 18, color: "#6b7280" }} />
-              )}
-            </button>
-
-            {showInstructions && typeof exerciseData === 'object' && exerciseData?.instructions && (
-              <div
-                style={{
-                  padding: "1rem",
-                  backgroundColor: "#f9fafb",
-                  borderRadius: "8px",
-                  marginBottom: "1rem",
-                }}
-              >
-                <ol style={{ margin: 0, paddingLeft: "1.25rem" }}>
-                  {exerciseData.instructions.map((inst, idx) => (
-                    <li
-                      key={idx}
-                      style={{ fontSize: "0.85rem", color: "#4b5563", marginBottom: "0.5rem" }}
-                    >
-                      {inst}
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            )}
-
-            {/* Exercise Timer Display */}
-            {isExerciseTimerRunning && (
-              <div
-                style={{
-                  padding: "1rem",
-                  backgroundColor: "#fef3c7",
-                  borderRadius: "8px",
-                  marginBottom: "1rem",
-                  textAlign: "center",
-                }}
-              >
-                <p style={{ fontSize: "0.85rem", color: "#92400e", marginBottom: "0.25rem" }}>
-                  Exercise Timer
-                </p>
-                <p style={{ fontSize: "2rem", fontWeight: 700, color: "#b45309" }}>
-                  {exerciseTimeLeft}s
-                </p>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div style={{ display: "flex", gap: "0.75rem", marginBottom: "0.75rem" }}>
-              <button
-                onClick={isExerciseTimerRunning ? stopExerciseTimer : startExerciseTimer}
-                style={{
-                  flex: 1,
-                  padding: "0.875rem",
-                  backgroundColor: isExerciseTimerRunning ? "#fef3c7" : "#dbeafe",
-                  border: "none",
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.5rem",
-                  fontSize: "0.9rem",
-                  color: isExerciseTimerRunning ? "#92400e" : "#1e40af",
-                  fontWeight: 500,
-                }}
-              >
-                {isExerciseTimerRunning ? (
-                  <>
-                    <Pause style={{ width: 18, height: 18 }} />
-                    Stop
-                  </>
-                ) : (
-                  <>
-                    <Timer style={{ width: 18, height: 18 }} />
-                    Start Timer
-                  </>
-                )}
-              </button>
-              <button
-                onClick={skipExercise}
-                style={{
-                  flex: 1,
-                  padding: "0.875rem",
-                  backgroundColor: "#fee2e2",
-                  border: "none",
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.5rem",
-                  fontSize: "0.9rem",
-                  color: "#991b1b",
-                  fontWeight: 500,
-                }}
-              >
-                <SkipForward style={{ width: 18, height: 18 }} />
-                Skip
-              </button>
-            </div>
-
-            {/* Complete Exercise Button */}
-            <button
-              onClick={completeExercise}
-              className="client-button"
-              style={{
-                width: "100%",
-                padding: "0.875rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem",
-              }}
-            >
-              <CheckCircle2 style={{ width: 18, height: 18 }} />
-              Complete Exercise
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Exercise List */}
-      <div className="client-card" style={{ padding: "1rem" }}>
-        <h3 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-          All Exercises
-        </h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          {exercises.map((exercise, index) => {
-            const isCompleted = completedExercises.has(index);
-            const isCurrent = index === currentExerciseIndex;
-            const exData = exercise.exerciseId;
-            const exName = (typeof exData === 'object' && exData?.name) || exercise.exerciseName || "Exercise";
-
-            return (
-              <button
-                key={index}
-                onClick={() => goToExercise(index)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                  padding: "0.75rem",
-                  backgroundColor: isCurrent ? "#dcfce7" : isCompleted ? "#f0fdf4" : "#f9fafb",
-                  border: isCurrent ? "2px solid #16a34a" : "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  textAlign: "left",
-                }}
-              >
-                {isCompleted ? (
-                  <CheckCircle2 style={{ width: 20, height: 20, color: "#16a34a" }} />
-                ) : (
-                  <Circle style={{ width: 20, height: 20, color: "#d1d5db" }} />
-                )}
-                <span
-                  style={{
-                    flex: 1,
-                    fontWeight: isCurrent ? 600 : 400,
-                    color: isCompleted ? "#16a34a" : "#374151",
-                  }}
-                >
-                  {index + 1}. {exName}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Finish Workout Button */}
-      {completedExercises.size > 0 && (
-        <button
-          onClick={finishWorkout}
-          disabled={completeWorkoutMutation.isPending}
-          style={{
-            width: "100%",
-            padding: "1rem",
-            backgroundColor: completedExercises.size === exercises.length ? "#16a34a" : "#f59e0b",
-            color: "#fff",
-            border: "none",
-            borderRadius: "12px",
-            fontSize: "1rem",
-            fontWeight: 600,
-            cursor: "pointer",
-            marginTop: "1rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.5rem",
-          }}
-        >
-          <Trophy style={{ width: 20, height: 20 }} />
-          {completedExercises.size === exercises.length
-            ? "Complete Workout"
-            : `Finish Early (${completedExercises.size}/${exercises.length})`}
-        </button>
-      )}
-
-      {/* Mood Selection Dialog */}
-      {showMoodDialog && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1000,
-          padding: "1rem"
-        }}>
-          <div className="client-card" style={{
-            maxWidth: "400px",
-            width: "100%",
-            padding: "1.5rem"
-          }}>
-            <h2 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-              How do you feel?
-            </h2>
-            <p style={{ fontSize: "0.85rem", color: "#6b7280", marginBottom: "1.5rem" }}>
-              Rate your post-workout feeling (1=Exhausted, 5=Energized)
-            </p>
-            
-            <div style={{ 
-              display: "grid", 
-              gridTemplateColumns: "repeat(5, 1fr)", 
-              gap: "0.5rem",
-              marginBottom: "1rem"
-            }}>
-              {[1, 2, 3, 4, 5].map((mood) => (
+            <div className="px-3 pb-3">
+              <div className="grid grid-cols-[36px_minmax(0,1fr)_36px] items-center gap-2">
                 <button
-                  key={mood}
-                  onClick={() => setSelectedMood(mood)}
-                  style={{
-                    aspectRatio: "1",
-                    fontSize: "1.5rem",
-                    border: selectedMood === mood ? "2px solid #16a34a" : "2px solid #e5e7eb",
-                    borderRadius: "12px",
-                    background: selectedMood === mood ? "#f0fdf4" : "#fff",
-                    cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}
+                  type="button"
+                  onClick={() => goToPreviewExercise(-1)}
+                  className="grid h-9 w-9 place-items-center rounded-full border border-white/80 bg-white/80 text-slate-500 transition hover:bg-white"
+                  aria-label="Previous exercise preview"
                 >
-                  {mood === 1 ? "😫" : mood === 2 ? "😓" : mood === 3 ? "😐" : mood === 4 ? "😊" : "🤩"}
+                  <ChevronRight className="h-4 w-4 rotate-180" />
                 </button>
-              ))}
+
+                <div className="rounded-[26px] border border-white/80 bg-white/75 p-3">
+                  <ExerciseAnimation
+                    animationUrl={previewExerciseObj?.animationUrl || previewExercise?.exerciseAnimationUrl}
+                    thumbnailUrl={previewExerciseObj?.thumbnailUrl}
+                    exerciseName={previewExerciseName}
+                    size="large"
+                    showControls={false}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => goToPreviewExercise(1)}
+                  className="grid h-9 w-9 place-items-center rounded-full border border-white/80 bg-white/80 text-slate-500 transition hover:bg-white"
+                  aria-label="Next exercise preview"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="mt-3 grid grid-cols-3 gap-2 text-[11px] font-semibold text-slate-700">
+                <div className="rounded-xl border border-white/80 bg-white/75 px-2 py-2 text-center">
+                  <p className="text-[10px] uppercase tracking-wide text-slate-500">Moves</p>
+                  <p className="mt-0.5 text-sm text-indigo-700">{exercises.length}</p>
+                </div>
+                <div className="rounded-xl border border-white/80 bg-white/75 px-2 py-2 text-center">
+                  <p className="text-[10px] uppercase tracking-wide text-slate-500">Duration</p>
+                  <p className="mt-0.5 text-sm text-indigo-700">{formatDuration(totalSeconds)}</p>
+                </div>
+                <div className="rounded-xl border border-white/80 bg-white/75 px-2 py-2 text-center">
+                  <p className="text-[10px] uppercase tracking-wide text-slate-500">Focus</p>
+                  <p className="mt-0.5 truncate text-sm text-indigo-700">{selectedTodayWorkout.focus || "Mixed"}</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={startWorkout}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              <Play className="h-4 w-4" />
+              Start session
+            </button>
+
+            <button
+              onClick={markTodayWorkoutAsMissed}
+              disabled={markWorkoutMissedMutation.isPending}
+              className={cn(
+                "flex h-11 w-full items-center justify-center gap-2 rounded-2xl border text-sm font-semibold transition",
+                markWorkoutMissedMutation.isPending
+                  ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                  : "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+              )}
+            >
+              <X className="h-4 w-4" />
+              {markWorkoutMissedMutation.isPending ? "Marking missed..." : "Can’t train today"}
+            </button>
+          </div>
+
+          <section className="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">
+                  {selectedTodayWorkout.focus || selectedTodayWorkout.planName || "Today&apos;s workout"}
+                </p>
+              </div>
+
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide",
+                  selectedTodayWorkout.completed || selectedTodayWorkout.status === "completed"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-indigo-100 text-indigo-700"
+                )}
+              >
+                {selectedTodayWorkout.completed || selectedTodayWorkout.status === "completed"
+                  ? "Completed"
+                  : "Ready"}
+              </span>
+            </div>
+
+            <div className="mt-3 space-y-2">
+              {exercises.map((exercise, index) => {
+                const data = typeof exercise.exerciseId === "string" ? undefined : exercise.exerciseId;
+                const name = data?.name || exercise.exerciseName || "Exercise";
+                const reps = getRepsDisplay(exercise);
+                const selected = selectedPreviewIndex === index;
+
+                return (
+                  <button
+                    type="button"
+                    key={`${name}-${index}`}
+                    onClick={() => setSelectedPreviewIndex(index)}
+                    className={cn(
+                      "w-full rounded-2xl border px-3 py-2 text-left transition",
+                      EXERCISE_ROW_THEMES[index % EXERCISE_ROW_THEMES.length],
+                      selected && "ring-2 ring-indigo-300"
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900">
+                          {index + 1}. {name}
+                        </p>
+                        <p className="mt-0.5 text-xs text-slate-600">
+                          {reps} reps · {exercise.duration || 20}s
+                          {exercise.weight ? ` · ${exercise.weight}` : ""}
+                        </p>
+                      </div>
+
+                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </>
+      ) : (
+        <>
+          <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={exitWorkout}
+                  className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Exit
+                </button>
+
+                <button
+                  onClick={markTodayWorkoutAsMissed}
+                  disabled={markWorkoutMissedMutation.isPending || completedExercises.size > 0}
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                    markWorkoutMissedMutation.isPending || completedExercises.size > 0
+                      ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                      : "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                  )}
+                >
+                  <X className="h-3.5 w-3.5" />
+                  {markWorkoutMissedMutation.isPending ? "Marking..." : "Missed"}
+                </button>
+              </div>
+
+              <p className="text-xs font-medium text-slate-500">
+                {completedExercises.size}/{exercises.length} complete
+              </p>
+            </div>
+
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <div className="rounded-xl border border-indigo-100 bg-indigo-50 px-2 py-2 text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-indigo-600">Current</p>
+                <p className="mt-0.5 text-xs font-semibold text-indigo-900">#{currentExerciseIndex + 1}</p>
+              </div>
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-2 py-2 text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-600">Done</p>
+                <p className="mt-0.5 text-xs font-semibold text-emerald-900">{completedExercises.size}</p>
+              </div>
+              <div className="rounded-xl border border-amber-100 bg-amber-50 px-2 py-2 text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-600">Total</p>
+                <p className="mt-0.5 text-xs font-semibold text-amber-900">{formatDuration(totalSeconds)}</p>
+              </div>
+            </div>
+          </section>
+
+          {isResting ? (
+            <section className="rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 text-center shadow-sm">
+              <Clock3 className="mx-auto h-7 w-7 text-blue-500" />
+              <p className="mt-2 text-sm font-medium text-blue-700">Recovery break</p>
+              <p className="mt-1 text-4xl font-bold tracking-tight text-blue-900">{restTimeLeft}s</p>
+              <button
+                onClick={() => {
+                  setIsResting(false);
+                  setRestTimeLeft(0);
+                }}
+                className="mt-4 rounded-full border border-blue-200 bg-white px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50"
+              >
+                Skip rest
+              </button>
+            </section>
+          ) : null}
+
+          {activeExercise && !isResting ? (
+            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-3">
+                <ExerciseAnimation
+                  animationUrl={activeExerciseObj?.animationUrl || activeExercise.exerciseAnimationUrl}
+                  thumbnailUrl={activeExerciseObj?.thumbnailUrl}
+                  exerciseName={activeExerciseName}
+                  size="large"
+                  showControls={true}
+                />
+              </div>
+
+              <div className="space-y-3 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">
+                      Exercise {currentExerciseIndex + 1} / {exercises.length}
+                    </p>
+                    <h3 className="mt-1 text-lg font-semibold text-slate-900">{activeExerciseName}</h3>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => moveExercise(-1)}
+                      disabled={currentExerciseIndex === 0}
+                      className={cn(
+                        "grid h-8 w-8 place-items-center rounded-full border transition",
+                        currentExerciseIndex === 0
+                          ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-300"
+                          : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+                      )}
+                    >
+                      <ChevronRight className="h-4 w-4 rotate-180" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => moveExercise(1)}
+                      disabled={currentExerciseIndex === exercises.length - 1}
+                      className={cn(
+                        "grid h-8 w-8 place-items-center rounded-full border transition",
+                        currentExerciseIndex === exercises.length - 1
+                          ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-300"
+                          : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+                      )}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mx-auto grid h-28 w-28 place-items-center rounded-full border border-indigo-100 bg-indigo-50 text-center">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-indigo-600">Timer</p>
+                  <p className="text-2xl font-bold tracking-tight text-indigo-900">{exerciseTimeLeft}s</p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-center">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Reps</p>
+                    <p className="mt-0.5 text-sm font-semibold text-slate-900">{getRepsDisplay(activeExercise)}</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-center">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Duration</p>
+                    <p className="mt-0.5 text-sm font-semibold text-slate-900">{activeExercise.duration || 20}s</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-center">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Weight</p>
+                    <p className="mt-0.5 text-sm font-semibold text-slate-900">{activeExercise.weight || "Body"}</p>
+                  </div>
+                </div>
+
+                {activeExerciseObj?.instructions?.length ? (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70">
+                    <button
+                      onClick={() => setShowInstructions((previous) => !previous)}
+                      className="flex w-full items-center justify-between px-3 py-2 text-left"
+                    >
+                      <span className="text-sm font-medium text-slate-700">How to perform</span>
+                      <ChevronRight
+                        className={cn("h-4 w-4 text-slate-400 transition-transform", showInstructions && "rotate-90")}
+                      />
+                    </button>
+
+                    {showInstructions ? (
+                      <ol className="space-y-1 border-t border-slate-200 px-3 py-3 text-xs text-slate-600">
+                        {activeExerciseObj.instructions.map((instruction, index) => (
+                          <li key={`${instruction}-${index}`} className="list-decimal list-inside leading-relaxed">
+                            {instruction}
+                          </li>
+                        ))}
+                      </ol>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={toggleTimer}
+                    className={cn(
+                      "flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-semibold transition",
+                      isExerciseTimerRunning
+                        ? "border border-amber-300 bg-amber-100 text-amber-900"
+                        : "border border-indigo-200 bg-indigo-50 text-indigo-700"
+                    )}
+                  >
+                    {isExerciseTimerRunning ? <Pause className="h-4 w-4" /> : <TimerReset className="h-4 w-4" />}
+                    {isExerciseTimerRunning ? "Pause" : "Start timer"}
+                  </button>
+
+                  <button
+                    onClick={skipExercise}
+                    className="flex h-11 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+                  >
+                    <SkipForward className="h-4 w-4" />
+                    Skip
+                  </button>
+                </div>
+
+                <button
+                  onClick={completeExercise}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-sm font-semibold text-white transition hover:brightness-110"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Complete exercise
+                </button>
+              </div>
+            </section>
+          ) : null}
+
+          <section className="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="mb-2 flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-slate-900">Exercise queue</h4>
+              <p className="text-xs text-slate-500">Tap to revisit</p>
+            </div>
+
+            <div className="space-y-2">
+              {exercises.map((exercise, index) => {
+                const isCompleted = completedExercises.has(index);
+                const isSkipped = skippedExercises.has(index);
+                const isCurrent = index === currentExerciseIndex;
+                const name = getExerciseName(exercise);
+
+                return (
+                  <button
+                    key={`${name}-${index}`}
+                    onClick={() => goToExercise(index)}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-left transition",
+                      isCurrent
+                        ? "border-indigo-300 bg-indigo-50"
+                        : isCompleted
+                          ? "border-emerald-200 bg-emerald-50"
+                          : isSkipped
+                            ? "border-amber-200 bg-amber-50"
+                          : "border-slate-200 bg-slate-50 hover:bg-slate-100"
+                    )}
+                  >
+                    {isCompleted ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                    ) : isSkipped ? (
+                      <SkipForward className="h-4 w-4 shrink-0 text-amber-500" />
+                    ) : (
+                      <Circle className="h-4 w-4 shrink-0 text-slate-300" />
+                    )}
+                    <span className="min-w-0 flex-1 truncate text-sm text-slate-700">
+                      {index + 1}. {name}
+                      {isSkipped ? " (skipped)" : ""}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {completedExercises.size > 0 && !showMoodDialog ? (
+            <div className="fixed left-1/2 z-40 w-[calc(100%-1rem)] max-w-[460px] -translate-x-1/2 bottom-[calc(6.75rem+env(safe-area-inset-bottom))] md:bottom-6">
+              <button
+                onClick={finishWorkout}
+                disabled={completeWorkoutMutation.isPending}
+                className={cn(
+                  "flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-white shadow-lg transition",
+                  completeWorkoutMutation.isPending
+                    ? "cursor-not-allowed bg-slate-400"
+                    : completedExercises.size === exercises.length
+                      ? "bg-gradient-to-r from-emerald-600 to-green-500 hover:brightness-110"
+                      : "bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110"
+                )}
+              >
+                <Trophy className="h-4 w-4" />
+                {completeWorkoutMutation.isPending
+                  ? "Saving session..."
+                  : completedExercises.size === exercises.length
+                    ? "Complete workout"
+                    : `Finish early (${completedExercises.size}/${exercises.length})`}
+              </button>
+            </div>
+          ) : null}
+        </>
+      )}
+
+      {showMoodDialog ? (
+        <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-3">
+          <div className="w-full max-w-md max-h-[86vh] overflow-y-auto rounded-t-[28px] border border-slate-200 bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-xl sm:max-h-[90vh] sm:rounded-3xl sm:pb-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">How are you feeling?</h3>
+                <p className="mt-1 text-xs text-slate-500">1 = exhausted, 5 = energized</p>
+              </div>
+
+              <button
+                onClick={() => setShowMoodDialog(false)}
+                className="rounded-full border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-3 grid grid-cols-5 gap-2">
+              {[1, 2, 3, 4, 5].map((mood) => {
+                const emoji = mood === 1 ? "😫" : mood === 2 ? "😓" : mood === 3 ? "😐" : mood === 4 ? "😊" : "🤩";
+                const selected = selectedMood === mood;
+
+                return (
+                  <button
+                    key={mood}
+                    onClick={() => setSelectedMood(mood)}
+                    className={cn(
+                      "aspect-square rounded-2xl border text-2xl transition",
+                      selected
+                        ? "border-indigo-400 bg-indigo-50 shadow-sm"
+                        : "border-slate-200 bg-slate-50 hover:border-indigo-200 hover:bg-indigo-50/40"
+                    )}
+                  >
+                    {emoji}
+                  </button>
+                );
+              })}
             </div>
 
             <textarea
               value={workoutNotes}
-              onChange={(e) => setWorkoutNotes(e.target.value)}
-              placeholder="Add notes about your workout (optional)..."
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                border: "1px solid #e5e7eb",
-                borderRadius: "8px",
-                fontSize: "0.9rem",
-                marginBottom: "1rem",
-                minHeight: "80px",
-                resize: "vertical"
-              }}
+              onChange={(event) => setWorkoutNotes(event.target.value)}
+              placeholder="Notes (optional): energy level, pain points, anything your coach should know..."
+              className="mt-3 min-h-[90px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-indigo-300 focus:bg-white focus:ring-2 focus:ring-indigo-100"
             />
 
-            <div style={{ display: "flex", gap: "0.5rem" }}>
+            <div className="mt-3 grid grid-cols-2 gap-2">
               <button
                 onClick={() => setShowMoodDialog(false)}
-                style={{
-                  flex: 1,
-                  padding: "0.75rem",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  background: "#fff",
-                  cursor: "pointer",
-                  fontSize: "0.9rem",
-                  fontWeight: 600
-                }}
+                className="h-11 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
               >
                 Cancel
               </button>
+
               <button
                 onClick={submitWorkout}
                 disabled={completeWorkoutMutation.isPending}
-                className="client-button"
-                style={{
-                  flex: 2,
-                  padding: "0.75rem",
-                  fontSize: "0.9rem",
-                  fontWeight: 600
-                }}
+                className={cn(
+                  "h-11 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-sm font-semibold text-white transition",
+                  completeWorkoutMutation.isPending && "cursor-not-allowed opacity-70"
+                )}
               >
-                {completeWorkoutMutation.isPending ? "Submitting..." : "Complete Workout 🎉"}
+                {completeWorkoutMutation.isPending ? "Submitting..." : "Submit workout"}
               </button>
             </div>
           </div>
         </div>
-      )}
-
-      <style jsx>{`
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
+      ) : null}
     </div>
   );
 }

@@ -163,10 +163,16 @@ export type ClientDietLog = {
     carbs?: number;
     fat?: number;
   };
+  // Canonical persisted field
   waterIntake?: number;
+  // Backward-compatible alias accepted by APIs
+  waterIntakeLiters?: number;
   waterGoal?: number;
+  supplementsTaken?: { name: string; taken: boolean; notes?: string }[];
   adherenceScore?: number;
+  // Legacy alias (maps to clientNotes on backend)
   notes?: string;
+  clientNotes?: string;
   createdAt: string;
 };
 
@@ -588,9 +594,11 @@ export function useCreateDietLog() {
       dietPlanId: string;
       date: string;
       mealsLogged?: LoggedMeal[];
+      waterIntake?: number;
       waterIntakeLiters?: number;
       supplementsTaken?: { name: string; taken: boolean; notes?: string }[];
       notes?: string;
+      clientNotes?: string;
     }) => {
       const res = await api.post("/client/diet/logs", data);
       return res.data;
