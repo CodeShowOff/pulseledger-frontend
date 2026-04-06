@@ -342,48 +342,67 @@ export default function CoachProductsPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-4 p-6 md:p-7">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="space-y-2">
-                <Badge className="w-fit border-white/25 bg-white/15 text-white">Storefront</Badge>
-                <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              <div className="space-y-1.5">
+                <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
+                  Storefront
+                </Badge>
+                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
                   Manage your products like a pro
                 </CardTitle>
-                <CardDescription className="max-w-2xl text-sm !text-white/90 md:text-base">
-                  Keep your catalog updated, control availability, and handle orders from one clean workspace.
-                </CardDescription>
               </div>
 
-              <div className="flex flex-wrap gap-2 md:justify-end">
-                <Link href="/coach/orders">
-                  <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                    <ShoppingBag className="h-4 w-4" />
+              <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:gap-2 md:justify-end">
+                <Link href="/coach/orders" className="col-span-2 sm:col-span-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                  >
+                    <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Received Orders
                   </Button>
                 </Link>
-                <Link href="/coach/vouchers">
-                  <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                    <TicketPercent className="h-4 w-4" />
+                <Link href="/coach/vouchers" className="min-w-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                  >
+                    <TicketPercent className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Vouchers
                   </Button>
                 </Link>
-                <Link href="/coach/products/create">
-                  <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                    <PackagePlus className="h-4 w-4" />
+                <Link href="/coach/products/create" className="min-w-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                  >
+                    <PackagePlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Add Product
                   </Button>
                 </Link>
               </div>
             </div>
 
-            <div className="grid gap-3 pt-2 sm:grid-cols-2">
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Products</p>
-                <p className="mt-1 text-xl font-semibold">{isLoading ? "--" : totalProducts}</p>
+            <div className="grid grid-cols-2 gap-2 pt-1.5 sm:gap-3 sm:pt-2">
+              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
+                <p className="text-[10px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
+                  Products
+                </p>
+                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
+                  {isLoading ? "--" : totalProducts}
+                </p>
               </div>
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Visible categories</p>
-                <p className="mt-1 text-xl font-semibold">{isLoading ? "--" : categoryOptions.length}</p>
+              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
+                <p className="text-[10px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
+                  Visible categories
+                </p>
+                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
+                  {isLoading ? "--" : categoryOptions.length}
+                </p>
               </div>
             </div>
           </CardHeader>
@@ -404,7 +423,6 @@ export default function CoachProductsPage() {
               </span>
               Find products
             </CardTitle>
-            <CardDescription>Search by product details and narrow the list by category.</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_auto] md:items-end">
@@ -478,7 +496,6 @@ export default function CoachProductsPage() {
               </span>
               Product catalog
             </CardTitle>
-            <CardDescription>Review pricing, availability, and edit product details instantly.</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">

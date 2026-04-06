@@ -129,7 +129,7 @@ export default function PlanListView() {
             >
               <Card className="border-slate-200/80 bg-slate-50/55">
                 <CardContent className="space-y-4 p-4 sm:p-6">
-                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/80 pb-3 pt-0.5">
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/80 pb-3 pt-2">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <h3 className="text-base font-semibold text-slate-900">{plan.title}</h3>

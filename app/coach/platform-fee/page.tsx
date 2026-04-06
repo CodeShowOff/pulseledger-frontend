@@ -7,15 +7,12 @@ import getErrorMessage from "@/lib/getErrorMessage";
 import { motion } from "@/lib/motion";
 import {
   AlertCircle,
-  AlertTriangle,
-  Calendar,
   CheckCircle2,
   Clock,
   Copy,
   CreditCard,
   Eye,
   FileText,
-  IndianRupee,
   Loader2,
   RefreshCw,
   TrendingUp,
@@ -380,62 +377,72 @@ export default function PlatformFeeManagementPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-4 p-6 md:p-7">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="space-y-2">
-                <Badge className="w-fit border-white/25 bg-white/15 text-white">
+          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              <div className="space-y-1.5">
+                <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
                   Billing & Access
                 </Badge>
-                <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
                   Platform fee management
                 </CardTitle>
-                <CardDescription className="max-w-2xl text-sm !text-white/90 md:text-base">
-                  Keep your coaching workspace active by submitting and tracking monthly platform payments.
+                <CardDescription className="max-w-2xl text-xs !text-white/90 sm:text-sm md:text-base">
+                  Keep your workspace active with monthly platform payments.
                 </CardDescription>
               </div>
 
-              <div className="space-y-2 md:text-right">
+              <div className="flex w-full flex-col gap-1.5 sm:w-auto sm:items-end sm:text-right sm:gap-2">
                 <div
                   className={cn(
-                    "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-wide",
+                    "inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide sm:px-3 sm:py-1.5 sm:text-xs",
                     statusMeta.pill
                   )}
                 >
                   <span className={cn("h-2 w-2 rounded-full", statusMeta.dot)} />
                   {statusMeta.label}
                 </div>
-                <div>
+                <div className="w-full sm:w-auto">
                   <Button
                     type="button"
                     variant="outline"
-                    className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                    size="sm"
+                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
                     onClick={() => setShowPaymentForm(true)}
                   >
-                    <CreditCard className="h-4 w-4" />
-                    {pendingPayments.length > 0 ? "Submit another payment" : "Submit payment"}
+                    <CreditCard className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                    <span className="sm:hidden">Submit payment</span>
+                    <span className="hidden sm:inline">
+                      {pendingPayments.length > 0 ? "Submit another payment" : "Submit payment"}
+                    </span>
                   </Button>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-3 pt-2 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Days remaining</p>
-                <p className="mt-1 text-xl font-semibold">
+            <div className="grid grid-cols-2 gap-2 pt-1.5 sm:grid-cols-2 sm:gap-3 sm:pt-2 lg:grid-cols-4">
+              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
+                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
+                  <span className="sm:hidden">Days left</span>
+                  <span className="hidden sm:inline">Days remaining</span>
+                </p>
+                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
                   {subscription.daysRemaining}
                 </p>
               </div>
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Platform fee</p>
-                <p className="mt-1 text-xl font-semibold">{formatCurrency(subscription.platformFee)}</p>
+              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
+                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">Platform fee</p>
+                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">{formatCurrency(subscription.platformFee)}</p>
               </div>
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Total paid</p>
-                <p className="mt-1 text-xl font-semibold">{formatCurrency(subscription.totalPaid)}</p>
+              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
+                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">Total paid</p>
+                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">{formatCurrency(subscription.totalPaid)}</p>
               </div>
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Pending verifications</p>
-                <p className="mt-1 text-xl font-semibold">{pendingPayments.length}</p>
+              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
+                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
+                  <span className="sm:hidden">Pending</span>
+                  <span className="hidden sm:inline">Pending verifications</span>
+                </p>
+                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">{pendingPayments.length}</p>
               </div>
             </div>
           </CardHeader>
@@ -451,31 +458,31 @@ export default function PlatformFeeManagementPage() {
         >
           <Card
             className={cn(
-              "border",
+              "border shadow-none",
               isExpired
-                ? "border-rose-200 bg-rose-50"
-                : "border-amber-200 bg-amber-50"
+                ? "border-rose-400/90 bg-gradient-to-r from-rose-100 via-rose-100 to-red-100"
+                : "border-amber-200 bg-amber-50/90"
             )}
           >
-            <CardContent className="flex flex-col items-start justify-between gap-4 p-4 sm:flex-row sm:items-center">
+            <CardContent className="flex flex-col items-stretch gap-3 px-4 pb-4 pt-4 sm:px-5 sm:py-4">
               <div className="flex items-start gap-3">
-                <span
+                <div
                   className={cn(
-                    "mt-0.5 grid h-9 w-9 place-items-center rounded-xl",
-                    isExpired ? "bg-rose-100 text-rose-600" : "bg-amber-100 text-amber-600"
+                    "mt-0.5 rounded-xl p-2",
+                    isExpired ? "bg-rose-200/80" : "bg-white/80"
                   )}
                 >
                   {isExpired ? (
-                    <AlertCircle className="h-5 w-5" />
+                    <AlertCircle className="h-5 w-5 text-rose-700" />
                   ) : (
-                    <AlertTriangle className="h-5 w-5" />
+                    <Clock className="h-5 w-5 text-amber-600" />
                   )}
-                </span>
-                <div>
+                </div>
+                <div className="space-y-1">
                   <p
                     className={cn(
                       "text-sm font-semibold",
-                      isExpired ? "text-rose-800" : "text-amber-800"
+                      isExpired ? "text-rose-900" : "text-slate-900"
                     )}
                   >
                     {isExpired
@@ -487,7 +494,7 @@ export default function PlatformFeeManagementPage() {
                   <p
                     className={cn(
                       "text-sm",
-                      isExpired ? "text-rose-700" : "text-amber-700"
+                      isExpired ? "text-rose-800" : "text-slate-600"
                     )}
                   >
                     Pay {formatCurrency(subscription.platformFee)} to keep uninterrupted access to your coach tools.
@@ -497,11 +504,13 @@ export default function PlatformFeeManagementPage() {
 
               <Button
                 type="button"
+                size="sm"
                 onClick={() => setShowPaymentForm(true)}
                 className={cn(
+                  "h-10 w-full font-semibold",
                   isExpired
-                    ? "bg-rose-600 hover:bg-rose-700"
-                    : "bg-amber-600 hover:bg-amber-700"
+                    ? "bg-rose-600 text-white hover:bg-rose-700"
+                    : "bg-amber-500 text-white hover:bg-amber-600"
                 )}
               >
                 {isExpired ? "Renew now" : "Pay now"}
@@ -776,28 +785,33 @@ export default function PlatformFeeManagementPage() {
               </div>
             ) : (
               <div className="overflow-x-auto rounded-xl border border-slate-200">
-                <table className="admin-table">
+                <table className="admin-table min-w-[780px]">
                   <thead>
                     <tr>
                       <th>Submitted</th>
                       <th>Amount</th>
                       <th>Transaction ID</th>
                       <th>Status</th>
-                      <th>Validity</th>
+                      <th>Valid till</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {paymentHistory.map((payment) => (
                       <tr key={payment._id}>
-                        <td>
-                          <div style={{ display: "flex", flexDirection: "column" }}>
-                            <span style={{ fontWeight: 600 }}>{formatDate(payment.paidAt)}</span>
-                            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
-                              {new Date(payment.paidAt).toLocaleTimeString("en-IN", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                        <td className="align-top">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="whitespace-nowrap font-semibold text-slate-900">
+                              {formatDate(payment.paidAt)}
+                            </span>
+                            <span className="whitespace-nowrap text-xs text-slate-500">
+                              {new Date(payment.paidAt)
+                                .toLocaleTimeString("en-IN", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })
+                                .toUpperCase()}
                             </span>
                           </div>
                         </td>
@@ -812,16 +826,21 @@ export default function PlatformFeeManagementPage() {
                               backgroundColor: "#f1f5f9",
                               padding: "0.25rem 0.5rem",
                               borderRadius: "0.4rem",
+                              whiteSpace: "nowrap",
                             }}
                           >
                             {payment.transactionId || "-"}
                           </span>
                         </td>
                         <td>{getPaymentBadge(payment.status)}</td>
-                        <td>
-                          {payment.validFrom && payment.validUntil
-                            ? `${formatDate(payment.validFrom)} → ${formatDate(payment.validUntil)}`
-                            : "-"}
+                        <td className="align-top">
+                          {payment.validUntil ? (
+                            <span className="whitespace-nowrap font-semibold text-slate-900">
+                              {formatDate(payment.validUntil)}
+                            </span>
+                          ) : (
+                            "-"
+                          )}
                         </td>
                         <td>
                           <Button
@@ -1059,11 +1078,11 @@ export default function PlatformFeeManagementPage() {
                 </div>
               </div>
 
-              {selectedPayment.validFrom && selectedPayment.validUntil ? (
+              {selectedPayment.validUntil ? (
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
-                  <p className="text-xs text-emerald-700">Validity period</p>
+                  <p className="text-xs text-emerald-700">Valid till</p>
                   <p className="mt-1 text-sm font-medium text-emerald-800">
-                    {formatDate(selectedPayment.validFrom)} to {formatDate(selectedPayment.validUntil)}
+                    {formatDate(selectedPayment.validUntil)}
                   </p>
                 </div>
               ) : null}

@@ -29,60 +29,82 @@ export default function CoachPlansPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-4 p-6 md:p-7">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="w-fit border-white/25 bg-white/15 text-white">Plans Workspace</Badge>
+          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
+                    Plans Workspace
+                  </Badge>
                   {pendingCount > 0 ? (
                     <Badge
                       variant="warning"
-                      className="w-fit border-rose-300/50 bg-rose-500 text-white"
+                      className="w-fit border-rose-300/50 bg-rose-500 text-[10px] text-white sm:text-xs"
                       aria-label={`${pendingCount} pending plan request${pendingCount === 1 ? "" : "s"}`}
                     >
-                      {pendingCount > 99 ? "99+" : pendingCount} Pending Requests
+                      <span className="sm:hidden">{pendingCount > 99 ? "99+" : pendingCount} Pending</span>
+                      <span className="hidden sm:inline">
+                        {pendingCount > 99 ? "99+" : pendingCount} Pending Requests
+                      </span>
                     </Badge>
                   ) : null}
                 </div>
-                <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
-                  Build and scale premium client plans
+                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
+                  Scale premium client plans
                 </CardTitle>
-                <CardDescription className="max-w-2xl text-sm !text-white/90 md:text-base">
-                  Manage plans, requests, and subscriptions from one place.
+                <CardDescription className="max-w-2xl text-xs !text-white/90 sm:text-sm md:text-base">
+                  Manage plans and requests.
                 </CardDescription>
               </div>
 
-              <div className="flex flex-wrap gap-2 md:justify-end">
-                <Link href="/coach/plan-requests">
-                  <Button variant="outline" className="relative border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                    <ClipboardList className="h-4 w-4" />
-                    Plan Requests
+              <div className="grid w-full grid-cols-3 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:gap-2 md:justify-end">
+                <Link href="/coach/plan-requests" className="min-w-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="relative h-8 w-full border-white/25 bg-white/10 px-2 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                  >
+                    <ClipboardList className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="sm:hidden">Requests</span>
+                    <span className="hidden sm:inline">Plan Requests</span>
                     {pendingCount > 0 ? (
-                      <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                      <span className="ml-1 hidden min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold text-white sm:inline-flex">
                         {pendingCount > 99 ? "99+" : pendingCount}
                       </span>
                     ) : null}
                   </Button>
                 </Link>
-                <Link href="/coach/subscriptions">
-                  <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                    <CreditCard className="h-4 w-4" />
-                    Client Subscriptions
+                <Link href="/coach/subscriptions" className="min-w-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-full border-white/25 bg-white/10 px-2 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                  >
+                    <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="sm:hidden">Subs</span>
+                    <span className="hidden sm:inline">Client Subscriptions</span>
                   </Button>
                 </Link>
-                <Link href="/coach/plans/create">
-                  <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                    <Plus className="h-4 w-4" />
-                    New Plan
+                <Link href="/coach/plans/create" className="min-w-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-full border-white/25 bg-white/10 px-2 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                  >
+                    <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="sm:hidden">New</span>
+                    <span className="hidden sm:inline">New Plan</span>
                   </Button>
                 </Link>
               </div>
             </div>
 
-            <div className="grid gap-3 pt-2 sm:grid-cols-1">
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Pending approvals</p>
-                <p className="mt-1 text-xl font-semibold">
+            <div className="pt-1.5 sm:pt-2">
+              <div className="rounded-xl border border-white/25 bg-white/10 px-3 py-2.5 sm:px-4 sm:py-3">
+                <p className="text-[10px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
+                  Pending approvals
+                </p>
+                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
                   {pendingLoading ? "--" : pendingError ? "!" : pendingCount}
                 </p>
               </div>
@@ -105,7 +127,7 @@ export default function CoachPlansPage() {
               </span>
               Plan catalog
             </CardTitle>
-            <CardDescription>Manage pricing, duration, statuses, and client assignments in a unified layout.</CardDescription>
+            <CardDescription>Manage pricing, status, and assignments.</CardDescription>
           </CardHeader>
           <CardContent>
             <PlanListView />
@@ -123,14 +145,14 @@ export default function CoachPlansPage() {
         {[
           {
             title: "Workout Plans",
-            description: "Build high-performance workout templates and reusable coaching systems.",
+            description: "Create and manage workout templates.",
             href: "/coach/workout-plans",
             cta: "Manage Workouts",
             Icon: Dumbbell,
           },
           {
             title: "Diet Plans",
-            description: "Design modern nutrition journeys with clarity, structure, and repeatability.",
+            description: "Create and manage diet plans.",
             href: "/coach/diet-plans",
             cta: "Manage Diet Plans",
             Icon: Utensils,
@@ -174,19 +196,19 @@ export default function CoachPlansPage() {
               </span>
               Custom library
             </CardTitle>
-            <CardDescription>Create proprietary movement and food libraries that differentiate your coaching service.</CardDescription>
+            <CardDescription>Build your private exercise and food libraries.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             {[
               {
                 title: "Custom Exercises",
-                description: "Create and manage your private movement library.",
+                description: "Manage your private exercise library.",
                 href: "/coach/exercises",
                 Icon: Dumbbell,
               },
               {
                 title: "Custom Food Items",
-                description: "Maintain your own nutrition inventory and macro presets.",
+                description: "Manage your private food library.",
                 href: "/coach/food-items",
                 Icon: Utensils,
               },

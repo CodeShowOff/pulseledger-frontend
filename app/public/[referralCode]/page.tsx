@@ -278,6 +278,8 @@ function PublicCoachProfileContent() {
   const location = [coach.address?.city, coach.address?.state].filter(Boolean).join(", ");
   const hasSocialLinks = coach.socialMedia && Object.values(coach.socialMedia).some(Boolean);
   const hasGalleryItems = (coach.awards?.length || 0) > 0 || (coach.transformations?.length || 0) > 0;
+  const coachFirstName = coach.fullName?.trim().split(/\s+/)[0] || "Coach";
+  const joinWithLabel = `Join with ${coachFirstName}`;
 
   return (
     <div className={`cpp ${isVisible ? 'cpp--visible' : ''}`}>
@@ -343,40 +345,6 @@ function PublicCoachProfileContent() {
 
             {/* actions moved below into the CTA row located above the stats section */}
 
-            {hasSocialLinks && (
-              <div className="cpp-hero__social">
-                {coach.socialMedia?.instagram && (
-                  <a href={coach.socialMedia.instagram} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--instagram" title="Instagram">
-                    <Instagram size={20} />
-                  </a>
-                )}
-                {coach.socialMedia?.facebook && (
-                  <a href={coach.socialMedia.facebook} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--facebook" title="Facebook">
-                    <Facebook size={20} />
-                  </a>
-                )}
-                {coach.socialMedia?.twitter && (
-                  <a href={coach.socialMedia.twitter} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--twitter" title="Twitter">
-                    <Twitter size={20} />
-                  </a>
-                )}
-                {coach.socialMedia?.linkedin && (
-                  <a href={coach.socialMedia.linkedin} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--linkedin" title="LinkedIn">
-                    <Linkedin size={20} />
-                  </a>
-                )}
-                {coach.socialMedia?.youtube && (
-                  <a href={coach.socialMedia.youtube} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--youtube" title="YouTube">
-                    <Youtube size={20} />
-                  </a>
-                )}
-                {coach.socialMedia?.website && (
-                  <a href={coach.socialMedia.website} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--website" title="Website">
-                    <Globe size={20} />
-                  </a>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </section>
@@ -388,8 +356,8 @@ function PublicCoachProfileContent() {
             <Send size={18} />
             Get in Touch
           </button>
-          <button onClick={handleJoinClick} className="cpp-btn cpp-btn--secondary cpp-btn--lg">
-            Join with {coach.fullName?.split(" ")?.[0] || "Coach"}
+          <button onClick={handleJoinClick} className="cpp-btn cpp-btn--secondary cpp-btn--lg" title={joinWithLabel}>
+            <span className="cpp-cta__join-text">{joinWithLabel}</span>
             <ArrowRight size={18} />
           </button>
         </div>
@@ -447,7 +415,7 @@ function PublicCoachProfileContent() {
       {/* Main Content */}
       <main className="cpp-main">
         {/* About Section */}
-        {(coach.description || coach.bio) && (
+        {(coach.description || coach.bio || hasSocialLinks) && (
           <section className="cpp-section cpp-about">
             <div className="cpp-section__header">
               <h2 className="cpp-section__title">
@@ -464,6 +432,41 @@ function PublicCoachProfileContent() {
               {coach.bio && coach.bio !== coach.description && (
                 <div className="cpp-about__text cpp-about__text--secondary">
                   <p>{coach.bio}</p>
+                </div>
+              )}
+
+              {hasSocialLinks && (
+                <div className="cpp-about__social">
+                  {coach.socialMedia?.instagram && (
+                    <a href={coach.socialMedia.instagram} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--instagram" title="Instagram">
+                      <Instagram size={20} />
+                    </a>
+                  )}
+                  {coach.socialMedia?.facebook && (
+                    <a href={coach.socialMedia.facebook} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--facebook" title="Facebook">
+                      <Facebook size={20} />
+                    </a>
+                  )}
+                  {coach.socialMedia?.twitter && (
+                    <a href={coach.socialMedia.twitter} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--twitter" title="Twitter">
+                      <Twitter size={20} />
+                    </a>
+                  )}
+                  {coach.socialMedia?.linkedin && (
+                    <a href={coach.socialMedia.linkedin} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--linkedin" title="LinkedIn">
+                      <Linkedin size={20} />
+                    </a>
+                  )}
+                  {coach.socialMedia?.youtube && (
+                    <a href={coach.socialMedia.youtube} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--youtube" title="YouTube">
+                      <Youtube size={20} />
+                    </a>
+                  )}
+                  {coach.socialMedia?.website && (
+                    <a href={coach.socialMedia.website} target="_blank" rel="noopener noreferrer" className="cpp-social-link cpp-social-link--website" title="Website">
+                      <Globe size={20} />
+                    </a>
+                  )}
                 </div>
               )}
             </div>
@@ -681,7 +684,7 @@ function PublicCoachProfileContent() {
             </div>
             
             <div className="cpp-plans__grid">
-              {plans.map((plan) => (
+              {plans.slice(0, 4).map((plan) => (
                 <div key={plan._id} className="cpp-plan-card">
                   <div className="cpp-plan-card__header">
                     <h3 className="cpp-plan-card__title">{plan.title}</h3>

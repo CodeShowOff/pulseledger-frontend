@@ -153,44 +153,66 @@ export default function ManageReviewsPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-4 p-6 md:p-7">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="space-y-2">
-                <Badge className="w-fit border-white/25 bg-white/15 text-white">Reputation</Badge>
-                <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
-                  Manage client reviews with confidence
+          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              <div className="space-y-1.5">
+                <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
+                  Reputation
+                </Badge>
+                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
+                  Manage client reviews
                 </CardTitle>
-                <CardDescription className="max-w-2xl text-sm !text-white/90 md:text-base">
-                  Approve or hide testimonials that appear on your public profile.
+                <CardDescription className="max-w-2xl text-xs !text-white/90 sm:text-sm md:text-base">
+                  Approve or hide profile testimonials.
                 </CardDescription>
               </div>
 
-              <div className="flex flex-wrap gap-2 md:justify-end">
+              <div className="flex w-full sm:w-auto sm:justify-end">
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={fetchReviews}
                   disabled={loading}
-                  className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                  className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
                 >
-                  <RefreshCw className={cn("h-4 w-4", loading ? "animate-spin" : "")} />
+                  <RefreshCw
+                    className={cn(
+                      "h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4",
+                      loading ? "animate-spin" : ""
+                    )}
+                  />
                   Refresh
                 </Button>
               </div>
             </div>
 
-            <div className="grid gap-3 pt-2 sm:grid-cols-3">
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Total reviews</p>
-                <p className="mt-1 text-xl font-semibold">{loading && !data ? "--" : stats.total}</p>
+            <div className="grid grid-cols-3 gap-2 pt-1.5 sm:gap-3 sm:pt-2">
+              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
+                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
+                  <span className="sm:hidden">Reviews</span>
+                  <span className="hidden sm:inline">Total reviews</span>
+                </p>
+                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
+                  {loading && !data ? "--" : stats.total}
+                </p>
               </div>
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Approved</p>
-                <p className="mt-1 text-xl font-semibold">{loading && !data ? "--" : stats.approved}</p>
+              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
+                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
+                  Approved
+                </p>
+                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
+                  {loading && !data ? "--" : stats.approved}
+                </p>
               </div>
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Pending approval</p>
-                <p className="mt-1 text-xl font-semibold">{loading && !data ? "--" : stats.pending}</p>
+              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
+                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
+                  <span className="sm:hidden">Pending</span>
+                  <span className="hidden sm:inline">Pending approval</span>
+                </p>
+                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
+                  {loading && !data ? "--" : stats.pending}
+                </p>
               </div>
             </div>
           </CardHeader>
@@ -211,7 +233,6 @@ export default function ManageReviewsPage() {
               </span>
               Filter reviews
             </CardTitle>
-            <CardDescription>Switch between all, pending, and approved feedback.</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex flex-wrap gap-2">

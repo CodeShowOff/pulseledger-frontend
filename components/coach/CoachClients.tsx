@@ -84,7 +84,6 @@ export default function CoachClients() {
           <div className={styles.toolbarInner}>
             <div className={styles.toolbarCopy}>
               <h2 className={styles.toolbarTitle}>Assigned Clients</h2>
-              <p className={styles.toolbarSubtext}>Overview of all clients linked to your coaching account.</p>
             </div>
 
             <div className={styles.searchWrap}>

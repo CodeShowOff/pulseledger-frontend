@@ -25,7 +25,7 @@ export default function CoachClientsPage() {
           <div>
             <Badge className="mb-2 w-fit border-white/25 bg-white/15 text-white">Clients workspace</Badge>
             <h1 className="text-2xl font-bold tracking-tight text-white">My Clients</h1>
-            <p className="mt-1 text-sm text-white/90">Manage clients, pending requests, and profile actions from one streamlined view.</p>
+            <p className="mt-1 text-sm text-white/90">Manage clients and requests.</p>
           </div>
 
           <Link

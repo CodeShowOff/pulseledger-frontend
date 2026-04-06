@@ -22,18 +22,25 @@ export default function CoachPlanCreatePage() {
     <div className="space-y-6">
       <motion.section initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
         <Card className="border-indigo-100/80 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="space-y-2">
-                <Badge className="w-fit border-white/25 bg-white/15 text-white">Plan Builder</Badge>
-                <CardTitle className="text-2xl font-bold text-white">Create new plan</CardTitle>
-                <CardDescription className="!text-white/90">
-                  Build a structured, premium coaching plan with clear outcomes and smooth assignment flow.
+          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <div className="space-y-1.5">
+                <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
+                  Plan Builder
+                </Badge>
+                <CardTitle className="text-xl font-bold text-white sm:text-2xl">Create new plan</CardTitle>
+                <CardDescription className="text-xs !text-white/90 sm:text-sm">
+                  Build a premium coaching plan with clear outcomes.
                 </CardDescription>
               </div>
-              <Link href="/coach/plans">
-                <Button variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                  <ArrowLeft className="h-4 w-4" />
+
+              <Link href="/coach/plans" className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                   Back to plans
                 </Button>
               </Link>

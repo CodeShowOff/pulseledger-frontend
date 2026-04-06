@@ -33,9 +33,7 @@ export default function CoachProgressTrendCard({ chartData, isLoading }: CoachPr
           </span>
           Client progress trend
         </CardTitle>
-        <CardDescription>
-          Minimal weekly BMI trendline with smooth gradient fill.
-        </CardDescription>
+        <CardDescription>Weekly BMI trend overview.</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (

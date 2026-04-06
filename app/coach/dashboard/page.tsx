@@ -110,7 +110,8 @@ function getActivityIcon(notification: NotificationItem) {
 export default function CoachDashboard() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
-  const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   const { data: subscription } = useQuery<SubscriptionStatus>({
     queryKey: ["platformSubscription"],
@@ -173,6 +174,7 @@ export default function CoachDashboard() {
     typeof window !== "undefined" && user?.referralCode
       ? `${window.location.origin}/public/${encodeURIComponent(user.referralCode)}`
       : "";
+  const referralCode = user?.referralCode?.trim() ?? "";
 
   const subscriptionTone =
     subscription?.status === "expired"
@@ -188,7 +190,7 @@ export default function CoachDashboard() {
   const dashboardActions = [
     {
       label: "Visit My Profile",
-      description: "Open your public and business profile details to keep everything up to date.",
+      description: "Manage your public profile details.",
       href: "/profile",
       Icon: UserCircle2,
       color: "from-sky-500 to-cyan-500",
@@ -196,7 +198,7 @@ export default function CoachDashboard() {
     },
     {
       label: "Platform Fee",
-      description: "Manage subscription status and avoid interruptions in coach dashboard access.",
+      description: "Check status and manage billing.",
       href: "/coach/platform-fee",
       Icon: CreditCard,
       color: "from-indigo-500 to-blue-500",
@@ -204,7 +206,7 @@ export default function CoachDashboard() {
     },
     {
       label: "Workouts",
-      description: "Build and assign workout plans with structure and consistency.",
+      description: "Create and assign workout plans.",
       href: "/coach/workout-plans",
       Icon: Dumbbell,
       color: "from-orange-500 to-amber-500",
@@ -212,7 +214,7 @@ export default function CoachDashboard() {
     },
     {
       label: "Nutrition",
-      description: "Create diet plans and optimize meal strategies for every client segment.",
+      description: "Create diet plans for clients.",
       href: "/coach/diet-plans",
       Icon: UtensilsCrossed,
       color: "from-emerald-500 to-lime-500",
@@ -220,7 +222,7 @@ export default function CoachDashboard() {
     },
     {
       label: "Revenue",
-      description: "Review earnings, payouts, and business performance trends.",
+      description: "Track earnings and payouts.",
       href: "/coach/earnings",
       Icon: Wallet,
       color: "from-violet-500 to-fuchsia-500",
@@ -228,7 +230,7 @@ export default function CoachDashboard() {
     },
     {
       label: "Reviews",
-      description: "Read testimonials and improve trust through client feedback.",
+      description: "View and manage client reviews.",
       href: "/coach/reviews",
       Icon: Star,
       color: "from-rose-500 to-pink-500",
@@ -237,30 +239,38 @@ export default function CoachDashboard() {
   ];
 
   const primaryActionLabels = ["Workouts", "Nutrition", "Reviews"];
-  const primaryActions = dashboardActions.filter((item) => primaryActionLabels.includes(item.label));
-  const secondaryActions = dashboardActions.filter((item) => !primaryActionLabels.includes(item.label));
+  const moduleActions = [
+    ...dashboardActions.filter((item) => primaryActionLabels.includes(item.label)),
+    ...dashboardActions.filter((item) => !primaryActionLabels.includes(item.label)),
+  ];
 
   const quickCards = [
     {
       title: "Earnings Center",
-      description: "Track monthly revenue and client order value in one place.",
+      description: "Track revenue in one place.",
       href: "/coach/earnings",
       cta: "Open Revenue",
       Icon: Wallet,
       badge: "Finance",
+      cardClass: "border-emerald-200/80 bg-emerald-50/80 hover:border-emerald-300 hover:bg-emerald-100/70",
+      iconClass: "text-emerald-700 group-hover:text-emerald-800",
+      arrowClass: "text-emerald-500 group-hover:text-emerald-700",
     },
     {
       title: "Public Profile",
-      description: "Share your profile link so prospects can book and onboard fast.",
+      description: "Share your profile link quickly.",
       href: publicProfileUrl || "#",
       cta: "Open Profile",
       Icon: Link2,
       isExternal: true,
       badge: "Growth",
+      cardClass: "border-sky-200/80 bg-sky-50/80 hover:border-sky-300 hover:bg-sky-100/70",
+      iconClass: "text-sky-700 group-hover:text-sky-800",
+      arrowClass: "text-sky-500 group-hover:text-sky-700",
     },
     {
       title: "Subscription",
-      description: "Keep platform access active and prevent service interruptions.",
+      description: "Keep platform access active.",
       href: "/coach/platform-fee",
       cta: "Manage Billing",
       Icon: CreditCard,
@@ -268,6 +278,9 @@ export default function CoachDashboard() {
         subscription && Number.isFinite(subscription.daysRemaining)
           ? `${subscription.daysRemaining} Day${subscription.daysRemaining !== 1 ? "s" : ""} Left`
           : "Checking status",
+      cardClass: "border-rose-200/80 bg-rose-50/80 hover:border-rose-300 hover:bg-rose-100/70",
+      iconClass: "text-rose-700 group-hover:text-rose-800",
+      arrowClass: "text-rose-500 group-hover:text-rose-700",
     },
     // {
     //   title: "Workout Plans",
@@ -347,39 +360,56 @@ export default function CoachDashboard() {
               <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
                 <Card
                   className={cn(
-                    "border",
+                    "border shadow-none",
                     subscriptionTone === "danger"
-                      ? "border-rose-200 bg-rose-50/90"
+                      ? "border-rose-400/90 bg-gradient-to-r from-rose-100 via-rose-100 to-red-100"
                       : subscriptionTone === "warn"
                       ? "border-amber-200 bg-amber-50/90"
                       : "border-blue-200 bg-blue-50/90"
                   )}
                 >
-                  <CardContent className="flex flex-col items-start justify-between gap-3 p-4 sm:flex-row sm:items-center">
+                  <CardContent className="flex flex-col items-stretch gap-3 px-4 pb-4 pt-4 sm:px-5 sm:py-4">
                     <div className="flex items-start gap-3">
-                      <div className="mt-0.5 rounded-xl bg-white/80 p-2">
+                      <div
+                        className={cn(
+                          "mt-0.5 rounded-xl p-2",
+                          subscriptionTone === "danger" ? "bg-rose-200/80" : "bg-white/80"
+                        )}
+                      >
                         {subscription.status === "expired" ? (
-                          <AlertCircle className="h-5 w-5 text-rose-600" />
+                          <AlertCircle className="h-5 w-5 text-rose-700" />
                         ) : (
-                          <Clock className="h-5 w-5 text-amber-600" />
+                          <Clock className={cn("h-5 w-5", subscriptionTone === "danger" ? "text-rose-700" : "text-amber-600")} />
                         )}
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">
+                      <div className="space-y-1">
+                        <p className={cn("text-sm font-semibold", subscriptionTone === "danger" ? "text-rose-900" : "text-slate-900")}>
                           {subscription.status === "expired"
                             ? "Subscription expired"
                             : subscription.status === "trial"
                             ? `Trial ends in ${subscription.daysRemaining} day${subscription.daysRemaining !== 1 ? "s" : ""}`
                             : `Subscription ends in ${subscription.daysRemaining} day${subscription.daysRemaining !== 1 ? "s" : ""}`}
                         </p>
-                        <p className="text-sm text-slate-600">
+                        <p className={cn("text-sm", subscriptionTone === "danger" ? "text-rose-800" : "text-slate-600")}>
                           Pay ₹{subscription.platformFee} to keep uninterrupted access to all coach tools.
                         </p>
                       </div>
                     </div>
 
-                    <Link href="/coach/platform-fee">
-                      <Button size="sm">Manage Subscription</Button>
+                    <Link href="/coach/platform-fee" className="w-full">
+                      <Button
+                        size="sm"
+                        className={cn(
+                          "h-10 w-full font-semibold",
+                          subscriptionTone === "danger"
+                            ? "bg-rose-600 text-white hover:bg-rose-700"
+                            : subscriptionTone === "warn"
+                            ? "bg-amber-500 text-white hover:bg-amber-600"
+                            : "bg-blue-600 text-white hover:bg-blue-700"
+                        )}
+                      >
+                        Manage Subscription
+                      </Button>
                     </Link>
                   </CardContent>
                 </Card>
@@ -395,7 +425,7 @@ export default function CoachDashboard() {
                       Welcome back, {user?.fullName?.split(" ")[0] || "Coach"}
                     </CardTitle>
                     <CardDescription className="hidden max-w-xl text-white/95 sm:block">
-                      Your command center is ready — track progress, optimize nutrition workflows, and scale coaching outcomes from one clean workspace.
+                      Manage your coaching dashboard in one place.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="hidden gap-3 sm:grid sm:grid-cols-3">
@@ -433,19 +463,25 @@ export default function CoachDashboard() {
                       </span>
                       Quick links
                     </CardTitle>
-                    <CardDescription className="hidden sm:block">Frequently used tools for your daily workflow.</CardDescription>
+                    <CardDescription className="hidden sm:block">Frequently used tools.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {quickCards.slice(0, 4).map((card) => (
                       <Link key={card.title} href={card.href} className="block">
-                        <div className="group flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 transition-all hover:border-indigo-200 hover:bg-indigo-50/50">
+                        <div className={cn(
+                          "group flex items-center justify-between rounded-xl border px-3 py-2.5 transition-all",
+                          card.cardClass
+                        )}>
                           <div className="flex items-center gap-2.5">
-                            <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-slate-600 shadow-sm group-hover:text-indigo-600">
+                            <span className={cn(
+                              "grid h-8 w-8 place-items-center rounded-lg bg-white shadow-sm",
+                              card.iconClass
+                            )}>
                               <card.Icon className="h-4 w-4" />
                             </span>
                             <p className="text-sm font-medium text-slate-700">{card.title}</p>
                           </div>
-                          <span className="text-slate-400 group-hover:text-indigo-600">→</span>
+                          <span className={cn("transition-colors", card.arrowClass)}>→</span>
                         </div>
                       </Link>
                     ))}
@@ -465,102 +501,53 @@ export default function CoachDashboard() {
                       Workspace modules
                     </CardTitle>
                     <CardDescription className="hidden sm:block">
-                      Core areas of your coaching business, now placed where they belong — in your dashboard workflow.
+                      Core tools for daily coaching tasks.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                        {primaryActions.map((item, index) => (
-                          <motion.div
-                            key={item.label}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.14 + index * 0.03, duration: 0.24 }}
-                            whileHover={{ y: -3 }}
-                          >
-                            <Link href={item.href} className="block h-full">
-                              <div className={cn(
-                                "group relative flex h-full min-h-[142px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 p-4 transition-all duration-200 hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.55)]",
-                                `bg-gradient-to-br ${item.bg}`
-                              )}>
-                                <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/50 blur-xl" />
-
-                                <div className="flex items-start justify-between gap-3">
-                                  <span className={cn(
-                                    "grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br text-white shadow-sm",
-                                    item.color
-                                  )}>
-                                    <item.Icon className="h-5 w-5" />
-                                  </span>
-
-                                  <div className="flex items-end gap-1 opacity-70">
-                                    <span className={cn("h-3 w-1 rounded-full bg-gradient-to-b", item.color)} />
-                                    <span className={cn("h-5 w-1 rounded-full bg-gradient-to-b", item.color)} />
-                                    <span className={cn("h-4 w-1 rounded-full bg-gradient-to-b", item.color)} />
-                                  </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                  <h3 className="text-sm font-semibold text-slate-900">{item.label}</h3>
-                                  <p className="hidden text-xs leading-5 text-slate-600 sm:block">{item.description}</p>
-                                </div>
-
-                                <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 transition-colors group-hover:text-indigo-900">
-                                  Open {item.label}
-                                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                                </div>
-                              </div>
-                            </Link>
-                          </motion.div>
-                        ))}
-                      </div>
-
-                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                        {secondaryActions.map((item, index) => (
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      {moduleActions.map((item, index) => (
                         <motion.div
                           key={item.label}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 + index * 0.03, duration: 0.24 }}
+                          transition={{ delay: 0.14 + index * 0.03, duration: 0.24 }}
                           whileHover={{ y: -3 }}
                         >
                           <Link href={item.href} className="block h-full">
                             <div className={cn(
-                              "group relative flex h-full min-h-[142px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 p-4 transition-all duration-200 hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.55)]",
+                              "group relative flex h-full min-h-[170px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-slate-200 p-3 text-center transition-all duration-200 hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.55)] sm:min-h-[142px] sm:items-start sm:justify-between sm:p-4 sm:text-left",
                               `bg-gradient-to-br ${item.bg}`
                             )}>
                               <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/50 blur-xl" />
 
-                              <div className="flex items-start justify-between gap-3">
+                              <div className="flex w-full items-center justify-center sm:items-start sm:justify-between">
                                 <span className={cn(
-                                  "grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br text-white shadow-sm",
+                                  "grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-sm sm:h-10 sm:w-10 sm:rounded-xl",
                                   item.color
                                 )}>
-                                  <item.Icon className="h-5 w-5" />
+                                  <item.Icon className="h-6 w-6 sm:h-5 sm:w-5" />
                                 </span>
 
-                                <div className="flex items-end gap-1 opacity-70">
+                                <div className="hidden items-end gap-1 opacity-70 sm:flex">
                                   <span className={cn("h-3 w-1 rounded-full bg-gradient-to-b", item.color)} />
                                   <span className={cn("h-5 w-1 rounded-full bg-gradient-to-b", item.color)} />
                                   <span className={cn("h-4 w-1 rounded-full bg-gradient-to-b", item.color)} />
                                 </div>
                               </div>
 
-                              <div className="space-y-2">
+                              <div className="mt-3 space-y-1 sm:mt-0 sm:space-y-2">
                                 <h3 className="text-sm font-semibold text-slate-900">{item.label}</h3>
                                 <p className="hidden text-xs leading-5 text-slate-600 sm:block">{item.description}</p>
                               </div>
 
-                              <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 transition-colors group-hover:text-indigo-900">
-                                Open {item.label}
-                                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                              <div className="mt-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/75 text-indigo-700 transition-colors group-hover:bg-white group-hover:text-indigo-900 sm:mt-3">
+                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                               </div>
                             </div>
                           </Link>
                         </motion.div>
-                        ))}
-                      </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -569,54 +556,76 @@ export default function CoachDashboard() {
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14, duration: 0.25 }}>
               <Card className="relative overflow-hidden border-indigo-200/80 bg-gradient-to-r from-indigo-50 via-blue-50 to-violet-50">
-                <CardContent className="relative p-4 sm:p-5">
+                <CardContent className="relative px-4 pb-4 pt-5 sm:px-5 sm:pb-5 sm:pt-6">
                   <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-indigo-300/20 blur-2xl" />
                   <div className="pointer-events-none absolute -bottom-16 right-24 h-36 w-36 rounded-full bg-violet-300/20 blur-2xl" />
 
-                  <div className="relative grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <span className="mt-0.5 grid h-9 w-9 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm">
-                          <Link2 className="h-4 w-4" />
-                        </span>
-                        <div>
-                          <p className="text-sm font-semibold uppercase tracking-wide text-indigo-700">Referral</p>
-                          <p className="text-sm text-slate-600">
-                            Share your public profile link with prospects and grow your client base faster.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="inline-flex max-w-full items-center gap-2 rounded-xl border border-indigo-200/80 bg-white/90 px-3 py-2">
-                        <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">
-                          Code
-                        </Badge>
-                        <p className="truncate font-mono text-sm font-semibold text-slate-800">
-                          {user?.referralCode || "Generating..."}
+                  <div className="relative space-y-3">
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 grid h-9 w-9 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm">
+                        <Link2 className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold uppercase tracking-wide text-indigo-700">Referral</p>
+                        <p className="text-sm text-slate-600">
+                          Share your profile link.
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                    <button
+                      type="button"
+                      className={cn(
+                        "flex w-full items-center gap-2 rounded-xl border border-indigo-200/80 bg-white/90 px-3 py-2 text-left transition",
+                        referralCode
+                          ? "hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+                          : "cursor-not-allowed opacity-80"
+                      )}
+                      onClick={async () => {
+                        if (!referralCode) return;
+                        try {
+                          await navigator.clipboard.writeText(referralCode);
+                          setCopiedCode(true);
+                          setTimeout(() => setCopiedCode(false), 1600);
+                        } catch {
+                          setCopiedCode(false);
+                        }
+                      }}
+                      disabled={!referralCode}
+                      aria-label="Copy referral code"
+                    >
+                      <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">
+                        Code
+                      </Badge>
+                      <p className="truncate font-mono text-sm font-semibold text-slate-800">
+                        {referralCode || "Generating..."}
+                      </p>
+                      <span className="ml-auto shrink-0 text-xs font-semibold text-indigo-700">
+                        {copiedCode ? "Copied" : "Tap to copy"}
+                      </span>
+                    </button>
+
+                    <div className="flex w-full flex-col gap-2">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-indigo-200 bg-white/80 text-indigo-700 hover:bg-indigo-50"
+                        className="h-10 w-full border-indigo-200 bg-white/80 text-indigo-700 hover:bg-indigo-50"
+                        disabled={!publicProfileUrl}
                         onClick={async () => {
                           if (!publicProfileUrl) return;
                           try {
                             await navigator.clipboard.writeText(publicProfileUrl);
-                            setCopied(true);
-                            setTimeout(() => setCopied(false), 1600);
+                            setCopiedLink(true);
+                            setTimeout(() => setCopiedLink(false), 1600);
                           } catch {
-                            setCopied(false);
+                            setCopiedLink(false);
                           }
                         }}
                       >
-                        {copied ? "Copied" : "Copy Link"}
+                        {copiedLink ? "Copied" : "Copy Link"}
                       </Button>
-                      <Link href={publicProfileUrl || "#"} target="_blank">
-                        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+                      <Link href={publicProfileUrl || "#"} target="_blank" className="w-full">
+                        <Button size="sm" className="h-10 w-full bg-indigo-600 hover:bg-indigo-700">
                           Open Public Profile
                         </Button>
                       </Link>
@@ -665,7 +674,7 @@ export default function CoachDashboard() {
                       </span>
                       Activity feed
                     </CardTitle>
-                    <CardDescription>Recent momentum across your coaching business.</CardDescription>
+                    <CardDescription>Recent coaching updates.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {activityLoading ? (
@@ -705,7 +714,7 @@ export default function CoachDashboard() {
                   <CardHeader className="flex flex-row items-center justify-between space-y-0">
                     <div>
                       <CardTitle className="text-base">Recent clients</CardTitle>
-                      <CardDescription>Most recent client records and health signal.</CardDescription>
+                      <CardDescription>Latest client records.</CardDescription>
                     </div>
                     <Link href="/coach/clients">
                       <Button variant="outline" size="sm">View all</Button>
