@@ -38,7 +38,7 @@ export default function NotFound() {
           <div className="grid gap-3 sm:grid-cols-2">
             <Link
               href="/"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-medium text-white shadow-[0_10px_30px_-14px_rgba(79,70,229,0.55)] transition-colors hover:bg-indigo-700"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-medium !text-white visited:!text-white hover:!text-white shadow-[0_10px_30px_-14px_rgba(79,70,229,0.55)] transition-colors hover:bg-indigo-700"
             >
               <Home className="h-4 w-4" />
               Go Home

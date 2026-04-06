@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams, useRouter, useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import getErrorMessage from "@/lib/getErrorMessage";
 import Link from "next/link";
@@ -15,7 +16,12 @@ import {
 } from "lucide-react";
 import "./coach-profile.css";
 
-const PublicProgressChart = dynamic<{ data: Array<{ week: string; avgBMI: number }> }>(
+type ProgressDataPoint = {
+  week: string;
+  avgBMI: number;
+};
+
+const PublicProgressChart = dynamic<{ data: ProgressDataPoint[] }>(
   () => import("../../../components/charts/PublicProgressChart"),
   {
   ssr: false,
@@ -108,9 +114,6 @@ function PublicCoachProfileContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [profile, setProfile] = useState<PublicCoachProfileResponse["data"] | null>(null);
   const [contactFormData, setContactFormData] = useState({
     firstName: "",
     lastName: "",
@@ -131,56 +134,80 @@ function PublicCoachProfileContent() {
   const [transformsIndex, setTransformsIndex] = useState(0);
   const [awardsPage, setAwardsPage] = useState(0);
   const [transformsPage, setTransformsPage] = useState(0);
-  const [progressData, setProgressData] = useState<Array<{ week: string; avgBMI: number }>>([]);
   const [isVisible, setIsVisible] = useState(false);
   const [reviewsPage, setReviewsPage] = useState(1);
-  const [allReviews, setAllReviews] = useState<any[]>([]);
-  const [reviewsPagination, setReviewsPagination] = useState<any>(null);
+
+  const { data: profileData, isLoading: loading, error: profileError } = useQuery({
+    queryKey: ["publicCoachProfile", referralCode],
+    enabled: Boolean(referralCode),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+    queryFn: async () => {
+      if (!referralCode) {
+        throw new Error("Coach not found");
+      }
+
+      const encodedReferralCode = encodeURIComponent(referralCode);
+      const [profileRes, progressRes] = await Promise.allSettled([
+        api.get<PublicCoachProfileResponse>(`/coach/public-profile/${encodedReferralCode}`),
+        api.get<ProgressDataPoint[]>(`/coach/public-profile/${encodedReferralCode}/progress`),
+      ]);
+
+      if (profileRes.status === "rejected") {
+        throw profileRes.reason;
+      }
+
+      const payload = profileRes.value.data;
+      if (!payload.success || !payload.data) {
+        throw new Error(payload.message || "Coach not found");
+      }
+
+      const progressData =
+        progressRes.status === "fulfilled" && Array.isArray(progressRes.value.data)
+          ? progressRes.value.data
+          : [];
+
+      return {
+        profile: payload.data,
+        progressData,
+      };
+    },
+  });
+
+  const profile = profileData?.profile ?? null;
+  const progressData = profileData?.progressData ?? [];
+  const profileErrorMessage = profileError
+    ? getErrorMessage(profileError, "Unable to load coach profile.")
+    : null;
+  const coachId = profile?.coach.id;
+
+  const { data: reviewsData } = useQuery({
+    queryKey: ["publicCoachReviews", coachId, reviewsPage],
+    enabled: Boolean(coachId),
+    staleTime: 2 * 60 * 1000,
+    queryFn: async () => {
+      if (!coachId) {
+        return { reviews: [], pagination: null };
+      }
+
+      const res = await api.get(`/coach-reviews/coach/${coachId}`, {
+        params: { page: reviewsPage, limit: 4 },
+      });
+
+      return res.data?.data ?? { reviews: [], pagination: null };
+    },
+  });
+
+  const allReviews = Array.isArray(reviewsData?.reviews) ? reviewsData.reviews : [];
+  const reviewsPagination = reviewsData?.pagination ?? null;
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    if (!referralCode) {
-      setError("Coach not found");
-      setLoading(false);
-      return;
-    }
-
-    (async () => {
-      try {
-        setLoading(true);
-        const res = await api.get<PublicCoachProfileResponse>(
-          `/coach/public-profile/${encodeURIComponent(referralCode)}`
-        );
-        if (!cancelled) {
-          if (!res.data.success || !res.data.data) {
-            setError(res.data.message || "Coach not found");
-          } else {
-            setProfile(res.data.data);
-            try {
-              const progressRes = await api.get(`/coach/public-profile/${encodeURIComponent(referralCode)}/progress`);
-              if (progressRes.data && Array.isArray(progressRes.data)) {
-                setProgressData(progressRes.data);
-              }
-            } catch {
-              // Progress data not available
-            }
-          }
-        }
-      } catch (err: unknown) {
-        if (!cancelled) {
-          setError(getErrorMessage(err, "Unable to load coach profile."));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => { cancelled = true; };
-  }, [referralCode]);
+    setReviewsPage(1);
+  }, [coachId]);
 
   // NOTE: autoplay removed — carousels advance only via user controls (navs/dots/switch button).
 
@@ -218,27 +245,6 @@ function PublicCoachProfileContent() {
     }
   };
 
-  // Fetch all reviews with pagination
-  const fetchAllReviews = async (page: number) => {
-    if (!profile?.coach.id) return;
-    try {
-      const res = await api.get(`/coach-reviews/coach/${profile.coach.id}`, {
-        params: { page, limit: 4 },
-      });
-      setAllReviews(res.data.data.reviews);
-      setReviewsPagination(res.data.data.pagination);
-    } catch (err) {
-      // console.error("Failed to fetch reviews:", err);
-    }
-  };
-
-  // Fetch reviews when profile loads or page changes
-  useEffect(() => {
-    if (profile?.coach.id) {
-      fetchAllReviews(reviewsPage);
-    }
-  }, [profile?.coach.id, reviewsPage]);
-
   const galleryItems = activeGalleryTab === "awards" 
     ? (profile?.coach.awards || []) 
     : (profile?.coach.transformations || []);
@@ -260,12 +266,12 @@ function PublicCoachProfileContent() {
     );
   }
 
-  if (error || !profile) {
+  if (!referralCode || profileErrorMessage || !profile) {
     return (
       <div className="cpp-error">
         <div className="cpp-error__content">
           <h1>Oops!</h1>
-          <p>{error || "Coach not found."}</p>
+          <p>{(!referralCode ? "Coach not found." : profileErrorMessage) || "Coach not found."}</p>
           <Link href="/" className="cpp-btn cpp-btn--primary">
             Back to Home
           </Link>

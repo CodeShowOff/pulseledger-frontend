@@ -2,21 +2,38 @@
 "use client";
 
 import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "sonner";
+import { motion } from "@/lib/motion";
 import {
-  Plus,
-  Search,
-  Edit2,
-  Trash2,
-  Utensils,
   ChevronLeft,
   ChevronRight,
-  X,
+  Edit2,
+  Loader2,
+  Plus,
+  Search,
   Sparkles,
+  Trash2,
+  Utensils,
+  X,
 } from "lucide-react";
 import RoleGuard from "@/components/shared/RoleGuard";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 interface FoodItem {
   _id: string;
@@ -37,6 +54,15 @@ interface FoodItem {
   isCustom?: boolean;
   createdBy?: { _id: string; name: string };
   createdAt: string;
+}
+
+interface FoodItemsResponse {
+  data: FoodItem[];
+  pagination?: {
+    page: number;
+    totalPages: number;
+    total?: number;
+  };
 }
 
 const CATEGORIES = [
@@ -64,6 +90,23 @@ const CATEGORIES = [
 
 const SERVING_UNITS = ["g", "ml", "oz", "cup", "tbsp", "tsp", "piece", "serving", "bowl"];
 
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+};
+
+const labelClassName =
+  "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500";
+
+const selectFieldClassName =
+  "h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus-visible:ring-2 focus-visible:ring-indigo-300/70";
+
+function formatCategoryLabel(value?: string) {
+  if (!value) return "Not set";
+  const formatted = value.replace(/_/g, " ");
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
 export default function CoachFoodItemsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -90,7 +133,7 @@ export default function CoachFoodItemsPage() {
   });
 
   // Fetch food items
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching, error } = useQuery<FoodItemsResponse>({
     queryKey: ["coachFoodItems", page, search],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -100,6 +143,7 @@ export default function CoachFoodItemsPage() {
       const res = await api.get(`/food-items?${params.toString()}`);
       return res.data;
     },
+    placeholderData: keepPreviousData,
   });
 
   const foodItems: FoodItem[] = data?.data ?? [];
@@ -211,466 +255,579 @@ export default function CoachFoodItemsPage() {
     }
   };
 
+  const isFormPending = createMutation.isPending || updateMutation.isPending;
+
   return (
-    <div>
+    <div className="space-y-5 pt-4 md:pt-6">
       <RoleGuard role="coach" />
 
-      {/* Header */}
-      <section className="admin-page-header">
-        <div>
-          <h1 className="admin-page-header__title coach-page-header__title">
-            Food Library
-          </h1>
-          <p className="admin-page-header__subtitle coach-page-header__subtitle">
-            Create custom food items for your clients. You can also use the global food library below.
-          </p>
-        </div>
-        <button onClick={openCreateModal} className="btn btn--primary">
-          <Plus size={18} />
-          Add Custom Food Item
-        </button>
-      </section>
-
-      <section
-        style={{
-          background: "#ffffff",
-          borderRadius: "12px",
-          border: "1px solid #e5e7eb",
-          padding: "1.25rem",
-          marginTop: "1.5rem",
-        }}
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28 }}
       >
-        {/* Search */}
-        <div className="admin-search">
-          <Search size={18} className="admin-search__icon" />
-          <input
-            type="text"
-            placeholder="Search food items..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="admin-search__input"
-          />
-        </div>
-
-      {/* Loading State */}
-      {isLoading ? (
-        <div style={{ padding: "2rem", textAlign: "center", color: "#6b7280" }}>
-          <p>Loading food items...</p>
-        </div>
-      ) : (
-        <>
-          {/* Custom Food Items Section */}
-          {customFoodItems.length > 0 && (
-            <div style={{ marginBottom: "1.5rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-                <Sparkles size={20} style={{ color: "#8b5cf6" }} />
-                <h2 style={{ fontSize: "1.25rem", fontWeight: 600, margin: 0 }}>
-                  My Custom Food Items ({customFoodItems.length})
-                </h2>
+        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
+          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              <div className="space-y-1.5">
+                <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
+                  Nutrition Library
+                </Badge>
+                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
+                  Build your custom food library
+                </CardTitle>
+                <CardDescription className="max-w-2xl text-xs !text-white/90 sm:text-sm md:text-base">
+                  Create reusable food entries for faster diet plan creation and
+                  consistent nutrition tracking.
+                </CardDescription>
               </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                  gap: "1rem",
-                }}
-              >
-                {customFoodItems.map((food) => (
-                  <div
-                    key={food._id}
-                    style={{
-                      background: "#ffffff",
-                      border: "1px solid #e5e7eb",
-                      borderLeft: "3px solid #8b5cf6",
-                      borderRadius: "8px",
-                      padding: "1rem",
-                      transition: "all 0.2s",
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                          <h3 style={{ fontSize: "1rem", fontWeight: 600, margin: 0 }}>
-                            {food.name}
-                          </h3>
-                          <span
-                            style={{
-                              fontSize: "0.65rem",
-                              padding: "0.15rem 0.4rem",
-                              backgroundColor: "#f3e8ff",
-                              color: "#8b5cf6",
-                              borderRadius: "999px",
-                              fontWeight: 600,
-                            }}
-                          >
-                            CUSTOM
-                          </span>
-                        </div>
-                        <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.75rem" }}>
-                          {food.category.replace(/_/g, " ")} • {food.servingSize} {food.servingUnit}
-                        </p>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
-                          <div style={{ fontSize: "0.75rem" }}>
-                            <span style={{ color: "#6b7280" }}>Calories:</span>{" "}
-                            <span style={{ fontWeight: 600 }}>{food.nutrition.calories || 0}</span>
-                          </div>
-                          <div style={{ fontSize: "0.75rem" }}>
-                            <span style={{ color: "#6b7280" }}>Protein:</span>{" "}
-                            <span style={{ fontWeight: 600 }}>{food.nutrition.protein || 0}g</span>
-                          </div>
-                          <div style={{ fontSize: "0.75rem" }}>
-                            <span style={{ color: "#6b7280" }}>Carbs:</span>{" "}
-                            <span style={{ fontWeight: 600 }}>{food.nutrition.carbohydrates || 0}g</span>
-                          </div>
-                          <div style={{ fontSize: "0.75rem" }}>
-                            <span style={{ color: "#6b7280" }}>Fat:</span>{" "}
-                            <span style={{ fontWeight: 600 }}>{food.nutrition.fat || 0}g</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", gap: "0.25rem", marginLeft: "0.5rem" }}>
-                        <button
-                          onClick={() => openEditModal(food)}
-                          style={{
-                            padding: "0.4rem",
-                            backgroundColor: "#eff6ff",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                          title="Edit"
-                        >
-                          <Edit2 size={16} style={{ color: "#3b82f6" }} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (confirm(`Delete "${food.name}"?`)) {
-                              deleteMutation.mutate(food._id);
-                            }
-                          }}
-                          style={{
-                            padding: "0.4rem",
-                            backgroundColor: "#fef2f2",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                          title="Delete"
-                        >
-                          <Trash2 size={16} style={{ color: "#ef4444" }} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+
+              <div className="flex w-full sm:w-auto md:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={openCreateModal}
+                  className="h-8 border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                >
+                  <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  Add Custom Food Item
+                </Button>
               </div>
             </div>
-          )}
+          </CardHeader>
+        </Card>
+      </motion.section>
 
-          {/* Global Food Items Section */}
-          {globalFoodItems.length > 0 && (
-            <div>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>
-                Global Food Library ({globalFoodItems.length})
-              </h2>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                  gap: "1rem",
-                }}
-              >
-                {globalFoodItems.map((food) => (
-                  <div
-                    key={food._id}
-                    style={{
-                      background: "#ffffff",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "8px",
-                      padding: "1rem",
-                      transition: "all 0.2s",
-                    }}
-                  >
-                    <div>
-                      <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-                        {food.name}
-                      </h3>
-                      <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.75rem" }}>
-                        {food.category.replace(/_/g, " ")} • {food.servingSize} {food.servingUnit}
-                      </p>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
-                        <div style={{ fontSize: "0.75rem" }}>
-                          <span style={{ color: "#6b7280" }}>Calories:</span>{" "}
-                          <span style={{ fontWeight: 600 }}>{food.nutrition.calories || 0}</span>
-                        </div>
-                        <div style={{ fontSize: "0.75rem" }}>
-                          <span style={{ color: "#6b7280" }}>Protein:</span>{" "}
-                          <span style={{ fontWeight: 600 }}>{food.nutrition.protein || 0}g</span>
-                        </div>
-                        <div style={{ fontSize: "0.75rem" }}>
-                          <span style={{ color: "#6b7280" }}>Carbs:</span>{" "}
-                          <span style={{ fontWeight: 600 }}>{food.nutrition.carbohydrates || 0}g</span>
-                        </div>
-                        <div style={{ fontSize: "0.75rem" }}>
-                          <span style={{ color: "#6b7280" }}>Fat:</span>{" "}
-                          <span style={{ fontWeight: 600 }}>{food.nutrition.fat || 0}g</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="admin-pagination">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="admin-pagination__button"
-              >
-                <ChevronLeft size={18} />
-                Previous
-              </button>
-              <span className="admin-pagination__info">
-                Page {pagination.page} of {pagination.totalPages}
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.05 }}
+      >
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Search className="h-4 w-4" />
               </span>
-              <button
-                onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
-                disabled={page === pagination.totalPages}
-                className="admin-pagination__button"
-              >
-                Next
-                <ChevronRight size={18} />
-              </button>
+              Find food items
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+              <div>
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search by name or category"
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              <div className="flex md:items-end">
+                {isFetching ? (
+                  <p className="inline-flex items-center gap-2 text-xs text-slate-500">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Updating results...
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-500">
+                    Showing {foodItems.length} item{foodItems.length === 1 ? "" : "s"} on this page
+                  </p>
+                )}
+              </div>
             </div>
-          )}
-        </>
-      )}
-      </section>
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.1 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Sparkles className="h-4 w-4" />
+              </span>
+              Food catalog
+            </CardTitle>
+            <CardDescription>
+              Manage your custom food items and browse the global food library.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-5">
+            {isLoading ? (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, idx) => (
+                  <div
+                    key={`food-skeleton-${idx}`}
+                    className="h-[220px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70"
+                  />
+                ))}
+              </div>
+            ) : error ? (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-sm text-rose-700">
+                Failed to load food items.
+              </div>
+            ) : foodItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-10 text-center">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-slate-500 shadow-sm">
+                  <Utensils className="h-5 w-5" />
+                </span>
+                <p className="mt-3 text-sm font-semibold text-slate-700">No food items found</p>
+                <p className="mt-1 text-xs text-slate-500">Try changing your search or add a custom food item.</p>
+              </div>
+            ) : (
+              <>
+                {customFoodItems.length > 0 ? (
+                  <section className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm font-semibold text-slate-900">My custom food items</h3>
+                      <Badge className="px-2 py-0.5 text-[10px] normal-case tracking-normal">
+                        {customFoodItems.length}
+                      </Badge>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                      {customFoodItems.map((food) => (
+                        <article key={food._id} className="h-full">
+                          <div className="flex h-full flex-col rounded-2xl border border-violet-200 bg-violet-50/40 p-4 transition-all hover:border-violet-300 hover:shadow-[0_14px_30px_-24px_rgba(124,58,237,0.45)]">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <h4 className="truncate text-sm font-semibold text-slate-900">
+                                  {food.name}
+                                </h4>
+                                <p className="mt-1 text-xs text-slate-500">
+                                  {formatCategoryLabel(food.category)} • {food.servingSize} {food.servingUnit}
+                                </p>
+                              </div>
+
+                              <div className="flex shrink-0 items-center gap-1.5">
+                                <Badge className="px-2 py-0.5 text-[10px] tracking-normal">Custom</Badge>
+                                <Badge
+                                  variant={food.isActive ? "success" : "danger"}
+                                  className="px-2 py-0.5 text-[10px] tracking-normal"
+                                >
+                                  {food.isActive ? "Active" : "Inactive"}
+                                </Badge>
+                              </div>
+                            </div>
+
+                            {food.servingDescription ? (
+                              <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-600">
+                                {food.servingDescription}
+                              </p>
+                            ) : (
+                              <p className="mt-2 text-xs text-slate-400">No serving description added.</p>
+                            )}
+
+                            <div className="mt-3 grid grid-cols-2 gap-1.5 rounded-xl border border-slate-200 bg-white/85 p-2.5 text-xs">
+                              <div className="text-slate-600">
+                                Calories: <span className="font-semibold text-slate-900">{food.nutrition.calories || 0}</span>
+                              </div>
+                              <div className="text-slate-600">
+                                Protein: <span className="font-semibold text-slate-900">{food.nutrition.protein || 0}g</span>
+                              </div>
+                              <div className="text-slate-600">
+                                Carbs: <span className="font-semibold text-slate-900">{food.nutrition.carbohydrates || 0}g</span>
+                              </div>
+                              <div className="text-slate-600">
+                                Fat: <span className="font-semibold text-slate-900">{food.nutrition.fat || 0}g</span>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 flex items-center justify-end gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openEditModal(food)}
+                              >
+                                <Edit2 className="h-3.5 w-3.5" />
+                                Edit
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => {
+                                  if (window.confirm(`Delete "${food.name}"? This action cannot be undone.`)) {
+                                    deleteMutation.mutate(food._id);
+                                  }
+                                }}
+                                disabled={deleteMutation.isPending}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+
+                {globalFoodItems.length > 0 ? (
+                  <section className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm font-semibold text-slate-900">Global food library</h3>
+                      <Badge variant="secondary" className="px-2 py-0.5 text-[10px] normal-case tracking-normal">
+                        {globalFoodItems.length}
+                      </Badge>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                      {globalFoodItems.map((food) => (
+                        <article key={food._id} className="h-full">
+                          <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.35)]">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <h4 className="truncate text-sm font-semibold text-slate-900">
+                                  {food.name}
+                                </h4>
+                                <p className="mt-1 text-xs text-slate-500">
+                                  {formatCategoryLabel(food.category)} • {food.servingSize} {food.servingUnit}
+                                </p>
+                              </div>
+                              <Badge variant="secondary" className="px-2 py-0.5 text-[10px] normal-case tracking-normal">
+                                Global
+                              </Badge>
+                            </div>
+
+                            {food.servingDescription ? (
+                              <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-600">
+                                {food.servingDescription}
+                              </p>
+                            ) : (
+                              <p className="mt-2 text-xs text-slate-400">No serving description added.</p>
+                            )}
+
+                            <div className="mt-3 grid grid-cols-2 gap-1.5 rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 text-xs">
+                              <div className="text-slate-600">
+                                Calories: <span className="font-semibold text-slate-900">{food.nutrition.calories || 0}</span>
+                              </div>
+                              <div className="text-slate-600">
+                                Protein: <span className="font-semibold text-slate-900">{food.nutrition.protein || 0}g</span>
+                              </div>
+                              <div className="text-slate-600">
+                                Carbs: <span className="font-semibold text-slate-900">{food.nutrition.carbohydrates || 0}g</span>
+                              </div>
+                              <div className="text-slate-600">
+                                Fat: <span className="font-semibold text-slate-900">{food.nutrition.fat || 0}g</span>
+                              </div>
+                            </div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+
+                {pagination.totalPages > 1 ? (
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                    <p className="text-sm text-slate-600">
+                      Page {pagination.page} of {pagination.totalPages}
+                      {Number.isFinite(pagination.total) ? ` • ${pagination.total} total` : ""}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Prev
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                        disabled={page === pagination.totalPages}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </motion.section>
 
       {/* Modal */}
-      {showModal && (
-        <div className="admin-modal-overlay" onClick={closeModal}>
-          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-modal__header">
-              <h2 className="admin-modal__title">
-                {editingFood ? "Edit Food Item" : "Create Custom Food Item"}
-              </h2>
-              <button onClick={closeModal} className="admin-modal__close">
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="admin-modal__body">
-              <div className="auth-form__field">
-                <label className="auth-form__label">Food Name *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
-                  className="auth-form__input"
-                  required
-                  placeholder="e.g., Grilled Chicken Breast"
-                />
-              </div>
-
-              <div className="auth-form__field">
-                <label className="auth-form__label">Category *</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData((p) => ({ ...p, category: e.target.value }))}
-                  className="auth-form__input"
-                  required
+      {showModal ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/55 p-4"
+          onClick={closeModal}
+        >
+          <Card
+            className="w-full max-w-3xl border-slate-200/90 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <CardHeader className="border-b border-slate-100 pb-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="text-lg">
+                    {editingFood ? "Edit food item" : "Create custom food item"}
+                  </CardTitle>
+                  <CardDescription>
+                    Save nutrition entries for quick and consistent meal planning.
+                  </CardDescription>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="Close food item modal"
                 >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat.replace(/_/g, " ").charAt(0).toUpperCase() + cat.replace(/_/g, " ").slice(1)}
-                    </option>
-                  ))}
-                </select>
+                  <X className="h-4 w-4" />
+                </button>
               </div>
+            </CardHeader>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                <div className="auth-form__field">
-                  <label className="auth-form__label">Serving Size *</label>
-                  <input
-                    type="number"
-                    value={formData.servingSize}
-                    onChange={(e) => setFormData((p) => ({ ...p, servingSize: Number(e.target.value) }))}
-                    className="auth-form__input"
+            <CardContent className="max-h-[calc(100vh-9rem)] overflow-y-auto pt-5">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className={labelClassName}>Food name *</label>
+                  <Input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                     required
-                    min="0"
-                    step="any"
+                    placeholder="e.g., Grilled Chicken Breast"
                   />
                 </div>
 
-                <div className="auth-form__field">
-                  <label className="auth-form__label">Unit *</label>
+                <div>
+                  <label className={labelClassName}>Category *</label>
                   <select
-                    value={formData.servingUnit}
-                    onChange={(e) => setFormData((p) => ({ ...p, servingUnit: e.target.value }))}
-                    className="auth-form__input"
+                    value={formData.category}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                    className={selectFieldClassName}
                     required
                   >
-                    {SERVING_UNITS.map((unit) => (
-                      <option key={unit} value={unit}>
-                        {unit}
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {formatCategoryLabel(cat)}
                       </option>
                     ))}
                   </select>
                 </div>
-              </div>
 
-              <div className="auth-form__field">
-                <label className="auth-form__label">Serving Description (Optional)</label>
-                <input
-                  type="text"
-                  value={formData.servingDescription}
-                  onChange={(e) => setFormData((p) => ({ ...p, servingDescription: e.target.value }))}
-                  className="auth-form__input"
-                  placeholder="e.g., 1 medium piece, 1 cup"
-                />
-              </div>
-
-              <div style={{ borderTop: "1px solid #e5e7eb", paddingTop: "1rem", marginTop: "1rem" }}>
-                <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "1rem" }}>
-                  Nutrition Information (per serving)
-                </h3>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                  <div className="auth-form__field">
-                    <label className="auth-form__label">Calories</label>
-                    <input
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className={labelClassName}>Serving size *</label>
+                    <Input
                       type="number"
-                      value={formData.nutrition.calories}
+                      value={formData.servingSize}
                       onChange={(e) =>
-                        setFormData((p) => ({
-                          ...p,
-                          nutrition: { ...p.nutrition, calories: Number(e.target.value) },
+                        setFormData((prev) => ({
+                          ...prev,
+                          servingSize: Number(e.target.value),
                         }))
                       }
-                      className="auth-form__input"
+                      required
                       min="0"
                       step="any"
                     />
                   </div>
 
-                  <div className="auth-form__field">
-                    <label className="auth-form__label">Protein (g)</label>
-                    <input
-                      type="number"
-                      value={formData.nutrition.protein}
+                  <div>
+                    <label className={labelClassName}>Unit *</label>
+                    <select
+                      value={formData.servingUnit}
                       onChange={(e) =>
-                        setFormData((p) => ({
-                          ...p,
-                          nutrition: { ...p.nutrition, protein: Number(e.target.value) },
+                        setFormData((prev) => ({
+                          ...prev,
+                          servingUnit: e.target.value,
                         }))
                       }
-                      className="auth-form__input"
-                      min="0"
-                      step="any"
-                    />
-                  </div>
-
-                  <div className="auth-form__field">
-                    <label className="auth-form__label">Carbohydrates (g)</label>
-                    <input
-                      type="number"
-                      value={formData.nutrition.carbohydrates}
-                      onChange={(e) =>
-                        setFormData((p) => ({
-                          ...p,
-                          nutrition: { ...p.nutrition, carbohydrates: Number(e.target.value) },
-                        }))
-                      }
-                      className="auth-form__input"
-                      min="0"
-                      step="any"
-                    />
-                  </div>
-
-                  <div className="auth-form__field">
-                    <label className="auth-form__label">Fat (g)</label>
-                    <input
-                      type="number"
-                      value={formData.nutrition.fat}
-                      onChange={(e) =>
-                        setFormData((p) => ({
-                          ...p,
-                          nutrition: { ...p.nutrition, fat: Number(e.target.value) },
-                        }))
-                      }
-                      className="auth-form__input"
-                      min="0"
-                      step="any"
-                    />
-                  </div>
-
-                  <div className="auth-form__field">
-                    <label className="auth-form__label">Fiber (g)</label>
-                    <input
-                      type="number"
-                      value={formData.nutrition.fiber}
-                      onChange={(e) =>
-                        setFormData((p) => ({
-                          ...p,
-                          nutrition: { ...p.nutrition, fiber: Number(e.target.value) },
-                        }))
-                      }
-                      className="auth-form__input"
-                      min="0"
-                      step="any"
-                    />
-                  </div>
-
-                  <div className="auth-form__field">
-                    <label className="auth-form__label">Sugar (g)</label>
-                    <input
-                      type="number"
-                      value={formData.nutrition.sugar}
-                      onChange={(e) =>
-                        setFormData((p) => ({
-                          ...p,
-                          nutrition: { ...p.nutrition, sugar: Number(e.target.value) },
-                        }))
-                      }
-                      className="auth-form__input"
-                      min="0"
-                      step="any"
-                    />
+                      className={selectFieldClassName}
+                      required
+                    >
+                      {SERVING_UNITS.map((unit) => (
+                        <option key={unit} value={unit}>
+                          {unit}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
-              </div>
 
-              <div className="admin-modal__footer">
-                <button type="button" onClick={closeModal} className="admin-button">
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="admin-button admin-button--primary"
-                  disabled={createMutation.isPending || updateMutation.isPending}
-                >
-                  {createMutation.isPending || updateMutation.isPending
-                    ? "Saving..."
-                    : editingFood
-                    ? "Update Food Item"
-                    : "Create Food Item"}
-                </button>
-              </div>
-            </form>
-          </div>
+                <div>
+                  <label className={labelClassName}>Serving description (optional)</label>
+                  <Input
+                    type="text"
+                    value={formData.servingDescription}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        servingDescription: e.target.value,
+                      }))
+                    }
+                    placeholder="e.g., 1 medium piece, 1 cup"
+                  />
+                </div>
+
+                <div className="border-t border-slate-200 pt-4">
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    Nutrition information (per serving)
+                  </h3>
+
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className={labelClassName}>Calories</label>
+                      <Input
+                        type="number"
+                        value={formData.nutrition.calories}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            nutrition: {
+                              ...prev.nutrition,
+                              calories: Number(e.target.value),
+                            },
+                          }))
+                        }
+                        min="0"
+                        step="any"
+                      />
+                    </div>
+
+                    <div>
+                      <label className={labelClassName}>Protein (g)</label>
+                      <Input
+                        type="number"
+                        value={formData.nutrition.protein}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            nutrition: {
+                              ...prev.nutrition,
+                              protein: Number(e.target.value),
+                            },
+                          }))
+                        }
+                        min="0"
+                        step="any"
+                      />
+                    </div>
+
+                    <div>
+                      <label className={labelClassName}>Carbohydrates (g)</label>
+                      <Input
+                        type="number"
+                        value={formData.nutrition.carbohydrates}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            nutrition: {
+                              ...prev.nutrition,
+                              carbohydrates: Number(e.target.value),
+                            },
+                          }))
+                        }
+                        min="0"
+                        step="any"
+                      />
+                    </div>
+
+                    <div>
+                      <label className={labelClassName}>Fat (g)</label>
+                      <Input
+                        type="number"
+                        value={formData.nutrition.fat}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            nutrition: {
+                              ...prev.nutrition,
+                              fat: Number(e.target.value),
+                            },
+                          }))
+                        }
+                        min="0"
+                        step="any"
+                      />
+                    </div>
+
+                    <div>
+                      <label className={labelClassName}>Fiber (g)</label>
+                      <Input
+                        type="number"
+                        value={formData.nutrition.fiber}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            nutrition: {
+                              ...prev.nutrition,
+                              fiber: Number(e.target.value),
+                            },
+                          }))
+                        }
+                        min="0"
+                        step="any"
+                      />
+                    </div>
+
+                    <div>
+                      <label className={labelClassName}>Sugar (g)</label>
+                      <Input
+                        type="number"
+                        value={formData.nutrition.sugar}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            nutrition: {
+                              ...prev.nutrition,
+                              sugar: Number(e.target.value),
+                            },
+                          }))
+                        }
+                        min="0"
+                        step="any"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap justify-end gap-2 pt-2">
+                  <Button type="button" variant="outline" onClick={closeModal}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isFormPending}>
+                    {isFormPending
+                      ? "Saving..."
+                      : editingFood
+                      ? "Update Food Item"
+                      : "Create Food Item"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

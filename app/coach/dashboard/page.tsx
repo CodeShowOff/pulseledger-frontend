@@ -10,7 +10,6 @@ import api from "@/lib/axios";
 import { NotificationItem, useLatestNotifications } from "@/lib/queries/notifications";
 import { motion } from "@/lib/motion";
 import {
-  ArrowRight,
   AlertCircle,
   BookOpen,
   ClipboardList,
@@ -190,7 +189,7 @@ export default function CoachDashboard() {
   const dashboardActions = [
     {
       label: "Visit My Profile",
-      description: "Manage your public profile details.",
+      description: "Manage profile",
       href: "/profile",
       Icon: UserCircle2,
       color: "from-sky-500 to-cyan-500",
@@ -198,7 +197,7 @@ export default function CoachDashboard() {
     },
     {
       label: "Platform Fee",
-      description: "Check status and manage billing.",
+      description: "Manage billing",
       href: "/coach/platform-fee",
       Icon: CreditCard,
       color: "from-indigo-500 to-blue-500",
@@ -206,7 +205,7 @@ export default function CoachDashboard() {
     },
     {
       label: "Workouts",
-      description: "Create and assign workout plans.",
+      description: "Manage workouts",
       href: "/coach/workout-plans",
       Icon: Dumbbell,
       color: "from-orange-500 to-amber-500",
@@ -214,7 +213,7 @@ export default function CoachDashboard() {
     },
     {
       label: "Nutrition",
-      description: "Create diet plans for clients.",
+      description: "Manage nutrition",
       href: "/coach/diet-plans",
       Icon: UtensilsCrossed,
       color: "from-emerald-500 to-lime-500",
@@ -222,7 +221,7 @@ export default function CoachDashboard() {
     },
     {
       label: "Revenue",
-      description: "Track earnings and payouts.",
+      description: "Manage revenue",
       href: "/coach/earnings",
       Icon: Wallet,
       color: "from-violet-500 to-fuchsia-500",
@@ -230,7 +229,7 @@ export default function CoachDashboard() {
     },
     {
       label: "Reviews",
-      description: "View and manage client reviews.",
+      description: "Manage reviews",
       href: "/coach/reviews",
       Icon: Star,
       color: "from-rose-500 to-pink-500",
@@ -238,11 +237,20 @@ export default function CoachDashboard() {
     },
   ];
 
-  const primaryActionLabels = ["Workouts", "Nutrition", "Reviews"];
-  const moduleActions = [
-    ...dashboardActions.filter((item) => primaryActionLabels.includes(item.label)),
-    ...dashboardActions.filter((item) => !primaryActionLabels.includes(item.label)),
-  ];
+  const moduleActionOrder: Record<string, number> = {
+    Workouts: 1,
+    Nutrition: 2,
+    "Platform Fee": 3,
+    Revenue: 4,
+    "Visit My Profile": 5,
+    Reviews: 6,
+  };
+
+  const moduleActions = [...dashboardActions].sort(
+    (a, b) =>
+      (moduleActionOrder[a.label] ?? Number.MAX_SAFE_INTEGER) -
+      (moduleActionOrder[b.label] ?? Number.MAX_SAFE_INTEGER)
+  );
 
   const quickCards = [
     {
@@ -352,7 +360,7 @@ export default function CoachDashboard() {
       ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100/70 p-2 md:p-4">
+    <div className="min-h-screen p-2 md:p-4">
       <div className="mx-auto w-full max-w-[1640px]">
         <div className="grid min-h-[calc(100vh-108px)] grid-cols-1 gap-3">
           <div className="space-y-3">
@@ -454,7 +462,12 @@ export default function CoachDashboard() {
                 </Card>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.3 }}>
+              <motion.div
+                className="hidden md:block"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.3 }}
+              >
                 <Card className="h-full border-slate-200/80 bg-white/95">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-base">
@@ -492,65 +505,50 @@ export default function CoachDashboard() {
 
             <section>
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.28 }}>
-                <Card className="overflow-hidden border-slate-200/80 bg-white/95">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <span className="grid h-7 w-7 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                        <Sparkles className="h-4 w-4" />
-                      </span>
-                      Workspace modules
-                    </CardTitle>
-                    <CardDescription className="hidden sm:block">
-                      Core tools for daily coaching tasks.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex items-center gap-2 px-1">
+                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                      <Sparkles className="h-4 w-4" />
+                    </span>
+                    <h2 className="text-base font-semibold text-slate-900 md:text-lg">Workspace modules</h2>
+                  </div>
+
+                  <div className="grid grid-cols-2 items-stretch gap-2 sm:gap-3 xl:grid-cols-3">
                       {moduleActions.map((item, index) => (
                         <motion.div
                           key={item.label}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.14 + index * 0.03, duration: 0.24 }}
-                          whileHover={{ y: -3 }}
+                            whileHover={{ y: -2 }}
                         >
-                          <Link href={item.href} className="block h-full">
-                            <div className={cn(
-                              "group relative flex h-full min-h-[170px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-slate-200 p-3 text-center transition-all duration-200 hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.55)] sm:min-h-[142px] sm:items-start sm:justify-between sm:p-4 sm:text-left",
-                              `bg-gradient-to-br ${item.bg}`
-                            )}>
-                              <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/50 blur-xl" />
+                            <Link href={item.href} className="group block h-full cursor-pointer focus-visible:outline-none">
+                              <div
+                                className={cn(
+                                  "relative flex h-full min-h-[124px] cursor-pointer select-none items-center justify-center overflow-hidden rounded-2xl border-4 border-white p-3 transition-all duration-200 shadow-[0_14px_24px_-20px_rgba(15,23,42,0.4)] hover:-translate-y-0.5 hover:border-white hover:brightness-[1.02] hover:shadow-[0_20px_30px_-20px_rgba(15,23,42,0.48)] active:translate-y-[1px] active:scale-[0.99] active:shadow-[0_10px_22px_-20px_rgba(15,23,42,0.42)] group-focus-visible:ring-4 group-focus-visible:ring-indigo-200 group-focus-visible:ring-offset-2 md:min-h-[136px] md:p-4",
+                                  `bg-gradient-to-br ${item.bg}`
+                                )}
+                              >
+                                <div className="pointer-events-none absolute -right-8 -top-8 hidden h-20 w-20 rounded-full bg-white/60 blur-xl sm:block" />
 
-                              <div className="flex w-full items-center justify-center sm:items-start sm:justify-between">
-                                <span className={cn(
-                                  "grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-sm sm:h-10 sm:w-10 sm:rounded-xl",
-                                  item.color
-                                )}>
-                                  <item.Icon className="h-6 w-6 sm:h-5 sm:w-5" />
-                                </span>
+                                <div className="relative z-[1] flex w-full flex-col items-center justify-center text-center">
+                                  <span
+                                    className={cn(
+                                      "mb-2 grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md",
+                                      item.color
+                                    )}
+                                  >
+                                    <item.Icon className="h-6 w-6" />
+                                  </span>
 
-                                <div className="hidden items-end gap-1 opacity-70 sm:flex">
-                                  <span className={cn("h-3 w-1 rounded-full bg-gradient-to-b", item.color)} />
-                                  <span className={cn("h-5 w-1 rounded-full bg-gradient-to-b", item.color)} />
-                                  <span className={cn("h-4 w-1 rounded-full bg-gradient-to-b", item.color)} />
+                                  <p className="text-sm font-semibold leading-tight text-slate-900 md:text-base">{item.description}</p>
                                 </div>
                               </div>
-
-                              <div className="mt-3 space-y-1 sm:mt-0 sm:space-y-2">
-                                <h3 className="text-sm font-semibold text-slate-900">{item.label}</h3>
-                                <p className="hidden text-xs leading-5 text-slate-600 sm:block">{item.description}</p>
-                              </div>
-
-                              <div className="mt-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/75 text-indigo-700 transition-colors group-hover:bg-white group-hover:text-indigo-900 sm:mt-3">
-                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                              </div>
-                            </div>
                           </Link>
                         </motion.div>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
+                </div>
               </motion.div>
             </section>
 
