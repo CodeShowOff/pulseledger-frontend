@@ -337,6 +337,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
           unreadIncrement?: number;
         }) => {
           const { conversations, activeConversationId, totalUnreadCount } = get();
+          const incomingUnreadIncrement = Number(data.unreadIncrement ?? 0);
+          const unreadIncrement =
+            Number.isFinite(incomingUnreadIncrement) && incomingUnreadIncrement > 0
+              ? incomingUnreadIncrement
+              : 0;
+          const isActiveConversation = data.conversationId === activeConversationId;
+
+          // Keep backend unread counters in sync while actively viewing a chat.
+          // Without this, unread can drift on the server even though the user is reading live.
+          if (isActiveConversation && unreadIncrement > 0) {
+            get().markAsRead();
+          }
           
           set({
             conversations: conversations.map((c) =>
@@ -346,15 +358,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
                     lastMessageAt: data.lastMessageAt,
                     lastMessagePreview: data.lastMessagePreview,
                     lastMessageSenderId: data.lastMessageSenderId,
-                    unreadCount: data.conversationId === activeConversationId 
+                    unreadCount: isActiveConversation 
                       ? 0 
-                      : c.unreadCount + (data.unreadIncrement || 0),
+                      : c.unreadCount + unreadIncrement,
                   }
                 : c
             ),
-            totalUnreadCount: data.conversationId === activeConversationId 
+            totalUnreadCount: isActiveConversation 
               ? totalUnreadCount 
-              : totalUnreadCount + (data.unreadIncrement || 0),
+              : totalUnreadCount + unreadIncrement,
           });
         });
 

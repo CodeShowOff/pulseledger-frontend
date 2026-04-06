@@ -2,9 +2,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 
 export const NOTIFS_QK = {
-  unread: ["notifications", "unread-count"] as const,
+  unreadRoot: ["notifications", "unread-count"] as const,
+  unread: (userId?: string | null) => ["notifications", "unread-count", userId ?? "anonymous"] as const,
   list: (page: number) => ["notifications", "list", page] as const,
   latest: (limit: number) => ["notifications", "latest", limit] as const,
+};
+
+type UnreadCountOptions = {
+  enabled?: boolean;
+  userId?: string | null;
 };
 
 export type NotificationItem = {
@@ -28,15 +34,16 @@ export type NotificationsListResponse = {
   };
 };
 
-export function useUnreadCount() {
+export function useUnreadCount({ enabled = true, userId }: UnreadCountOptions = {}) {
   return useQuery({
-    queryKey: NOTIFS_QK.unread,
+    queryKey: NOTIFS_QK.unread(userId),
     queryFn: async () => {
       const res = await api.get("/notifications/me/unread-count");
       return res.data.count as number;
     },
-    // Poll periodically to simulate push updates
-    refetchInterval: 30000,
+    enabled: enabled && Boolean(userId),
+    staleTime: 15000,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -67,7 +74,7 @@ export function useMarkAsRead() {
       await api.patch(`/notifications/me/${id}/read`);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: NOTIFS_QK.unread });
+      qc.invalidateQueries({ queryKey: NOTIFS_QK.unreadRoot });
       qc.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
@@ -80,7 +87,7 @@ export function useMarkAllAsRead() {
       await api.patch(`/notifications/me/read-all`);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: NOTIFS_QK.unread });
+      qc.invalidateQueries({ queryKey: NOTIFS_QK.unreadRoot });
       qc.invalidateQueries({ queryKey: ["notifications"] });
     },
   });

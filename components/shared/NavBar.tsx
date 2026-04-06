@@ -15,54 +15,102 @@ import {
   Package,
   Users,
   ClipboardList,
-  MessagesSquare,
+  MessageCircleMore,
 } from "lucide-react";
 
 const Navbar = React.memo(function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
   const logout = useAuthStore((s) => s.logout);
   const avatarUrl = useAuthStore((s) => s.user?.avatarUrl);
-  const shouldPollUnreadCount = user?.role === "client" || user?.role === "coach";
-  const { data: unreadCount = 0 } = useUnreadChatCount({ enabled: shouldPollUnreadCount });
+  const userId = user?.id ?? null;
+  const shouldTrackUnreadCount =
+    Boolean(accessToken) && (user?.role === "client" || user?.role === "coach");
+  const { data: unreadCount = 0 } = useUnreadChatCount({
+    enabled: shouldTrackUnreadCount,
+    userId,
+  });
+  const normalizedUnreadCount = Number.isFinite(unreadCount)
+    ? Math.max(0, Math.trunc(unreadCount))
+    : 0;
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [isChatConversationOpen, setIsChatConversationOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const lastScrollYRef = useRef(0);
+  const isVisibleRef = useRef(true);
+  const scrollRafIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    isVisibleRef.current = isVisible;
+  }, [isVisible]);
 
   // Hide navbar on scroll down, show on scroll up
   useEffect(() => {
-    const handleScroll = () => {
+    lastScrollYRef.current = window.scrollY;
+
+    const updateNavbarVisibility = () => {
       const currentScrollY = window.scrollY;
-      const isMobileViewport = window.matchMedia("(max-width: 768px)").matches;
+      const isMobileViewport = window.innerWidth <= 768;
 
       // Keep navbar visible on mobile where bottom tabs should remain persistent.
       if (isMobileViewport) {
-        setIsVisible(true);
-        setLastScrollY(currentScrollY);
+        if (!isVisibleRef.current) {
+          isVisibleRef.current = true;
+          setIsVisible(true);
+        }
+        lastScrollYRef.current = currentScrollY;
         return;
       }
-      
+
+      let nextIsVisible = isVisibleRef.current;
+
       if (currentScrollY < 10) {
-        setIsVisible(true);
-      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        nextIsVisible = true;
+      } else if (currentScrollY > lastScrollYRef.current && currentScrollY > 100) {
         // Scrolling down
-        setIsVisible(false);
-        setMenuOpen(false); // Close dropdown when hiding
-      } else if (currentScrollY < lastScrollY) {
+        nextIsVisible = false;
+      } else if (currentScrollY < lastScrollYRef.current) {
         // Scrolling up
-        setIsVisible(true);
+        nextIsVisible = true;
       }
-      
-      setLastScrollY(currentScrollY);
+
+      if (nextIsVisible !== isVisibleRef.current) {
+        isVisibleRef.current = nextIsVisible;
+        setIsVisible(nextIsVisible);
+
+        if (!nextIsVisible) {
+          setMenuOpen(false); // Close dropdown when hiding
+        }
+      }
+
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    const handleScroll = () => {
+      if (scrollRafIdRef.current !== null) {
+        return;
+      }
+
+      scrollRafIdRef.current = window.requestAnimationFrame(() => {
+        scrollRafIdRef.current = null;
+        updateNavbarVisibility();
+      });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+
+      if (scrollRafIdRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafIdRef.current);
+        scrollRafIdRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -103,14 +151,14 @@ const Navbar = React.memo(function Navbar() {
   const clientLinks = [
     { label: "Dashboard", href: "/client/dashboard", icon: LayoutDashboard },
     { label: "Plan", href: "/client/subscriptions", icon: CreditCard },
-    { label: "Chat", href: "/client/chat", icon: MessagesSquare },
+    { label: "Chat", href: "/client/chat", icon: MessageCircleMore },
     { label: "Progress", href: "/client/progress", icon: TrendingUp },
     { label: "Products", href: "/client/products", icon: Package },
   ];
 
   const coachLinks = [
     { label: "Dashboard", href: "/coach/dashboard", icon: LayoutDashboard },
-    { label: "Chat", href: "/coach/chat", icon: MessagesSquare },
+    { label: "Chat", href: "/coach/chat", icon: MessageCircleMore },
     { label: "Clients", href: "/coach/clients", icon: Users },
     { label: "Plans", href: "/coach/plans", icon: ClipboardList },
     { label: "Products", href: "/coach/products", icon: Package },
@@ -184,7 +232,7 @@ const Navbar = React.memo(function Navbar() {
                 {links.map((link) => {
                   const isChatLink =
                     link.href === "/coach/chat" || link.href === "/client/chat";
-                  const showBadge = isChatLink && unreadCount > 0;
+                  const showBadge = isChatLink && normalizedUnreadCount > 0;
 
                   return (
                     <Link
@@ -195,7 +243,7 @@ const Navbar = React.memo(function Navbar() {
                       {link.label}
                       {showBadge && (
                         <span className="navbar-modern__badge">
-                          {unreadCount > 99 ? "99+" : unreadCount}
+                          {normalizedUnreadCount > 99 ? "99+" : normalizedUnreadCount}
                         </span>
                       )}
                     </Link>
@@ -304,7 +352,7 @@ const Navbar = React.memo(function Navbar() {
                 : Icon;
               const isChatLink =
                 link.href === "/coach/chat" || link.href === "/client/chat";
-              const showBadge = isChatLink && unreadCount > 0;
+              const showBadge = isChatLink && normalizedUnreadCount > 0;
 
               return (
                 <Link
@@ -316,7 +364,7 @@ const Navbar = React.memo(function Navbar() {
                     <MobileIcon size={20} strokeWidth={2} />
                     {showBadge && (
                       <span className="navbar-modern__secondary-badge">
-                        {unreadCount > 99 ? "99+" : unreadCount}
+                        {normalizedUnreadCount > 99 ? "99+" : normalizedUnreadCount}
                       </span>
                     )}
                   </span>

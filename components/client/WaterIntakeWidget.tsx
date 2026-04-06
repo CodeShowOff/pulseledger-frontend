@@ -38,10 +38,68 @@ const formatLitersCompact = (value: number) => {
 };
 
 const popupOptions = [
-  { amountLiters: 0.25, label: "250ml" },
-  { amountLiters: 0.5, label: "500ml" },
-  { amountLiters: 1, label: "1L" },
+  { amountLiters: 0.25, label: "250ml", fillRatio: 0.25 },
+  { amountLiters: 0.5, label: "500ml", fillRatio: 0.5 },
+  { amountLiters: 1, label: "1L", fillRatio: 1 },
 ] as const;
+
+type WaterDoseGlassIconProps = {
+  fillRatio: number;
+};
+
+function WaterDoseGlassIcon({ fillRatio }: WaterDoseGlassIconProps) {
+  const gradientId = React.useId();
+  const iconWidth = 24;
+  const iconHeight = 26;
+  const glassWidth = 14;
+  const glassHeight = 20;
+  const glassX = (iconWidth - glassWidth) / 2;
+  const glassY = 2;
+
+  const normalizedFill = Math.max(0, Math.min(1, fillRatio));
+  const fillInset = 1.7;
+  const maxWaterHeight = glassHeight - fillInset * 2;
+  const waterHeight = Math.max(1.2, maxWaterHeight * normalizedFill);
+  const waterY = glassY + glassHeight - fillInset - waterHeight;
+
+  return (
+    <svg width={iconWidth} height={iconHeight} viewBox={`0 0 ${iconWidth} ${iconHeight}`} aria-hidden="true">
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#7dd3fc" stopOpacity="0.98" />
+          <stop offset="100%" stopColor="#0284c7" stopOpacity="0.96" />
+        </linearGradient>
+      </defs>
+
+      <rect
+        x={glassX}
+        y={glassY}
+        width={glassWidth}
+        height={glassHeight}
+        rx={3.5}
+        fill="rgba(56, 189, 248, 0.14)"
+        stroke="rgba(3, 105, 161, 0.68)"
+        strokeWidth={1.8}
+      />
+
+      <rect
+        x={glassX + fillInset}
+        y={waterY}
+        width={glassWidth - fillInset * 2}
+        height={waterHeight}
+        rx={2}
+        fill={`url(#${gradientId})`}
+      />
+
+      <path
+        d={`M ${glassX + 2.1} ${glassY + 4} L ${glassX + 2.1} ${glassY + glassHeight - 2.5}`}
+        stroke="rgba(224, 242, 254, 0.9)"
+        strokeWidth={1.35}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidgetProps) {
   const queryClient = useQueryClient();
@@ -49,8 +107,9 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
   const [customAmountMl, setCustomAmountMl] = React.useState("");
 
   // Fetch user's daily water goal
-  const { data: goalData } = useQuery<{ data: { goal: number } }>({
+  const { data: goalData, isLoading: isLoadingGoal } = useQuery<{ data: { goal: number } }>({
     queryKey: ["waterGoal"],
+    staleTime: 60 * 1000,
     queryFn: async () => {
       const res = await api.get("/water-intake/goal");
       return res.data;
@@ -58,8 +117,9 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
   });
 
   // Fetch today's water intake
-  const { data: todayData } = useQuery<{ data: TodayDataResponse }>({
+  const { data: todayData, isLoading: isLoadingToday } = useQuery<{ data: TodayDataResponse }>({
     queryKey: ["waterIntakeToday"],
+    staleTime: 60 * 1000,
     queryFn: async () => {
       const res = await api.get("/water-intake/today");
       return res.data;
@@ -152,16 +212,18 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
   const totalLiters = todayData?.data?.amountLiters || 0;
   const goalLiters = goalData?.data?.goal || 3.5;
   const progressPercent = goalLiters > 0 ? clamp((totalLiters / goalLiters) * 100, 0, 100) : 0;
+  const isLoadingWidgetData = isLoadingGoal || isLoadingToday;
 
   const totalLitersLabel = formatLitersCompact(totalLiters);
   const goalLitersLabel = formatLitersCompact(goalLiters);
   const remainingLiters = Math.max(0, goalLiters - totalLiters);
   const amountRatioText = `${totalLitersLabel}/${goalLitersLabel}L`;
   const isLongAmountRatio = amountRatioText.length >= 9;
+  const shouldReduceEffects = compact;
 
   const ringSize = compact ? "h-36 w-36" : "h-[min(74vw,15rem)] w-[min(74vw,15rem)] sm:h-64 sm:w-64";
 
-  const ringStrokeWidth = compact ? 11 : 14;
+  const ringStrokeWidth = compact ? 15 : 19;
   const ringCenter = 120;
   const ringRadius = 94;
   const circumference = 2 * Math.PI * ringRadius;
@@ -176,12 +238,24 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
   return (
     <>
       <div
-        className={`relative overflow-hidden rounded-2xl border border-sky-100/80 bg-gradient-to-br from-sky-50 via-white to-cyan-50 shadow-[0_20px_40px_-30px_rgba(14,116,144,0.55)] ${
+        className={`relative overflow-hidden rounded-2xl border border-sky-100/80 bg-gradient-to-br from-sky-50 via-white to-cyan-50 ${
+          shouldReduceEffects
+            ? "shadow-[0_10px_20px_-20px_rgba(14,116,144,0.45)]"
+            : "shadow-[0_20px_40px_-30px_rgba(14,116,144,0.55)]"
+        } ${
           compact ? "h-full p-3" : "p-4 sm:p-5"
         }`}
       >
-        <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-sky-200/35 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-cyan-200/30 blur-3xl" />
+        <div
+          className={`pointer-events-none absolute rounded-full bg-sky-200/35 ${
+            shouldReduceEffects ? "-right-8 -top-8 h-24 w-24 blur-2xl" : "-right-12 -top-12 h-40 w-40 blur-3xl"
+          }`}
+        />
+        <div
+          className={`pointer-events-none absolute rounded-full bg-cyan-200/30 ${
+            shouldReduceEffects ? "-bottom-10 -left-8 h-20 w-20 blur-2xl" : "-bottom-16 -left-12 h-36 w-36 blur-3xl"
+          }`}
+        />
 
         <div className="relative z-[1] space-y-3 sm:space-y-4">
           <div className="flex min-h-8 items-center justify-between gap-2.5">
@@ -202,124 +276,139 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
             </Link>
           </div>
 
-          <div className="mx-auto w-full text-center">
-            <div className={`relative mx-auto ${ringSize}`} aria-label={`${Math.round(progressPercent)} percent hydrated`}>
-              <svg viewBox="0 0 240 240" className="h-full w-full" role="presentation">
-                <defs>
-                  <linearGradient id={ringGradientId} x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#38bdf8" />
-                    <stop offset="55%" stopColor="#0ea5e9" />
-                    <stop offset="100%" stopColor="#0284c7" />
-                  </linearGradient>
-                </defs>
-
-                <circle
-                  cx={ringCenter}
-                  cy={ringCenter}
-                  r={ringRadius}
-                  fill="none"
-                  stroke="rgba(148, 163, 184, 0.22)"
-                  strokeWidth={ringStrokeWidth}
-                  strokeDasharray={`${arcLength} ${gapLength}`}
-                  style={{
-                    transform: `rotate(${gaugeRotationDeg}deg)`,
-                    transformOrigin: "50% 50%",
-                  }}
-                />
-
-                <circle
-                  cx={ringCenter}
-                  cy={ringCenter}
-                  r={ringRadius}
-                  fill="none"
-                  stroke={`url(#${ringGradientId})`}
-                  strokeWidth={ringStrokeWidth}
-                  strokeLinecap={progressArcLength > 0 ? "round" : "butt"}
-                  strokeDasharray={`${progressArcLength} ${circumference}`}
-                  style={{
-                    transform: `rotate(${gaugeRotationDeg}deg)`,
-                    transformOrigin: "50% 50%",
-                    transition: "stroke-dasharray 900ms cubic-bezier(0.22, 1, 0.36, 1)",
-                  }}
-                  className="motion-reduce:transition-none"
-                />
-              </svg>
-
+          {isLoadingWidgetData ? (
+            <div className="space-y-3">
               <div
-                className={`pointer-events-none absolute inset-0 flex items-center justify-center px-5 text-center ${
-                  compact ? "" : "sm:px-6"
-                }`}
-              >
-                <p
-                  className={`max-w-[92%] whitespace-nowrap tabular-nums font-extrabold leading-none tracking-tight ${
-                    compact
-                      ? isLongAmountRatio
-                        ? "text-[1.03rem]"
-                        : "text-[1.17rem]"
-                      : isLongAmountRatio
-                        ? "text-[1.3rem] sm:text-[1.55rem]"
-                        : "text-[1.45rem] sm:text-[1.75rem]"
-                  }`}
-                >
-                  <span className="text-sky-500">{totalLitersLabel}</span>
-                  <span className="text-slate-900">/{goalLitersLabel}</span>
-                  <span className={`ml-1 font-semibold text-slate-500 ${compact ? "text-[0.66rem]" : "text-[0.8rem] sm:text-[0.92rem]"}`}>
-                    L
-                  </span>
-                </p>
+                className={`mx-auto ${ringSize} rounded-full border border-sky-200/70 ${compact ? "" : "animate-pulse"}`}
+                style={{ borderWidth: ringStrokeWidth }}
+              />
+              <div className={`grid grid-cols-2 border-t border-sky-100/80 pt-2 ${compact ? "gap-1.5 text-center" : "gap-3 text-left"}`}>
+                <div className={`h-[58px] rounded-xl bg-sky-100/75 ${compact ? "" : "animate-pulse"}`} />
+                <div className={`h-[58px] rounded-xl bg-sky-100/75 ${compact ? "" : "animate-pulse"}`} />
               </div>
+            </div>
+          ) : (
+            <>
+              <div className="mx-auto w-full text-center">
+                <div className={`relative mx-auto ${ringSize}`} aria-label={`${Math.round(progressPercent)} percent hydrated`}>
+                  <svg viewBox="0 0 240 240" className="h-full w-full" role="presentation">
+                    <defs>
+                      <linearGradient id={ringGradientId} x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#38bdf8" />
+                        <stop offset="55%" stopColor="#0ea5e9" />
+                        <stop offset="100%" stopColor="#0284c7" />
+                      </linearGradient>
+                    </defs>
 
-              <div className="absolute left-1/2 top-[83.5%] -translate-x-1/2 -translate-y-1/2">
-                <button
-                  type="button"
-                  onClick={() => setIsLogModalOpen(true)}
-                  disabled={logMutation.isPending}
-                  className={`group relative grid place-items-center rounded-full border border-sky-200/90 bg-white/95 text-sky-700 shadow-[0_10px_25px_-14px_rgba(2,132,199,0.75)] transition-all duration-300 ease-out motion-reduce:transition-none ${
-                    logMutation.isPending
-                      ? "cursor-not-allowed opacity-60"
-                      : "hover:-translate-y-0.5 hover:border-sky-300 hover:bg-sky-50 active:translate-y-0"
-                  } ${compact ? "h-11 w-11" : "h-12 w-12 sm:h-14 sm:w-14"}`}
-                  aria-label="Log water intake"
-                >
-                  <GlassWater className={compact ? "h-5 w-5" : "h-5 w-5 sm:h-6 sm:w-6"} />
-                  <span
-                    className={`absolute -top-1 -right-1 grid place-items-center rounded-full bg-sky-600 text-white shadow-sm ${
-                      compact ? "h-[17px] w-[17px]" : "h-4 w-4 sm:h-[18px] sm:w-[18px]"
+                    <circle
+                      cx={ringCenter}
+                      cy={ringCenter}
+                      r={ringRadius}
+                      fill="none"
+                      stroke="rgba(148, 163, 184, 0.22)"
+                      strokeWidth={ringStrokeWidth}
+                      strokeDasharray={`${arcLength} ${gapLength}`}
+                      style={{
+                        transform: `rotate(${gaugeRotationDeg}deg)`,
+                        transformOrigin: "50% 50%",
+                      }}
+                    />
+
+                    <circle
+                      cx={ringCenter}
+                      cy={ringCenter}
+                      r={ringRadius}
+                      fill="none"
+                      stroke={`url(#${ringGradientId})`}
+                      strokeWidth={ringStrokeWidth}
+                      strokeLinecap={progressArcLength > 0 ? "round" : "butt"}
+                      strokeDasharray={`${progressArcLength} ${circumference}`}
+                      style={{
+                        transform: `rotate(${gaugeRotationDeg}deg)`,
+                        transformOrigin: "50% 50%",
+                        transition: "stroke-dasharray 900ms cubic-bezier(0.22, 1, 0.36, 1)",
+                      }}
+                      className="motion-reduce:transition-none"
+                    />
+                  </svg>
+
+                  <div
+                    className={`pointer-events-none absolute inset-0 flex items-center justify-center px-5 text-center ${
+                      compact ? "" : "sm:px-6"
                     }`}
-                    aria-hidden="true"
                   >
-                    <Plus className={compact ? "h-2.5 w-2.5" : "h-2.5 w-2.5 sm:h-3 sm:w-3"} />
-                  </span>
-                </button>
+                    <p
+                      className={`max-w-[92%] whitespace-nowrap tabular-nums font-extrabold leading-none tracking-tight ${
+                        compact
+                          ? isLongAmountRatio
+                            ? "text-[1.03rem]"
+                            : "text-[1.17rem]"
+                          : isLongAmountRatio
+                            ? "text-[1.3rem] sm:text-[1.55rem]"
+                            : "text-[1.45rem] sm:text-[1.75rem]"
+                      }`}
+                    >
+                      <span className="text-sky-500">{totalLitersLabel}</span>
+                      <span className="text-slate-900">/{goalLitersLabel}</span>
+                      <span className={`ml-1 font-semibold text-slate-500 ${compact ? "text-[0.66rem]" : "text-[0.8rem] sm:text-[0.92rem]"}`}>
+                        L
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="absolute left-1/2 top-[83.5%] -translate-x-1/2 -translate-y-1/2">
+                    <button
+                      type="button"
+                      onClick={() => setIsLogModalOpen(true)}
+                      disabled={logMutation.isPending}
+                      className={`group relative grid place-items-center rounded-full border border-sky-200/90 bg-white/95 text-sky-700 shadow-[0_10px_25px_-14px_rgba(2,132,199,0.75)] transition-all duration-300 ease-out motion-reduce:transition-none ${
+                        logMutation.isPending
+                          ? "cursor-not-allowed opacity-60"
+                          : "hover:-translate-y-0.5 hover:border-sky-300 hover:bg-sky-50 active:translate-y-0"
+                      } ${compact ? "h-11 w-11" : "h-12 w-12 sm:h-14 sm:w-14"}`}
+                      aria-label="Log water intake"
+                    >
+                      <GlassWater className={compact ? "h-5 w-5" : "h-5 w-5 sm:h-6 sm:w-6"} />
+                      <span
+                        className={`absolute -top-1 -right-1 grid place-items-center rounded-full bg-sky-600 text-white shadow-sm ${
+                          compact ? "h-[17px] w-[17px]" : "h-4 w-4 sm:h-[18px] sm:w-[18px]"
+                        }`}
+                        aria-hidden="true"
+                      >
+                        <Plus className={compact ? "h-2.5 w-2.5" : "h-2.5 w-2.5 sm:h-3 sm:w-3"} />
+                      </span>
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div className={`grid grid-cols-2 border-t border-sky-100/80 pt-2 ${compact ? "gap-1.5 text-center" : "gap-3 text-left"}`}>
-            <div className="min-w-0">
-              <p className={compact ? "text-[10px] font-semibold leading-tight text-slate-500" : "text-[11px] font-medium uppercase tracking-wide text-slate-500"}>
-                Consumed
-              </p>
-              <p className={compact ? "mt-0.5 whitespace-nowrap text-[1.02rem] font-bold leading-tight text-slate-900" : "mt-1 text-sm font-bold text-slate-900 sm:text-base"}>
-                {totalLiters.toFixed(1)}L
-              </p>
-            </div>
+              <div className={`grid grid-cols-2 border-t border-sky-100/80 pt-2 ${compact ? "gap-1.5 text-center" : "gap-3 text-left"}`}>
+                <div className="min-w-0">
+                  <p className={compact ? "text-[10px] font-semibold leading-tight text-slate-500" : "text-[11px] font-medium uppercase tracking-wide text-slate-500"}>
+                    Consumed
+                  </p>
+                  <p className={compact ? "mt-0.5 whitespace-nowrap text-[1.02rem] font-bold leading-tight text-slate-900" : "mt-1 text-sm font-bold text-slate-900 sm:text-base"}>
+                    {totalLiters.toFixed(1)}L
+                  </p>
+                </div>
 
-            <div className="min-w-0">
-              <p className={compact ? "text-[10px] font-semibold leading-tight text-slate-500" : "text-[11px] font-medium uppercase tracking-wide text-slate-500"}>
-                Remaining
-              </p>
-              <p className={compact ? "mt-0.5 whitespace-nowrap text-[1.02rem] font-bold leading-tight text-slate-900" : "mt-1 text-sm font-bold text-slate-900 sm:text-base"}>
-                {remainingLiters.toFixed(1)}L
-              </p>
-            </div>
-          </div>
+                <div className="min-w-0">
+                  <p className={compact ? "text-[10px] font-semibold leading-tight text-slate-500" : "text-[11px] font-medium uppercase tracking-wide text-slate-500"}>
+                    Remaining
+                  </p>
+                  <p className={compact ? "mt-0.5 whitespace-nowrap text-[1.02rem] font-bold leading-tight text-slate-900" : "mt-1 text-sm font-bold text-slate-900 sm:text-base"}>
+                    {remainingLiters.toFixed(1)}L
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       {isLogModalOpen ? (
         <div
-          className="fixed inset-0 z-[1000] flex items-end justify-center bg-slate-900/45 p-3 pb-24 backdrop-blur-[1px] sm:items-center sm:p-4 sm:pb-4"
+          className="fixed inset-0 z-[1000] flex items-end justify-center bg-slate-900/45 p-3 pb-24 sm:items-center sm:p-4 sm:pb-4 sm:backdrop-blur-[1px]"
           onClick={closeLogModal}
         >
           <div
@@ -350,13 +439,14 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
                   type="button"
                   onClick={() => handlePresetLog(option.amountLiters)}
                   disabled={logMutation.isPending}
-                  className={`rounded-xl border border-sky-200 bg-sky-50 px-2 py-2 text-sm font-semibold text-sky-700 transition-all duration-200 ${
+                  className={`flex flex-col items-center justify-center gap-0.5 rounded-xl border border-sky-200 bg-sky-50 px-2 py-2.5 text-sky-700 transition-all duration-200 ${
                     logMutation.isPending
                       ? "cursor-not-allowed opacity-60"
                       : "hover:-translate-y-0.5 hover:border-sky-300 hover:bg-sky-100"
                   }`}
                 >
-                  {option.label}
+                  <WaterDoseGlassIcon fillRatio={option.fillRatio} />
+                  <span className="text-[11px] font-semibold leading-none">{option.label}</span>
                 </button>
               ))}
             </div>

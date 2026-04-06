@@ -10,6 +10,7 @@ import ToastProvider from "@/providers/ToastProvider";
 import Navbar from "@/components/shared/NavBar";
 import PublicNavbar from "@/components/shared/PublicNavbar";
 import AuthCookieSync from "@/components/shared/AuthCookieSync";
+import RealtimeUnreadSync from "@/components/shared/RealtimeUnreadSync";
 import Footer from "@/components/shared/Footer";
 import { publicRoutePrefixes, publicRoutes } from "@/lib/auth";
 
@@ -32,6 +33,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryProvider>
+      <RealtimeUnreadSync />
+
       {isPublicNavbarRoute ? <PublicNavbar /> : <Navbar />}
 
       <ThemeProvider>

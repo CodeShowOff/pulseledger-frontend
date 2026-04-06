@@ -6,9 +6,13 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useUnreadCount } from "@/lib/queries/notifications";
+import { useAuthStore } from "@/lib/store";
 
 const NotificationBell = React.memo(function NotificationBell() {
-  const { data: unread = 0 } = useUnreadCount();
+  const userId = useAuthStore((s) => s.user?.id ?? null);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const hasSession = Boolean(userId && accessToken);
+  const { data: unread = 0 } = useUnreadCount({ enabled: hasSession, userId });
   const prev = useRef(0);
 
   useEffect(() => {

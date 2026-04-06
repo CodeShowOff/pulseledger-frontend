@@ -12,7 +12,7 @@ import {
   ChatMessage,
   getConversationName,
 } from "@/lib/chatStore";
-import { shallow } from "zustand/shallow";
+import { useShallow } from "zustand/react/shallow";
 import { useConversations, useUploadChatImage, useToggleMute } from "@/lib/queries/chat";
 import { ArrowLeft } from "lucide-react";
 
@@ -46,7 +46,7 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
     typingUsers,
     onlineUsers,
   } = useChatStore(
-    (state) => ({
+    useShallow((state) => ({
       isConnected: state.isConnected,
       connectionError: state.connectionError,
       conversations: state.conversations,
@@ -56,14 +56,12 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
       hasMoreMessages: state.hasMoreMessages,
       typingUsers: state.typingUsers,
       onlineUsers: state.onlineUsers,
-    }),
-    shallow
+    }))
   );
 
   // Chat store actions (kept separate so action references stay stable)
   const {
     connect,
-    disconnect,
     setActiveConversation,
     setConversations,
     loadMoreMessages,
@@ -75,9 +73,8 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
     checkOnlineStatus,
     setNotificationCallback,
   } = useChatStore(
-    (state) => ({
+    useShallow((state) => ({
       connect: state.connect,
-      disconnect: state.disconnect,
       setActiveConversation: state.setActiveConversation,
       setConversations: state.setConversations,
       loadMoreMessages: state.loadMoreMessages,
@@ -88,8 +85,7 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
       markAsRead: state.markAsRead,
       checkOnlineStatus: state.checkOnlineStatus,
       setNotificationCallback: state.setNotificationCallback,
-    }),
-    shallow
+    }))
   );
 
   // Query for initial conversations
@@ -166,12 +162,6 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
       body.classList.remove("chat-conversation-open");
     };
   }, [activeConversationId]);
-
-  // Connect on mount
-  useEffect(() => {
-    connect();
-    return () => disconnect();
-  }, [connect, disconnect]);
 
   // Check online status for relevant users
   useEffect(() => {

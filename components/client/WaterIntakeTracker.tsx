@@ -134,7 +134,7 @@ function WaterDoseGlassIcon({ fillRatio }: WaterDoseGlassIconProps) {
         rx={3.5}
         fill="rgba(34, 197, 94, 0.16)"
         stroke="rgba(21, 128, 61, 0.68)"
-        strokeWidth={1.4}
+        strokeWidth={1.8}
       />
 
       <rect
@@ -149,7 +149,7 @@ function WaterDoseGlassIcon({ fillRatio }: WaterDoseGlassIconProps) {
       <path
         d={`M ${glassX + 2.1} ${glassY + 4} L ${glassX + 2.1} ${glassY + glassHeight - 2.5}`}
         stroke="rgba(220, 252, 231, 0.75)"
-        strokeWidth={1.1}
+        strokeWidth={1.35}
         strokeLinecap="round"
       />
     </svg>

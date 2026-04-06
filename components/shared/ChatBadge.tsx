@@ -9,9 +9,15 @@ import { useUnreadChatCount } from "@/lib/queries/chat";
 import { useAuthStore } from "@/lib/store";
 
 const ChatBadge = React.memo(function ChatBadge() {
+  const userId = useAuthStore((s) => s.user?.id ?? null);
+  const accessToken = useAuthStore((s) => s.accessToken);
   const role = useAuthStore((s) => s.user?.role);
-  const shouldPollUnreadCount = role === "coach" || role === "client";
-  const { data: unread = 0 } = useUnreadChatCount({ enabled: shouldPollUnreadCount });
+  const shouldTrackUnreadCount =
+    Boolean(accessToken) && (role === "coach" || role === "client");
+  const { data: unread = 0 } = useUnreadChatCount({
+    enabled: shouldTrackUnreadCount,
+    userId,
+  });
   const prev = useRef(0);
 
   const chatLink = role === "coach" ? "/coach/chat" : "/client/chat";

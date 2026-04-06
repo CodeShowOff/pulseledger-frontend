@@ -8,13 +8,14 @@ export const CHAT_QK = {
   conversation: (id: string) => ["chat", "conversation", id] as const,
   messages: (id: string) => ["chat", "messages", id] as const,
   members: (id: string) => ["chat", "members", id] as const,
-  unreadCount: ["chat", "unread-count"] as const,
+  unreadCountRoot: ["chat", "unread-count"] as const,
+  unreadCount: (userId?: string | null) => ["chat", "unread-count", userId ?? "anonymous"] as const,
   broadcast: ["chat", "broadcast"] as const,
 };
 
 type UnreadCountOptions = {
   enabled?: boolean;
-  pollIntervalMs?: number;
+  userId?: string | null;
 };
 
 // ============ Conversation Queries ============
@@ -75,10 +76,10 @@ export function useConversationMembers(conversationId: string | null) {
 
 export function useUnreadChatCount({
   enabled = true,
-  pollIntervalMs = 30000,
+  userId,
 }: UnreadCountOptions = {}) {
   return useQuery({
-    queryKey: CHAT_QK.unreadCount,
+    queryKey: CHAT_QK.unreadCount(userId),
     queryFn: async () => {
       try {
         const res = await api.get("/chat/unread-count");
@@ -88,11 +89,9 @@ export function useUnreadChatCount({
         return 0;
       }
     },
-    enabled,
+    enabled: enabled && Boolean(userId),
     staleTime: 15000,
     refetchOnWindowFocus: enabled,
-    refetchInterval: enabled ? pollIntervalMs : false,
-    refetchIntervalInBackground: false,
   });
 }
 
@@ -211,7 +210,7 @@ export function useMarkChatAsRead() {
       await api.post(`/chat/conversations/${conversationId}/read`);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: CHAT_QK.unreadCount });
+      qc.invalidateQueries({ queryKey: CHAT_QK.unreadCountRoot });
       qc.invalidateQueries({ queryKey: CHAT_QK.conversations });
     },
   });

@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useAuthStore } from "@/lib/store";
 import { getAllowedBasePath } from "@/lib/auth";
 import { cardShadowClass, headingClass, textMuted } from "@/components/home/homeTheme";
+import heroStretchOutdoor from "@/public/images/hero_stretch_outdoor.jpg";
 
 export default function HeroSection() {
   const user = useAuthStore((s) => s.user);
@@ -48,12 +50,13 @@ export default function HeroSection() {
           <div
             className={`relative h-[44vh] min-h-[320px] max-h-[520px] overflow-hidden rounded-3xl ${cardShadowClass}`}
           >
-            <img
-              src="/images/hero_stretch_outdoor.jpg"
+            <Image
+              src={heroStretchOutdoor}
               alt="Woman stretching outdoors"
-              loading="eager"
-              decoding="async"
-              fetchPriority="high"
+              fill
+              priority
+              placeholder="blur"
+              sizes="(max-width: 767px) 100vw, 1px"
               className="absolute inset-0 h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#11161173] via-[#1116111A] to-transparent" />
@@ -62,12 +65,13 @@ export default function HeroSection() {
       </div>
 
       <div className="absolute inset-0 hidden md:block">
-        <img
-          src="/images/hero_stretch_outdoor.jpg"
+        <Image
+          src={heroStretchOutdoor}
           alt="Woman stretching outdoors"
-          loading="eager"
-          decoding="async"
-          fetchPriority="high"
+          fill
+          priority
+          placeholder="blur"
+          sizes="(max-width: 767px) 1px, 100vw"
           className="absolute inset-0 h-full w-full object-cover"
           style={{ objectPosition: "right center" }}
         />

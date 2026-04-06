@@ -18,6 +18,8 @@ import {
 import { useMyCoachQuery } from "@/lib/queries/coach";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import WaterIntakeWidget from "@/components/client/WaterIntakeWidget";
+import GoalWeightWidget from "@/components/client/GoalWeightWidget";
 import { cn } from "@/lib/utils";
 
 const fadeInUp = {
@@ -65,10 +67,6 @@ const quickActions = [
   },
 ] as const;
 
-type CompactWidgetProps = {
-  compact?: boolean;
-};
-
 function DashboardCardSkeleton({ label }: { label: string }) {
   return (
     <Card className="border-slate-200/80 bg-white/95">
@@ -76,14 +74,6 @@ function DashboardCardSkeleton({ label }: { label: string }) {
         <p className="text-sm text-slate-500">{label}</p>
       </CardContent>
     </Card>
-  );
-}
-
-function DashboardWidgetSkeleton({ label }: { label: string }) {
-  return (
-    <div className="h-full min-h-[220px] rounded-2xl border border-slate-200/80 bg-white/95 p-4 shadow-[0_8px_24px_-20px_rgba(15,23,42,0.35)]">
-      <p className="text-sm text-slate-500">{label}</p>
-    </div>
   );
 }
 
@@ -95,16 +85,6 @@ const AssignedPlans = dynamic(() => import("@/components/client/AssignedPlans"),
 const ClientStats = dynamic(() => import("@/components/client/ClientStats"), {
   ssr: false,
   loading: () => <DashboardCardSkeleton label="Loading quick stats..." />,
-});
-
-const WaterIntakeWidget = dynamic<CompactWidgetProps>(() => import("@/components/client/WaterIntakeWidget"), {
-  ssr: false,
-  loading: () => <DashboardWidgetSkeleton label="Loading hydration widget..." />,
-});
-
-const GoalWeightWidget = dynamic<CompactWidgetProps>(() => import("@/components/client/GoalWeightWidget"), {
-  ssr: false,
-  loading: () => <DashboardWidgetSkeleton label="Loading goal widget..." />,
 });
 
 function ConnectedWithCompanyName({ companyName }: { companyName: string }) {
@@ -180,6 +160,18 @@ function ConnectedWithCompanyName({ companyName }: { companyName: string }) {
 export default function ClientDashboardPage() {
   const { data: coach, isLoading } = useMyCoachQuery();
   const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const assignedPlansSectionRef = useRef<HTMLElement | null>(null);
+  const quickStatsSectionRef = useRef<HTMLElement | null>(null);
+  const [shouldRenderAssignedPlans, setShouldRenderAssignedPlans] = useState(false);
+  const [shouldRenderQuickStats, setShouldRenderQuickStats] = useState(false);
+  const reduceMotionForMobile = isMobileViewport;
+
+  const sectionMotionProps = reduceMotionForMobile
+    ? { initial: false as const, animate: { opacity: 1, y: 0 } }
+    : { variants: fadeInUp, initial: "initial" as const, animate: "animate" as const };
+
+  const getSectionTransition = (delay = 0) =>
+    reduceMotionForMobile ? { duration: 0 } : { duration: 0.28, delay };
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 639px)");
@@ -190,6 +182,56 @@ export default function ClientDashboardPage() {
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
+
+  useEffect(() => {
+    if (shouldRenderAssignedPlans) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      setShouldRenderAssignedPlans(true);
+      return;
+    }
+
+    const target = assignedPlansSectionRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting) return;
+        setShouldRenderAssignedPlans(true);
+        observer.disconnect();
+      },
+      { rootMargin: "280px 0px" }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [shouldRenderAssignedPlans]);
+
+  useEffect(() => {
+    if (shouldRenderQuickStats) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      setShouldRenderQuickStats(true);
+      return;
+    }
+
+    const target = quickStatsSectionRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting) return;
+        setShouldRenderQuickStats(true);
+        observer.disconnect();
+      },
+      { rootMargin: "280px 0px" }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [shouldRenderQuickStats]);
 
   return (
     <div className="client-page__sections space-y-4 md:space-y-5">
@@ -204,7 +246,7 @@ export default function ClientDashboardPage() {
         }
       `}</style>
 
-      <motion.section variants={fadeInUp} initial="initial" animate="animate" transition={{ duration: 0.28 }}>
+      <motion.section {...sectionMotionProps} transition={getSectionTransition()}>
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
           <CardHeader className="gap-3 p-4 sm:p-6">
             <div className="space-y-2">
@@ -242,10 +284,8 @@ export default function ClientDashboardPage() {
       </motion.section>
 
       <motion.section
-        variants={fadeInUp}
-        initial="initial"
-        animate="animate"
-        transition={{ duration: 0.28, delay: 0.04 }}
+        {...sectionMotionProps}
+        transition={getSectionTransition(0.04)}
         aria-labelledby="wellness-widgets-heading"
         className="space-y-4"
       >
@@ -268,10 +308,8 @@ export default function ClientDashboardPage() {
       </motion.section>
 
       <motion.section
-        variants={fadeInUp}
-        initial="initial"
-        animate="animate"
-        transition={{ duration: 0.28, delay: 0.08 }}
+        {...sectionMotionProps}
+        transition={getSectionTransition(0.08)}
         className="space-y-2 sm:space-y-3"
       >
         <div className="flex items-center gap-2 px-1">
@@ -285,10 +323,10 @@ export default function ClientDashboardPage() {
           {todayCoreActions.map((item, index) => (
             <motion.div
               key={item.title}
-              initial={{ opacity: 0, y: 8 }}
+              initial={reduceMotionForMobile ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.22, delay: 0.05 + index * 0.03 }}
-              whileHover={{ y: -2 }}
+              transition={reduceMotionForMobile ? { duration: 0 } : { duration: 0.22, delay: 0.05 + index * 0.03 }}
+              whileHover={reduceMotionForMobile ? undefined : { y: -2 }}
             >
               <Link href={item.href} className="group block h-full cursor-pointer focus-visible:outline-none">
                 <div
@@ -297,7 +335,7 @@ export default function ClientDashboardPage() {
                     `bg-gradient-to-br ${item.cardTone}`
                   )}
                 >
-                  <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-white/60 blur-xl" />
+                  <div className="pointer-events-none absolute -right-8 -top-8 hidden h-20 w-20 rounded-full bg-white/60 blur-xl sm:block" />
 
                   <div className="relative z-[1] flex w-full flex-col items-center justify-center text-center">
                     <span
@@ -319,10 +357,8 @@ export default function ClientDashboardPage() {
       </motion.section>
 
       <motion.section
-        variants={fadeInUp}
-        initial="initial"
-        animate="animate"
-        transition={{ duration: 0.28, delay: 0.12 }}
+        {...sectionMotionProps}
+        transition={getSectionTransition(0.12)}
       >
         <Card className="border-slate-200/80 bg-white/95">
           <CardHeader className="pb-3">
@@ -339,10 +375,10 @@ export default function ClientDashboardPage() {
               {quickActions.map((item, index) => (
                 <motion.div
                   key={item.title}
-                  initial={{ opacity: 0, y: 8 }}
+                  initial={reduceMotionForMobile ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.22, delay: 0.07 + index * 0.03 }}
-                  whileHover={{ y: -2 }}
+                  transition={reduceMotionForMobile ? { duration: 0 } : { duration: 0.22, delay: 0.07 + index * 0.03 }}
+                  whileHover={reduceMotionForMobile ? undefined : { y: -2 }}
                 >
                   <Link href={item.href} className="group block h-full">
                     <div
@@ -351,7 +387,7 @@ export default function ClientDashboardPage() {
                         `bg-gradient-to-br ${item.cardTone}`
                       )}
                     >
-                      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/60 blur-xl" />
+                      <div className="pointer-events-none absolute -right-8 -top-8 hidden h-24 w-24 rounded-full bg-white/60 blur-xl sm:block" />
 
                       <div className="flex items-start justify-between gap-3">
                         <span
@@ -398,16 +434,20 @@ export default function ClientDashboardPage() {
         </Card>
       )}
 
-      <motion.section variants={fadeInUp} initial="initial" animate="animate" transition={{ duration: 0.28, delay: 0.14 }}>
-        <AssignedPlans />
+      <motion.section ref={assignedPlansSectionRef} {...sectionMotionProps} transition={getSectionTransition(0.14)}>
+        {shouldRenderAssignedPlans ? <AssignedPlans /> : <DashboardCardSkeleton label="Loading your current plan..." />}
       </motion.section>
 
-      <motion.section variants={fadeInUp} initial="initial" animate="animate" transition={{ duration: 0.28, delay: 0.16 }}>
-        <Card className="border-slate-200/80 bg-white/95">
-          <CardContent className="p-4 pt-5 sm:p-5">
-            <ClientStats />
-          </CardContent>
-        </Card>
+      <motion.section ref={quickStatsSectionRef} {...sectionMotionProps} transition={getSectionTransition(0.16)}>
+        {shouldRenderQuickStats ? (
+          <Card className="border-slate-200/80 bg-white/95">
+            <CardContent className="p-4 pt-5 sm:p-5">
+              <ClientStats />
+            </CardContent>
+          </Card>
+        ) : (
+          <DashboardCardSkeleton label="Loading quick stats..." />
+        )}
       </motion.section>
 
     </div>

@@ -357,7 +357,13 @@ export default function ChatInput({
           type="button"
           onClick={handleSubmit}
           onMouseDown={(e) => e.preventDefault()}
-          onTouchStart={(e) => e.preventDefault()}
+          onTouchStart={(e) => {
+            // Touch listeners can be passive in modern browsers.
+            // Guard preventDefault to avoid "Unable to preventDefault inside passive event listener" warnings.
+            if (e.cancelable) {
+              e.preventDefault();
+            }
+          }}
           disabled={isSubmitting || !canSubmit}
           className={styles.sendButton}
           style={{ opacity: canSubmit && !isSubmitting ? 1 : 0.5 }}

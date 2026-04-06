@@ -274,7 +274,8 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
       };
 
   const ringSize = compact ? "h-36 w-36" : "h-[min(74vw,15rem)] w-[min(74vw,15rem)] sm:h-64 sm:w-64";
-  const ringStrokeWidth = compact ? 11 : 14;
+  const ringStrokeWidth = compact ? 15 : 19;
+  const shouldReduceEffects = compact;
   const ringCenter = 120;
   const ringRadius = 94;
   const circumference = 2 * Math.PI * ringRadius;
@@ -289,13 +290,25 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
   return (
     <>
       <div
-        className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br from-orange-50/35 via-white to-emerald-50/35 shadow-[0_20px_40px_-30px_rgba(15,23,42,0.35)] ${
+        className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br from-orange-50/35 via-white to-emerald-50/35 ${
+          shouldReduceEffects
+            ? "shadow-[0_10px_20px_-18px_rgba(15,23,42,0.28)]"
+            : "shadow-[0_20px_40px_-30px_rgba(15,23,42,0.35)]"
+        } ${
           compact ? "h-full p-3" : "p-4 sm:p-5"
         }`}
         style={{ borderColor: tone.border }}
       >
-        <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-sky-200/30 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-orange-200/25 blur-3xl" />
+        <div
+          className={`pointer-events-none absolute rounded-full bg-sky-200/30 ${
+            shouldReduceEffects ? "-right-8 -top-8 h-24 w-24 blur-2xl" : "-right-12 -top-12 h-40 w-40 blur-3xl"
+          }`}
+        />
+        <div
+          className={`pointer-events-none absolute rounded-full bg-orange-200/25 ${
+            shouldReduceEffects ? "-bottom-10 -left-8 h-20 w-20 blur-2xl" : "-bottom-16 -left-12 h-36 w-36 blur-3xl"
+          }`}
+        />
 
         <div className="relative z-[1] space-y-3 sm:space-y-4">
           <div className="flex min-h-8 items-center justify-between gap-2.5">
@@ -315,10 +328,13 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
 
           {isLoadingGoal || isLoadingProgress ? (
             <div className="space-y-3">
-              <div className={`mx-auto ${ringSize} rounded-full border-[14px] border-slate-200/70 animate-pulse`} />
+              <div
+                className={`mx-auto ${ringSize} rounded-full border border-slate-200/70 ${compact ? "" : "animate-pulse"}`}
+                style={{ borderWidth: ringStrokeWidth }}
+              />
               <div className={`grid grid-cols-2 ${compact ? "gap-2" : "gap-2.5"}`}>
-                <div className="h-[58px] animate-pulse rounded-xl bg-slate-200/75" />
-                <div className="h-[58px] animate-pulse rounded-xl bg-slate-200/75" />
+                <div className={`h-[58px] rounded-xl bg-slate-200/75 ${compact ? "" : "animate-pulse"}`} />
+                <div className={`h-[58px] rounded-xl bg-slate-200/75 ${compact ? "" : "animate-pulse"}`} />
               </div>
             </div>
           ) : (
@@ -446,7 +462,7 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
 
       {isEditing ? (
         <div
-          className="fixed inset-0 z-[1000] flex items-end justify-center bg-slate-900/45 p-3 pb-24 backdrop-blur-[1px] sm:items-center sm:p-4 sm:pb-4"
+          className="fixed inset-0 z-[1000] flex items-end justify-center bg-slate-900/45 p-3 pb-24 sm:items-center sm:p-4 sm:pb-4 sm:backdrop-blur-[1px]"
           onClick={handleCancelEdit}
         >
           <div
