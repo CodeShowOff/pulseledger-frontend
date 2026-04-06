@@ -1,6 +1,7 @@
 // src/app/(client)/dashboard/page.tsx
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
@@ -14,12 +15,7 @@ import {
   Utensils,
   Waves,
 } from "lucide-react";
-import ClientStats from "@/components/client/ClientStats";
-import AssignedPlans from "@/components/client/AssignedPlans";
-import WaterIntakeWidget from "@/components/client/WaterIntakeWidget";
-import GoalWeightWidget from "../../../components/client/GoalWeightWidget";
 import { useMyCoachQuery } from "@/lib/queries/coach";
-import RoleGuard from "@/components/shared/RoleGuard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -68,6 +64,48 @@ const quickActions = [
     cardTone: "from-violet-50 to-fuchsia-50",
   },
 ] as const;
+
+type CompactWidgetProps = {
+  compact?: boolean;
+};
+
+function DashboardCardSkeleton({ label }: { label: string }) {
+  return (
+    <Card className="border-slate-200/80 bg-white/95">
+      <CardContent className="p-4 sm:p-5">
+        <p className="text-sm text-slate-500">{label}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DashboardWidgetSkeleton({ label }: { label: string }) {
+  return (
+    <div className="h-full min-h-[220px] rounded-2xl border border-slate-200/80 bg-white/95 p-4 shadow-[0_8px_24px_-20px_rgba(15,23,42,0.35)]">
+      <p className="text-sm text-slate-500">{label}</p>
+    </div>
+  );
+}
+
+const AssignedPlans = dynamic(() => import("@/components/client/AssignedPlans"), {
+  ssr: false,
+  loading: () => <DashboardCardSkeleton label="Loading your current plan..." />,
+});
+
+const ClientStats = dynamic(() => import("@/components/client/ClientStats"), {
+  ssr: false,
+  loading: () => <DashboardCardSkeleton label="Loading quick stats..." />,
+});
+
+const WaterIntakeWidget = dynamic<CompactWidgetProps>(() => import("@/components/client/WaterIntakeWidget"), {
+  ssr: false,
+  loading: () => <DashboardWidgetSkeleton label="Loading hydration widget..." />,
+});
+
+const GoalWeightWidget = dynamic<CompactWidgetProps>(() => import("@/components/client/GoalWeightWidget"), {
+  ssr: false,
+  loading: () => <DashboardWidgetSkeleton label="Loading goal widget..." />,
+});
 
 function ConnectedWithCompanyName({ companyName }: { companyName: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -165,8 +203,6 @@ export default function ClientDashboardPage() {
           }
         }
       `}</style>
-
-      <RoleGuard role="client" />
 
       <motion.section variants={fadeInUp} initial="initial" animate="animate" transition={{ duration: 0.28 }}>
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">

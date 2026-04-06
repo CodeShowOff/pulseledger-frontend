@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { Users, UserCheck, User, Package, ClipboardList, CreditCard, Trash2, Mail, Bug, MessageSquare, UserX, DollarSign, Settings, Dumbbell, Utensils } from "lucide-react";
-import RoleGuard from "@/components/shared/RoleGuard";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -84,7 +83,6 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <RoleGuard role="admin" />
       <header className="admin-page-header">
         <h1 className="admin-page-header__title">Dashboard</h1>
         <p className="admin-page-header__subtitle">

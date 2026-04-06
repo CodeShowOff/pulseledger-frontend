@@ -1,24 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import RoleGuard from "@/components/shared/RoleGuard";
 import api from "@/lib/axios";
 import { NotificationItem, useLatestNotifications } from "@/lib/queries/notifications";
-import { Inter } from "next/font/google";
 import { motion } from "framer-motion";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from "recharts";
 import {
   ArrowRight,
   AlertCircle,
@@ -30,7 +20,6 @@ import {
   Sparkles,
   Star,
   Target,
-  TrendingUp,
   MessageSquare,
   UserCircle2,
   Users,
@@ -43,9 +32,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const CoachProgressTrendCard = dynamic(() => import("@/components/coach/CoachProgressTrendCard"), {
+  ssr: false,
+  loading: () => (
+    <Card className="h-full border-slate-200/80 bg-white/95">
+      <CardContent className="p-4">
+        <p className="text-sm text-slate-500">Loading chart data...</p>
+      </CardContent>
+    </Card>
+  ),
 });
 
 type ProgressPoint = {
@@ -344,9 +339,7 @@ export default function CoachDashboard() {
       ];
 
   return (
-    <div className={cn(inter.className, "min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100/70 p-2 md:p-4") }>
-      <RoleGuard role="coach" />
-
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100/70 p-2 md:p-4">
       <div className="mx-auto w-full max-w-[1640px]">
         <div className="grid min-h-[calc(100vh-108px)] grid-cols-1 gap-3">
           <div className="space-y-3">
@@ -660,61 +653,7 @@ export default function CoachDashboard() {
 
             <section className="grid gap-3 xl:grid-cols-[1.6fr_1fr]">
               <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
-                <Card className="h-full border-slate-200/80 bg-white/95">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <span className="grid h-7 w-7 place-items-center rounded-lg bg-blue-50 text-blue-600">
-                        <TrendingUp className="h-4 w-4" />
-                      </span>
-                      Client progress trend
-                    </CardTitle>
-                    <CardDescription>
-                      Minimal weekly BMI trendline with smooth gradient fill.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {progressLoading ? (
-                      <p className="text-sm text-slate-500">Loading chart data...</p>
-                    ) : (
-                      <div className="w-full min-w-0">
-                        <ResponsiveContainer width="100%" height={280} minWidth={0}>
-                          <AreaChart data={chartData} margin={{ top: 8, right: 0, left: -20, bottom: 0 }}>
-                            <defs>
-                              <linearGradient id="coachBmiGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
-                                <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
-                              </linearGradient>
-                            </defs>
-                            <CartesianGrid stroke="#e2e8f0" strokeDasharray="2 8" vertical={false} />
-                            <XAxis dataKey="week" tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
-                            <Tooltip
-                              cursor={{ stroke: "#cbd5e1", strokeWidth: 1 }}
-                              content={({ active, payload, label }) => {
-                                if (!active || !payload?.length) return null;
-                                return (
-                                  <div className="rounded-xl border border-slate-200 bg-white/95 px-3 py-2 text-xs shadow-lg">
-                                    <p className="font-semibold text-slate-700">{label}</p>
-                                    <p className="text-slate-500">Avg BMI: <span className="font-semibold text-slate-800">{Number(payload[0].value).toFixed(1)}</span></p>
-                                  </div>
-                                );
-                              }}
-                            />
-                            <Area
-                              type="monotone"
-                              dataKey="avgBMI"
-                              stroke="#6366f1"
-                              strokeWidth={2.5}
-                              fill="url(#coachBmiGradient)"
-                              dot={{ r: 3, fill: "#6366f1", stroke: "#fff", strokeWidth: 1.5 }}
-                              activeDot={{ r: 5 }}
-                            />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <CoachProgressTrendCard chartData={chartData} isLoading={progressLoading} />
               </motion.div>
 
               <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>

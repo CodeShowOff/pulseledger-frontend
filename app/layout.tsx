@@ -1,21 +1,7 @@
-"use client";
-
-import type { } from "next";
 import "./globals.css";
 import "../styles/admin.css";
 import { Inter } from "next/font/google";
-
-import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
-import ThemeProvider from "@/providers/ThemeProvider";
-import ToastProvider from "@/providers/ToastProvider";
-import Navbar from "@/components/shared/NavBar";
-import PublicNavbar from "@/components/shared/PublicNavbar";
-import AuthCookieSync from "@/components/shared/AuthCookieSync";
-import Footer from "@/components/shared/Footer";
-import QueryProvider from "@/providers/QueryProvider";
-import InstallPrompt from "@/components/shared/InstallPrompt";
-import { publicRoutePrefixes, publicRoutes } from "@/lib/auth";
+import AppShell from "./AppShell";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,12 +13,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  const isHomePage = pathname === "/";
-  const isPublicNavbarRoute =
-    publicRoutes.includes(pathname) ||
-    publicRoutePrefixes.some((prefix) => pathname === prefix || pathname?.startsWith(`${prefix}/`));
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -58,47 +38,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
       </head>
       <body className={`${inter.className} site-shell bg-slate-50/80 text-gray-900 antialiased`}>
-        <QueryProvider>
-          {isPublicNavbarRoute ? <PublicNavbar /> : <Navbar />}
-          <ThemeProvider>
-              <AuthCookieSync />
-              <main className="site-main">
-                <AnimatePresence mode="wait" initial={false}>
-                  {isHomePage ? (
-                    <div key={pathname}>{children}</div>
-                  ) : (
-                    <motion.div
-                      key={pathname}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ duration: 0.2, ease: "easeOut" }}
-                    >
-                      {children}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </main>
-              <ToastProvider />
-          </ThemeProvider>
-          {isHomePage ? (
-            <Footer />
-          ) : (
-            <footer
-              style={{
-                padding: "1.25rem 1rem",
-                textAlign: "center",
-                borderTop: "1px solid #e5e7eb",
-                backgroundColor: "#f9fafb",
-                color: "#6b7280",
-                fontSize: "0.875rem",
-              }}
-            >
-              © {new Date().getFullYear()} FitCoach. All rights reserved.
-            </footer>
-          )}
-          <InstallPrompt />
-        </QueryProvider>
+        <AppShell>{children}</AppShell>
         <div id="modal-root" />
       </body>
     </html>
