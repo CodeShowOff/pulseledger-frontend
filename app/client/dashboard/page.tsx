@@ -4,7 +4,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import {
   ArrowRight,
   BookOpenText,

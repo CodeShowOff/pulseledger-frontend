@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import api from "@/lib/axios";
 import { NotificationItem, useLatestNotifications } from "@/lib/queries/notifications";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import {
   ArrowRight,
   AlertCircle,

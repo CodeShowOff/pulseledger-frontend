@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import { MessageSquareText, Search, SendHorizontal, Users } from "lucide-react";
 import api from "@/lib/axios";
 import { toast } from "sonner";

@@ -4,7 +4,7 @@ import React, { useMemo, useState } from "react";
 import { useNotifications, useMarkAllAsRead, useMarkAsRead } from "@/lib/queries/notifications";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import {
   Bell,
   BellDot,

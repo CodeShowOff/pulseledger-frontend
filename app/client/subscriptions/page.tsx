@@ -11,7 +11,7 @@ import {
 } from "@/lib/queries/subscriptions";
 import api from "@/lib/axios";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import {
   ArrowRight,
   ClipboardList,

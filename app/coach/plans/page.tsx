@@ -4,7 +4,7 @@
 import React from "react";
 import Link from "next/link";
 import PlanListView from "@/components/coach/PlanListView";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import { Plus, CreditCard, ClipboardList, Dumbbell, Utensils, Layers3, Sparkles, ArrowRight } from "lucide-react";
 import { useCoachPendingPlanRequests } from "@/lib/queries/planRequests";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

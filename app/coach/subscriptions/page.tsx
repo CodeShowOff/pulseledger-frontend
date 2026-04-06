@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { useCoachPendingPlanRequests } from "@/lib/queries/planRequests";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import {
   ClipboardList,
   CreditCard,

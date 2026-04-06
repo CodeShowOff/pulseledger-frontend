@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import {
   CheckCircle2,
   ClipboardList,

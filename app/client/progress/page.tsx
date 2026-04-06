@@ -3,7 +3,7 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import ProgressPhotos from "@/components/client/ProgressPhotos";
 import ProgressDataCards from "@/components/client/ProgressDataCards";
 import { Badge } from "@/components/ui/badge";

@@ -2,7 +2,7 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import { Droplets } from "lucide-react";
 import RoleGuard from "@/components/shared/RoleGuard";
 import {

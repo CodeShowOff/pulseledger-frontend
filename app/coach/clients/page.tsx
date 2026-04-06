@@ -4,7 +4,7 @@
 import React from "react";
 import CoachClients from "../../../components/coach/CoachClients";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import { Badge } from "@/components/ui/badge";
 import { Users } from "lucide-react";
 import { useCoachPendingPlanRequests } from "@/lib/queries/planRequests";

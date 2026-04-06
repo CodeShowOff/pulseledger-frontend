@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import api from "@/lib/axios";
 import getErrorMessage from "@/lib/getErrorMessage";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import {
   Calendar,
   CheckCircle2,

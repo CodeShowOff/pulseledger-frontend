@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import Link from "next/link";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

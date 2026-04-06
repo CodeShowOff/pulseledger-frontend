@@ -3,7 +3,7 @@
 import { type ComponentType, type FormEvent, type ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import {
   ArrowLeft,
   Building2,

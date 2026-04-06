@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, MessageSquare, Search, User } from "lucide-react";
 import api from "@/lib/axios";

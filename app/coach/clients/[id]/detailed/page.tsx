@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { useSearchParams, useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import { ArrowLeft, LineChart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

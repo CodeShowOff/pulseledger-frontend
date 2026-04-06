@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import {
   Calendar,
   ChevronLeft,

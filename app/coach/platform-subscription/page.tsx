@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import axios from "axios";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import { AlertCircle, Clock, Upload, X, Copy } from "lucide-react";
 import { useProfileQuery } from "@/lib/queries/profile";
 

@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import {
   ResponsiveContainer,
   BarChart,

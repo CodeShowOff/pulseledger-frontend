@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import api from "@/lib/axios";
 import axios from "axios";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import { ArrowLeft, Sparkles, TriangleAlert } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

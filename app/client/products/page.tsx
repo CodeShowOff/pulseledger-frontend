@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { useCartStore } from "@/lib/cartStore";
 import { useAuthStore } from "@/lib/store";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import {
   Boxes,
   Minus,
