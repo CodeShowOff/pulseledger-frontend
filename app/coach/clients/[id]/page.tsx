@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import api from "@/lib/axios";
 import {
@@ -29,7 +30,6 @@ import {
   XCircle,
 } from "lucide-react";
 import ClientProgressPhotos from "@/components/coach/ClientProgressPhotos";
-import DetailedProgressCharts from "@/components/client/DetailedProgressCharts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -110,6 +110,20 @@ const fadeInUp = {
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
 };
+
+const DetailedProgressCharts = dynamic(
+  () => import("@/components/client/DetailedProgressCharts"),
+  {
+    ssr: false,
+    loading: () => (
+      <Card className="border-slate-200/80 bg-white/95">
+        <CardContent className="p-5">
+          <p className="text-sm text-slate-500">Loading progress charts...</p>
+        </CardContent>
+      </Card>
+    ),
+  }
+);
 
 function formatDate(value?: string | null) {
   if (!value) return "-";

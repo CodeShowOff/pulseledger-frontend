@@ -12,6 +12,11 @@ export const CHAT_QK = {
   broadcast: ["chat", "broadcast"] as const,
 };
 
+type UnreadCountOptions = {
+  enabled?: boolean;
+  pollIntervalMs?: number;
+};
+
 // ============ Conversation Queries ============
 
 export function useConversations() {
@@ -68,7 +73,10 @@ export function useConversationMembers(conversationId: string | null) {
   });
 }
 
-export function useUnreadChatCount() {
+export function useUnreadChatCount({
+  enabled = true,
+  pollIntervalMs = 30000,
+}: UnreadCountOptions = {}) {
   return useQuery({
     queryKey: CHAT_QK.unreadCount,
     queryFn: async () => {
@@ -80,7 +88,11 @@ export function useUnreadChatCount() {
         return 0;
       }
     },
-    refetchInterval: 30000,
+    enabled,
+    staleTime: 15000,
+    refetchOnWindowFocus: enabled,
+    refetchInterval: enabled ? pollIntervalMs : false,
+    refetchIntervalInBackground: false,
   });
 }
 

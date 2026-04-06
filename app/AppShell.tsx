@@ -12,7 +12,6 @@ import PublicNavbar from "@/components/shared/PublicNavbar";
 import AuthCookieSync from "@/components/shared/AuthCookieSync";
 import Footer from "@/components/shared/Footer";
 import { publicRoutePrefixes, publicRoutes } from "@/lib/auth";
-import { MotionProvider } from "@/lib/motion";
 
 const InstallPrompt = dynamic(() => import("@/components/shared/InstallPrompt"), {
   ssr: false,
@@ -33,36 +32,34 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryProvider>
-      <MotionProvider>
-        {isPublicNavbarRoute ? <PublicNavbar /> : <Navbar />}
+      {isPublicNavbarRoute ? <PublicNavbar /> : <Navbar />}
 
-        <ThemeProvider>
-          <AuthCookieSync />
+      <ThemeProvider>
+        <AuthCookieSync />
 
-          <main className="site-main">{children}</main>
+        <main className="site-main">{children}</main>
 
-          <ToastProvider />
-        </ThemeProvider>
+        <ToastProvider />
+      </ThemeProvider>
 
-        {isHomePage ? (
-          <Footer />
-        ) : (
-          <footer
-            style={{
-              padding: "1.25rem 1rem",
-              textAlign: "center",
-              borderTop: "1px solid #e5e7eb",
-              backgroundColor: "#f9fafb",
-              color: "#6b7280",
-              fontSize: "0.875rem",
-            }}
-          >
-            © {new Date().getFullYear()} FitCoach. All rights reserved.
-          </footer>
-        )}
+      {isHomePage ? (
+        <Footer />
+      ) : (
+        <footer
+          style={{
+            padding: "1.25rem 1rem",
+            textAlign: "center",
+            borderTop: "1px solid #e5e7eb",
+            backgroundColor: "#f9fafb",
+            color: "#6b7280",
+            fontSize: "0.875rem",
+          }}
+        >
+          © {new Date().getFullYear()} FitCoach. All rights reserved.
+        </footer>
+      )}
 
-        <InstallPrompt />
-      </MotionProvider>
+      <InstallPrompt />
     </QueryProvider>
   );
 }

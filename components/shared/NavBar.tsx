@@ -24,7 +24,8 @@ const Navbar = React.memo(function Navbar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const avatarUrl = useAuthStore((s) => s.user?.avatarUrl);
-  const { data: unreadCount = 0 } = useUnreadChatCount();
+  const shouldPollUnreadCount = user?.role === "client" || user?.role === "coach";
+  const { data: unreadCount = 0 } = useUnreadChatCount({ enabled: shouldPollUnreadCount });
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
