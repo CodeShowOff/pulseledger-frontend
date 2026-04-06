@@ -1,6 +1,6 @@
 // Chat Store - Socket.IO connection and real-time state management
 import { create } from "zustand";
-import { io, Socket } from "socket.io-client";
+import type { Socket } from "socket.io-client";
 import { useAuthStore } from "./store";
 
 // ============ Types ============
@@ -189,6 +189,8 @@ const SOCKET_EVENTS = {
   TYPING_UPDATE: "typing:update",
 } as const;
 
+let connectAttemptId = 0;
+
 // ============ Store ============
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -211,7 +213,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   // Connect to socket server
   connect: () => {
     const { socket } = get();
-    if (socket?.connected) return;
+    if (socket) return;
 
     const token = useAuthStore.getState().accessToken;
     if (!token) {
@@ -223,177 +225,200 @@ export const useChatStore = create<ChatState>((set, get) => ({
       process.env.NEXT_PUBLIC_BACKEND_URL ||
       (typeof window !== "undefined" ? "http://localhost:5000" : "");
 
-    // console.log("🔌 Connecting to socket:", socketUrl);
+    const attemptId = ++connectAttemptId;
+    set({ connectionError: null });
 
-    const newSocket = io(socketUrl, {
-      auth: { token },
-      transports: ["polling", "websocket"], // Start with polling, then upgrade to websocket
-      upgrade: true,
-      reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      timeout: 30000,
-      forceNew: true,
-    });
+    void (async () => {
+      try {
+        const { io } = await import("socket.io-client");
 
-    // Connection events
-    newSocket.on("connect", () => {
-      // console.log("🔌 Socket connected");
-      set({ isConnected: true, connectionError: null });
-
-      // If a conversation was selected before socket was ready,
-      // re-select it now to join room and fetch message history.
-      const { activeConversationId, messages } = get();
-      if (activeConversationId && messages.length === 0) {
-        get().setActiveConversation(activeConversationId);
-      }
-    });
-
-    newSocket.on("disconnect", (reason) => {
-      // console.log("🔌 Socket disconnected:", reason);
-      set({ isConnected: false });
-    });
-
-    newSocket.on("connect_error", (error) => {
-      // console.warn("🔌 Socket connection error:", error.message);
-      // Don't set connection error for transient websocket errors during upgrade
-      // Only set error if we've exhausted reconnection attempts or it's a critical error
-      const isTransientError = error.message?.includes("websocket error") || 
-                               error.message?.includes("transport close") ||
-                               error.message?.includes("xhr poll error");
-      if (!isTransientError) {
-        set({ connectionError: error.message, isConnected: false });
-      }
-    });
-
-    // Message events
-    newSocket.on(SOCKET_EVENTS.NEW_MESSAGE, (data: { message: ChatMessage; conversationId: string }) => {
-      const { activeConversationId, messages } = get();
-      const normalizedMessage = normalizeMessage(data.message);
-      
-      // Add message if it's for the active conversation
-      if (data.conversationId === activeConversationId) {
-        // Check if message already exists (prevent duplicates)
-        const exists = messages.some((m) => m._id === normalizedMessage._id);
-        if (!exists) {
-          set({ messages: [...messages, normalizedMessage] });
+        // Exit if a newer connect/disconnect cycle has already started.
+        if (attemptId !== connectAttemptId || get().socket) {
+          return;
         }
-      }
-    });
 
-    newSocket.on(SOCKET_EVENTS.MESSAGE_DELETED, (data: { messageId: string; conversationId: string }) => {
-      const { activeConversationId, messages } = get();
-      
-      if (data.conversationId === activeConversationId) {
-        set({
-          messages: messages.map((m) =>
-            m._id === data.messageId
-              ? { ...m, isDeleted: true, content: undefined, mediaUrl: undefined }
-              : m
-          ),
+        // console.log("🔌 Connecting to socket:", socketUrl);
+
+        const newSocket = io(socketUrl, {
+          auth: { token },
+          transports: ["polling", "websocket"], // Start with polling, then upgrade to websocket
+          upgrade: true,
+          reconnection: true,
+          reconnectionAttempts: 10,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          timeout: 30000,
+          forceNew: true,
         });
-      }
-    });
 
-    newSocket.on(SOCKET_EVENTS.MESSAGE_EDITED, (data: { 
-      messageId: string; 
-      conversationId: string; 
-      content: string; 
-      editedAt: string;
-    }) => {
-      const { activeConversationId, messages } = get();
-      
-      if (data.conversationId === activeConversationId) {
-        set({
-          messages: messages.map((m) =>
-            m._id === data.messageId
-              ? { ...m, content: data.content, isEdited: true, editedAt: data.editedAt }
-              : m
-          ),
+        // Connection events
+        newSocket.on("connect", () => {
+          // console.log("🔌 Socket connected");
+          set({ isConnected: true, connectionError: null });
+
+          // If a conversation was selected before socket was ready,
+          // re-select it now to join room and fetch message history.
+          const { activeConversationId, messages } = get();
+          if (activeConversationId && messages.length === 0) {
+            get().setActiveConversation(activeConversationId);
+          }
         });
-      }
-    });
 
-    newSocket.on(SOCKET_EVENTS.CONVERSATION_UPDATE, (data: {
-      conversationId: string;
-      lastMessageAt: string;
-      lastMessagePreview: string;
-      lastMessageSenderId: string;
-      unreadIncrement?: number;
-    }) => {
-      const { conversations, activeConversationId, totalUnreadCount } = get();
-      
-      set({
-        conversations: conversations.map((c) =>
-          c._id === data.conversationId
-            ? {
-                ...c,
-                lastMessageAt: data.lastMessageAt,
-                lastMessagePreview: data.lastMessagePreview,
-                lastMessageSenderId: data.lastMessageSenderId,
-                unreadCount: data.conversationId === activeConversationId 
-                  ? 0 
-                  : c.unreadCount + (data.unreadIncrement || 0),
-              }
-            : c
-        ),
-        totalUnreadCount: data.conversationId === activeConversationId 
-          ? totalUnreadCount 
-          : totalUnreadCount + (data.unreadIncrement || 0),
-      });
-    });
-
-    newSocket.on(SOCKET_EVENTS.TYPING_UPDATE, (data: {
-      conversationId: string;
-      userId: string;
-      userName: string;
-      isTyping: boolean;
-    }) => {
-      const { activeConversationId, typingUsers } = get();
-      
-      if (data.conversationId === activeConversationId) {
-        const newTypingUsers = new Map(typingUsers);
-        
-        if (data.isTyping) {
-          newTypingUsers.set(data.userId, data);
-        } else {
-          newTypingUsers.delete(data.userId);
-        }
-        
-        set({ typingUsers: newTypingUsers });
-      }
-    });
-
-    // Listen for message notifications (when not viewing that conversation)
-    newSocket.on(SOCKET_EVENTS.MESSAGE_NOTIFICATION, (data: {
-      conversationId: string;
-      message: ChatMessage;
-      senderName: string;
-    }) => {
-      const { activeConversationId, onNotification } = get();
-      const normalizedMessage = normalizeMessage(data.message);
-      
-      // Only show notification if we're not viewing that conversation
-      if (data.conversationId !== activeConversationId && onNotification) {
-        onNotification({
-          title: data.senderName,
-          message: normalizedMessage.content || normalizedMessage.linkUrl || "Sent a message",
-          conversationId: data.conversationId,
+        newSocket.on("disconnect", (reason) => {
+          // console.log("🔌 Socket disconnected:", reason);
+          set({ isConnected: false });
         });
-      }
-    });
 
-    set({ socket: newSocket });
+        newSocket.on("connect_error", (error) => {
+          // console.warn("🔌 Socket connection error:", error.message);
+          // Don't set connection error for transient websocket errors during upgrade
+          // Only set error if we've exhausted reconnection attempts or it's a critical error
+          const isTransientError = error.message?.includes("websocket error") || 
+                                  error.message?.includes("transport close") ||
+                                  error.message?.includes("xhr poll error");
+          if (!isTransientError) {
+            set({ connectionError: error.message, isConnected: false });
+          }
+        });
+
+        // Message events
+        newSocket.on(SOCKET_EVENTS.NEW_MESSAGE, (data: { message: ChatMessage; conversationId: string }) => {
+          const { activeConversationId, messages } = get();
+          const normalizedMessage = normalizeMessage(data.message);
+          
+          // Add message if it's for the active conversation
+          if (data.conversationId === activeConversationId) {
+            // Check if message already exists (prevent duplicates)
+            const exists = messages.some((m) => m._id === normalizedMessage._id);
+            if (!exists) {
+              set({ messages: [...messages, normalizedMessage] });
+            }
+          }
+        });
+
+        newSocket.on(SOCKET_EVENTS.MESSAGE_DELETED, (data: { messageId: string; conversationId: string }) => {
+          const { activeConversationId, messages } = get();
+          
+          if (data.conversationId === activeConversationId) {
+            set({
+              messages: messages.map((m) =>
+                m._id === data.messageId
+                  ? { ...m, isDeleted: true, content: undefined, mediaUrl: undefined }
+                  : m
+              ),
+            });
+          }
+        });
+
+        newSocket.on(SOCKET_EVENTS.MESSAGE_EDITED, (data: { 
+          messageId: string; 
+          conversationId: string; 
+          content: string; 
+          editedAt: string;
+        }) => {
+          const { activeConversationId, messages } = get();
+          
+          if (data.conversationId === activeConversationId) {
+            set({
+              messages: messages.map((m) =>
+                m._id === data.messageId
+                  ? { ...m, content: data.content, isEdited: true, editedAt: data.editedAt }
+                  : m
+              ),
+            });
+          }
+        });
+
+        newSocket.on(SOCKET_EVENTS.CONVERSATION_UPDATE, (data: {
+          conversationId: string;
+          lastMessageAt: string;
+          lastMessagePreview: string;
+          lastMessageSenderId: string;
+          unreadIncrement?: number;
+        }) => {
+          const { conversations, activeConversationId, totalUnreadCount } = get();
+          
+          set({
+            conversations: conversations.map((c) =>
+              c._id === data.conversationId
+                ? {
+                    ...c,
+                    lastMessageAt: data.lastMessageAt,
+                    lastMessagePreview: data.lastMessagePreview,
+                    lastMessageSenderId: data.lastMessageSenderId,
+                    unreadCount: data.conversationId === activeConversationId 
+                      ? 0 
+                      : c.unreadCount + (data.unreadIncrement || 0),
+                  }
+                : c
+            ),
+            totalUnreadCount: data.conversationId === activeConversationId 
+              ? totalUnreadCount 
+              : totalUnreadCount + (data.unreadIncrement || 0),
+          });
+        });
+
+        newSocket.on(SOCKET_EVENTS.TYPING_UPDATE, (data: {
+          conversationId: string;
+          userId: string;
+          userName: string;
+          isTyping: boolean;
+        }) => {
+          const { activeConversationId, typingUsers } = get();
+          
+          if (data.conversationId === activeConversationId) {
+            const newTypingUsers = new Map(typingUsers);
+            
+            if (data.isTyping) {
+              newTypingUsers.set(data.userId, data);
+            } else {
+              newTypingUsers.delete(data.userId);
+            }
+            
+            set({ typingUsers: newTypingUsers });
+          }
+        });
+
+        // Listen for message notifications (when not viewing that conversation)
+        newSocket.on(SOCKET_EVENTS.MESSAGE_NOTIFICATION, (data: {
+          conversationId: string;
+          message: ChatMessage;
+          senderName: string;
+        }) => {
+          const { activeConversationId, onNotification } = get();
+          const normalizedMessage = normalizeMessage(data.message);
+          
+          // Only show notification if we're not viewing that conversation
+          if (data.conversationId !== activeConversationId && onNotification) {
+            onNotification({
+              title: data.senderName,
+              message: normalizedMessage.content || normalizedMessage.linkUrl || "Sent a message",
+              conversationId: data.conversationId,
+            });
+          }
+        });
+
+        set({ socket: newSocket });
+      } catch (error) {
+        if (attemptId !== connectAttemptId) return;
+        const message =
+          error instanceof Error ? error.message : "Failed to initialize chat connection";
+        set({ connectionError: message, isConnected: false });
+      }
+    })();
   },
 
   // Disconnect from socket server
   disconnect: () => {
+    connectAttemptId += 1;
     const { socket } = get();
     if (socket) {
       socket.disconnect();
       set({ socket: null, isConnected: false });
+      return;
     }
+
+    set({ isConnected: false });
   },
 
   // Set active conversation and join room

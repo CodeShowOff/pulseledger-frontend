@@ -34,42 +34,6 @@
   }
 }
 
-/* Override client-page__inner and coach-content__inner max-width when containing chat */
-:global(.client-page__inner:has(.chatPageFull)),
-:global(.coach-content__inner:has(.chatPageFull)) {
-  max-width: 100%;
-  padding: 0;
-  gap: 0;
-  margin: 0;
-  width: 100%;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-/* Mobile: ensure inner wrappers have no height restrictions */
-@media (max-width: 768px) {
-  :global(.client-page__inner:has(.chatPageFull)),
-  :global(.coach-content__inner:has(.chatPageFull)) {
-    height: 100%;
-    max-height: 100%;
-    overflow: hidden;
-  }
-}
-
-/* Hide footer when chat is present - using correct selector */
-:global(body:has(.chatPageFull) footer),
-:global(body:has(.chatPageFull) .site-footer) {
-  display: none !important;
-}
-
-/* Prevent body overflow and ensure no extra space at bottom */
-:global(body:has(.chatPageFull)) {
-  overflow: hidden;
-  height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile */
-}
-
-
 /* Legacy chat page (with header) - kept for backward compatibility */
 .chatPage {
   display: flex;

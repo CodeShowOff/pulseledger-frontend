@@ -1,7 +1,7 @@
 // Chat API queries - React Query hooks for REST endpoints
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
-import { Conversation, ChatMessage } from "@/lib/chatStore";
+import type { Conversation, ChatMessage } from "@/lib/chatStore";
 
 export const CHAT_QK = {
   conversations: ["chat", "conversations"] as const,

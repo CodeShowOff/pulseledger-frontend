@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
-import { useChatStore } from "@/lib/chatStore";
 import NotificationBell from "@/components/shared/NotificationBell";
 import { useUnreadChatCount } from "@/lib/queries/chat";
 import {
@@ -25,12 +24,12 @@ const Navbar = React.memo(function Navbar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const avatarUrl = useAuthStore((s) => s.user?.avatarUrl);
-  const activeConversationId = useChatStore((s) => s.activeConversationId);
   const { data: unreadCount = 0 } = useUnreadChatCount();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isChatConversationOpen, setIsChatConversationOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   // Hide navbar on scroll down, show on scroll up
@@ -80,6 +79,21 @@ const Navbar = React.memo(function Navbar() {
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    const body = document.body;
+
+    const syncConversationOpenState = () => {
+      setIsChatConversationOpen(body.classList.contains("chat-conversation-open"));
+    };
+
+    syncConversationOpenState();
+
+    const observer = new MutationObserver(syncConversationOpenState);
+    observer.observe(body, { attributes: true, attributeFilter: ["class"] });
+
+    return () => observer.disconnect();
+  }, []);
+
   const isActive = useCallback(
     (p: string) => pathname === p || pathname?.startsWith(p + "/"),
     [pathname]
@@ -118,9 +132,7 @@ const Navbar = React.memo(function Navbar() {
   }, [user]);
 
   const isChatRoute = pathname?.startsWith("/client/chat") || pathname?.startsWith("/coach/chat");
-  const showMobileBottomNav =
-    !!user &&
-    !(isChatRoute && !!activeConversationId);
+  const showMobileBottomNav = !!user && !(isChatRoute && isChatConversationOpen);
 
   useEffect(() => {
     const body = document.body;
