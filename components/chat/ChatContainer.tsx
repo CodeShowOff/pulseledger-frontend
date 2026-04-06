@@ -12,6 +12,7 @@ import {
   ChatMessage,
   getConversationName,
 } from "@/lib/chatStore";
+import { shallow } from "zustand/shallow";
 import { useConversations, useUploadChatImage, useToggleMute } from "@/lib/queries/chat";
 import { ArrowLeft } from "lucide-react";
 
@@ -33,30 +34,63 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
   const currentUserId = useAuthStore((s) => s.user?.id) || "";
   const dashboardHref = userRole === "coach" ? "/coach/dashboard" : "/client/dashboard";
   
-  // Chat store
+  // Chat store state (selector-based subscription to avoid unrelated rerenders)
   const {
-    connect,
-    disconnect,
     isConnected,
     connectionError,
     conversations,
     activeConversationId,
-    setActiveConversation,
-    setConversations,
     messages,
     isLoadingMessages,
     hasMoreMessages,
+    typingUsers,
+    onlineUsers,
+  } = useChatStore(
+    (state) => ({
+      isConnected: state.isConnected,
+      connectionError: state.connectionError,
+      conversations: state.conversations,
+      activeConversationId: state.activeConversationId,
+      messages: state.messages,
+      isLoadingMessages: state.isLoadingMessages,
+      hasMoreMessages: state.hasMoreMessages,
+      typingUsers: state.typingUsers,
+      onlineUsers: state.onlineUsers,
+    }),
+    shallow
+  );
+
+  // Chat store actions (kept separate so action references stay stable)
+  const {
+    connect,
+    disconnect,
+    setActiveConversation,
+    setConversations,
     loadMoreMessages,
     sendMessage,
     sendTyping,
     deleteMessage,
     editMessage,
     markAsRead,
-    typingUsers,
-    onlineUsers,
     checkOnlineStatus,
     setNotificationCallback,
-  } = useChatStore();
+  } = useChatStore(
+    (state) => ({
+      connect: state.connect,
+      disconnect: state.disconnect,
+      setActiveConversation: state.setActiveConversation,
+      setConversations: state.setConversations,
+      loadMoreMessages: state.loadMoreMessages,
+      sendMessage: state.sendMessage,
+      sendTyping: state.sendTyping,
+      deleteMessage: state.deleteMessage,
+      editMessage: state.editMessage,
+      markAsRead: state.markAsRead,
+      checkOnlineStatus: state.checkOnlineStatus,
+      setNotificationCallback: state.setNotificationCallback,
+    }),
+    shallow
+  );
 
   // Query for initial conversations
   const { data: apiConversations, isLoading: isLoadingConversations } = useConversations();

@@ -505,20 +505,13 @@ export default function CoachProductsPage() {
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                {products.map((product, index) => {
+                {products.map((product) => {
                   const hasDiscount =
                     Number.isFinite(product.mrp) &&
                     Number(product.mrp) > Number(product.price);
 
                   return (
-                    <motion.article
-                      key={product._id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.22, delay: index * 0.02 }}
-                      whileHover={{ y: -3 }}
-                      className="h-full"
-                    >
+                    <article key={product._id} className="h-full">
                       <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-3 transition-all hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.55)]">
                         <div className="relative mb-3 flex h-[170px] items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
                           {product.imageUrl ? (
@@ -607,7 +600,7 @@ export default function CoachProductsPage() {
                           ) : null}
                         </div>
                       </div>
-                    </motion.article>
+                    </article>
                   );
                 })}
               </div>

@@ -307,16 +307,11 @@ export default function NotificationsPage() {
             </CardHeader>
 
             <CardContent className="space-y-3">
-              {list.map((n, index) => {
+              {list.map((n) => {
                 const tone = getNotificationTone(n.type);
 
                 return (
-                  <motion.article
-                    key={n._id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: index * 0.02 }}
-                  >
+                  <article key={n._id}>
                     <div
                       className={cn(
                         "rounded-2xl border p-4 transition-colors",
@@ -391,7 +386,7 @@ export default function NotificationsPage() {
                         </div>
                       </div>
                     </div>
-                  </motion.article>
+                  </article>
                 );
               })}
             </CardContent>

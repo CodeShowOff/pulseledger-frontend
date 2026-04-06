@@ -108,6 +108,55 @@ const getRepsDisplay = (exercise?: Exercise) => {
   return "-";
 };
 
+interface CountdownTickerProps {
+  startSeconds: number;
+  isRunning: boolean;
+  resetToken: number;
+  onComplete?: () => void;
+  className?: string;
+}
+
+const CountdownTicker = React.memo(function CountdownTicker({
+  startSeconds,
+  isRunning,
+  resetToken,
+  onComplete,
+  className = "",
+}: CountdownTickerProps) {
+  const [secondsLeft, setSecondsLeft] = useState(() => Math.max(0, startSeconds));
+  const onCompleteRef = React.useRef<(() => void) | undefined>(onComplete);
+  const hasCompletedRef = React.useRef(false);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  useEffect(() => {
+    setSecondsLeft(Math.max(0, startSeconds));
+    hasCompletedRef.current = false;
+  }, [startSeconds, resetToken]);
+
+  useEffect(() => {
+    if (!isRunning || secondsLeft <= 0) return;
+
+    const timer = window.setTimeout(() => {
+      setSecondsLeft((previous) => Math.max(0, previous - 1));
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [isRunning, secondsLeft]);
+
+  useEffect(() => {
+    if (!isRunning || secondsLeft !== 0 || hasCompletedRef.current) return;
+    hasCompletedRef.current = true;
+    onCompleteRef.current?.();
+  }, [isRunning, secondsLeft]);
+
+  return <p className={className}>{secondsLeft}s</p>;
+});
+
+CountdownTicker.displayName = "CountdownTicker";
+
 export default function ClientTodayWorkoutPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -120,11 +169,13 @@ export default function ClientTodayWorkoutPage() {
   const [completedExercises, setCompletedExercises] = useState<Set<number>>(new Set());
   const [skippedExercises, setSkippedExercises] = useState<Set<number>>(new Set());
   const [isResting, setIsResting] = useState(false);
-  const [restTimeLeft, setRestTimeLeft] = useState(0);
+  const [restDurationSeconds, setRestDurationSeconds] = useState(0);
+  const [restTimerResetToken, setRestTimerResetToken] = useState(0);
   const [showInstructions, setShowInstructions] = useState(false);
   const [workoutStartTime, setWorkoutStartTime] = useState<Date | null>(null);
   const [isExerciseTimerRunning, setIsExerciseTimerRunning] = useState(false);
-  const [exerciseTimeLeft, setExerciseTimeLeft] = useState(20);
+  const [exerciseTimerDurationSeconds, setExerciseTimerDurationSeconds] = useState(20);
+  const [exerciseTimerResetToken, setExerciseTimerResetToken] = useState(0);
 
   const [showMoodDialog, setShowMoodDialog] = useState(false);
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
@@ -157,11 +208,13 @@ export default function ClientTodayWorkoutPage() {
     setCompletedExercises(new Set());
     setSkippedExercises(new Set());
     setIsResting(false);
-    setRestTimeLeft(0);
+    setRestDurationSeconds(0);
+    setRestTimerResetToken((previous) => previous + 1);
     setShowInstructions(false);
     setWorkoutStartTime(null);
     setIsExerciseTimerRunning(false);
-    setExerciseTimeLeft(20);
+    setExerciseTimerDurationSeconds(20);
+    setExerciseTimerResetToken((previous) => previous + 1);
     setShowMoodDialog(false);
     setSelectedMood(null);
     setWorkoutNotes("");
@@ -242,47 +295,9 @@ export default function ClientTodayWorkoutPage() {
   });
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-
-    if (isResting && restTimeLeft > 0) {
-      timer = setTimeout(() => {
-        setRestTimeLeft((previous) => {
-          if (previous <= 1) {
-            setIsResting(false);
-            toast("Rest complete! Let's go.");
-            return 0;
-          }
-          return previous - 1;
-        });
-      }, 1000);
-    }
-
-    return () => clearTimeout(timer);
-  }, [isResting, restTimeLeft]);
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-
-    if (isExerciseTimerRunning && exerciseTimeLeft > 0) {
-      timer = setTimeout(() => {
-        setExerciseTimeLeft((previous) => {
-          if (previous <= 1) {
-            setIsExerciseTimerRunning(false);
-            toast.success("Timer done. Finish this move!");
-            return 0;
-          }
-
-          return previous - 1;
-        });
-      }, 1000);
-    }
-
-    return () => clearTimeout(timer);
-  }, [exerciseTimeLeft, isExerciseTimerRunning]);
-
-  useEffect(() => {
     const duration = activeExercise?.duration || 20;
-    setExerciseTimeLeft(duration);
+    setExerciseTimerDurationSeconds(duration);
+    setExerciseTimerResetToken((previous) => previous + 1);
     setIsExerciseTimerRunning(false);
   }, [activeExercise?.duration, currentExerciseIndex]);
 
@@ -324,9 +339,11 @@ export default function ClientTodayWorkoutPage() {
     setSkippedExercises(new Set());
     setWorkoutStartTime(null);
     setIsResting(false);
-    setRestTimeLeft(0);
+    setRestDurationSeconds(0);
+    setRestTimerResetToken((previous) => previous + 1);
     setIsExerciseTimerRunning(false);
-    setExerciseTimeLeft(0);
+    setExerciseTimerDurationSeconds(0);
+    setExerciseTimerResetToken((previous) => previous + 1);
     setShowInstructions(false);
   };
 
@@ -351,12 +368,14 @@ export default function ClientTodayWorkoutPage() {
 
     if (nextIndex !== -1) {
       setCurrentExerciseIndex(nextIndex);
-      setRestTimeLeft(activeExercise.restSeconds || 20);
+      setRestDurationSeconds(activeExercise.restSeconds || 20);
+      setRestTimerResetToken((previous) => previous + 1);
       setIsResting(true);
     }
 
     setIsExerciseTimerRunning(false);
-    setExerciseTimeLeft(0);
+    setExerciseTimerDurationSeconds(0);
+    setExerciseTimerResetToken((previous) => previous + 1);
   };
 
   const skipExercise = () => {
@@ -384,15 +403,18 @@ export default function ClientTodayWorkoutPage() {
     }
 
     setIsResting(false);
-    setRestTimeLeft(0);
+    setRestDurationSeconds(0);
+    setRestTimerResetToken((previous) => previous + 1);
     setIsExerciseTimerRunning(false);
-    setExerciseTimeLeft(0);
+    setExerciseTimerDurationSeconds(0);
+    setExerciseTimerResetToken((previous) => previous + 1);
   };
 
   const goToExercise = (index: number) => {
     setCurrentExerciseIndex(index);
     setIsResting(false);
-    setRestTimeLeft(0);
+    setRestDurationSeconds(0);
+    setRestTimerResetToken((previous) => previous + 1);
     setIsExerciseTimerRunning(false);
     setShowInstructions(false);
 
@@ -413,7 +435,8 @@ export default function ClientTodayWorkoutPage() {
       return;
     }
 
-    setExerciseTimeLeft(activeExercise?.duration || 20);
+    setExerciseTimerDurationSeconds(activeExercise?.duration || 20);
+    setExerciseTimerResetToken((previous) => previous + 1);
     setIsExerciseTimerRunning(true);
   };
 
@@ -436,7 +459,8 @@ export default function ClientTodayWorkoutPage() {
 
     setCurrentExerciseIndex(next);
     setIsResting(false);
-    setRestTimeLeft(0);
+    setRestDurationSeconds(0);
+    setRestTimerResetToken((previous) => previous + 1);
     setIsExerciseTimerRunning(false);
     setShowInstructions(false);
   };
@@ -834,11 +858,21 @@ export default function ClientTodayWorkoutPage() {
             <section className="rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 text-center shadow-sm">
               <Clock3 className="mx-auto h-7 w-7 text-blue-500" />
               <p className="mt-2 text-sm font-medium text-blue-700">Recovery break</p>
-              <p className="mt-1 text-4xl font-bold tracking-tight text-blue-900">{restTimeLeft}s</p>
+              <CountdownTicker
+                startSeconds={restDurationSeconds}
+                isRunning={isResting}
+                resetToken={restTimerResetToken}
+                onComplete={() => {
+                  setIsResting(false);
+                  toast("Rest complete! Let's go.");
+                }}
+                className="mt-1 text-4xl font-bold tracking-tight text-blue-900"
+              />
               <button
                 onClick={() => {
                   setIsResting(false);
-                  setRestTimeLeft(0);
+                  setRestDurationSeconds(0);
+                  setRestTimerResetToken((previous) => previous + 1);
                 }}
                 className="mt-4 rounded-full border border-blue-200 bg-white px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50"
               >
@@ -901,7 +935,16 @@ export default function ClientTodayWorkoutPage() {
 
                 <div className="mx-auto grid h-28 w-28 place-items-center rounded-full border border-indigo-100 bg-indigo-50 text-center">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-indigo-600">Timer</p>
-                  <p className="text-2xl font-bold tracking-tight text-indigo-900">{exerciseTimeLeft}s</p>
+                  <CountdownTicker
+                    startSeconds={exerciseTimerDurationSeconds}
+                    isRunning={isExerciseTimerRunning}
+                    resetToken={exerciseTimerResetToken}
+                    onComplete={() => {
+                      setIsExerciseTimerRunning(false);
+                      toast.success("Timer done. Finish this move!");
+                    }}
+                    className="text-2xl font-bold tracking-tight text-indigo-900"
+                  />
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
