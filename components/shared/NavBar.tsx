@@ -10,7 +10,7 @@ import { useUnreadChatCount } from "@/lib/queries/chat";
 import {
   House,
   LayoutDashboard,
-  TrendingUp,
+  BarChart3,
   CreditCard,
   Package,
   Users,
@@ -152,7 +152,7 @@ const Navbar = React.memo(function Navbar() {
     { label: "Dashboard", href: "/client/dashboard", icon: LayoutDashboard },
     { label: "Plan", href: "/client/subscriptions", icon: CreditCard },
     { label: "Chat", href: "/client/chat", icon: MessageCircleMore },
-    { label: "Progress", href: "/client/progress", icon: TrendingUp },
+    { label: "Progress", href: "/client/progress", icon: BarChart3 },
     { label: "Products", href: "/client/products", icon: Package },
   ];
 

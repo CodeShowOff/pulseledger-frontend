@@ -187,45 +187,27 @@ export default function ClientSubscriptionsPage() {
         initial="initial"
         animate="animate"
         transition={{ duration: 0.28, delay: 0.05 }}
-        className="grid gap-4 md:grid-cols-2"
+        className="grid grid-cols-2 gap-3"
       >
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                <Dumbbell className="h-4 w-4" />
-              </span>
-              My Workouts
-            </CardTitle>
-            <CardDescription>
-              View your assigned workout plans and keep progress on track.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <Link href="/client/workouts">
-              <Button>View Workouts</Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <Link
+          href="/client/workouts"
+          className="group rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-indigo-100/70 to-violet-100/80 p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow"
+        >
+          <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md">
+            <Dumbbell className="h-8 w-8" />
+          </span>
+          <p className="mt-2.5 text-sm font-semibold text-slate-800">Workouts Plan</p>
+        </Link>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
-                <UtensilsCrossed className="h-4 w-4" />
-              </span>
-              My Nutrition
-            </CardTitle>
-            <CardDescription>
-              Track your meal strategy and stay aligned with nutrition goals.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <Link href="/client/diet">
-              <Button>View Nutrition</Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <Link
+          href="/client/diet"
+          className="group rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-emerald-100/70 to-teal-100/80 p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow"
+        >
+          <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md">
+            <UtensilsCrossed className="h-8 w-8" />
+          </span>
+          <p className="mt-2.5 text-sm font-semibold text-slate-800">Diet Plan</p>
+        </Link>
       </motion.section>
 
       <motion.section
@@ -242,8 +224,8 @@ export default function ClientSubscriptionsPage() {
               </span>
               Current plan
             </CardTitle>
-            <CardDescription>
-              Active subscription details and default assignment information.
+            <CardDescription className="truncate">
+              Active plan details and assignment info.
             </CardDescription>
           </CardHeader>
 
@@ -395,8 +377,8 @@ export default function ClientSubscriptionsPage() {
               </span>
               Subscription history
             </CardTitle>
-            <CardDescription>
-              Timeline of subscription requests, approvals, and billing windows.
+            <CardDescription className="truncate">
+              Timeline of requests, approvals, and billing.
             </CardDescription>
           </CardHeader>
 

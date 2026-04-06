@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { motion } from "@/lib/motion";
 import {
   AlertCircle,
@@ -32,7 +32,15 @@ const fadeInUp = {
   animate: { opacity: 1, y: 0 },
 };
 
-const acceptedFileHint = "PDF, JPG, PNG, WEBP up to 10MB";
+const MAX_DOCUMENT_SIZE_BYTES = 2 * 1024 * 1024;
+const acceptedFileHint = "PDF, JPG, PNG, WEBP up to 2MB";
+const allowedDocumentMimeTypes = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+]);
 
 type DocumentKind = "pdf" | "image" | "other";
 
@@ -77,6 +85,97 @@ function formatFileSize(bytes: number) {
   return `${mb.toFixed(mb >= 10 ? 0 : 1)} MB`;
 }
 
+function getFileBaseName(fileName: string) {
+  const trimmed = String(fileName || "").trim();
+  if (!trimmed) return "document";
+
+  const lastDot = trimmed.lastIndexOf(".");
+  if (lastDot <= 0) return trimmed;
+  return trimmed.slice(0, lastDot);
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("Failed to create image blob"));
+        return;
+      }
+      resolve(blob);
+    }, type, quality);
+  });
+}
+
+function loadImageFromFile(file: File) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Failed to read image"));
+    };
+
+    image.src = objectUrl;
+  });
+}
+
+async function compressImageToLimit(file: File, maxBytes: number) {
+  const image = await loadImageFromFile(file);
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    return null;
+  }
+
+  const outputType = file.type === "image/webp" ? "image/webp" : "image/jpeg";
+  const qualitySteps = outputType === "image/webp"
+    ? [0.9, 0.82, 0.74, 0.66, 0.58, 0.5, 0.42]
+    : [0.88, 0.8, 0.72, 0.64, 0.56, 0.48, 0.4];
+
+  let width = image.naturalWidth || image.width;
+  let height = image.naturalHeight || image.height;
+
+  for (let pass = 0; pass < 7; pass += 1) {
+    const targetWidth = Math.max(1, Math.round(width));
+    const targetHeight = Math.max(1, Math.round(height));
+
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+
+    context.clearRect(0, 0, targetWidth, targetHeight);
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    for (const quality of qualitySteps) {
+      const blob = await canvasToBlob(canvas, outputType, quality);
+      if (blob.size <= maxBytes) {
+        const extension = outputType === "image/webp" ? "webp" : "jpg";
+        const baseName = getFileBaseName(file.name);
+
+        return new File([blob], `${baseName}.${extension}`, {
+          type: outputType,
+          lastModified: Date.now(),
+        });
+      }
+    }
+
+    if (targetWidth <= 700 || targetHeight <= 700) {
+      break;
+    }
+
+    width = targetWidth * 0.82;
+    height = targetHeight * 0.82;
+  }
+
+  return null;
+}
+
 function getDisplayName(doc: UserDocument) {
   const customName = doc.name?.trim();
   return customName || doc.originalName || "Document";
@@ -91,6 +190,7 @@ export default function ClientDocumentsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentName, setDocumentName] = useState("");
   const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null);
+  const [isPreparingFile, setIsPreparingFile] = useState(false);
 
   const selectedFileKind = useMemo(() => {
     if (!selectedFile) return null;
@@ -112,13 +212,77 @@ export default function ClientDocumentsPage() {
     };
   }, [selectedFilePreviewUrl]);
 
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const nextFile = event.target.files?.[0] || null;
+
+    if (!nextFile) {
+      setSelectedFile(null);
+      return;
+    }
+
+    const mimeType = (nextFile.type || "").toLowerCase();
+    if (!allowedDocumentMimeTypes.has(mimeType)) {
+      toast.error("Only PDF, JPG, PNG, and WEBP files are allowed.");
+      event.target.value = "";
+      setSelectedFile(null);
+      return;
+    }
+
+    if (nextFile.size <= MAX_DOCUMENT_SIZE_BYTES) {
+      setSelectedFile(nextFile);
+      return;
+    }
+
+    if (!mimeType.startsWith("image/")) {
+      toast.error("File is larger than 2MB. Please choose a smaller PDF.");
+      event.target.value = "";
+      setSelectedFile(null);
+      return;
+    }
+
+    setIsPreparingFile(true);
+    try {
+      const compressed = await compressImageToLimit(nextFile, MAX_DOCUMENT_SIZE_BYTES);
+      if (!compressed) {
+        toast.error("Image is too large and could not be compressed below 2MB.");
+        event.target.value = "";
+        setSelectedFile(null);
+        return;
+      }
+
+      setSelectedFile(compressed);
+      toast.success(`Image compressed from ${formatFileSize(nextFile.size)} to ${formatFileSize(compressed.size)}.`);
+    } catch {
+      toast.error("Could not process image for upload. Please try another file.");
+      event.target.value = "";
+      setSelectedFile(null);
+    } finally {
+      setIsPreparingFile(false);
+    }
+  };
+
   const canUpload = useMemo(() => {
-    return !!selectedFile && uploadMutation.status !== "pending";
-  }, [selectedFile, uploadMutation.status]);
+    return (
+      !!selectedFile
+      && selectedFile.size <= MAX_DOCUMENT_SIZE_BYTES
+      && uploadMutation.status !== "pending"
+      && !isPreparingFile
+    );
+  }, [isPreparingFile, selectedFile, uploadMutation.status]);
 
   const handleUpload = async () => {
+    if (isPreparingFile) {
+      toast.error("Please wait while your file is being prepared.");
+      return;
+    }
+
     if (!selectedFile) {
       toast.error("Please select a file first");
+      return;
+    }
+
+    if (selectedFile.size > MAX_DOCUMENT_SIZE_BYTES) {
+      toast.error("Document file size must be 2MB or less.");
       return;
     }
 
@@ -219,13 +383,16 @@ export default function ClientDocumentsPage() {
                 type="file"
                 className="sr-only"
                 accept="application/pdf,image/jpeg,image/png,image/webp,image/jpg"
-                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                onChange={(e) => {
+                  void handleFileChange(e);
+                }}
               />
 
               <div className="flex flex-wrap items-center gap-2.5">
                 <Button
                   type="button"
                   variant="outline"
+                  disabled={isPreparingFile}
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <UploadCloud className="h-4 w-4" />
@@ -251,16 +418,22 @@ export default function ClientDocumentsPage() {
                   disabled={!canUpload}
                   className="sm:ml-auto"
                 >
-                  {uploadMutation.status === "pending" ? (
+                  {isPreparingFile || uploadMutation.status === "pending" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <FileUp className="h-4 w-4" />
                   )}
-                  {uploadMutation.status === "pending" ? "Uploading..." : "Upload"}
+                  {isPreparingFile
+                    ? "Preparing..."
+                    : uploadMutation.status === "pending"
+                      ? "Uploading..."
+                      : "Upload"}
                 </Button>
               </div>
 
-              <p className="text-xs text-slate-500">Tip: add a clear file name so it is easier to find later.</p>
+              <p className="text-xs text-slate-500">
+                Max size is 2MB. Large images are automatically compressed before upload when possible.
+              </p>
             </div>
 
             {selectedFile ? (

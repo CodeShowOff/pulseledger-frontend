@@ -239,8 +239,6 @@ export default function ClientTodayWorkoutPage() {
     [exercises]
   );
 
-  const progressPercentage = exercises.length ? (completedExercises.size / exercises.length) * 100 : 0;
-
   const completeWorkoutMutation = useMutation({
     mutationFn: async () => {
       const workoutLogId = selectedTodayWorkout?.log?._id || selectedTodayWorkout?._id;
@@ -735,7 +733,7 @@ export default function ClientTodayWorkoutPage() {
               )}
             >
               <X className="h-4 w-4" />
-              {markWorkoutMissedMutation.isPending ? "Marking missed..." : "Can’t train today"}
+              {markWorkoutMissedMutation.isPending ? "Skipping..." : "Skip today"}
             </button>
           </div>
 
@@ -800,59 +798,37 @@ export default function ClientTodayWorkoutPage() {
         </>
       ) : (
         <>
-          <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={exitWorkout}
-                  className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Exit
-                </button>
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={exitWorkout}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Exit
+            </button>
 
-                <button
-                  onClick={markTodayWorkoutAsMissed}
-                  disabled={markWorkoutMissedMutation.isPending || completedExercises.size > 0}
-                  className={cn(
-                    "inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                    markWorkoutMissedMutation.isPending || completedExercises.size > 0
-                      ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                      : "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
-                  )}
-                >
-                  <X className="h-3.5 w-3.5" />
-                  {markWorkoutMissedMutation.isPending ? "Marking..." : "Missed"}
-                </button>
-              </div>
-
-              <p className="text-xs font-medium text-slate-500">
-                {completedExercises.size}/{exercises.length} complete
-              </p>
-            </div>
-
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all"
-                style={{ width: `${progressPercentage}%` }}
-              />
-            </div>
-
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              <div className="rounded-xl border border-indigo-100 bg-indigo-50 px-2 py-2 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-indigo-600">Current</p>
-                <p className="mt-0.5 text-xs font-semibold text-indigo-900">#{currentExerciseIndex + 1}</p>
-              </div>
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-2 py-2 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-600">Done</p>
-                <p className="mt-0.5 text-xs font-semibold text-emerald-900">{completedExercises.size}</p>
-              </div>
-              <div className="rounded-xl border border-amber-100 bg-amber-50 px-2 py-2 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-600">Total</p>
-                <p className="mt-0.5 text-xs font-semibold text-amber-900">{formatDuration(totalSeconds)}</p>
-              </div>
-            </div>
-          </section>
+            {completedExercises.size > 0 && !showMoodDialog ? (
+              <button
+                onClick={finishWorkout}
+                disabled={completeWorkoutMutation.isPending}
+                className={cn(
+                  "inline-flex h-9 items-center gap-1 rounded-full px-3 text-xs font-semibold text-white transition",
+                  completeWorkoutMutation.isPending
+                    ? "cursor-not-allowed bg-slate-400"
+                    : completedExercises.size === exercises.length
+                      ? "bg-gradient-to-r from-emerald-600 to-green-500 hover:brightness-110"
+                      : "bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110"
+                )}
+              >
+                <Trophy className="h-3.5 w-3.5" />
+                {completeWorkoutMutation.isPending
+                  ? "Saving..."
+                  : completedExercises.size === exercises.length
+                    ? "Complete"
+                    : `Finish early (${completedExercises.size}/${exercises.length})`}
+              </button>
+            ) : null}
+          </div>
 
           {isResting ? (
             <section className="rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 text-center shadow-sm">
@@ -933,18 +909,51 @@ export default function ClientTodayWorkoutPage() {
                   </div>
                 </div>
 
-                <div className="mx-auto grid h-28 w-28 place-items-center rounded-full border border-indigo-100 bg-indigo-50 text-center">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-indigo-600">Timer</p>
-                  <CountdownTicker
-                    startSeconds={exerciseTimerDurationSeconds}
-                    isRunning={isExerciseTimerRunning}
-                    resetToken={exerciseTimerResetToken}
-                    onComplete={() => {
-                      setIsExerciseTimerRunning(false);
-                      toast.success("Timer done. Finish this move!");
-                    }}
-                    className="text-2xl font-bold tracking-tight text-indigo-900"
-                  />
+                <div className="text-center">
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-indigo-600">Timer</p>
+                  <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-full border border-indigo-100 bg-indigo-50">
+                    <CountdownTicker
+                      startSeconds={exerciseTimerDurationSeconds}
+                      isRunning={isExerciseTimerRunning}
+                      resetToken={exerciseTimerResetToken}
+                      onComplete={() => {
+                        setIsExerciseTimerRunning(false);
+                        toast.success("Timer done. Finish this move!");
+                      }}
+                      className="text-3xl font-bold tracking-tight text-indigo-900"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={toggleTimer}
+                    className={cn(
+                      "flex h-11 items-center justify-center gap-1.5 rounded-xl text-xs font-semibold transition",
+                      isExerciseTimerRunning
+                        ? "border border-amber-300 bg-amber-100 text-amber-900"
+                        : "border border-indigo-200 bg-indigo-50 text-indigo-700"
+                    )}
+                  >
+                    {isExerciseTimerRunning ? <Pause className="h-4 w-4" /> : <TimerReset className="h-4 w-4" />}
+                    {isExerciseTimerRunning ? "Pause" : "Start"}
+                  </button>
+
+                  <button
+                    onClick={skipExercise}
+                    className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
+                  >
+                    <SkipForward className="h-4 w-4" />
+                    Skip
+                  </button>
+
+                  <button
+                    onClick={completeExercise}
+                    className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Done
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
@@ -986,36 +995,6 @@ export default function ClientTodayWorkoutPage() {
                   </div>
                 ) : null}
 
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={toggleTimer}
-                    className={cn(
-                      "flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-semibold transition",
-                      isExerciseTimerRunning
-                        ? "border border-amber-300 bg-amber-100 text-amber-900"
-                        : "border border-indigo-200 bg-indigo-50 text-indigo-700"
-                    )}
-                  >
-                    {isExerciseTimerRunning ? <Pause className="h-4 w-4" /> : <TimerReset className="h-4 w-4" />}
-                    {isExerciseTimerRunning ? "Pause" : "Start timer"}
-                  </button>
-
-                  <button
-                    onClick={skipExercise}
-                    className="flex h-11 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
-                  >
-                    <SkipForward className="h-4 w-4" />
-                    Skip
-                  </button>
-                </div>
-
-                <button
-                  onClick={completeExercise}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-sm font-semibold text-white transition hover:brightness-110"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Complete exercise
-                </button>
               </div>
             </section>
           ) : null}
@@ -1065,29 +1044,6 @@ export default function ClientTodayWorkoutPage() {
             </div>
           </section>
 
-          {completedExercises.size > 0 && !showMoodDialog ? (
-            <div className="fixed left-1/2 z-40 w-[calc(100%-1rem)] max-w-[460px] -translate-x-1/2 bottom-[calc(6.75rem+env(safe-area-inset-bottom))] md:bottom-6">
-              <button
-                onClick={finishWorkout}
-                disabled={completeWorkoutMutation.isPending}
-                className={cn(
-                  "flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-white shadow-lg transition",
-                  completeWorkoutMutation.isPending
-                    ? "cursor-not-allowed bg-slate-400"
-                    : completedExercises.size === exercises.length
-                      ? "bg-gradient-to-r from-emerald-600 to-green-500 hover:brightness-110"
-                      : "bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110"
-                )}
-              >
-                <Trophy className="h-4 w-4" />
-                {completeWorkoutMutation.isPending
-                  ? "Saving session..."
-                  : completedExercises.size === exercises.length
-                    ? "Complete workout"
-                    : `Finish early (${completedExercises.size}/${exercises.length})`}
-              </button>
-            </div>
-          ) : null}
         </>
       )}
 
