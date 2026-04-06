@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useRef, useEffect, useCallback } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChatMessage, TypingUser } from "@/lib/chatStore";
 import MessageBubble from "./MessageBubble";
 import { Loader2 } from "lucide-react";
@@ -19,6 +20,23 @@ interface MessageListProps {
   isGroupChat?: boolean;
 }
 
+type VirtualRow =
+  | {
+      id: string;
+      type: "date";
+      dateLabel: string;
+    }
+  | {
+      id: string;
+      type: "message";
+      message: ChatMessage;
+      showSender: boolean;
+    };
+
+const DATE_SEPARATOR_ESTIMATED_HEIGHT = 42;
+const MESSAGE_ROW_ESTIMATED_HEIGHT = 112;
+const OVERSCAN_ROW_COUNT = 8;
+
 export default function MessageList({
   messages,
   isLoading,
@@ -31,39 +49,116 @@ export default function MessageList({
   isGroupChat = false,
 }: MessageListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const prevMessagesLength = useRef(messages.length);
+  const prevFirstMessageId = useRef<string | null>(null);
+  const prevLastMessageId = useRef<string | null>(null);
   const isInitialLoad = useRef(true);
 
   // Reset initial load flag when conversation changes (messages go to 0)
   useEffect(() => {
     if (messages.length === 0) {
       isInitialLoad.current = true;
+      prevFirstMessageId.current = null;
+      prevLastMessageId.current = null;
     }
   }, [messages.length]);
 
-  // Scroll to bottom instantly on initial load - no animation
+  const dateFormatter = React.useMemo(
+    () =>
+      new Intl.DateTimeFormat("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+      }),
+    []
+  );
+
+  const virtualRows = React.useMemo<VirtualRow[]>(() => {
+    const rows: VirtualRow[] = [];
+    let currentDate = "";
+    let previousMessageInGroup: ChatMessage | null = null;
+
+    for (const message of messages) {
+      const dateLabel = dateFormatter.format(new Date(message.createdAt));
+
+      if (dateLabel !== currentDate) {
+        currentDate = dateLabel;
+        rows.push({
+          id: `date-${message._id}`,
+          type: "date",
+          dateLabel,
+        });
+        previousMessageInGroup = null;
+      }
+
+      let showSender = true;
+      if (previousMessageInGroup) {
+        const sameSender = previousMessageInGroup.senderId === message.senderId;
+        const prevTime = new Date(previousMessageInGroup.createdAt).getTime();
+        const currentTime = new Date(message.createdAt).getTime();
+        const withinFiveMinutes = currentTime - prevTime <= 5 * 60 * 1000;
+        showSender = !sameSender || !withinFiveMinutes;
+      }
+
+      rows.push({
+        id: `message-${message._id}`,
+        type: "message",
+        message,
+        showSender,
+      });
+      previousMessageInGroup = message;
+    }
+
+    return rows;
+  }, [messages, dateFormatter]);
+
+  const rowVirtualizer = useVirtualizer({
+    count: virtualRows.length,
+    getScrollElement: () => containerRef.current,
+    estimateSize: (index) =>
+      virtualRows[index]?.type === "date"
+        ? DATE_SEPARATOR_ESTIMATED_HEIGHT
+        : MESSAGE_ROW_ESTIMATED_HEIGHT,
+    getItemKey: (index) => virtualRows[index]?.id ?? index,
+    overscan: OVERSCAN_ROW_COUNT,
+  });
+
+  const scrollToBottom = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
+    });
+  }, []);
+
+  // Scroll to bottom instantly on initial load and for newly appended messages
   useEffect(() => {
-    const isNewMessage = messages.length > prevMessagesLength.current && prevMessagesLength.current > 0;
-    
-    // Scroll on new messages (not initial load)
-    if (isNewMessage && !isInitialLoad.current) {
-      if (containerRef.current) {
-        containerRef.current.scrollTop = containerRef.current.scrollHeight;
-      }
-    }
-    
-    // Instant scroll to bottom on initial load - no timeout, no animation
-    if (messages.length > 0 && isInitialLoad.current) {
+    if (messages.length === 0) return;
+
+    const firstMessageId = messages[0]?._id ?? null;
+    const lastMessageId = messages[messages.length - 1]?._id ?? null;
+
+    if (isInitialLoad.current) {
       isInitialLoad.current = false;
-      if (containerRef.current) {
-        // Set scroll instantly without any delay or animation
-        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      scrollToBottom();
+    } else {
+      const prependedOlderMessages =
+        prevFirstMessageId.current !== null &&
+        firstMessageId !== prevFirstMessageId.current &&
+        lastMessageId === prevLastMessageId.current;
+
+      const appendedNewMessage =
+        prevLastMessageId.current !== null &&
+        lastMessageId !== prevLastMessageId.current;
+
+      if (appendedNewMessage && !prependedOlderMessages) {
+        scrollToBottom();
       }
     }
-    
-    prevMessagesLength.current = messages.length;
-  }, [messages.length, messages]);
+
+    prevFirstMessageId.current = firstMessageId;
+    prevLastMessageId.current = lastMessageId;
+  }, [messages, scrollToBottom]);
 
   // Don't auto-scroll on initial load - let user see header, messages, and input naturally
 
@@ -76,45 +171,7 @@ export default function MessageList({
     }
   }, [isLoading, hasMore, onLoadMore]);
 
-  // Group messages by date
-  const groupedMessages = React.useMemo(() => {
-    const groups: { date: string; messages: ChatMessage[] }[] = [];
-    let currentDate = "";
-
-    messages.forEach((message) => {
-      const messageDate = new Date(message.createdAt).toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "short",
-        day: "numeric",
-      });
-
-      if (messageDate !== currentDate) {
-        currentDate = messageDate;
-        groups.push({ date: messageDate, messages: [message] });
-      } else {
-        groups[groups.length - 1].messages.push(message);
-      }
-    });
-
-    return groups;
-  }, [messages]);
-
-  // Check if we should show sender for a message
-  const shouldShowSender = (index: number, messagesInGroup: ChatMessage[]) => {
-    if (index === 0) return true;
-    const prevMessage = messagesInGroup[index - 1];
-    const currentMessage = messagesInGroup[index];
-    
-    if (prevMessage.senderId !== currentMessage.senderId) return true;
-    
-    const prevTime = new Date(prevMessage.createdAt).getTime();
-    const currentTime = new Date(currentMessage.createdAt).getTime();
-    if (currentTime - prevTime > 5 * 60 * 1000) return true;
-    
-    return false;
-  };
-
-  const typingList = Array.from(typingUsers.values());
+  const typingList = React.useMemo(() => Array.from(typingUsers.values()), [typingUsers]);
 
   return (
     <div ref={containerRef} onScroll={handleScroll} className={styles.messageList}>
@@ -150,28 +207,46 @@ export default function MessageList({
         </div>
       )}
 
-      {/* Messages grouped by date */}
-      {groupedMessages.map((group) => (
-        <div key={group.date}>
-          {/* Date separator */}
-          <div className={styles.messageDate}>
-            <div className={styles.messageDateText}>{group.date}</div>
-          </div>
+      {/* Virtualized messages */}
+      {messages.length > 0 && (
+        <div style={{ height: rowVirtualizer.getTotalSize(), width: "100%", position: "relative" }}>
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const row = virtualRows[virtualRow.index];
+            if (!row) return null;
 
-          {/* Messages */}
-          {group.messages.map((message, messageIndex) => (
-            <MessageBubble
-              key={message._id}
-              message={message}
-              onDelete={onDeleteMessage}
-              onEdit={onEditMessage}
-              onReply={onReplyMessage}
-              showSender={shouldShowSender(messageIndex, group.messages)}
-              isGroupChat={isGroupChat}
-            />
-          ))}
+            return (
+              <div
+                key={row.id}
+                ref={rowVirtualizer.measureElement}
+                data-index={virtualRow.index}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  display: "flow-root",
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+              >
+                {row.type === "date" ? (
+                  <div className={styles.messageDate}>
+                    <div className={styles.messageDateText}>{row.dateLabel}</div>
+                  </div>
+                ) : (
+                  <MessageBubble
+                    message={row.message}
+                    onDelete={onDeleteMessage}
+                    onEdit={onEditMessage}
+                    onReply={onReplyMessage}
+                    showSender={row.showSender}
+                    isGroupChat={isGroupChat}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
-      ))}
+      )}
 
       {/* Typing indicator */}
       {typingList.length > 0 && (
@@ -188,9 +263,6 @@ export default function MessageList({
           </span>
         </div>
       )}
-
-      {/* Scroll anchor */}
-      <div ref={bottomRef} />
     </div>
   );
 }

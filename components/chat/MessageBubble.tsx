@@ -38,7 +38,7 @@ interface MessageBubbleProps {
   isGroupChat?: boolean;
 }
 
-export default function MessageBubble({
+function MessageBubble({
   message,
   onDelete,
   onEdit,
@@ -450,3 +450,8 @@ export default function MessageBubble({
     </div>
   );
 }
+
+const MemoizedMessageBubble = React.memo(MessageBubble);
+MemoizedMessageBubble.displayName = "MessageBubble";
+
+export default MemoizedMessageBubble;
