@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import api from "@/lib/axios";
 
 export type IndianDish = {
   name: string;
@@ -28,14 +29,36 @@ export type IndianDish = {
   serving_size_g: number;
 };
 
+type IndianFoodsResponse = {
+  success: boolean;
+  data: IndianDish[];
+  pagination?: {
+    total: number;
+    page: number;
+    totalPages: number;
+    limit: number;
+    hasNextPage: boolean;
+  };
+};
+
+const PAGE_SIZE = 50;
+
 export default function IndianNutritionIndexPage() {
-  const [allDishes, setAllDishes] = useState<IndianDish[]>([]);
+  const [dishes, setDishes] = useState<IndianDish[]>([]);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [vegFilter, setVegFilter] = useState<"all" | "veg" | "nonveg">("all");
   const [highProtein, setHighProtein] = useState(false);
   const [lowCalorie, setLowCalorie] = useState(false);
   const [expandedDishes, setExpandedDishes] = useState<{ [key: string]: { nutrition: boolean; vitamins: boolean; minerals: boolean } }>({});
   const [isMobile, setIsMobile] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalDishes, setTotalDishes] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const latestRequestRef = useRef(0);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -47,36 +70,81 @@ export default function IndianNutritionIndexPage() {
   }, []);
 
   useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, vegFilter, highProtein, lowCalorie]);
+
+  useEffect(() => {
+    setExpandedDishes({});
+  }, [debouncedSearch, vegFilter, highProtein, lowCalorie]);
+
+  useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const requestId = latestRequestRef.current + 1;
+    latestRequestRef.current = requestId;
+
+    const fetchIndianFoods = async () => {
       try {
-        const dataModule = await import("../../data/indianFoods.json");
-        const data = (dataModule.default || dataModule) as IndianDish[];
-        if (!cancelled) setAllDishes(data);
+        if (page === 1) {
+          setIsLoading(true);
+        } else {
+          setIsLoadingMore(true);
+        }
+
+        const params: Record<string, string | number | boolean> = {
+          page,
+          limit: PAGE_SIZE,
+        };
+
+        if (debouncedSearch) params.search = debouncedSearch;
+        if (vegFilter !== "all") params.vegFilter = vegFilter;
+        if (highProtein) params.highProtein = true;
+        if (lowCalorie) params.lowCalorie = true;
+
+        const response = await api.get<IndianFoodsResponse>("/indian-foods", { params });
+        const payload = response.data;
+        const nextDishes = Array.isArray(payload?.data) ? payload.data : [];
+        const pagination = payload?.pagination;
+
+        if (cancelled || requestId !== latestRequestRef.current) return;
+
+        setDishes((previous) => (page === 1 ? nextDishes : [...previous, ...nextDishes]));
+        setTotalDishes(typeof pagination?.total === "number" ? pagination.total : nextDishes.length);
+        setHasNextPage(Boolean(pagination?.hasNextPage));
+        setErrorMessage("");
       } catch (err) {
-        // Failed to load Indian foods data
+        if (cancelled || requestId !== latestRequestRef.current) return;
+
+        if (page === 1) {
+          setDishes([]);
+          setTotalDishes(0);
+          setHasNextPage(false);
+        }
+
+        setErrorMessage("Failed to load Indian nutrition data. Please try again.");
+      } finally {
+        if (!cancelled && requestId === latestRequestRef.current) {
+          setIsLoading(false);
+          setIsLoadingMore(false);
+        }
       }
-    })();
+    };
+
+    fetchIndianFoods();
+
     return () => {
       cancelled = true;
     };
-  }, []);
-
-  const filtered = useMemo(() => {
-    const s = search.trim().toLowerCase();
-    return allDishes.filter((dish) => {
-      if (vegFilter === "veg" && !dish.vegetarian) return false;
-      if (vegFilter === "nonveg" && dish.vegetarian) return false;
-
-      if (highProtein && dish.protein_g < 15) return false;
-      if (lowCalorie && dish.calories_kcal > 250) return false;
-
-      if (!s) return true;
-
-      const haystack = `${dish.name} ${dish.category}`.toLowerCase();
-      return haystack.includes(s);
-    });
-  }, [allDishes, search, vegFilter, highProtein, lowCalorie]);
+  }, [page, debouncedSearch, vegFilter, highProtein, lowCalorie]);
 
   const isHighProteinDish = useCallback((dish: IndianDish) => dish.protein_g >= 15, []);
   const isLowCalorieDish = useCallback((dish: IndianDish) => dish.calories_kcal <= 250, []);
@@ -155,7 +223,7 @@ export default function IndianNutritionIndexPage() {
             <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.35rem" }}>TYPE</label>
             <select
               value={vegFilter}
-              onChange={(e) => setVegFilter(e.target.value as any)}
+              onChange={(e) => setVegFilter(e.target.value as "all" | "veg" | "nonveg")}
               className="auth-form__input"
               style={{ padding: "0.6rem 0.5rem", fontSize: "0.9rem", width: "100%" }}
             >
@@ -232,12 +300,20 @@ export default function IndianNutritionIndexPage() {
       </section>
 
       <section style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <p className="profile-header__subtitle">
+            Loading dishes...
+          </p>
+        ) : errorMessage ? (
+          <p className="profile-header__subtitle">
+            {errorMessage}
+          </p>
+        ) : dishes.length === 0 ? (
           <p className="profile-header__subtitle">
             No dishes match your filters yet.
           </p>
         ) : (
-          filtered.map((dish) => {
+          dishes.map((dish) => {
             const isNutritionExpanded = expandedDishes[dish.name]?.nutrition || false;
             const isVitaminsExpanded = expandedDishes[dish.name]?.vitamins || false;
             const isMineralsExpanded = expandedDishes[dish.name]?.minerals || false;
@@ -844,6 +920,39 @@ export default function IndianNutritionIndexPage() {
             </div>
           );
         })
+      )}
+    </section>
+
+    <section
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: "0.75rem",
+      }}
+    >
+      <p className="profile-header__subtitle" style={{ margin: 0 }}>
+        {totalDishes > 0
+          ? `Showing ${dishes.length} of ${totalDishes} dishes`
+          : "No dishes available yet."}
+      </p>
+
+      {hasNextPage && (
+        <button
+          type="button"
+          onClick={() => setPage((prev) => prev + 1)}
+          disabled={isLoadingMore}
+          className="auth-form__submit"
+          style={{
+            padding: "0.55rem 1rem",
+            minWidth: "140px",
+            fontSize: "0.85rem",
+            opacity: isLoadingMore ? 0.75 : 1,
+          }}
+        >
+          {isLoadingMore ? "Loading..." : "Load 50 more"}
+        </button>
       )}
     </section>
   </div>
