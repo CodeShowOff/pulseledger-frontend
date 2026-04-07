@@ -36,7 +36,7 @@ export default function CoachWorkoutPlansPage() {
                   >
                     <Dumbbell className="h-4 w-4 shrink-0" />
                     <span className="sm:hidden">Exercises</span>
-                    <span className="hidden sm:inline">Custom Exercises</span>
+                    <span className="hidden sm:inline">Browse Exercises</span>
                   </Button>
                 </Link>
                 <Link href="/coach/workout-plans/templates" className="min-w-0">

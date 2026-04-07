@@ -44,9 +44,9 @@ export type WorkoutTemplate = {
 export type WorkoutTemplateExercise = {
   exerciseId: string | Exercise;
   order: number;
-  sets?: number;
   reps?: number;
   duration?: number;
+  weight?: string;
   restSeconds?: number;
   notes?: string;
 };
@@ -72,7 +72,6 @@ export type WeeklySchedule = {
 export type WorkoutExercise = {
   exerciseId?: string;
   exerciseName: string;
-  sets?: number;
   reps?: string;
   weight?: string;
   duration?: string;
@@ -123,7 +122,6 @@ export type PlanExercise = {
   exerciseName?: string;
   exerciseAnimationUrl?: string;
   order: number;
-  sets?: number;
   reps?: number;
   duration?: number;
   restSeconds?: number;
@@ -168,10 +166,8 @@ export type MarkWorkoutMissedPayload = {
 export type ExerciseLog = {
   exerciseId?: string;
   exerciseName: string;
-  plannedSets?: number;
-  plannedReps?: string;
+  plannedReps?: number;
   plannedDuration?: number;
-  completedSets?: number;
   actualReps?: number[];
   weightUsed?: number[];
   actualDuration?: number;
@@ -180,14 +176,6 @@ export type ExerciseLog = {
   skipReason?: string;
   difficultyRating?: number;
   notes?: string;
-};
-
-export type SetLog = {
-  setNumber: number;
-  reps?: number;
-  weight?: number;
-  duration?: number;
-  completed: boolean;
 };
 
 export type ClientTodayWorkout = {
@@ -208,7 +196,6 @@ export type ClientTodayWorkout = {
     exerciseId?: string | Exercise;
     exerciseName?: string;
     name?: string;
-    sets?: number;
     reps?: number;
     repsMin?: number;
     repsMax?: number;

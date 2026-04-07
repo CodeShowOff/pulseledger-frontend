@@ -143,7 +143,7 @@ export default function HelpCenterPage() {
               <p><strong>Workout Tracking:</strong></p>
               <ul className="client-list">
                 <li><strong>View Workout Plans:</strong> Access your personalized workout routines assigned by your coach</li>
-                <li><strong>Daily Workouts:</strong> See today's exercises with sets, reps, and rest times</li>
+                <li><strong>Daily Workouts:</strong> See today's exercises with reps, duration targets, and rest times</li>
                 <li><strong>Exercise Details:</strong> Review exercise instructions, techniques, and demonstration videos</li>
                 <li><strong>Track Completion:</strong> Mark exercises and workouts as completed</li>
                 <li><strong>Workout History:</strong> View past workouts and your performance over time</li>
@@ -259,7 +259,7 @@ export default function HelpCenterPage() {
 
               <p><strong>Workout Plan Creation:</strong></p>
               <ul className="client-list">
-                <li><strong>Build Templates:</strong> Create reusable workout plan templates with exercises, sets, reps, and rest times</li>
+                <li><strong>Build Templates:</strong> Create reusable workout plan templates with exercises, reps, duration targets, and rest times</li>
                 <li><strong>Exercise Library:</strong> Select from a comprehensive exercise database or add custom exercises</li>
                 <li><strong>Schedule Workouts:</strong> Assign specific workouts to different days of the week</li>
                 <li><strong>Customize for Clients:</strong> Tailor workout intensity, volume, and exercises based on client fitness level</li>

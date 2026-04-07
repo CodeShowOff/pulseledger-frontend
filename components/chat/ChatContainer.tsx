@@ -1,8 +1,7 @@
 // Main Chat Container component - Combines all chat UI elements
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import Link from "next/link";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/store";
@@ -14,7 +13,7 @@ import {
 } from "@/lib/chatStore";
 import { useShallow } from "zustand/react/shallow";
 import { useConversations, useUploadChatImage, useToggleMute } from "@/lib/queries/chat";
-import { ArrowLeft } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 import ConversationList from "./ConversationList";
 import ChatHeader from "./ChatHeader";
@@ -116,6 +115,15 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
   const [showMembers, setShowMembers] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [isMobileListVisible, setIsMobileListVisible] = useState(true);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (isSearchOpen) {
+      searchInputRef.current?.focus();
+    }
+  }, [isSearchOpen]);
 
   // Sync API conversations to store
   useEffect(() => {
@@ -212,6 +220,16 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
     setActiveConversation(null);
     setIsMobileListVisible(true);
   }, [initialClientId, router, dashboardHref, setActiveConversation]);
+
+  const handleToggleSearch = useCallback(() => {
+    setIsSearchOpen((prev) => {
+      const next = !prev;
+      if (!next) {
+        setSearchQuery("");
+      }
+      return next;
+    });
+  }, []);
 
   // Handle send message
   const handleSendMessage = useCallback(
@@ -342,11 +360,48 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
         <div className={styles.sidebarHeader}>
           <div className={styles.sidebarHeaderRow}>
             <h1 className={styles.sidebarTitle}>Messages</h1>
-            <Link href={dashboardHref} className={styles.sidebarBackButton}>
-              <ArrowLeft className={styles.sidebarBackIcon} />
-              <span>Dashboard</span>
-            </Link>
+            <button
+              type="button"
+              className={styles.sidebarSearchButton}
+              onClick={handleToggleSearch}
+              aria-expanded={isSearchOpen}
+              aria-controls="chat-conversation-search"
+            >
+              {isSearchOpen ? (
+                <X className={styles.sidebarBackIcon} />
+              ) : (
+                <Search className={styles.sidebarBackIcon} />
+              )}
+              <span>{isSearchOpen ? "Close" : "Search"}</span>
+            </button>
           </div>
+
+          {isSearchOpen ? (
+            <div className={styles.sidebarHeaderSearchRow} id="chat-conversation-search">
+              <div className={styles.sidebarSearchInputWrapper}>
+                <Search className={styles.sidebarSearchInputIcon} />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={styles.sidebarSearchInput}
+                  placeholder="Search users, groups, announcements..."
+                  aria-label="Search conversations"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    className={styles.sidebarSearchClearButton}
+                    onClick={() => setSearchQuery("")}
+                    aria-label="Clear conversation search"
+                  >
+                    <X className={styles.sidebarBackIcon} />
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* Conversation List */}
@@ -356,6 +411,7 @@ export default function ChatContainer({ userRole, initialClientId }: ChatContain
           onSelect={handleSelectConversation}
           userRole={userRole}
           isLoading={isLoadingConversations}
+          searchQuery={searchQuery}
         />
       </div>
 

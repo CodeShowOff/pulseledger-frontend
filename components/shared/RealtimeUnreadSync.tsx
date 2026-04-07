@@ -40,8 +40,9 @@ export default function RealtimeUnreadSync() {
       return;
     }
 
+    // Re-run connect when token rotates so socket auth stays up-to-date.
     connect();
-  }, [isAuthenticated, connect, disconnect]);
+  }, [isAuthenticated, accessToken, connect, disconnect]);
 
   useEffect(() => {
     if (!socket) return;

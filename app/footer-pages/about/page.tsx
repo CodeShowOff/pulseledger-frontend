@@ -70,7 +70,7 @@ export default function AboutPage() {
               <h3 className="client-card__subsection-title">For Coaches</h3>
               <ul className="client-list">
                 <li><strong>Client Management:</strong> Centralized dashboard to view and manage all clients, track their progress, and monitor engagement</li>
-                <li><strong>Workout Plan Creation:</strong> Build customized workout routines with exercise selection, sets, reps, rest times, and weekly schedules</li>
+                <li><strong>Workout Plan Creation:</strong> Build customized workout routines with exercise selection, reps, duration targets, rest times, and weekly schedules</li>
                 <li><strong>Diet Plan Creation:</strong> Design personalized nutrition plans with meal schedules, macronutrient targets, and food recommendations</li>
                 <li><strong>Plan Templates:</strong> Create reusable templates for both workout and diet plans to streamline your coaching process</li>
                 <li><strong>Plan Customization:</strong> Tailor templates to individual client needs with specific goals, tasks, and timelines (1-52 weeks)</li>
@@ -87,7 +87,7 @@ export default function AboutPage() {
                 <li><strong>Coach Discovery:</strong> Find and connect with certified coaches through referral codes and public coach profiles</li>
                 <li><strong>Personalized Workout Plans:</strong> Access custom workout routines designed specifically for your fitness level, goals, and preferences</li>
                 <li><strong>Personalized Diet Plans:</strong> Follow nutrition plans tailored to your dietary needs, health goals, and lifestyle requirements</li>
-                <li><strong>Exercise Tracking:</strong> View detailed workout schedules with exercises, sets, reps, rest periods, and technique instructions</li>
+                <li><strong>Exercise Tracking:</strong> View detailed workout schedules with exercises, reps, duration, rest periods, and technique instructions</li>
                 <li><strong>Meal Planning:</strong> Access structured meal schedules with recipes, portion sizes, and nutritional information</li>
                 <li><strong>Progress Tracking:</strong> Log daily health metrics including weight, height, BMI, water intake, and personal notes</li>
                 <li><strong>Photo Documentation:</strong> Upload progress photos to visually track your transformation journey</li>

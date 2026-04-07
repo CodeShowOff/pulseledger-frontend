@@ -53,7 +53,6 @@ interface Exercise {
       };
   exerciseName?: string;
   exerciseAnimationUrl?: string;
-  sets?: number;
   reps?: number;
   repsMin?: number;
   repsMax?: number;
@@ -262,7 +261,6 @@ export default function ClientTodayWorkoutPage() {
             exerciseName:
               (typeof exercise.exerciseId === "string" ? undefined : exercise.exerciseId?.name) ||
               exercise.exerciseName,
-            completedSets: isCompleted ? (exercise.sets || 1) : 0,
             completed: isCompleted,
             skipped: isSkipped,
             skipReason: isSkipped ? "Skipped by client" : undefined,

@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import type { Socket } from "socket.io-client";
 import { useAuthStore } from "./store";
+import { refreshAuthSingleFlight } from "./axios";
 
 // ============ Types ============
 
@@ -65,6 +66,7 @@ export interface TypingUser {
 interface ChatState {
   // Connection
   socket: Socket | null;
+  socketAuthToken: string | null;
   isConnected: boolean;
   connectionError: string | null;
 
@@ -191,11 +193,84 @@ const SOCKET_EVENTS = {
 
 let connectAttemptId = 0;
 
+const SOCKET_TOKEN_REFRESH_BUFFER_MS = 30_000;
+
+const getTokenExpiryMs = (token: string): number | null => {
+  try {
+    const payloadPart = token.split(".")[1];
+    if (!payloadPart) return null;
+
+    const b64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "===".slice((b64.length + 3) % 4);
+    const payload = JSON.parse(atob(padded)) as { exp?: number };
+
+    if (typeof payload.exp !== "number") return null;
+    return payload.exp * 1000;
+  } catch {
+    return null;
+  }
+};
+
+const syncRefreshedAuthState = (token: string, userData?: Record<string, unknown>) => {
+  const authStore = useAuthStore.getState();
+  authStore.setAccessToken(token);
+
+  if (userData) {
+    authStore.setUser(userData as any);
+  }
+
+  if (typeof document !== "undefined") {
+    document.cookie = `accessToken=${token}; path=/; max-age=900;`;
+  }
+};
+
+const resolveSocketToken = async (): Promise<{ token: string | null; reason?: string }> => {
+  const authStore = useAuthStore.getState();
+  const accessToken = authStore.accessToken;
+
+  if (!accessToken) {
+    return { token: null, reason: "Not authenticated" };
+  }
+
+  const expiryMs = getTokenExpiryMs(accessToken);
+  if (!expiryMs) {
+    return { token: accessToken };
+  }
+
+  const msUntilExpiry = expiryMs - Date.now();
+  if (msUntilExpiry > SOCKET_TOKEN_REFRESH_BUFFER_MS) {
+    return { token: accessToken };
+  }
+
+  try {
+    const refreshed = await refreshAuthSingleFlight();
+    const nextToken = refreshed?.accessToken;
+
+    if (nextToken) {
+      syncRefreshedAuthState(nextToken, refreshed?.user);
+      return { token: nextToken };
+    }
+
+    if (msUntilExpiry > 0) {
+      return { token: accessToken };
+    }
+
+    return { token: null, reason: "Session expired. Please sign in again." };
+  } catch {
+    if (msUntilExpiry > 0) {
+      return { token: accessToken };
+    }
+
+    return { token: null, reason: "Session expired. Please sign in again." };
+  }
+};
+
 // ============ Store ============
 
 export const useChatStore = create<ChatState>((set, get) => ({
   // Initial state
   socket: null,
+  socketAuthToken: null,
   isConnected: false,
   connectionError: null,
   conversations: [],
@@ -212,24 +287,49 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   // Connect to socket server
   connect: () => {
-    const { socket } = get();
-    if (socket) return;
-
-    const token = useAuthStore.getState().accessToken;
-    if (!token) {
-      set({ connectionError: "Not authenticated" });
-      return;
-    }
-
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 
-      process.env.NEXT_PUBLIC_BACKEND_URL ||
-      (typeof window !== "undefined" ? "http://localhost:5000" : "");
-
     const attemptId = ++connectAttemptId;
     set({ connectionError: null });
 
     void (async () => {
       try {
+        const { token, reason } = await resolveSocketToken();
+
+        if (attemptId !== connectAttemptId) return;
+
+        if (!token) {
+          const existingSocket = get().socket;
+          if (existingSocket) {
+            existingSocket.disconnect();
+          }
+          set({
+            socket: null,
+            socketAuthToken: null,
+            isConnected: false,
+            connectionError: reason || "Not authenticated",
+          });
+          return;
+        }
+
+        const existingSocket = get().socket;
+        const existingSocketToken = get().socketAuthToken;
+
+        if (existingSocket) {
+          if (existingSocketToken !== token) {
+            existingSocket.auth = { token };
+            set({ socketAuthToken: token, connectionError: null });
+          }
+
+          if (!existingSocket.connected) {
+            existingSocket.connect();
+          }
+
+          return;
+        }
+
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 
+          process.env.NEXT_PUBLIC_BACKEND_URL ||
+          (typeof window !== "undefined" ? "http://localhost:5000" : "");
+
         const { io } = await import("socket.io-client");
 
         // Exit if a newer connect/disconnect cycle has already started.
@@ -254,7 +354,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         // Connection events
         newSocket.on("connect", () => {
           // console.log("🔌 Socket connected");
-          set({ isConnected: true, connectionError: null });
+          set({ isConnected: true, connectionError: null, socketAuthToken: token });
 
           // If a conversation was selected before socket was ready,
           // re-select it now to join room and fetch message history.
@@ -271,13 +371,34 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
         newSocket.on("connect_error", (error) => {
           // console.warn("🔌 Socket connection error:", error.message);
+          const message = error.message || "Failed to connect to chat server";
+          const normalized = message.toLowerCase();
+          const isAuthError =
+            normalized.includes("invalid or expired token") ||
+            normalized.includes("authentication required") ||
+            normalized.includes("authentication failed");
+
           // Don't set connection error for transient websocket errors during upgrade
           // Only set error if we've exhausted reconnection attempts or it's a critical error
-          const isTransientError = error.message?.includes("websocket error") || 
-                                  error.message?.includes("transport close") ||
-                                  error.message?.includes("xhr poll error");
+          const isTransientError = normalized.includes("websocket error") || 
+                                  normalized.includes("transport close") ||
+                                  normalized.includes("xhr poll error");
+
+          if (isAuthError) {
+            newSocket.disconnect();
+            if (get().socket === newSocket) {
+              set({
+                socket: null,
+                socketAuthToken: null,
+                connectionError: message,
+                isConnected: false,
+              });
+            }
+            return;
+          }
+
           if (!isTransientError) {
-            set({ connectionError: error.message, isConnected: false });
+            set({ connectionError: message, isConnected: false });
           }
         });
 
@@ -410,7 +531,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           }
         });
 
-        set({ socket: newSocket });
+        set({ socket: newSocket, socketAuthToken: token });
       } catch (error) {
         if (attemptId !== connectAttemptId) return;
         const message =
@@ -426,11 +547,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const { socket } = get();
     if (socket) {
       socket.disconnect();
-      set({ socket: null, isConnected: false });
+      set({ socket: null, socketAuthToken: null, isConnected: false, connectionError: null });
       return;
     }
 
-    set({ isConnected: false });
+    set({ socketAuthToken: null, isConnected: false, connectionError: null });
   },
 
   // Set active conversation and join room

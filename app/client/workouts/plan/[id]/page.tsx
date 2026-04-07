@@ -37,7 +37,6 @@ interface Exercise {
   };
   exerciseName?: string;
   exerciseAnimationUrl?: string;
-  sets?: number;
   reps?: number;
   repsMin?: number;
   repsMax?: number;
@@ -344,11 +343,6 @@ export default function ClientWorkoutPlanDetailPage() {
                                   </div>
 
                                   <div className="mt-2 flex flex-wrap gap-1.5">
-                                    {exercise.sets ? (
-                                      <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
-                                        {exercise.sets} sets
-                                      </span>
-                                    ) : null}
                                     {repsDisplay ? (
                                       <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
                                         {repsDisplay} reps

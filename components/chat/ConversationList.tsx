@@ -10,7 +10,7 @@ import {
   getConversationAvatar,
   formatConversationTime,
 } from "@/lib/chatStore";
-import { MessageSquare, Users, Megaphone, User, ChevronDown, ChevronRight } from "lucide-react";
+import { MessageSquare, Users, Megaphone, User, ChevronDown, ChevronRight, Search } from "lucide-react";
 import styles from "@/styles/chat.module.css";
 
 interface ConversationListProps {
@@ -19,6 +19,7 @@ interface ConversationListProps {
   onSelect: (conversation: Conversation) => void;
   userRole: "client" | "coach";
   isLoading?: boolean;
+  searchQuery?: string;
 }
 
 function ConversationListItem({
@@ -103,6 +104,7 @@ export default function ConversationList({
   onSelect,
   userRole,
   isLoading = false,
+  searchQuery = "",
 }: ConversationListProps) {
   const currentUserId = useAuthStore((s) => s.user?.id) || "";
   const [expandedSections, setExpandedSections] = useState({
@@ -111,13 +113,52 @@ export default function ConversationList({
     direct: true,
   });
 
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const isSearching = normalizedSearchQuery.length > 0;
+
+  const filteredConversations = useMemo(() => {
+    if (!isSearching) {
+      return conversations;
+    }
+
+    return conversations.filter((conv) => {
+      const conversationName = getConversationName(conv, currentUserId);
+      const coachName = conv.coachId && typeof conv.coachId === "object" ? conv.coachId.fullName : "";
+      const clientName = conv.clientId && typeof conv.clientId === "object" ? conv.clientId.fullName : "";
+      const planName = conv.planId && typeof conv.planId === "object" ? conv.planId.title : "";
+      const typeKeywords =
+        conv.type === "direct"
+          ? "user users client coach direct"
+          : conv.type === "plan_group"
+          ? "group groups plan subscription community"
+          : "global announcement announcements broadcast";
+
+      const searchableText = [
+        conversationName,
+        conv.name,
+        conv.planTitle,
+        conv.description,
+        conv.lastMessagePreview,
+        coachName,
+        clientName,
+        planName,
+        typeKeywords,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(normalizedSearchQuery);
+    });
+  }, [conversations, currentUserId, isSearching, normalizedSearchQuery]);
+
   // Group conversations by type
   const grouped = useMemo(() => {
     const broadcast: Conversation[] = [];
     const groups: Conversation[] = [];
     const direct: Conversation[] = [];
 
-    conversations.forEach((conv) => {
+    filteredConversations.forEach((conv) => {
       switch (conv.type) {
         case "global_broadcast":
           broadcast.push(conv);
@@ -132,7 +173,7 @@ export default function ConversationList({
     });
 
     return { broadcast, groups, direct };
-  }, [conversations]);
+  }, [filteredConversations]);
 
   // Get unread counts per section
   const unreadCounts = useMemo(() => ({
@@ -142,6 +183,7 @@ export default function ConversationList({
   }), [grouped]);
 
   const toggleSection = (section: keyof typeof expandedSections) => {
+    if (isSearching) return;
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
@@ -170,6 +212,18 @@ export default function ConversationList({
         <p className={styles.emptyTitle}>No conversations yet</p>
         <p className={styles.emptySubtitle}>
           Start chatting to see your conversations here
+        </p>
+      </div>
+    );
+  }
+
+  if (filteredConversations.length === 0 && isSearching) {
+    return (
+      <div className={styles.emptyState}>
+        <Search className={styles.emptyIcon} />
+        <p className={styles.emptyTitle}>No matches found</p>
+        <p className={styles.emptySubtitle}>
+          Try another keyword for users, groups, or announcements
         </p>
       </div>
     );
@@ -210,7 +264,7 @@ export default function ConversationList({
         <span className={styles.sectionCount}>
           {count}
         </span>
-        {expandedSections[section] ? (
+        {isSearching || expandedSections[section] ? (
           <ChevronDown className={styles.chevronIcon} />
         ) : (
           <ChevronRight className={styles.chevronIcon} />
@@ -233,7 +287,7 @@ export default function ConversationList({
               count={grouped.broadcast.length}
               unread={unreadCounts.broadcast}
             />
-            {expandedSections.broadcast && (
+            {(isSearching || expandedSections.broadcast) && (
               <div className={styles.sectionContent}>
                 {grouped.broadcast.map((conv) => (
                   <ConversationListItem
@@ -260,7 +314,7 @@ export default function ConversationList({
               count={grouped.groups.length}
               unread={unreadCounts.groups}
             />
-            {expandedSections.groups && (
+            {(isSearching || expandedSections.groups) && (
               <div className={styles.sectionContent}>
                 {grouped.groups.map((conv) => (
                   <ConversationListItem
@@ -287,7 +341,7 @@ export default function ConversationList({
               count={grouped.direct.length}
               unread={unreadCounts.direct}
             />
-            {expandedSections.direct && (
+            {(isSearching || expandedSections.direct) && (
               <div className={styles.sectionContent}>
                 {grouped.direct.map((conv) => (
                   <ConversationListItem

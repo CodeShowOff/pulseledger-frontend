@@ -45,9 +45,9 @@ const DIFFICULTIES = ["beginner", "intermediate", "advanced"] as const;
 const templateExerciseSchema = z.object({
   exerciseId: z.string().min(1),
   order: z.number().min(1),
-  sets: z.coerce.number().min(1).max(20).optional(),
   reps: z.coerce.number().min(1).max(100).optional(),
   duration: z.coerce.number().min(1).max(3600).optional(),
+  weight: z.string().max(50).optional(),
   restSeconds: z.coerce.number().min(0).max(600).optional(),
   notes: z.string().max(300).optional(),
 });
@@ -134,9 +134,9 @@ export default function WorkoutTemplateForm({ template }: Props) {
           existing?.exercises?.map((ex, idx) => ({
             exerciseId: exerciseIdToString(ex.exerciseId),
             order: ex.order ?? idx + 1,
-            sets: ex.sets,
             reps: ex.reps,
             duration: ex.duration,
+            weight: ex.weight,
             restSeconds: ex.restSeconds,
             notes: ex.notes,
           })) ?? [],
@@ -184,9 +184,9 @@ export default function WorkoutTemplateForm({ template }: Props) {
       {
         exerciseId: ex._id,
         order: nextOrder,
-        sets: 3,
         reps: 10,
         duration: undefined,
+        weight: "",
         restSeconds: 60,
         notes: "",
       },
@@ -241,9 +241,9 @@ export default function WorkoutTemplateForm({ template }: Props) {
               : (day.exercises || []).map((ex, idx) => ({
                   exerciseId: ex.exerciseId,
                   order: ex.order ?? idx + 1,
-                  sets: ex.sets,
                   reps: ex.reps,
                   duration: ex.duration,
+                  weight: ex.weight || undefined,
                   restSeconds: ex.restSeconds,
                   notes: ex.notes || undefined,
                 })),
@@ -500,20 +500,6 @@ export default function WorkoutTemplateForm({ template }: Props) {
 
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.5rem", marginTop: "0.75rem" }}>
                           <div>
-                            <label style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.25rem" }}>Sets</label>
-                            <input
-                              className="admin-input"
-                              type="number"
-                              value={ex.sets ?? ""}
-                              onChange={(e) =>
-                                setPathValue(
-                                  `weeklySchedule.${dayIndex}.exercises.${exIndex}.sets`,
-                                  Number(e.target.value)
-                                )
-                              }
-                            />
-                          </div>
-                          <div>
                             <label style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.25rem" }}>Reps</label>
                             <input
                               className="admin-input"
@@ -522,7 +508,7 @@ export default function WorkoutTemplateForm({ template }: Props) {
                               onChange={(e) =>
                                 setPathValue(
                                   `weeklySchedule.${dayIndex}.exercises.${exIndex}.reps`,
-                                  Number(e.target.value)
+                                  e.target.value === "" ? undefined : Number(e.target.value)
                                 )
                               }
                             />
@@ -536,9 +522,24 @@ export default function WorkoutTemplateForm({ template }: Props) {
                               onChange={(e) =>
                                 setPathValue(
                                   `weeklySchedule.${dayIndex}.exercises.${exIndex}.duration`,
-                                  Number(e.target.value)
+                                  e.target.value === "" ? undefined : Number(e.target.value)
                                 )
                               }
+                            />
+                          </div>
+                          <div>
+                            <label style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.25rem" }}>Weight</label>
+                            <input
+                              className="admin-input"
+                              type="text"
+                              value={ex.weight ?? ""}
+                              onChange={(e) =>
+                                setPathValue(
+                                  `weeklySchedule.${dayIndex}.exercises.${exIndex}.weight`,
+                                  e.target.value
+                                )
+                              }
+                              placeholder="e.g. 20kg / bodyweight"
                             />
                           </div>
                           <div>
@@ -550,7 +551,7 @@ export default function WorkoutTemplateForm({ template }: Props) {
                               onChange={(e) =>
                                 setPathValue(
                                   `weeklySchedule.${dayIndex}.exercises.${exIndex}.restSeconds`,
-                                  Number(e.target.value)
+                                  e.target.value === "" ? undefined : Number(e.target.value)
                                 )
                               }
                             />

@@ -1,8 +1,9 @@
 // app/coach/workout-plans/[id]/page.tsx
 "use client";
 
-import React from "react";
-import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { motion } from "@/lib/motion";
 import {
   ArrowLeft,
   Edit2,
@@ -11,388 +12,473 @@ import {
   Target,
   Clock,
   Zap,
+  Sparkles,
 } from "lucide-react";
 import { useCoachWorkoutPlan, WorkoutDay, WorkoutSession, PlanExercise } from "@/lib/queries/workouts";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
-const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAYS_SUNDAY_FIRST = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+const DAYS_MONDAY_FIRST = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+};
+
+function prettifyLabel(value?: string) {
+  if (!value) return "Not set";
+  return value
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function getDayLabel(day: WorkoutDay, dayIndex: number) {
+  if (day.dayName?.trim()) return day.dayName;
+
+  if (typeof day.dayOfWeek === "number" && day.dayOfWeek >= 0 && day.dayOfWeek < 7) {
+    return DAYS_SUNDAY_FIRST[day.dayOfWeek];
+  }
+
+  if (typeof day.dayNumber === "number" && day.dayNumber >= 1 && day.dayNumber <= 7) {
+    return DAYS_MONDAY_FIRST[day.dayNumber - 1];
+  }
+
+  return DAYS_SUNDAY_FIRST[dayIndex] || `Day ${dayIndex + 1}`;
+}
+
+function getExerciseName(exercise: PlanExercise) {
+  if (typeof exercise.exerciseId === "object" && exercise.exerciseId?.name) {
+    return exercise.exerciseId.name;
+  }
+
+  return exercise.exerciseName || "Exercise";
+}
 
 export default function ViewWorkoutPlanPage() {
-  const router = useRouter();
   const params = useParams();
-  const planId = params?.id as string;
+  const planIdParam = params?.id;
+  const planId = Array.isArray(planIdParam) ? planIdParam[0] : planIdParam;
+  const safePlanId = typeof planId === "string" ? planId : "";
 
-  const { data: plan, isLoading, error } = useCoachWorkoutPlan(planId);
+  const { data: plan, isLoading, error } = useCoachWorkoutPlan(safePlanId);
 
   if (isLoading) {
     return (
-      <div className="admin-page" style={{ padding: "2rem", textAlign: "center" }}>
-        Loading plan...
+      <div className="space-y-4 pt-4 md:pt-6">
+        <Card>
+          <CardContent className="p-6 text-sm text-slate-600">
+            Loading plan...
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error || !plan) {
     return (
-      <div className="admin-page" style={{ padding: "2rem", textAlign: "center" }}>
-        Plan not found
+      <div className="space-y-4 pt-4 md:pt-6">
+        <Card>
+          <CardContent className="flex flex-col gap-3 p-6">
+            <p className="text-sm font-medium text-rose-700">Plan not found.</p>
+            <Link href="/coach/workout-plans" className="w-fit">
+              <Button variant="outline" size="sm">
+                Back to Workout Plans
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="admin-page" style={{ paddingBottom: "2rem" }}>
-      <div className="admin-page-header">
-        <button
-          onClick={() => router.back()}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            padding: "0.5rem 1rem",
-            backgroundColor: "transparent",
-            border: "none",
-            cursor: "pointer",
-            color: "var(--admin-color-text-secondary)",
-            marginBottom: "1rem",
-          }}
-        >
-          <ArrowLeft style={{ width: 18, height: 18 }} />
-          Back
-        </button>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <h1 className="admin-page-header__title" style={{ margin: 0 }}>
-                {plan.name}
-              </h1>
-              {plan.isDraft && (
-                <span
-                  style={{
-                    padding: "0.25rem 0.75rem",
-                    fontSize: "0.75rem",
-                    backgroundColor: "#fef3c7",
-                    color: "#d97706",
-                    borderRadius: "999px",
-                  }}
-                >
-                  Draft
-                </span>
-              )}
-            </div>
-            {plan.description && (
-              <p
-                className="admin-page-header__description"
-                style={{ marginTop: "0.5rem" }}
-              >
-                {plan.description}
-              </p>
-            )}
-          </div>
-          <button
-            onClick={() => router.push(`/coach/workout-plans/${planId}/edit`)}
-            className="btn btn--primary"
-            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-          >
-            <Edit2 style={{ width: 16, height: 16 }} />
-            Edit Plan
-          </button>
-        </div>
-      </div>
-
-      {/* Plan Overview */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "1rem",
-          marginBottom: "2rem",
-        }}
+    <div className="space-y-5 pt-4 md:pt-6">
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28 }}
       >
-        <div
-          style={{
-            padding: "1rem",
-            backgroundColor: "#f0fdf4",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-          }}
-        >
-          <Target style={{ width: 20, height: 20, color: "#16a34a" }} />
-          <div>
-            <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Category</p>
-            <p style={{ fontWeight: 600, textTransform: "capitalize" }}>
-              {plan.category?.replace(/_/g, " ") || "Not set"}
-            </p>
-          </div>
-        </div>
-
-        <div
-          style={{
-            padding: "1rem",
-            backgroundColor: "#eff6ff",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-          }}
-        >
-          <Zap style={{ width: 20, height: 20, color: "#2563eb" }} />
-          <div>
-            <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Difficulty</p>
-            <p style={{ fontWeight: 600, textTransform: "capitalize" }}>
-              {plan.difficulty || "Not set"}
-            </p>
-          </div>
-        </div>
-
-        <div
-          style={{
-            padding: "1rem",
-            backgroundColor: "#fef3c7",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-          }}
-        >
-          <Clock style={{ width: 20, height: 20, color: "#d97706" }} />
-          <div>
-            <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Duration</p>
-            <p style={{ fontWeight: 600 }}>
-              {plan.durationWeeks ? `${plan.durationWeeks} weeks` : "Not set"}
-            </p>
-          </div>
-        </div>
-
-        <div
-          style={{
-            padding: "1rem",
-            backgroundColor: "#fce7f3",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-          }}
-        >
-          <Calendar style={{ width: 20, height: 20, color: "#db2777" }} />
-          <div>
-            <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Days/Week</p>
-            <p style={{ fontWeight: 600 }}>
-              {plan.daysPerWeek || plan.weeklySchedule?.length || 0} days
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Linked Subscription Plans */}
-      {plan.subscriptionPlanIds && plan.subscriptionPlanIds.length > 0 && (
-        <div style={{ marginBottom: "2rem" }}>
-          <h2
-            style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.75rem" }}
-          >
-            Linked Subscription Plans
-          </h2>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-            {plan.subscriptionPlanIds.map((sp) => (
-              <span
-                key={sp._id}
-                style={{
-                  padding: "0.35rem 0.75rem",
-                  fontSize: "0.85rem",
-                  backgroundColor: "#f3f4f6",
-                  borderRadius: "6px",
-                }}
-              >
-                {sp.title}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Weekly Schedule */}
-      <div>
-        <h2
-          style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.75rem" }}
-        >
-          Weekly Schedule
-        </h2>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-          }}
-        >
-          {plan.weeklySchedule?.map((day: WorkoutDay, dayIndex: number) => (
-            <div
-              key={dayIndex}
-              style={{
-                border: "1px solid #e5e7eb",
-                borderRadius: "8px",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  padding: "0.75rem 1rem",
-                  backgroundColor: day.isRestDay ? "#f9fafb" : "#f0fdf4",
-                  borderBottom: "1px solid #e5e7eb",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
-                >
-                  <span style={{ fontWeight: 600 }}>
-                    {day.dayName || DAYS[day.dayOfWeek ?? dayIndex] || `Day ${dayIndex + 1}`}
-                  </span>
-                  {day.focusArea && (
-                    <span
-                      style={{
-                        fontSize: "0.75rem",
-                        padding: "0.2rem 0.5rem",
-                        backgroundColor: "#fff",
-                        borderRadius: "4px",
-                        color: "#6b7280",
-                      }}
-                    >
-                      {day.focusArea}
-                    </span>
-                  )}
+        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
+          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
+                    Workout Plan
+                  </Badge>
+                  {plan.isDraft ? (
+                    <Badge className="w-fit !border-amber-200 !bg-amber-100 !text-amber-900 text-[10px] sm:text-xs">
+                      Draft
+                    </Badge>
+                  ) : null}
                 </div>
-                {day.isRestDay && (
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      padding: "0.2rem 0.5rem",
-                      backgroundColor: "#e5e7eb",
-                      borderRadius: "4px",
-                      color: "#6b7280",
-                    }}
-                  >
-                    Rest Day
-                  </span>
-                )}
+
+                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
+                  {plan.name}
+                </CardTitle>
+
+                <CardDescription className="max-w-2xl text-xs !text-white/90 sm:text-sm md:text-base">
+                  {plan.description ||
+                    "Review your workout structure and keep sessions aligned with client goals."}
+                </CardDescription>
               </div>
 
-              {!day.isRestDay && day.workouts && day.workouts.length > 0 && (
-                <div style={{ padding: "0.75rem 1rem" }}>
-                  {day.workouts.map((workout: WorkoutSession, wIndex: number) => (
-                    <div key={wIndex} style={{ marginBottom: wIndex < day.workouts!.length - 1 ? "1rem" : 0 }}>
-                      {workout.name && (
-                        <p style={{ fontWeight: 500, marginBottom: "0.5rem", color: "#374151" }}>
-                          {workout.name}
-                          {workout.estimatedDuration && (
-                            <span style={{ fontWeight: 400, color: "#9ca3af", marginLeft: "0.5rem" }}>
-                              (~{workout.estimatedDuration} min)
-                            </span>
-                          )}
-                        </p>
-                      )}
-                      {workout.exercises && workout.exercises.length > 0 && (
-                        <table style={{ width: "100%", fontSize: "0.85rem" }}>
-                          <thead>
-                            <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-                              <th style={{ textAlign: "left", padding: "0.5rem 0.5rem 0.5rem 0", fontWeight: 500, color: "#6b7280" }}>
-                                Exercise
-                              </th>
-                              <th style={{ textAlign: "center", padding: "0.5rem", fontWeight: 500, color: "#6b7280" }}>
-                                Sets
-                              </th>
-                              <th style={{ textAlign: "center", padding: "0.5rem", fontWeight: 500, color: "#6b7280" }}>
-                                Reps
-                              </th>
-                              <th style={{ textAlign: "center", padding: "0.5rem", fontWeight: 500, color: "#6b7280" }}>
-                                Weight
-                              </th>
-                              <th style={{ textAlign: "center", padding: "0.5rem", fontWeight: 500, color: "#6b7280" }}>
-                                Rest
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {workout.exercises.map((ex: PlanExercise, exIndex: number) => {
-                              // Handle exerciseId being either a string or populated object
-                              const exerciseName = typeof ex.exerciseId === 'object' && ex.exerciseId?.name
-                                ? ex.exerciseId.name
-                                : ex.exerciseName || "Exercise";
-                              
-                              return (
-                              <tr
-                                key={exIndex}
-                                style={{
-                                  borderBottom: exIndex < workout.exercises!.length - 1 ? "1px solid #f3f4f6" : "none",
-                                }}
-                              >
-                                <td style={{ padding: "0.5rem 0.5rem 0.5rem 0", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                  <Dumbbell style={{ width: 14, height: 14, color: "#16a34a" }} />
-                                  {exerciseName}
-                                </td>
-                                <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                                  {ex.sets || "-"}
-                                </td>
-                                <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                                  {ex.reps || (ex.duration ? `${ex.duration}s` : "-")}
-                                </td>
-                                <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                                  {ex.weight || "-"}
-                                </td>
-                                <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                                  {ex.restSeconds ? `${ex.restSeconds}s` : "-"}
-                                </td>
-                              </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      )}
-                    </div>
+              <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:gap-2 md:justify-end">
+                <Link href="/coach/workout-plans" className="min-w-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    Workouts
+                  </Button>
+                </Link>
+
+                <Link href={`/coach/workout-plans/${safePlanId}/edit`} className="min-w-0">
+                  <Button
+                    size="sm"
+                    className="h-8 w-full !bg-white px-2.5 text-xs !text-indigo-700 hover:!bg-indigo-50 sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                  >
+                    <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    Edit Plan
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.05 }}
+      >
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Target className="h-4 w-4" />
+              </span>
+              Plan overview
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                <p className="text-[10px] uppercase tracking-wide text-slate-500">Category</p>
+                <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                  <Target className="h-3.5 w-3.5 text-emerald-600" />
+                  {prettifyLabel(plan.category)}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                <p className="text-[10px] uppercase tracking-wide text-slate-500">Difficulty</p>
+                <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                  <Zap className="h-3.5 w-3.5 text-blue-600" />
+                  {prettifyLabel(plan.difficulty)}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                <p className="text-[10px] uppercase tracking-wide text-slate-500">Duration</p>
+                <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                  <Clock className="h-3.5 w-3.5 text-amber-600" />
+                  {plan.durationWeeks ? `${plan.durationWeeks} weeks` : "Not set"}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                <p className="text-[10px] uppercase tracking-wide text-slate-500">Days / Week</p>
+                <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                  <Calendar className="h-3.5 w-3.5 text-pink-600" />
+                  {plan.daysPerWeek || plan.weeklySchedule?.length || 0} days
+                </p>
+              </div>
+            </div>
+
+            {plan.equipmentRequired && plan.equipmentRequired.length > 0 ? (
+              <div>
+                <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <Dumbbell className="h-4 w-4 text-slate-500" />
+                  Equipment required
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {plan.equipmentRequired.map((equipment, idx) => (
+                    <Badge
+                      key={`${equipment}-${idx}`}
+                      variant="secondary"
+                      className="border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] normal-case tracking-normal text-slate-700"
+                    >
+                      {prettifyLabel(equipment)}
+                    </Badge>
                   ))}
                 </div>
-              )}
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      </motion.section>
 
-              {!day.isRestDay && (!day.workouts || day.workouts.length === 0) && (
-                <div
-                  style={{
-                    padding: "1rem",
-                    textAlign: "center",
-                    color: "#9ca3af",
-                    fontSize: "0.85rem",
-                  }}
-                >
-                  No exercises added for this day
-                </div>
-              )}
-            </div>
-          ))}
+      {plan.subscriptionPlanIds && plan.subscriptionPlanIds.length > 0 ? (
+        <motion.section
+          variants={fadeInUp}
+          initial="initial"
+          animate="animate"
+          transition={{ duration: 0.28, delay: 0.1 }}
+        >
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <Sparkles className="h-4 w-4" />
+                </span>
+                Linked subscription plans
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-1.5">
+                {plan.subscriptionPlanIds.map((subscriptionPlan) => (
+                  <Badge
+                    key={subscriptionPlan._id}
+                    className="border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] normal-case tracking-normal text-indigo-700"
+                  >
+                    {subscriptionPlan.title}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.section>
+      ) : null}
 
-          {(!plan.weeklySchedule || plan.weeklySchedule.length === 0) && (
-            <div
-              style={{
-                padding: "2rem",
-                textAlign: "center",
-                color: "#9ca3af",
-                backgroundColor: "#f9fafb",
-                borderRadius: "8px",
-              }}
-            >
-              No schedule configured for this plan
-            </div>
-          )}
-        </div>
-      </div>
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.15 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Calendar className="h-4 w-4" />
+              </span>
+              Weekly schedule
+            </CardTitle>
+            <CardDescription>Daily session flow and exercise targets.</CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            {plan.weeklySchedule && plan.weeklySchedule.length > 0 ? (
+              <div className="space-y-2">
+                {plan.weeklySchedule.map((day: WorkoutDay, dayIndex: number) => {
+                  const dayLabel = getDayLabel(day, dayIndex);
+                  const workouts = day.workouts ?? [];
+                  const hasMultipleWorkouts = workouts.length > 1;
+                  const dayEstimatedDuration = workouts.reduce(
+                    (total, workout) => total + (workout.estimatedDuration || 0),
+                    0
+                  );
+
+                  return (
+                    <article
+                      key={day._id || `${day.dayName || "day"}-${dayIndex}`}
+                      className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+                    >
+                      <div
+                        className={cn(
+                          "flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-3 py-2.5",
+                          day.isRestDay ? "bg-slate-50" : "bg-emerald-50/60"
+                        )}
+                      >
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-semibold text-slate-900">{dayLabel}</h3>
+                          {day.focusArea && !day.isRestDay ? (
+                            <p className="text-xs text-slate-600">Focus: {day.focusArea}</p>
+                          ) : null}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {day.isRestDay ? (
+                            <Badge
+                              variant="secondary"
+                              className="border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] normal-case tracking-normal text-slate-600"
+                            >
+                              Rest Day
+                            </Badge>
+                          ) : null}
+
+                          {!day.isRestDay && dayEstimatedDuration > 0 ? (
+                            <Badge
+                              variant="secondary"
+                              className="border border-slate-200 bg-white px-2 py-0.5 text-[11px] normal-case tracking-normal text-slate-700"
+                            >
+                              <Clock className="mr-1 h-3 w-3" />~{dayEstimatedDuration} min
+                            </Badge>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {day.isRestDay ? (
+                        <div className="px-3 py-3 text-sm text-slate-500">
+                          {day.restDayNotes || "Recovery day"}
+                        </div>
+                      ) : workouts.length > 0 ? (
+                        <div className={cn("p-3", hasMultipleWorkouts ? "space-y-3" : "") }>
+                          {workouts.map((workout: WorkoutSession, wIndex: number) => {
+                            const workoutName = workout.name?.trim();
+                            const isDuplicateDayName = workoutName
+                              ? workoutName.toLowerCase() === dayLabel.trim().toLowerCase()
+                              : false;
+                            const workoutTitle =
+                              workoutName && !isDuplicateDayName
+                                ? workoutName
+                                : workouts.length > 1
+                                ? `Session ${wIndex + 1}`
+                                : "";
+                            const showWorkoutHeader = Boolean(workoutTitle);
+                            const showTopSpacing = showWorkoutHeader || Boolean(workout.description);
+
+                            return (
+                              <section
+                                key={workout._id || `${workout.name || "session"}-${wIndex}`}
+                                className={cn(
+                                  hasMultipleWorkouts
+                                    ? "rounded-lg border border-slate-200 bg-slate-50/70 p-3"
+                                    : ""
+                                )}
+                              >
+                                {showWorkoutHeader ? (
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <div className="flex min-w-0 items-center gap-2">
+                                      {workoutTitle ? (
+                                        <>
+                                          <span className="grid h-7 w-7 place-items-center rounded-lg bg-white text-emerald-600 shadow-sm">
+                                            <Dumbbell className="h-3.5 w-3.5" />
+                                          </span>
+                                          <p className="truncate text-sm font-semibold text-slate-800">
+                                            {workoutTitle}
+                                          </p>
+                                        </>
+                                      ) : null}
+                                    </div>
+                                  </div>
+                                ) : null}
+
+                                {workout.description ? (
+                                  <p className={cn("text-xs leading-5 text-slate-600", showWorkoutHeader ? "mt-2" : "")}>{workout.description}</p>
+                                ) : null}
+
+                                {workout.exercises && workout.exercises.length > 0 ? (
+                                  <div className={cn("space-y-2", showTopSpacing ? "mt-3" : "")}>
+                                    {workout.exercises.map((exercise: PlanExercise, exIndex: number) => (
+                                      <div
+                                        key={exercise._id || `${exercise.order}-${exIndex}`}
+                                        className="rounded-md border border-slate-200 bg-white p-2.5"
+                                      >
+                                        <div className="flex items-start justify-between gap-2">
+                                          <div className="flex min-w-0 items-center gap-2">
+                                            <span className="grid h-6 w-6 place-items-center rounded-md bg-emerald-50 text-emerald-600">
+                                              <Dumbbell className="h-3 w-3" />
+                                            </span>
+                                            <p className="truncate text-xs font-medium text-slate-800">
+                                              {getExerciseName(exercise)}
+                                            </p>
+                                          </div>
+                                          <span className="text-[11px] font-semibold text-slate-500">
+                                            #{exIndex + 1}
+                                          </span>
+                                        </div>
+
+                                        <div className="mt-2 grid grid-cols-2 gap-2 lg:grid-cols-4">
+                                          <div className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5">
+                                            <p className="text-[10px] uppercase tracking-wide text-slate-500">Reps</p>
+                                            <p className="text-xs font-semibold text-slate-800">
+                                              {exercise.reps ?? "—"}
+                                            </p>
+                                          </div>
+                                          <div className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5">
+                                            <p className="text-[10px] uppercase tracking-wide text-slate-500">Duration</p>
+                                            <p className="text-xs font-semibold text-slate-800">
+                                              {exercise.duration ? `${exercise.duration}s` : "—"}
+                                            </p>
+                                          </div>
+                                          <div className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5">
+                                            <p className="text-[10px] uppercase tracking-wide text-slate-500">Weight</p>
+                                            <p className="text-xs font-semibold text-slate-800">
+                                              {exercise.weight || "—"}
+                                            </p>
+                                          </div>
+                                          <div className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5">
+                                            <p className="text-[10px] uppercase tracking-wide text-slate-500">Rest</p>
+                                            <p className="text-xs font-semibold text-slate-800">
+                                              {exercise.restSeconds ? `${exercise.restSeconds}s` : "—"}
+                                            </p>
+                                          </div>
+                                        </div>
+
+                                        {exercise.notes ? (
+                                          <p className="mt-2 text-[11px] text-slate-500">Note: {exercise.notes}</p>
+                                        ) : null}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className={cn("text-xs text-slate-500", showTopSpacing ? "mt-3" : "")}>No exercises in this session.</p>
+                                )}
+                              </section>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="px-3 py-3 text-sm text-slate-500">No sessions added for this day.</div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-8 text-center text-sm text-slate-500">
+                No schedule configured for this plan.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.section>
     </div>
   );
 }

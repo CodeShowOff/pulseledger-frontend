@@ -318,7 +318,6 @@ export function ExerciseAnimationCard({
   animationUrl,
   thumbnailUrl,
   exerciseName,
-  sets,
   reps,
   duration,
   restSeconds,
@@ -327,7 +326,6 @@ export function ExerciseAnimationCard({
   isExpanded = false,
   onToggleExpand,
 }: ExerciseAnimationProps & {
-  sets?: number;
   reps?: number | string;
   duration?: number;
   restSeconds?: number;
@@ -377,7 +375,7 @@ export function ExerciseAnimationCard({
             {exerciseName}
           </h3>
 
-          {/* Sets/Reps/Duration */}
+          {/* Reps/Duration */}
           <div
             style={{
               display: "flex",
@@ -386,20 +384,6 @@ export function ExerciseAnimationCard({
               marginBottom: "0.5rem",
             }}
           >
-            {sets && (
-              <span
-                style={{
-                  fontSize: "0.8rem",
-                  padding: "0.25rem 0.5rem",
-                  backgroundColor: "#dcfce7",
-                  color: "#16a34a",
-                  borderRadius: "6px",
-                  fontWeight: 500,
-                }}
-              >
-                {sets} sets
-              </span>
-            )}
             {reps && (
               <span
                 style={{

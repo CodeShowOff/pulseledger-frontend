@@ -364,6 +364,85 @@ export default function CoachDashboard() {
       <div className="mx-auto w-full max-w-[1640px]">
         <div className="grid min-h-[calc(100vh-108px)] grid-cols-1 gap-3">
           <div className="space-y-3">
+            <section className="grid gap-3 lg:grid-cols-[1.3fr_1fr]">
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.3 }}>
+                <Card className="h-full overflow-hidden border-slate-200/80 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
+                  <CardHeader>
+                    <Badge className="w-fit border-white/30 bg-white/10 text-white">Performance Hub</Badge>
+                    <CardTitle className="mt-2 text-2xl font-bold text-white sm:text-3xl">
+                      Welcome back, {user?.fullName?.split(" ")[0] || "Coach"}
+                    </CardTitle>
+                    <CardDescription className="hidden max-w-xl text-white/95 sm:block">
+                      Manage your coaching dashboard in one place.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="hidden gap-3 sm:grid sm:grid-cols-3">
+                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
+                      <p className="text-xs uppercase tracking-wide text-blue-100">Focus</p>
+                      <p className="mt-1 text-sm font-semibold">
+                        <span className="sm:hidden">Retention</span>
+                        <span className="hidden sm:inline">Client retention</span>
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
+                      <p className="text-xs uppercase tracking-wide text-blue-100">Today</p>
+                      <p className="mt-1 text-sm font-semibold">
+                        <span className="sm:hidden">Improvements</span>
+                        <span className="hidden sm:inline">Plan improvements</span>
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
+                      <p className="text-xs uppercase tracking-wide text-blue-100">Status</p>
+                      <p className="mt-1 text-sm font-semibold">
+                        <span className="sm:hidden">Healthy</span>
+                        <span className="hidden sm:inline">All systems healthy</span>
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                className="hidden md:block"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.3 }}
+              >
+                <Card className="h-full border-slate-200/80 bg-white/95">
+                  <CardHeader className="space-y-1 px-4 pb-2 pt-4">
+                    <CardTitle className="flex items-center gap-2 text-[15px]">
+                      <span className="grid h-6 w-6 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                        <Target className="h-3.5 w-3.5" />
+                      </span>
+                      Quick links
+                    </CardTitle>
+                    <CardDescription className="hidden text-xs sm:block">Frequently used tools.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-1.5 px-4 pb-4 pt-0">
+                    {quickCards.slice(0, 4).map((card) => (
+                      <Link key={card.title} href={card.href} className="block">
+                        <div className={cn(
+                          "group flex items-center justify-between rounded-xl border px-3 py-2 transition-all",
+                          card.cardClass
+                        )}>
+                          <div className="flex items-center gap-2">
+                            <span className={cn(
+                              "grid h-7 w-7 place-items-center rounded-md bg-white shadow-sm",
+                              card.iconClass
+                            )}>
+                              <card.Icon className="h-3.5 w-3.5" />
+                            </span>
+                            <p className="text-sm font-medium text-slate-700">{card.title}</p>
+                          </div>
+                          <span className={cn("transition-colors", card.arrowClass)}>→</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </section>
+
             {subscription && (subscription.status === "expired" || subscription.status === "trial" || (subscription.status === "active" && subscription.daysRemaining <= 3)) ? (
               <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
                 <Card
@@ -423,85 +502,6 @@ export default function CoachDashboard() {
                 </Card>
               </motion.div>
             ) : null}
-
-            <section className="grid gap-3 lg:grid-cols-[1.3fr_1fr]">
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.3 }}>
-                <Card className="h-full overflow-hidden border-slate-200/80 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-                  <CardHeader>
-                    <Badge className="w-fit border-white/30 bg-white/10 text-white">Performance Hub</Badge>
-                    <CardTitle className="mt-2 text-2xl font-bold text-white sm:text-3xl">
-                      Welcome back, {user?.fullName?.split(" ")[0] || "Coach"}
-                    </CardTitle>
-                    <CardDescription className="hidden max-w-xl text-white/95 sm:block">
-                      Manage your coaching dashboard in one place.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="hidden gap-3 sm:grid sm:grid-cols-3">
-                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
-                      <p className="text-xs uppercase tracking-wide text-blue-100">Focus</p>
-                      <p className="mt-1 text-sm font-semibold">
-                        <span className="sm:hidden">Retention</span>
-                        <span className="hidden sm:inline">Client retention</span>
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
-                      <p className="text-xs uppercase tracking-wide text-blue-100">Today</p>
-                      <p className="mt-1 text-sm font-semibold">
-                        <span className="sm:hidden">Improvements</span>
-                        <span className="hidden sm:inline">Plan improvements</span>
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
-                      <p className="text-xs uppercase tracking-wide text-blue-100">Status</p>
-                      <p className="mt-1 text-sm font-semibold">
-                        <span className="sm:hidden">Healthy</span>
-                        <span className="hidden sm:inline">All systems healthy</span>
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div
-                className="hidden md:block"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.3 }}
-              >
-                <Card className="h-full border-slate-200/80 bg-white/95">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <span className="grid h-7 w-7 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                        <Target className="h-4 w-4" />
-                      </span>
-                      Quick links
-                    </CardTitle>
-                    <CardDescription className="hidden sm:block">Frequently used tools.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {quickCards.slice(0, 4).map((card) => (
-                      <Link key={card.title} href={card.href} className="block">
-                        <div className={cn(
-                          "group flex items-center justify-between rounded-xl border px-3 py-2.5 transition-all",
-                          card.cardClass
-                        )}>
-                          <div className="flex items-center gap-2.5">
-                            <span className={cn(
-                              "grid h-8 w-8 place-items-center rounded-lg bg-white shadow-sm",
-                              card.iconClass
-                            )}>
-                              <card.Icon className="h-4 w-4" />
-                            </span>
-                            <p className="text-sm font-medium text-slate-700">{card.title}</p>
-                          </div>
-                          <span className={cn("transition-colors", card.arrowClass)}>→</span>
-                        </div>
-                      </Link>
-                    ))}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </section>
 
             <section>
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.28 }}>

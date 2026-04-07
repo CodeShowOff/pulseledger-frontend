@@ -263,6 +263,26 @@
   }
 }
 
+@media (max-width: 640px) {
+  .coach-plan-form__section {
+    padding: 1rem;
+  }
+
+  .coach-plan-form__row > .auth-form__field {
+    flex: 1 1 100% !important;
+    min-width: 0;
+  }
+
+  .coach-plan-form__actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .coach-plan-form__actions > * {
+    width: 100%;
+  }
+}
+
 .coach-page-header__title {
   color: #111827;
 }

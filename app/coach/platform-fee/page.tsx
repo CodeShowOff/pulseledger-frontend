@@ -509,8 +509,8 @@ export default function PlatformFeeManagementPage() {
                 className={cn(
                   "h-10 w-full font-semibold",
                   isExpired
-                    ? "bg-rose-600 text-white hover:bg-rose-700"
-                    : "bg-amber-500 text-white hover:bg-amber-600"
+                    ? "!bg-rose-600 !text-white hover:!bg-rose-700"
+                    : "!bg-emerald-600 !text-white hover:!bg-emerald-700"
                 )}
               >
                 {isExpired ? "Renew now" : "Pay now"}
@@ -865,7 +865,7 @@ export default function PlatformFeeManagementPage() {
 
       {showPaymentForm ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 p-4"
           onClick={() => {
             if (!submitPaymentMutation.isPending) resetPaymentForm();
           }}
@@ -1011,7 +1011,7 @@ export default function PlatformFeeManagementPage() {
 
       {selectedPayment ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 p-4"
           onClick={() => setSelectedPayment(null)}
         >
           <Card

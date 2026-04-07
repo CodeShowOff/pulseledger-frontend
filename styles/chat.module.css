@@ -276,6 +276,90 @@
   height: 1rem;
 }
 
+.sidebarSearchButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  font-size: 0.8125rem;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.sidebarSearchButton:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.sidebarSearchButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.sidebarHeaderSearchRow {
+  margin-top: 0.75rem;
+}
+
+.sidebarSearchInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sidebarSearchInputIcon {
+  position: absolute;
+  left: 0.75rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.sidebarSearchInput {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  padding: 0.5rem 2.25rem 0.5rem 2.25rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sidebarSearchInput:focus {
+  outline: none;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.sidebarSearchInput::placeholder {
+  color: #9ca3af;
+}
+
+.sidebarSearchClearButton {
+  position: absolute;
+  right: 0.375rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.sidebarSearchClearButton:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
 .connectionStatus {
   display: flex;
   align-items: center;
