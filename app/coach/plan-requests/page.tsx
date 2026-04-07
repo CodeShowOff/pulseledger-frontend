@@ -301,6 +301,7 @@ export default function CoachPlanRequestsPage() {
                                   alt={`Payment proof from ${req.clientId?.fullName ?? "client"}`}
                                   width={960}
                                   height={640}
+                                  sizes="(max-width: 768px) 100vw, (max-width: 1536px) 50vw, 640px"
                                   className="h-auto max-h-[220px] w-full object-contain"
                                 />
                               </div>

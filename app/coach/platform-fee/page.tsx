@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import getErrorMessage from "@/lib/getErrorMessage";
@@ -914,9 +915,14 @@ export default function PlatformFeeManagementPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <img
+                    <Image
                       src={subscription.paymentQrUrl}
                       alt="Payment QR code"
+                      width={320}
+                      height={320}
+                      sizes="(max-width: 640px) 100vw, 320px"
+                      loading="lazy"
+                      unoptimized
                       className="mx-auto w-full max-w-[320px] rounded-lg border border-slate-200 bg-white p-2"
                     />
                   </a>
@@ -959,9 +965,14 @@ export default function PlatformFeeManagementPage() {
                   ) : null}
 
                   {previewUrl ? (
-                    <img
+                    <Image
                       src={previewUrl}
                       alt="Payment proof preview"
+                      width={1200}
+                      height={800}
+                      sizes="(max-width: 768px) 100vw, 720px"
+                      loading="lazy"
+                      unoptimized
                       className="mt-2 max-h-[220px] w-full rounded-lg border border-slate-200 object-contain"
                     />
                   ) : null}
@@ -1112,9 +1123,14 @@ export default function PlatformFeeManagementPage() {
                     rel="noopener noreferrer"
                     className="block"
                   >
-                    <img
+                    <Image
                       src={selectedPayment.paymentProof}
                       alt="Payment proof"
+                      width={1200}
+                      height={800}
+                      sizes="(max-width: 1024px) 100vw, 900px"
+                      loading="lazy"
+                      unoptimized
                       className="w-full rounded-lg border border-slate-200"
                     />
                   </a>

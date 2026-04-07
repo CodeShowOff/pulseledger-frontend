@@ -56,6 +56,7 @@ function QrDisplay() {
         alt="Coach payment QR"
         width={240}
         height={240}
+        sizes="(max-width: 640px) 100vw, 240px"
         style={{ objectFit: "contain", borderRadius: "0.5rem", border: "1px solid #e5e7eb", background: "#fff", filter: "brightness(1.2)" }}
       />
     </div>
@@ -293,6 +294,7 @@ export default function PlanPaymentPage() {
                         alt="Payment proof"
                         width={240}
                         height={240}
+                        sizes="(max-width: 640px) 100vw, 240px"
                         style={{ objectFit: "cover", borderRadius: "0.5rem", border: "1px solid #e5e7eb", filter: "brightness(1.2)" }}
                       />
                     </div>

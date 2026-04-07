@@ -111,7 +111,7 @@ export default function ProductForm() {
         <label className="auth-form__label">Product Image</label>
         {preview && (
           <div style={{ marginBottom: "0.5rem" }}>
-            <Image src={preview} alt="Preview" width={120} height={120} style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8, border: "1px solid #e5e7eb" }} />
+            <Image src={preview} alt="Preview" width={120} height={120} sizes="120px" style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8, border: "1px solid #e5e7eb" }} />
           </div>
         )}
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>

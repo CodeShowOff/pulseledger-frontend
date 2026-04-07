@@ -268,6 +268,7 @@ export default function ClientCoachProfilePage() {
                     alt={data.fullName}
                     width={80}
                     height={80}
+                    sizes="80px"
                     className="profile-photo--filtered h-20 w-20 shrink-0 rounded-full object-cover shadow-sm"
                   />
                 ) : (

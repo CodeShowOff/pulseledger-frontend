@@ -49,22 +49,6 @@ const NotificationBell = React.memo(function NotificationBell() {
 
   return (
     <>
-      <style jsx>{`
-        @keyframes bellSwing {
-          0% { transform: rotate(0deg); }
-          10% { transform: rotate(15deg); }
-          20% { transform: rotate(-10deg); }
-          30% { transform: rotate(10deg); }
-          40% { transform: rotate(-5deg); }
-          50% { transform: rotate(5deg); }
-          60% { transform: rotate(0deg); }
-          100% { transform: rotate(0deg); }
-        }
-        .bell-icon-animate {
-          animation: bellSwing 2s ease-in-out infinite;
-          transform-origin: top center;
-        }
-      `}</style>
       <Link
         href="/notifications"
         className="site-navbar__avatar-button bell-button"
@@ -87,7 +71,7 @@ const NotificationBell = React.memo(function NotificationBell() {
           alt="Notifications"
           width={24}
           height={24}
-          className={unread > 0 ? "bell-icon-animate" : ""}
+          sizes="24px"
           style={{ display: "block" }}
         />
         {unread > 0 && (

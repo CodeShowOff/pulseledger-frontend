@@ -393,6 +393,7 @@ export default function ProfilePage() {
                   alt="Profile avatar"
                   width={72}
                   height={72}
+                  sizes="72px"
                   className="h-[72px] w-[72px] rounded-full object-cover"
                   priority
                 />
@@ -853,6 +854,7 @@ export default function ProfilePage() {
                             alt="Award"
                             width={280}
                             height={220}
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                             className="h-[220px] w-full object-contain"
                             loading="lazy"
                           />
@@ -967,6 +969,7 @@ export default function ProfilePage() {
                             alt="Transformation"
                             width={280}
                             height={220}
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                             className="h-[220px] w-full object-contain"
                             loading="lazy"
                           />

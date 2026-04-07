@@ -99,6 +99,7 @@ export default function AdminSettingsPage() {
               alt="Current Payment QR"
               width={300}
               height={300}
+              sizes="300px"
               style={{
                 maxWidth: "300px",
                 width: "100%",
@@ -161,6 +162,7 @@ export default function AdminSettingsPage() {
                 alt="Preview"
                 width={300}
                 height={300}
+                sizes="300px"
                 style={{
                   maxWidth: "300px",
                   width: "100%",

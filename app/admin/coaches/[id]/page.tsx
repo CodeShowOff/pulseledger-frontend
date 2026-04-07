@@ -133,6 +133,7 @@ export default function AdminCoachDetailPage() {
               alt={coach.fullName}
               width={120}
               height={120}
+              sizes="120px"
               style={{
                 width: 120,
                 height: 120,

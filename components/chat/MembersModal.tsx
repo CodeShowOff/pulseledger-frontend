@@ -123,6 +123,7 @@ export default function MembersModal({
                         alt={member.fullName}
                         width={40}
                         height={40}
+                        sizes="40px"
                         className={styles.memberAvatar}
                       />
                     ) : (

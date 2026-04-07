@@ -269,6 +269,7 @@ const Navbar = React.memo(function Navbar() {
                     alt="Avatar"
                     width={36}
                     height={36}
+                    sizes="36px"
                     className="navbar-modern__avatar-img"
                   />
                 ) : (

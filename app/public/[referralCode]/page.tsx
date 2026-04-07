@@ -307,6 +307,7 @@ function PublicCoachProfileContent() {
                 alt={coach.fullName}
                 width={180}
                 height={180}
+                sizes="180px"
                 className="cpp-hero__avatar"
                 priority
               />
@@ -494,7 +495,14 @@ function PublicCoachProfileContent() {
               {((coach.awards || []).slice(awardsPage * 3, awardsPage * 3 + 3)).map((a, idx) => (
                 <div key={a.publicId || idx} className="cpp-gallery__tile">
                   {a?.url ? (
-                    <Image src={a.url} alt={`Award ${awardsPage * 4 + idx + 1}`} width={360} height={360} className="cpp-gallery__image" />
+                    <Image
+                      src={a.url}
+                      alt={`Award ${awardsPage * 4 + idx + 1}`}
+                      width={360}
+                      height={360}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="cpp-gallery__image"
+                    />
                   ) : (
                     <div className="cpp-gallery__placeholder">No image</div>
                   )}
@@ -523,7 +531,14 @@ function PublicCoachProfileContent() {
                   <ChevronLeft size={18} />
                 </button>
                 {coach.awards?.[awardsIndex]?.url ? (
-                  <Image src={coach.awards[awardsIndex].url} alt={`Award`} width={600} height={600} className="cpp-gallery__image" />
+                  <Image
+                    src={coach.awards[awardsIndex].url}
+                    alt={`Award`}
+                    width={600}
+                    height={600}
+                    sizes="(max-width: 768px) 90vw, 600px"
+                    className="cpp-gallery__image"
+                  />
                 ) : (
                   <div className="cpp-gallery__placeholder" />
                 )}
@@ -553,6 +568,7 @@ function PublicCoachProfileContent() {
                           alt={`Award preview ${i + 1}`}
                           width={84}
                           height={84}
+                          sizes="84px"
                           className="cpp-gallery__thumb-image"
                         />
                       ) : (
@@ -593,7 +609,14 @@ function PublicCoachProfileContent() {
               {((coach.transformations || []).slice(transformsPage * 3, transformsPage * 3 + 3)).map((t, idx) => (
                 <div key={t.publicId || idx} className="cpp-gallery__tile">
                   {t?.url ? (
-                    <Image src={t.url} alt={`Result ${transformsPage * 4 + idx + 1}`} width={360} height={360} className="cpp-gallery__image" />
+                    <Image
+                      src={t.url}
+                      alt={`Result ${transformsPage * 4 + idx + 1}`}
+                      width={360}
+                      height={360}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="cpp-gallery__image"
+                    />
                   ) : (
                     <div className="cpp-gallery__placeholder">No image</div>
                   )}
@@ -621,7 +644,14 @@ function PublicCoachProfileContent() {
                   <ChevronLeft size={18} />
                 </button>
                 {coach.transformations?.[transformsIndex]?.url ? (
-                  <Image src={coach.transformations[transformsIndex].url} alt={`Result`} width={600} height={600} className="cpp-gallery__image" />
+                  <Image
+                    src={coach.transformations[transformsIndex].url}
+                    alt={`Result`}
+                    width={600}
+                    height={600}
+                    sizes="(max-width: 768px) 90vw, 600px"
+                    className="cpp-gallery__image"
+                  />
                 ) : (
                   <div className="cpp-gallery__placeholder" />
                 )}
@@ -651,6 +681,7 @@ function PublicCoachProfileContent() {
                           alt={`Result preview ${i + 1}`}
                           width={84}
                           height={84}
+                          sizes="84px"
                           className="cpp-gallery__thumb-image"
                         />
                       ) : (
@@ -765,9 +796,13 @@ function PublicCoachProfileContent() {
                     <div key={review._id} className="cpp-card">
                       <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
                         {review.client.avatarUrl ? (
-                          <img
+                          <Image
                             src={review.client.avatarUrl}
                             alt={review.client.fullName}
+                            width={48}
+                            height={48}
+                            sizes="48px"
+                            loading="lazy"
                             style={{
                               width: "48px",
                               height: "48px",

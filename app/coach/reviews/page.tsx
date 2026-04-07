@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import api from "@/lib/axios";
 import getErrorMessage from "@/lib/getErrorMessage";
 import { motion } from "@/lib/motion";
@@ -325,9 +326,13 @@ export default function ManageReviewsPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start gap-3">
                           {review.client.avatarUrl ? (
-                            <img
+                            <Image
                               src={review.client.avatarUrl}
                               alt={review.client.fullName}
+                              width={44}
+                              height={44}
+                              sizes="44px"
+                              loading="lazy"
                               className="h-11 w-11 rounded-full object-cover"
                             />
                           ) : (

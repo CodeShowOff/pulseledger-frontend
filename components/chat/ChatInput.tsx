@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { ChatMessage } from "@/lib/chatStore";
 import { Send, Image as ImageIcon, Link as LinkIcon, X, Loader2 } from "lucide-react";
 import styles from "@/styles/chat.module.css";
@@ -219,9 +220,14 @@ export default function ChatInput({
       {/* Image preview */}
       {imagePreview && (
         <div style={{ position: "relative", display: "inline-block", marginBottom: "0.75rem" }}>
-          <img
+          <Image
             src={imagePreview}
             alt="Selected"
+            width={96}
+            height={96}
+            sizes="96px"
+            loading="lazy"
+            unoptimized
             style={{ height: "6rem", borderRadius: "0.5rem", objectFit: "cover" }}
           />
           <button

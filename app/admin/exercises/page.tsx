@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "sonner";
@@ -1014,12 +1015,17 @@ export default function AdminExercisesPage() {
                           style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         />
                       ) : (
-                        <img
+                        <Image
                           src={formData.animationUrl}
                           alt="Animation preview"
+                          width={140}
+                          height={140}
+                          sizes="140px"
+                          loading="lazy"
+                          unoptimized
                           style={{ width: "100%", height: "100%", objectFit: "cover" }}
                           onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
+                            e.currentTarget.style.display = "none";
                           }}
                         />
                       )}

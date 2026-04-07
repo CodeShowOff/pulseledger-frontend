@@ -565,6 +565,7 @@ export default function PlatformSubscriptionPage() {
                   alt="Payment QR Code"
                   width={300}
                   height={300}
+                  sizes="300px"
                   style={{
                     maxWidth: "300px",
                     width: "100%",
@@ -619,6 +620,7 @@ export default function PlatformSubscriptionPage() {
                     alt="Preview"
                     width={300}
                     height={200}
+                    sizes="(max-width: 640px) 100vw, 300px"
                     style={{
                       marginTop: "0.5rem",
                       maxWidth: "100%",

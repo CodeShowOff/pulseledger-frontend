@@ -202,6 +202,7 @@ export default function ClientCheckoutPage() {
                         alt="Payment proof"
                         width={240}
                         height={240}
+                        sizes="(max-width: 640px) 100vw, 240px"
                         style={{ objectFit: "cover", borderRadius: "0.5rem", border: "1px solid #e5e7eb" }}
                       />
                     </div>
@@ -266,6 +267,7 @@ function QrDisplay() {
         alt="Coach payment QR"
         width={240}
         height={240}
+        sizes="(max-width: 640px) 100vw, 240px"
         style={{ objectFit: "contain", borderRadius: "0.5rem", border: "1px solid #e5e7eb", background: "#fff" }}
       />
     </div>

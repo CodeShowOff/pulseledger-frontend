@@ -4,21 +4,13 @@
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
   CLIENT_PROGRESS_QUERY_KEY,
   fetchClientProgressEntries,
 } from "@/lib/queries/clientProgress";
 import api from "@/lib/axios";
 import { LineChart } from "lucide-react";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +21,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+
+const ProgressPreviewAreaChart = dynamic(
+  () => import("@/components/charts/ProgressPreviewAreaChart"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[350px] w-full min-w-0 animate-pulse rounded-xl border border-slate-200 bg-slate-100/70" />
+    ),
+  }
+);
 
 type ChartPoint = {
   date: string; // label used on X axis
@@ -246,62 +248,12 @@ export default function DetailedProgressCharts({ clientId, viewerRole = "client"
             </div>
           ) : (
             <div className="h-[350px] w-full min-w-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data} margin={{ top: 5, right: 15, left: 0, bottom: 5 }}>
-                  <defs>
-                    <linearGradient id={`gradient-${currentChart.id}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={currentChart.color} stopOpacity={0.3} />
-                      <stop offset="95%" stopColor={currentChart.color} stopOpacity={0.05} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis
-                    dataKey="isoDate"
-                    stroke="#64748b"
-                    tickFormatter={(value: string) => {
-                      try {
-                        return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                      } catch {
-                        return value;
-                      }
-                    }}
-                    style={{ fontSize: "0.75rem" }}
-                  />
-                  <YAxis
-                    stroke="#64748b"
-                    style={{ fontSize: "0.75rem" }}
-                    width={35}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "8px",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                    labelFormatter={(value: unknown) => {
-                      if (typeof value !== "string" && typeof value !== "number" && !(value instanceof Date)) {
-                        return value as React.ReactNode;
-                      }
-                      const date = new Date(value);
-                      if (Number.isNaN(date.getTime())) {
-                        return String(value);
-                      }
-                      return date.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-                    }}
-                    labelStyle={{ color: "#1e293b", fontWeight: "600" }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey={currentChart.dataKey}
-                    stroke={currentChart.color}
-                    strokeWidth={3}
-                    fill={`url(#gradient-${currentChart.id})`}
-                    dot={{ fill: currentChart.color, r: 4 }}
-                    activeDot={{ r: 6, strokeWidth: 2, stroke: "#ffffff" }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <ProgressPreviewAreaChart
+                data={data}
+                chartId={currentChart.id}
+                dataKey={currentChart.dataKey}
+                color={currentChart.color}
+              />
             </div>
           )}
 

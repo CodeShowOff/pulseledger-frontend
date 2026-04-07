@@ -65,6 +65,7 @@ function ConversationListItem({
             alt={name}
             width={48}
             height={48}
+            sizes="48px"
             className={styles.avatar}
           />
         ) : (

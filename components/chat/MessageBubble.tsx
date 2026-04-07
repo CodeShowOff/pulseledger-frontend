@@ -179,6 +179,7 @@ function MessageBubble({
               alt={message.senderName}
               width={32}
               height={32}
+              sizes="32px"
               style={{ width: "2rem", height: "auto", borderRadius: "50%", objectFit: "cover" }}
             />
           ) : (
@@ -290,6 +291,7 @@ function MessageBubble({
                       alt="Shared image"
                       width={300}
                       height={200}
+                      sizes="(max-width: 768px) 70vw, 300px"
                       className={styles.messageImage}
                       style={{ width: "auto", height: "auto" }}
                     />
@@ -336,6 +338,7 @@ function MessageBubble({
                           alt={message.linkTitle || "Link preview"}
                           width={300}
                           height={150}
+                          sizes="(max-width: 768px) 70vw, 300px"
                           style={{ width: "100%", height: "auto", objectFit: "cover" }}
                         />
                       )}

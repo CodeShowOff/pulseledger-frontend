@@ -882,17 +882,6 @@ body.chat-page-active .coach-content__inner {
   font-weight: 700;
   border-radius: 999px;
   box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
-  animation: badgePulse 2s infinite;
-}
-
-@keyframes badgePulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
 }
 
 /* Action Buttons */
@@ -1156,7 +1145,6 @@ body.chat-page-active .coach-content__inner {
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
-  animation: badgePulse 2s ease-in-out infinite;
 }
 
 .navbar-modern__secondary-label {
@@ -1780,7 +1768,6 @@ body.chat-page-active .coach-content__inner {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shimmer 3s linear infinite;
   letter-spacing: -1px;
   line-height: 1.15;
   padding-bottom: 0.1em;
@@ -1801,16 +1788,6 @@ body.chat-page-active .coach-content__inner {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shimmer 3s linear infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
 }
 
 .home-hero__subtitle {
@@ -2068,23 +2045,8 @@ body.chat-page-active .coach-content__inner {
       transparent
     );
   background-size: 300px 200px;
-  animation: particleFloat 25s linear infinite;
   pointer-events: none;
   z-index: 0;
-}
-
-@keyframes particleFloat {
-  0% {
-    transform: translateY(0) translateX(0);
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-100px) translateX(50px);
-    opacity: 0.6;
-  }
 }
 
 /* Ensure content is above background */
@@ -2269,16 +2231,6 @@ body.chat-page-active .coach-content__inner {
 .home-activity-ticker__content {
   display: flex;
   gap: 3rem;
-  animation: tickerScroll 40s linear infinite;
-}
-
-@keyframes tickerScroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
 }
 
 .ticker-item {
@@ -3289,12 +3241,7 @@ body.chat-page-active .coach-content__inner {
 .hp-gallery__track {
   display: flex;
   gap: 1rem;
-  animation: hpScroll 22s linear infinite;
   width: max-content;
-}
-@keyframes hpScroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
 }
 .hp-gallery__item {
   position: relative;
@@ -3561,12 +3508,6 @@ body.chat-page-active .coach-content__inner {
   .hp-carousel__img-wrapper {
     width: 145px;
     height: 205px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hp-gallery__track {
-    animation: none;
   }
 }
 
@@ -5215,21 +5156,6 @@ body.chat-page-active .coach-content__inner {
   transform: translateY(-2px);
 }
 
-/* Plan header icon animation */
-@keyframes pulse-icon {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-.plan-icon-wrapper {
-  animation: pulse-icon 3s ease-in-out infinite;
-}
-
 /* Task card hover effect */
 .task-card-item {
   transition: all 0.2s ease;
@@ -5249,5 +5175,25 @@ body.chat-page-active .coach-content__inner {
 
   .stat-card-mobile {
     min-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar-modern__dropdown {
+    animation: none !important;
+  }
+
+  .home-feature-card,
+  .home-role-card,
+  .home-step,
+  .home-trust-card,
+  .task-card-item,
+  .client-stats-card-enhanced {
+    transition: none !important;
+  }
+
+  .task-card-item:hover,
+  .client-stats-card-enhanced:hover {
+    transform: none !important;
   }
 }

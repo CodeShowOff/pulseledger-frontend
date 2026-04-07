@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import NextImage from "next/image";
 import { motion } from "@/lib/motion";
 import {
   AlertCircle,
@@ -448,9 +449,14 @@ export default function ClientDocumentsPage() {
 
                 {selectedFilePreviewUrl ? (
                   selectedFileKind === "image" ? (
-                    <img
+                    <NextImage
                       src={selectedFilePreviewUrl}
                       alt={selectedFile.name}
+                      width={440}
+                      height={280}
+                      sizes="(max-width: 640px) 100vw, 220px"
+                      loading="lazy"
+                      unoptimized
                       className="h-[140px] w-full rounded-xl border border-slate-200 object-cover"
                     />
                   ) : (
@@ -561,10 +567,14 @@ export default function ClientDocumentsPage() {
                         </div>
 
                         {kind === "image" ? (
-                          <img
+                          <NextImage
                             src={doc.viewUrl}
                             alt={displayName}
+                            width={440}
+                            height={280}
+                            sizes="(max-width: 640px) 100vw, 220px"
                             loading="lazy"
+                            unoptimized
                             className="h-[140px] w-full rounded-xl border border-slate-200 object-cover"
                           />
                         ) : kind === "pdf" ? (

@@ -115,6 +115,7 @@ export default function ChatHeader({
             alt={name}
             width={40}
             height={40}
+            sizes="40px"
             className={styles.avatar}
             style={{ width: "2.5rem", height: "2.5rem" }}
           />

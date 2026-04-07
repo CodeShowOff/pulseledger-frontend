@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Camera, ListTodo, Utensils } from "lucide-react";
 import {
   cardShadowClass,
@@ -25,11 +26,12 @@ export default function ClientsSection() {
           <div
             className={`relative h-[44vh] min-h-[320px] max-h-[520px] overflow-hidden rounded-[24px] ${cardShadowClass}`}
           >
-            <img
+            <Image
               src="/images/client_mobile_ui.jpg"
               alt="Client mobile experience"
+              fill
+              sizes="(max-width: 768px) 100vw, 44vw"
               loading="lazy"
-              decoding="async"
               className="absolute inset-0 h-full w-full object-cover"
             />
             <div className="absolute left-5 top-5">
@@ -83,11 +85,12 @@ export default function ClientsSection() {
             height: "62vh",
           }}
         >
-          <img
+          <Image
             src="/images/client_mobile_ui.jpg"
             alt="Client mobile experience"
+            fill
+            sizes="44vw"
             loading="lazy"
-            decoding="async"
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute left-6 top-6">

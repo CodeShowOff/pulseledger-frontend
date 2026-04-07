@@ -1,19 +1,10 @@
 "use client";
 
 import React, { useMemo } from "react";
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { motion } from "@/lib/motion";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  CartesianGrid,
-} from "recharts";
 import {
   Banknote,
   BarChart3,
@@ -30,6 +21,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+const EarningsTrendBarChart = dynamic(
+  () => import("@/components/charts/EarningsTrendBarChart"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[340px] w-full animate-pulse rounded-xl bg-slate-100/70" />
+    ),
+  }
+);
 
 interface EarningsData {
   success: boolean;
@@ -259,33 +260,7 @@ export default function EarningsDashboard() {
 
           <CardContent>
             {chartData.length > 0 ? (
-              <div className="w-full min-w-0">
-                <ResponsiveContainer width="100%" height={340} minWidth={0}>
-                  <BarChart data={chartData} margin={{ top: 8, right: 0, left: -12, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 8" stroke="#e2e8f0" vertical={false} />
-                    <XAxis dataKey="monthLabel" stroke="#64748b" tick={{ fontSize: 12 }} />
-                    <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
-                    <Tooltip
-                      cursor={{ fill: "rgba(99,102,241,0.06)" }}
-                      contentStyle={{
-                        backgroundColor: "#ffffff",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "12px",
-                        boxShadow: "0 10px 24px -18px rgba(15, 23, 42, 0.5)",
-                      }}
-                      formatter={(value) => {
-                        const normalized = Array.isArray(value) ? value[0] : value;
-                        return typeof normalized === "number"
-                          ? formatCurrency(normalized)
-                          : normalized;
-                      }}
-                    />
-                    <Legend />
-                    <Bar dataKey="subscriptionEarnings" fill="#4f46e5" name="Subscription" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="orderEarnings" fill="#f59e0b" name="Orders" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <EarningsTrendBarChart data={chartData} />
             ) : (
               <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-10 text-center">
                 <span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-slate-500 shadow-sm">

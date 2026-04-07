@@ -175,6 +175,7 @@ export default function ProgressPhotos() {
                       alt={photo.caption || "Progress photo"}
                       width={420}
                       height={420}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1536px) 33vw, 25vw"
                       className="h-[220px] w-full object-cover"
                       loading="lazy"
                     />
@@ -247,6 +248,7 @@ export default function ProgressPhotos() {
                   alt="Preview"
                   width={420}
                   height={420}
+                  sizes="(max-width: 640px) 100vw, 420px"
                   className="h-auto w-full object-cover"
                 />
                 <button
@@ -332,6 +334,7 @@ export default function ProgressPhotos() {
                 alt={selectedPhoto.caption || "Progress photo"}
                 width={1200}
                 height={1200}
+                sizes="(max-width: 1280px) 100vw, 1200px"
                 className="max-h-[80vh] w-full object-contain"
                 priority
               />

@@ -83,7 +83,7 @@ export default function PublicProgressChart({ data }: PublicProgressChartProps) 
     const spread = max - min;
     const pad = spread < 1 ? 0.8 : Math.max(0.6, spread * 0.2);
 
-    let lower = Number((min - pad).toFixed(1));
+    const lower = Number((min - pad).toFixed(1));
     let upper = Number((max + pad).toFixed(1));
 
     if (upper - lower < 1) {

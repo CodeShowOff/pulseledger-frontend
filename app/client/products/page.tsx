@@ -273,6 +273,7 @@ export default function ProductsPage() {
                               alt={p.name}
                               width={180}
                               height={160}
+                              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, (max-width: 1536px) 33vw, 25vw"
                               className="h-[150px] w-full object-contain p-2"
                             />
                           ) : (

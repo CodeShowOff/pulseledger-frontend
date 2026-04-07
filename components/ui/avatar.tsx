@@ -1,4 +1,5 @@
 import * as React from "react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 const Avatar = React.forwardRef<HTMLSpanElement, React.HTMLAttributes<HTMLSpanElement>>(
@@ -12,8 +13,27 @@ const Avatar = React.forwardRef<HTMLSpanElement, React.HTMLAttributes<HTMLSpanEl
 );
 Avatar.displayName = "Avatar";
 
-const AvatarImage = React.forwardRef<HTMLImageElement, React.ImgHTMLAttributes<HTMLImageElement>>(
-  ({ className, ...props }, ref) => <img ref={ref} className={cn("h-full w-full object-cover", className)} {...props} />
+type AvatarImageProps = Omit<React.ComponentPropsWithoutRef<typeof Image>, "fill" | "width" | "height">;
+
+const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
+  ({ className, src, alt = "Avatar", sizes = "40px", ...props }, ref) => {
+    if (!src) {
+      return null;
+    }
+
+    return (
+      <Image
+        ref={ref}
+        src={src}
+        alt={alt}
+        fill
+        sizes={sizes}
+        loading="lazy"
+        className={cn("h-full w-full object-cover", className)}
+        {...props}
+      />
+    );
+  }
 );
 AvatarImage.displayName = "AvatarImage";
 

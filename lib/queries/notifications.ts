@@ -43,7 +43,8 @@ export function useUnreadCount({ enabled = true, userId }: UnreadCountOptions = 
     },
     enabled: enabled && Boolean(userId),
     staleTime: 15000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
   });
 }
 

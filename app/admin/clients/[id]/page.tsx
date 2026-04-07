@@ -1,13 +1,25 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import api from "@/lib/axios";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { X } from "lucide-react";
-import DetailedProgressCharts from "@/components/client/DetailedProgressCharts";
+
+const DetailedProgressCharts = dynamic(
+  () => import("@/components/client/DetailedProgressCharts"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="admin-card" style={{ marginTop: "1.5rem", minHeight: "220px" }}>
+        <p className="admin-page-header__subtitle">Loading progress charts...</p>
+      </div>
+    ),
+  }
+);
 
 interface ProgressPhoto {
   _id: string;
@@ -147,6 +159,7 @@ export default function AdminClientDetailPage() {
               alt={client.fullName}
               width={120}
               height={120}
+              sizes="120px"
               style={{
                 width: 120,
                 height: 120,
@@ -396,6 +409,7 @@ export default function AdminClientDetailPage() {
                   alt={photo.caption || "Progress photo"}
                   width={250}
                   height={250}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 250px"
                   style={{
                     width: "100%",
                     height: "250px",
@@ -484,6 +498,7 @@ export default function AdminClientDetailPage() {
               alt={selectedPhoto.caption || "Progress photo"}
               width={800}
               height={800}
+              sizes="(max-width: 1024px) 90vw, 800px"
               style={{
                 maxWidth: "100%",
                 maxHeight: "85vh",

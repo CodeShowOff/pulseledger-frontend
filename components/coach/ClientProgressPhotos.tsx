@@ -156,6 +156,7 @@ export default function ClientProgressPhotos({
                 alt={selectedPhoto.caption || "Progress photo"}
                 width={1200}
                 height={900}
+                sizes="(max-width: 1280px) 100vw, 1200px"
                 className="max-h-[78vh] w-full object-contain"
                 priority
               />

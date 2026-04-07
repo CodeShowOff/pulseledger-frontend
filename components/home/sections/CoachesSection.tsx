@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { BarChart3, LayoutTemplate, MessageCircle } from "lucide-react";
 import {
   cardShadowClass,
@@ -56,11 +57,12 @@ export default function CoachesSection() {
           <div
             className={`relative h-[44vh] min-h-[320px] max-h-[520px] overflow-hidden rounded-[24px] ${cardShadowClass}`}
           >
-            <img
+            <Image
               src="/images/coach_dashboard_ui.jpg"
               alt="Coach dashboard"
+              fill
+              sizes="(max-width: 768px) 100vw, 46vw"
               loading="lazy"
-              decoding="async"
               className="absolute inset-0 h-full w-full object-cover"
             />
             <div className="absolute left-5 top-5">
@@ -120,11 +122,12 @@ export default function CoachesSection() {
             height: "62vh",
           }}
         >
-          <img
+          <Image
             src="/images/coach_dashboard_ui.jpg"
             alt="Coach dashboard"
+            fill
+            sizes="46vw"
             loading="lazy"
-            decoding="async"
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute left-6 top-6">

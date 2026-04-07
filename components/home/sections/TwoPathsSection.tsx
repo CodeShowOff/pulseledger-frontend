@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ClipboardList, Heart } from "lucide-react";
 import {
   accentLinkStyle,
@@ -19,11 +20,12 @@ export default function TwoPathsSection() {
             <article
               className={`relative min-h-[320px] overflow-hidden rounded-[24px] ${cardShadowClass}`}
             >
-              <img
+              <Image
                 src="/images/coach_workspace_laptop.jpg"
                 alt="Coach workspace"
+                fill
+                sizes="(max-width: 768px) 100vw, 41vw"
                 loading="lazy"
-                decoding="async"
                 className="absolute inset-0 h-full w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#111611BF] via-[#1116114D] to-transparent" />
@@ -46,11 +48,12 @@ export default function TwoPathsSection() {
             <article
               className={`relative min-h-[320px] overflow-hidden rounded-[24px] ${cardShadowClass}`}
             >
-              <img
+              <Image
                 src="/images/client_phone_hands.jpg"
                 alt="Client using app"
+                fill
+                sizes="(max-width: 768px) 100vw, 41vw"
                 loading="lazy"
-                decoding="async"
                 className="absolute inset-0 h-full w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#111611BF] via-[#1116114D] to-transparent" />
@@ -86,11 +89,12 @@ export default function TwoPathsSection() {
             className={`relative overflow-hidden rounded-[28px] ${cardShadowClass}`}
             style={{ width: "41vw", height: "62vh" }}
           >
-            <img
+            <Image
               src="/images/coach_workspace_laptop.jpg"
               alt="Coach workspace"
+              fill
+              sizes="41vw"
               loading="lazy"
-              decoding="async"
               className="absolute inset-0 h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#111611B3] via-[#11161133] to-transparent" />
@@ -114,11 +118,12 @@ export default function TwoPathsSection() {
             className={`relative overflow-hidden rounded-[28px] ${cardShadowClass}`}
             style={{ width: "41vw", height: "62vh" }}
           >
-            <img
+            <Image
               src="/images/client_phone_hands.jpg"
               alt="Client using app"
+              fill
+              sizes="41vw"
               loading="lazy"
-              decoding="async"
               className="absolute inset-0 h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#111611B3] via-[#11161133] to-transparent" />

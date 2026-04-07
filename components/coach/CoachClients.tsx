@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "@/lib/motion";
 import { useQuery } from "@tanstack/react-query";
@@ -130,11 +131,13 @@ export default function CoachClients() {
                     <div className={styles.identity}>
                       <div className={styles.avatar}>
                         {client.avatarUrl ? (
-                          <img
+                          <Image
                             src={client.avatarUrl}
                             alt={`${client.fullName} profile`}
+                            width={40}
+                            height={40}
+                            sizes="40px"
                             loading="lazy"
-                            decoding="async"
                             className="h-full w-full rounded-full object-cover"
                           />
                         ) : (

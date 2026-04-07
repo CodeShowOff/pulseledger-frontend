@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { Play, Pause, RotateCcw, AlertCircle } from "lucide-react";
 
 interface ExerciseAnimationProps {
@@ -196,14 +197,22 @@ export default function ExerciseAnimation({
 
       {/* GIF Animation */}
       {mediaType === "gif" && !hasError && (
-        <img
+        <Image
           src={isPlaying ? animationUrl : (thumbnailUrl || animationUrl)}
           alt={`${exerciseName} demonstration`}
+          fill
+          sizes={
+            size === "small"
+              ? "80px"
+              : size === "medium"
+              ? "140px"
+              : "(max-width: 768px) 100vw, 600px"
+          }
+          loading="lazy"
+          unoptimized
           onLoad={handleLoad}
           onError={handleError}
           style={{
-            width: "100%",
-            height: "100%",
             objectFit: size === "large" ? "contain" : "cover",
             display: isLoading ? "none" : "block",
           }}

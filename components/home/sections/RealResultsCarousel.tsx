@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -18,23 +19,23 @@ type RealResultsCarouselProps = {
 const transformations: Transformation[] = [
   {
     name: "Sophia",
-    beforeImage: "/images/2.png",
-    afterImage: "/images/1.png",
+    beforeImage: "/images/sophia-before.avif",
+    afterImage: "/images/sophia-after.avif",
   },
   {
     name: "James",
-    beforeImage: "/images/4.png",
-    afterImage: "/images/3.png",
+    beforeImage: "/images/james-before.avif",
+    afterImage: "/images/james-after.avif",
   },
   {
     name: "Patrick",
-    beforeImage: "/images/6.png",
-    afterImage: "/images/5.png",
+    beforeImage: "/images/patrick-before.avif",
+    afterImage: "/images/patrick-after.avif",
   },
   {
     name: "Lily",
-    beforeImage: "/images/8.png",
-    afterImage: "/images/7.png",
+    beforeImage: "/images/lily-before.avif",
+    afterImage: "/images/lily-after.avif",
   },
 ];
 
@@ -110,22 +111,24 @@ export default function RealResultsCarousel({
                 <article key={item.name} className="w-full shrink-0">
                   <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
                     <figure className="relative aspect-[4/5] overflow-hidden rounded-xl border border-[#1116111A] bg-[#F8FAFC] sm:rounded-2xl">
-                      <img
+                      <Image
                         src={item.beforeImage}
                         alt={`${item.name} before transformation`}
+                        fill
+                        sizes="(max-width: 640px) 50vw, 320px"
                         className="h-full w-full object-contain"
                         loading="lazy"
-                        decoding="async"
                       />
                     </figure>
 
                     <figure className="relative aspect-[4/5] overflow-hidden rounded-xl border border-[#1116111A] bg-[#F8FAFC] sm:rounded-2xl">
-                      <img
+                      <Image
                         src={item.afterImage}
                         alt={`${item.name} after transformation`}
+                        fill
+                        sizes="(max-width: 640px) 50vw, 320px"
                         className="h-full w-full object-contain"
                         loading="lazy"
-                        decoding="async"
                       />
                     </figure>
                   </div>

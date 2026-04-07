@@ -85,6 +85,7 @@ export default function InfoPanel({
                 alt={name}
                 width={80}
                 height={80}
+                sizes="80px"
                 style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
               />
             ) : (

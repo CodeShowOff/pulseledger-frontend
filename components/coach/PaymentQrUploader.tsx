@@ -83,6 +83,7 @@ export default function PaymentQrUploader() {
             alt="Payment QR"
             width={220}
             height={220}
+            sizes="220px"
             style={{ objectFit: "contain", background: "#fff", borderRadius: 8, border: "1px solid #e5e7eb" }}
           />
           <span style={{ fontSize: "0.7rem", color: "#6b7280" }}>Currently active QR code (visible to clients during checkout)</span>

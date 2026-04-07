@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { X, User, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
@@ -180,9 +181,13 @@ export default function PlanClientsModal({ planId, planTitle, onClose }: PlanCli
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flex: 1 }}>
                       {client.avatarUrl ? (
-                        <img
+                        <Image
                           src={client.avatarUrl}
                           alt={client.fullName}
+                          width={40}
+                          height={40}
+                          sizes="40px"
+                          loading="lazy"
                           style={{
                             width: "40px",
                             height: "40px",
