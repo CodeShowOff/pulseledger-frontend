@@ -30,7 +30,6 @@ import {
   XCircle,
 } from "lucide-react";
 import ClientProgressPhotos from "@/components/coach/ClientProgressPhotos";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -130,6 +129,13 @@ function formatDate(value?: string | null) {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "-";
   return parsed.toLocaleDateString();
+}
+
+function formatShortMonthYear(value?: string | null) {
+  if (!value) return "-";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "-";
+  return parsed.toLocaleDateString(undefined, { month: "short", year: "numeric" });
 }
 
 function normalizeForWhatsApp(number?: string | null) {
@@ -323,20 +329,15 @@ export default function ClientDetailPage() {
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
           <CardHeader className="gap-4 p-6 md:p-7">
-            <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-2">
               <div className="min-w-[240px] flex-1 space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="w-fit border-white/25 bg-white/15 text-white">Client workspace</Badge>
-                  <Badge
-                    className={cn(
-                      "w-fit border-white/25 bg-white/15 text-white",
-                      activePlan
-                        ? "border-emerald-200/35 bg-emerald-500/40 text-white"
-                        : "border-slate-200/30 bg-slate-800/20 text-white"
-                    )}
-                  >
-                    {activePlan ? "Plan Active" : "No Active Plan"}
-                  </Badge>
+                <div className="flex justify-end">
+                  <p className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-blue-100">
+                    Member since
+                    <span className="ml-1.5 text-xs font-semibold normal-case tracking-normal text-white">
+                      {formatShortMonthYear(client.createdAt)}
+                    </span>
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -364,42 +365,36 @@ export default function ClientDetailPage() {
                 <CardDescription className="max-w-2xl text-sm !text-white/90 md:text-base">
                   Complete profile and activity history for this client.
                 </CardDescription>
-              </div>
+                <div className="flex flex-wrap items-center gap-2 pt-2">
+                  {whatsappHref ? (
+                    <a
+                      href={whatsappHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-xl border border-emerald-500 bg-gradient-to-r from-emerald-600 to-green-500 px-4 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.85)] transition-all hover:brightness-105"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      WhatsApp
+                    </a>
+                  ) : null}
 
-              <div className="flex flex-nowrap items-center gap-2 md:justify-end">
-                {whatsappHref ? (
-                  <a
-                    href={whatsappHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-xl border border-emerald-500 bg-gradient-to-r from-emerald-600 to-green-500 px-4 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.85)] transition-all hover:brightness-105"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    WhatsApp
-                  </a>
-                ) : null}
+                  <Link href={`/coach/chat?clientId=${id}`}>
+                    <Button variant="outline" className="whitespace-nowrap border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                      <MessageSquare className="h-4 w-4" />
+                      Chat
+                    </Button>
+                  </Link>
 
-                <Link href={`/coach/chat?clientId=${id}`}>
-                  <Button variant="outline" className="whitespace-nowrap border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                    <MessageSquare className="h-4 w-4" />
-                    Chat
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            <div className="grid gap-3 pt-2 sm:grid-cols-3">
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Member since</p>
-                <p className="mt-1 text-base font-semibold">{formatDate(client.createdAt)}</p>
-              </div>
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Plan requests</p>
-                <p className="mt-1 text-base font-semibold">{loadingRequests ? "--" : planRequests.length}</p>
-              </div>
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Order history</p>
-                <p className="mt-1 text-base font-semibold">{loadingOrders ? "--" : clientOrders.length}</p>
+                  <Link href={`/coach/clients/${id}/history`}>
+                    <Button
+                      variant="outline"
+                      className="whitespace-nowrap border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                    >
+                      <CalendarDays className="h-4 w-4" />
+                      View workout & diet history
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </CardHeader>

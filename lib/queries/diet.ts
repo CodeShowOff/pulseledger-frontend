@@ -202,6 +202,26 @@ export type LoggedFood = {
   isCustom?: boolean;
 };
 
+export type DietStatsSummary = {
+  totalDays: number;
+  averageCalories: number;
+  averageProtein: number;
+  averageCarbs: number;
+  averageFat: number;
+  averageWaterIntake: number;
+  averageAdherence: number;
+  dailyBreakdown: Array<{
+    date: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    water: number;
+    adherence: number;
+    mealsLogged: number;
+  }>;
+};
+
 // =============================================
 // Query Keys
 // =============================================
@@ -210,6 +230,8 @@ export const DIET_TEMPLATES_KEY = ["dietTemplates"] as const;
 export const COACH_DIET_PLANS_KEY = ["coachDietPlans"] as const;
 export const CLIENT_DIET_PLANS_KEY = ["clientDietPlans"] as const;
 export const CLIENT_DIET_LOGS_KEY = ["clientDietLogs"] as const;
+export const COACH_CLIENT_DIET_LOGS_KEY = ["coachClientDietLogs"] as const;
+export const COACH_CLIENT_DIET_STATS_KEY = ["coachClientDietStats"] as const;
 
 // =============================================
 // Food Item Queries (Admin)
@@ -450,6 +472,47 @@ export function useClientDietStats(days = 7) {
       const res = await api.get(`/client/diet/logs/stats/summary?days=${days}`);
       return res.data.data;
     },
+  });
+}
+
+export function useCoachClientDietLogs(
+  clientId: string,
+  params?: {
+    page?: number;
+    limit?: number;
+    dietPlanId?: string;
+    startDate?: string;
+    endDate?: string;
+  }
+) {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+  if (params?.dietPlanId) searchParams.append("dietPlanId", params.dietPlanId);
+  if (params?.startDate) searchParams.append("startDate", params.startDate);
+  if (params?.endDate) searchParams.append("endDate", params.endDate);
+
+  const query = searchParams.toString();
+  const endpoint = `/client/diet/coach/clients/${clientId}/logs${query ? `?${query}` : ""}`;
+
+  return useQuery({
+    queryKey: [...COACH_CLIENT_DIET_LOGS_KEY, clientId, params],
+    queryFn: async () => {
+      const res = await api.get(endpoint);
+      return res.data;
+    },
+    enabled: Boolean(clientId),
+  });
+}
+
+export function useCoachClientDietStats(clientId: string, days = 30) {
+  return useQuery<DietStatsSummary>({
+    queryKey: [...COACH_CLIENT_DIET_STATS_KEY, clientId, days],
+    queryFn: async () => {
+      const res = await api.get(`/client/diet/coach/clients/${clientId}/stats?days=${days}`);
+      return res.data.data as DietStatsSummary;
+    },
+    enabled: Boolean(clientId),
   });
 }
 

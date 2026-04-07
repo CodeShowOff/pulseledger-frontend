@@ -208,6 +208,21 @@ export type ClientTodayWorkout = {
   log?: ClientWorkoutLog;
 };
 
+export type WorkoutStats = {
+  totalWorkouts: number;
+  completed: number;
+  partial: number;
+  missed: number;
+  scheduled: number;
+  completionRate: number;
+  totalDuration: number;
+  totalCaloriesBurned: number;
+  averageDifficulty: number;
+  streak: number;
+  todayCompleted: boolean;
+  yesterdayCompleted: boolean;
+};
+
 // =============================================
 // Query Keys
 // =============================================
@@ -217,6 +232,8 @@ export const COACH_WORKOUT_PLANS_KEY = ["coachWorkoutPlans"] as const;
 export const CLIENT_WORKOUT_PLANS_KEY = ["clientWorkoutPlans"] as const;
 export const CLIENT_WORKOUT_LOGS_KEY = ["clientWorkoutLogs"] as const;
 export const CLIENT_TODAY_WORKOUT_KEY = [...CLIENT_WORKOUT_PLANS_KEY, "today"] as const;
+export const COACH_CLIENT_WORKOUT_LOGS_KEY = ["coachClientWorkoutLogs"] as const;
+export const COACH_CLIENT_WORKOUT_STATS_KEY = ["coachClientWorkoutStats"] as const;
 
 // =============================================
 // Exercise Queries (Admin)
@@ -444,6 +461,47 @@ export function useClientWorkoutStats(days = 30) {
       const res = await api.get(`/client/workouts/stats?period=${days}`);
       return res.data.data;
     },
+  });
+}
+
+export function useCoachClientWorkoutLogs(
+  clientId: string,
+  params?: {
+    page?: number;
+    limit?: number;
+    workoutPlanId?: string;
+    startDate?: string;
+    endDate?: string;
+  }
+) {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+  if (params?.workoutPlanId) searchParams.append("workoutPlanId", params.workoutPlanId);
+  if (params?.startDate) searchParams.append("startDate", params.startDate);
+  if (params?.endDate) searchParams.append("endDate", params.endDate);
+
+  const query = searchParams.toString();
+  const endpoint = `/client/workouts/coach/clients/${clientId}/history${query ? `?${query}` : ""}`;
+
+  return useQuery({
+    queryKey: [...COACH_CLIENT_WORKOUT_LOGS_KEY, clientId, params],
+    queryFn: async () => {
+      const res = await api.get(endpoint);
+      return res.data;
+    },
+    enabled: Boolean(clientId),
+  });
+}
+
+export function useCoachClientWorkoutStats(clientId: string, days = 30) {
+  return useQuery<WorkoutStats>({
+    queryKey: [...COACH_CLIENT_WORKOUT_STATS_KEY, clientId, days],
+    queryFn: async () => {
+      const res = await api.get(`/client/workouts/coach/clients/${clientId}/stats?period=${days}`);
+      return res.data.data as WorkoutStats;
+    },
+    enabled: Boolean(clientId),
   });
 }
 
