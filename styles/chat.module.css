@@ -378,12 +378,6 @@
   height: 0.5rem;
   background: #f59e0b;
   border-radius: 50%;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
 }
 
 /* ================================

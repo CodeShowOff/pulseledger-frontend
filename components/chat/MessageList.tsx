@@ -252,9 +252,9 @@ export default function MessageList({
       {typingList.length > 0 && (
         <div className={styles.typingIndicator}>
           <div style={{ display: "flex", gap: "0.25rem" }}>
-            <span style={{ width: "0.5rem", height: "0.5rem", background: "#9ca3af", borderRadius: "50%", animation: "bounce 1s infinite" }} />
-            <span style={{ width: "0.5rem", height: "0.5rem", background: "#9ca3af", borderRadius: "50%", animation: "bounce 1s infinite 0.15s" }} />
-            <span style={{ width: "0.5rem", height: "0.5rem", background: "#9ca3af", borderRadius: "50%", animation: "bounce 1s infinite 0.3s" }} />
+            <span style={{ width: "0.5rem", height: "0.5rem", background: "#9ca3af", borderRadius: "50%" }} />
+            <span style={{ width: "0.5rem", height: "0.5rem", background: "#9ca3af", borderRadius: "50%" }} />
+            <span style={{ width: "0.5rem", height: "0.5rem", background: "#9ca3af", borderRadius: "50%" }} />
           </div>
           <span>
             {typingList.length === 1

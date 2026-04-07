@@ -3,7 +3,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "@/lib/motion";
 import {
   ArrowRight,
@@ -88,69 +88,9 @@ const ClientStats = dynamic(() => import("@/components/client/ClientStats"), {
 });
 
 function ConnectedWithCompanyName({ companyName }: { companyName: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLSpanElement>(null);
-  const [shouldMarquee, setShouldMarquee] = useState(false);
-  const [marqueeShiftPx, setMarqueeShiftPx] = useState(0);
-
-  useEffect(() => {
-    const updateOverflow = () => {
-      const container = containerRef.current;
-      const text = textRef.current;
-      if (!container || !text) return;
-
-      const overflow = Math.max(0, text.scrollWidth - container.clientWidth);
-      setShouldMarquee(overflow > 2);
-      setMarqueeShiftPx(overflow);
-    };
-
-    updateOverflow();
-
-    const container = containerRef.current;
-    const text = textRef.current;
-
-    if (!container || !text) return;
-
-    if (typeof ResizeObserver === "undefined") {
-      window.addEventListener("resize", updateOverflow);
-      return () => window.removeEventListener("resize", updateOverflow);
-    }
-
-    const observer = new ResizeObserver(updateOverflow);
-    observer.observe(container);
-    observer.observe(text);
-    window.addEventListener("resize", updateOverflow);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updateOverflow);
-    };
-  }, [companyName]);
-
-  if (!shouldMarquee || marqueeShiftPx <= 0) {
-    return (
-      <div ref={containerRef} className="min-w-0 max-w-[55vw] sm:max-w-[220px]">
-        <span ref={textRef} className="block truncate text-xs font-semibold text-slate-700 sm:text-sm">
-          {companyName}
-        </span>
-      </div>
-    );
-  }
-
-  const durationSeconds = Math.max(4, marqueeShiftPx / 22);
-
   return (
-    <div ref={containerRef} className="min-w-0 max-w-[55vw] overflow-hidden sm:max-w-[220px]" aria-label={companyName}>
-      <span
-        ref={textRef}
-        className="block whitespace-nowrap text-xs font-semibold text-slate-700 [will-change:transform] sm:text-sm"
-        style={
-          {
-            animation: `clientDashboardMarquee ${durationSeconds.toFixed(2)}s cubic-bezier(0.33, 1, 0.68, 1) infinite alternate`,
-            ["--marquee-shift" as const]: `${marqueeShiftPx}px`,
-          } as CSSProperties
-        }
-      >
+    <div className="min-w-0 max-w-[55vw] sm:max-w-[220px]" aria-label={companyName}>
+      <span className="block truncate text-xs font-semibold text-slate-700 sm:text-sm" title={companyName}>
         {companyName}
       </span>
     </div>
@@ -235,17 +175,6 @@ export default function ClientDashboardPage() {
 
   return (
     <div className="client-page__sections space-y-4 md:space-y-5">
-      <style jsx>{`
-        @keyframes clientDashboardMarquee {
-          from {
-            transform: translateX(0);
-          }
-          to {
-            transform: translateX(calc(-1 * var(--marquee-shift)));
-          }
-        }
-      `}</style>
-
       <motion.section {...sectionMotionProps} transition={getSectionTransition()}>
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
           <CardHeader className="gap-3 p-4 sm:p-6">
