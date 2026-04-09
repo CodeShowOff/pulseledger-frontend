@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
-import { Trash2, ChevronDown, ChevronRight, Search } from "lucide-react";
+import { Trash2, ChevronDown, ChevronRight, Search, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 type Product = {
@@ -137,10 +138,22 @@ export default function AdminProductsPage() {
   return (
     <div>
       <header className="admin-page-header">
-        <h1 className="admin-page-header__title">Products</h1>
-        <p className="admin-page-header__subtitle">
-          Manage products listed by coaches, organized by coach.
-        </p>
+        <div>
+          <h1 className="admin-page-header__title">Products</h1>
+          <p className="admin-page-header__subtitle">
+            Manage products listed by coaches, organized by coach.
+          </p>
+        </div>
+        <div className="admin-page-header__actions">
+          <Link
+            href="/admin/product-templates"
+            className="btn btn--outline"
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+          >
+            <FileText style={{ width: 14, height: 14 }} />
+            Product Templates
+          </Link>
+        </div>
       </header>
 
       {/* Search and Controls */}

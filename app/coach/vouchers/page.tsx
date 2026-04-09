@@ -73,7 +73,7 @@ export default function CoachVouchersPage() {
     });
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4">
         <div className="bg-white w-full max-w-md rounded-md shadow-lg p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Edit Voucher</h2>

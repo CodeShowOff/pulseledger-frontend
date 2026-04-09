@@ -210,7 +210,7 @@ export default function PlanForm({ plan, onClose, variant = "modal" }: { plan?: 
 
   // Modal variant (default)
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[200] flex items-start sm:items-center justify-center bg-black/40 p-4 overflow-y-auto">
       <div className="mt-10 mb-10 flex w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl max-h-[90vh]">
         <div className="flex items-center justify-between border-b px-6 py-4">
           <h3 className="text-lg font-semibold text-gray-900">{plan ? "Edit Plan" : "Create Plan"}</h3>

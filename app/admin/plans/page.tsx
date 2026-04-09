@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
-import { Trash2, ChevronDown, ChevronRight, Search, Dumbbell, Utensils, FileText } from "lucide-react";
+import { Trash2, ChevronDown, ChevronRight, Search, Dumbbell, Utensils, FileText, Package } from "lucide-react";
 import { toast } from "sonner";
 
 type Plan = {
@@ -201,6 +201,20 @@ export default function AdminPlansPage() {
               <div>
                 <div className="admin-card__label">Food Items Library</div>
                 <p className="text-sm text-slate-500 mt-1">Manage food database for diet plans</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/product-templates"
+            className="admin-card admin-card--hover"
+            style={{ textDecoration: "none", cursor: "pointer" }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <Package className="h-8 w-8 text-cyan-500" />
+              <div>
+                <div className="admin-card__label">Product Templates</div>
+                <p className="text-sm text-slate-500 mt-1">Manage global product templates</p>
               </div>
             </div>
           </Link>
