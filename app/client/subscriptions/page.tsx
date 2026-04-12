@@ -43,6 +43,17 @@ const formatDate = (value?: string | null) => {
   return date.toLocaleDateString();
 };
 
+const formatReadableDate = (value?: string | null) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 const formatAmount = (value?: number | null) => `₹${Number(value ?? 0).toFixed(2)}`;
 
 const getSubscriptionStatusTone = (status?: string) => {
@@ -156,27 +167,28 @@ export default function ClientSubscriptionsPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-4 p-6 md:p-7">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="space-y-2">
-                <Badge className="w-fit border-white/25 bg-white/15 text-white">Subscription center</Badge>
-                <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+          <CardHeader className="gap-3 p-4 sm:p-6">
+            <div className="space-y-2">
+              <div className="flex min-w-0 items-center justify-between gap-2">
+                <h1 className="whitespace-nowrap text-lg font-bold tracking-tight text-white sm:text-3xl">
                   My Subscriptions
-                </CardTitle>
-                <CardDescription className="max-w-xl text-xs !text-white/85 md:text-sm">
-                  Manage your active plan and subscription history.
-                </CardDescription>
+                </h1>
+
+                <Link href="/client/plan" className="shrink-0">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 border-white/25 bg-white/10 px-2 text-[10px] text-white hover:bg-white/20 hover:text-white sm:h-9 sm:px-3.5 sm:text-sm"
+                  >
+                    Explore Plans
+                    <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </Button>
+                </Link>
               </div>
 
-              <Link href="/client/plan">
-                <Button
-                  variant="outline"
-                  className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-                >
-                  Explore Available Plans
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block sm:text-base">
+                Manage your active plan and subscription history.
+              </CardDescription>
             </div>
           </CardHeader>
         </Card>
@@ -187,117 +199,53 @@ export default function ClientSubscriptionsPage() {
         initial="initial"
         animate="animate"
         transition={{ duration: 0.28, delay: 0.05 }}
-        className="grid grid-cols-2 gap-3"
-      >
-        <Link
-          href="/client/workouts"
-          className="group rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-indigo-100/70 to-violet-100/80 p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow"
-        >
-          <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md">
-            <Dumbbell className="h-8 w-8" />
-          </span>
-          <p className="mt-2.5 text-sm font-semibold text-slate-800">Workouts Plan</p>
-        </Link>
-
-        <Link
-          href="/client/diet"
-          className="group rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-emerald-100/70 to-teal-100/80 p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow"
-        >
-          <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md">
-            <UtensilsCrossed className="h-8 w-8" />
-          </span>
-          <p className="mt-2.5 text-sm font-semibold text-slate-800">Diet Plan</p>
-        </Link>
-      </motion.section>
-
-      <motion.section
-        variants={fadeInUp}
-        initial="initial"
-        animate="animate"
-        transition={{ duration: 0.28, delay: 0.1 }}
       >
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                <CreditCard className="h-4 w-4" />
-              </span>
-              Current plan
-            </CardTitle>
-            <CardDescription className="truncate">
-              Active plan details and assignment info.
-            </CardDescription>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <CreditCard className="h-4 w-4" />
+                </span>
+                Current plan
+              </CardTitle>
+
+              {currentPlan?.type === "subscription" ? (
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize",
+                    getSubscriptionStatusTone(currentPlan.subscription.status)
+                  )}
+                >
+                  {currentPlan.subscription.status || "active"}
+                </span>
+              ) : null}
+            </div>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {currentPlan ? (
               currentPlan.type === "subscription" ? (
                 <>
-                  <div className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
-                    <div className="space-y-1">
-                      <p className="text-[11px] uppercase tracking-wide text-slate-500">Active plan</p>
-                      <p className="text-base font-semibold text-slate-900">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-[10px] uppercase tracking-[0.02em] text-slate-500">Plan</p>
+                      <p className="truncate text-lg font-semibold text-slate-900">
                         {currentPlan.subscription.planId?.title ||
                           currentPlan.subscription.planTitle ||
                           "Coach Plan"}
                       </p>
                     </div>
-
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize",
-                        getSubscriptionStatusTone(currentPlan.subscription.status)
-                      )}
-                    >
-                      {currentPlan.subscription.status || "active"}
-                    </span>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-                      <p className="text-xs uppercase tracking-wide text-slate-500">Duration</p>
-                      <p className="mt-1 font-semibold text-slate-900">
-                        {currentPlan.subscription.durationWeeks ??
-                          currentPlan.subscription.planId?.durationWeeks ??
-                          "-"}{" "}
-                        weeks
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-                      <p className="text-xs uppercase tracking-wide text-slate-500">Billing</p>
-                      <p className="mt-1 font-semibold text-slate-900">
-                        {formatAmount(
-                          currentPlan.subscription.amount ?? currentPlan.subscription.planId?.price
-                        )}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-                      <p className="text-xs uppercase tracking-wide text-slate-500">Start date</p>
-                      <p className="mt-1 font-semibold text-slate-900">
-                        {formatDate(currentPlan.subscription.startDate)}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-                      <p className="text-xs uppercase tracking-wide text-slate-500">End date</p>
-                      <p className="mt-1 font-semibold text-slate-900">
-                        {formatDate(currentPlan.subscription.endDate)}
-                      </p>
-                    </div>
+                  <div className="border-y border-slate-200 py-3">
+                    <p className="text-[10px] uppercase tracking-[0.02em] text-slate-500">Ends on</p>
+                    <p className="mt-0.5 font-semibold text-slate-900">
+                      {formatReadableDate(currentPlan.subscription.endDate)}
+                    </p>
                   </div>
 
-                  {currentPlan.subscription.planId?.description ? (
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
-                      <p className="text-xs uppercase tracking-wide text-slate-500">Description</p>
-                      <p className="mt-1 text-sm leading-6 text-slate-700">
-                        {currentPlan.subscription.planId.description}
-                      </p>
-                    </div>
-                  ) : null}
-
-                  <div className="flex justify-end">
+                  <div className="flex justify-center pt-1">
                     <Button
                       type="button"
                       variant="outline"
@@ -306,7 +254,7 @@ export default function ClientSubscriptionsPage() {
                         cancelSubscription.isPending &&
                         cancellingId === currentPlan.subscription._id
                       }
-                      className="border-rose-200 text-rose-700 hover:bg-rose-50"
+                      className="border-rose-300 !text-rose-700 hover:bg-rose-50 hover:!text-rose-700"
                     >
                       {cancelSubscription.isPending &&
                       cancellingId === currentPlan.subscription._id
@@ -317,50 +265,70 @@ export default function ClientSubscriptionsPage() {
                 </>
               ) : (
                 <>
-                  <div className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
-                    <div className="space-y-1">
-                      <p className="text-[11px] uppercase tracking-wide text-slate-500">Default plan</p>
-                      <p className="text-base font-semibold text-slate-900">{currentPlan.plan.title}</p>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-[10px] uppercase tracking-[0.02em] text-slate-500">Plan</p>
+                      <p className="truncate text-lg font-semibold text-slate-900">{currentPlan.plan.title}</p>
                     </div>
 
-                    <Badge variant="secondary" className="normal-case tracking-normal">
+                    <Badge variant="secondary" className="h-7 rounded-full px-2.5 text-[11px] normal-case tracking-normal">
                       Assigned automatically
                     </Badge>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-                      <p className="text-xs uppercase tracking-wide text-slate-500">Duration</p>
-                      <p className="mt-1 font-semibold text-slate-900">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 border-y border-slate-200 py-3">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.02em] text-slate-500">Dur.</p>
+                      <p className="mt-0.5 font-semibold text-slate-900">
                         {currentPlan.plan.durationWeeks ?? "-"} weeks
                       </p>
                     </div>
 
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-                      <p className="text-xs uppercase tracking-wide text-slate-500">Cost</p>
-                      <p className="mt-1 font-semibold text-slate-900">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.02em] text-slate-500">Cost</p>
+                      <p className="mt-0.5 font-semibold text-slate-900">
                         {formatAmount(currentPlan.plan.price)}
                       </p>
                     </div>
                   </div>
 
-                  {currentPlan.plan.description ? (
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
-                      <p className="text-xs uppercase tracking-wide text-slate-500">Description</p>
-                      <p className="mt-1 text-sm leading-6 text-slate-700">
-                        {currentPlan.plan.description}
-                      </p>
-                    </div>
-                  ) : null}
                 </>
               )
             ) : (
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-6 text-sm text-slate-600">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-5 text-sm text-slate-600">
                 No plan information available yet. Once a coach assigns a default plan, it will appear here.
               </div>
             )}
           </CardContent>
         </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.1 }}
+        className="grid grid-cols-2 gap-3"
+      >
+        <Link
+          href="/client/workouts"
+          className="group rounded-2xl border-4 border-white bg-gradient-to-br from-indigo-50 via-indigo-100/70 to-violet-100/80 p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-white hover:shadow"
+        >
+          <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md">
+            <Dumbbell className="h-8 w-8" />
+          </span>
+          <p className="mt-2.5 text-sm font-semibold text-slate-800">Workouts Plan</p>
+        </Link>
+
+        <Link
+          href="/client/diet"
+          className="group rounded-2xl border-4 border-white bg-gradient-to-br from-emerald-50 via-emerald-100/70 to-teal-100/80 p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-white hover:shadow"
+        >
+          <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md">
+            <UtensilsCrossed className="h-8 w-8" />
+          </span>
+          <p className="mt-2.5 text-sm font-semibold text-slate-800">Diet Plan</p>
+        </Link>
       </motion.section>
 
       <motion.section
@@ -377,9 +345,6 @@ export default function ClientSubscriptionsPage() {
               </span>
               Subscription history
             </CardTitle>
-            <CardDescription className="truncate">
-              Timeline of requests, approvals, and billing.
-            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-3">

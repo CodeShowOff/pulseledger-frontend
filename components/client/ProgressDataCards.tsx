@@ -5,6 +5,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CLIENT_PROGRESS_QUERY_KEY,
+  CLIENT_PROGRESS_SUMMARY_QUERY_KEY,
   fetchClientProgressEntries,
 } from "@/lib/queries/clientProgress";
 import api from "@/lib/axios";
@@ -270,7 +271,7 @@ export default function ProgressDataCards() {
         // Invalidate and refetch queries
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: CLIENT_PROGRESS_QUERY_KEY }),
-          queryClient.invalidateQueries({ queryKey: ["clientSummary"] }),
+          queryClient.invalidateQueries({ queryKey: CLIENT_PROGRESS_SUMMARY_QUERY_KEY }),
         ]);
         
         // Wait a bit for the refetch to complete

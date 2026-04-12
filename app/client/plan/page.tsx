@@ -91,8 +91,6 @@ export default function MyPlanPage() {
     return ids;
   }, [subscriptions, planRequests]);
 
-  const pendingRequestsCount = planRequests.filter((req) => req.status === "pending").length;
-
   const handleRequest = (planId: string) => {
     router.push(`/client/plan-payment/${planId}`);
   };
@@ -132,48 +130,30 @@ export default function MyPlanPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-4 p-6 md:p-7">
-            <div className="flex flex-wrap items-start justify-between gap-4">
+          <CardHeader className="gap-3 p-4 sm:p-6">
+            <div className="space-y-2">
               <div className="space-y-2">
-                <Badge className="w-fit border-white/25 bg-white/15 text-white">Subscription center</Badge>
-                <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
-                  Available Plans
-                </CardTitle>
-                <CardDescription className="max-w-2xl text-xs !text-white/85 md:text-sm">
+                <div className="flex min-w-0 items-center justify-between gap-2">
+                  <h1 className="whitespace-nowrap text-lg font-bold tracking-tight text-white sm:text-3xl">
+                    Available Plans
+                  </h1>
+
+                  <Link href="/client/subscriptions" className="shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 border-white/25 bg-white/10 px-2 text-[10px] text-white hover:bg-white/20 hover:text-white sm:h-9 sm:px-3.5 sm:text-sm"
+                    >
+                      My subscriptions
+                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </Button>
+                  </Link>
+                </div>
+
+                <CardDescription className="hidden max-w-2xl text-sm !text-white/90 md:block md:text-base">
                   Explore coach plans, compare pricing and duration, then continue to payment in one step.
                 </CardDescription>
               </div>
-
-              <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                <Badge className="border-white/25 bg-white/15 text-white">
-                  {templates.length} {templates.length === 1 ? "Plan" : "Plans"}
-                </Badge>
-                <Badge
-                  className={cn(
-                    "border-white/25 bg-white/15 text-white",
-                    pendingRequestsCount > 0 ? "bg-amber-400/20 text-amber-100 border-amber-200/50" : ""
-                  )}
-                >
-                  {pendingRequestsCount} Pending
-                </Badge>
-                {activePlanId ? (
-                  <Badge className="border-emerald-200/50 bg-emerald-400/20 text-emerald-100">
-                    Active Plan
-                  </Badge>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Link href="/client/subscriptions">
-                <Button
-                  variant="outline"
-                  className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-                >
-                  My subscriptions
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
             </div>
           </CardHeader>
         </Card>
@@ -193,9 +173,6 @@ export default function MyPlanPage() {
               </span>
               Plan catalog
             </CardTitle>
-            <CardDescription>
-              Select a plan to proceed with payment and create a request for coach approval.
-            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-3">
@@ -241,12 +218,6 @@ export default function MyPlanPage() {
                           <p className="text-base font-semibold text-slate-900 md:text-lg">{formatAmount(price)}</p>
                         </div>
 
-                        {plan.description ? (
-                          <p className="mt-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-600">
-                            {plan.description}
-                          </p>
-                        ) : null}
-
                         <div className="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
                           <div className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
                             <CalendarClock className="h-3.5 w-3.5 text-slate-400" />
@@ -286,9 +257,6 @@ export default function MyPlanPage() {
                   <Sparkles className="h-5 w-5" />
                 </span>
                 <p className="mt-3 text-sm font-semibold text-slate-700">No published plans yet</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Your coach has not published any shared plans yet. Please check back later.
-                </p>
               </div>
             )}
           </CardContent>
@@ -309,9 +277,6 @@ export default function MyPlanPage() {
               </span>
               My plan requests
             </CardTitle>
-            <CardDescription>
-              Track approval status and notes for your latest plan requests.
-            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-3">
@@ -356,9 +321,6 @@ export default function MyPlanPage() {
                   <ClipboardList className="h-5 w-5" />
                 </span>
                 <p className="mt-3 text-sm font-semibold text-slate-700">No requests submitted yet</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Once you choose a plan and continue to payment, request status will show here.
-                </p>
               </div>
             )}
           </CardContent>

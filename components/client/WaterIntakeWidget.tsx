@@ -246,16 +246,12 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
           compact ? "h-full p-3" : "p-4 sm:p-5"
         }`}
       >
-        <div
-          className={`pointer-events-none absolute rounded-full bg-sky-200/35 ${
-            shouldReduceEffects ? "-right-8 -top-8 h-24 w-24 blur-2xl" : "-right-12 -top-12 h-40 w-40 blur-3xl"
-          }`}
-        />
-        <div
-          className={`pointer-events-none absolute rounded-full bg-cyan-200/30 ${
-            shouldReduceEffects ? "-bottom-10 -left-8 h-20 w-20 blur-2xl" : "-bottom-16 -left-12 h-36 w-36 blur-3xl"
-          }`}
-        />
+        {!compact ? (
+          <>
+            <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-sky-200/35 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-cyan-200/30 blur-3xl" />
+          </>
+        ) : null}
 
         <div className="relative z-[1] space-y-3 sm:space-y-4">
           <div className="flex min-h-8 items-center justify-between gap-2.5">
@@ -326,7 +322,9 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
                       style={{
                         transform: `rotate(${gaugeRotationDeg}deg)`,
                         transformOrigin: "50% 50%",
-                        transition: "stroke-dasharray 900ms cubic-bezier(0.22, 1, 0.36, 1)",
+                        transition: shouldReduceEffects
+                          ? "none"
+                          : "stroke-dasharray 900ms cubic-bezier(0.22, 1, 0.36, 1)",
                       }}
                       className="motion-reduce:transition-none"
                     />

@@ -37,80 +37,8 @@ const Navbar = React.memo(function Navbar() {
     : 0;
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
   const [isChatConversationOpen, setIsChatConversationOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const lastScrollYRef = useRef(0);
-  const isVisibleRef = useRef(true);
-  const scrollRafIdRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    isVisibleRef.current = isVisible;
-  }, [isVisible]);
-
-  // Hide navbar on scroll down, show on scroll up
-  useEffect(() => {
-    lastScrollYRef.current = window.scrollY;
-
-    const updateNavbarVisibility = () => {
-      const currentScrollY = window.scrollY;
-      const isMobileViewport = window.innerWidth <= 768;
-
-      // Keep navbar visible on mobile where bottom tabs should remain persistent.
-      if (isMobileViewport) {
-        if (!isVisibleRef.current) {
-          isVisibleRef.current = true;
-          setIsVisible(true);
-        }
-        lastScrollYRef.current = currentScrollY;
-        return;
-      }
-
-      let nextIsVisible = isVisibleRef.current;
-
-      if (currentScrollY < 10) {
-        nextIsVisible = true;
-      } else if (currentScrollY > lastScrollYRef.current && currentScrollY > 100) {
-        // Scrolling down
-        nextIsVisible = false;
-      } else if (currentScrollY < lastScrollYRef.current) {
-        // Scrolling up
-        nextIsVisible = true;
-      }
-
-      if (nextIsVisible !== isVisibleRef.current) {
-        isVisibleRef.current = nextIsVisible;
-        setIsVisible(nextIsVisible);
-
-        if (!nextIsVisible) {
-          setMenuOpen(false); // Close dropdown when hiding
-        }
-      }
-
-      lastScrollYRef.current = currentScrollY;
-    };
-
-    const handleScroll = () => {
-      if (scrollRafIdRef.current !== null) {
-        return;
-      }
-
-      scrollRafIdRef.current = window.requestAnimationFrame(() => {
-        scrollRafIdRef.current = null;
-        updateNavbarVisibility();
-      });
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-
-      if (scrollRafIdRef.current !== null) {
-        window.cancelAnimationFrame(scrollRafIdRef.current);
-        scrollRafIdRef.current = null;
-      }
-    };
-  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -216,9 +144,7 @@ const Navbar = React.memo(function Navbar() {
 
   return (
     <>
-      <nav
-        className={`navbar-modern ${isVisible ? "navbar-modern--visible" : "navbar-modern--hidden"}`}
-      >
+      <nav className="navbar-modern navbar-modern--visible">
         <div className="navbar-modern__container">
           {/* Logo */}
           <Link href="/" className="navbar-modern__logo">

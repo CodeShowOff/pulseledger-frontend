@@ -38,6 +38,14 @@ export type ClientProgressProfile = {
 };
 
 export const CLIENT_PROGRESS_QUERY_KEY = ["clientProgressEntries"] as const;
+export const CLIENT_PROGRESS_SUMMARY_QUERY_KEY = ["clientProgressSummary"] as const;
+
+export type ClientProgressSummary = {
+  latestWeight: number | null;
+  latestBMI: number | null;
+  bloodPressureSystolic: number | null;
+  bloodPressureDiastolic: number | null;
+};
 
 export async function fetchClientProgressEntries(): Promise<{
   data: ClientProgressEntry[];
@@ -47,5 +55,17 @@ export async function fetchClientProgressEntries(): Promise<{
   return {
     data: Array.isArray(res.data?.data) ? res.data.data : [],
     profile: res.data?.profile || {},
+  };
+}
+
+export async function fetchClientProgressSummary(): Promise<ClientProgressSummary> {
+  const res = await api.get(`/progress/my/summary`);
+  const summary = res.data?.data || {};
+
+  return {
+    latestWeight: summary.latestWeight ?? null,
+    latestBMI: summary.latestBMI ?? null,
+    bloodPressureSystolic: summary.bloodPressureSystolic ?? null,
+    bloodPressureDiastolic: summary.bloodPressureDiastolic ?? null,
   };
 }

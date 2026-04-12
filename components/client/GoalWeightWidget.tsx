@@ -5,7 +5,11 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import axios from "axios";
-import { fetchClientProgressEntries, CLIENT_PROGRESS_QUERY_KEY } from "@/lib/queries/clientProgress";
+import {
+  fetchClientProgressSummary,
+  CLIENT_PROGRESS_QUERY_KEY,
+  CLIENT_PROGRESS_SUMMARY_QUERY_KEY,
+} from "@/lib/queries/clientProgress";
 import { Edit2, X, Check, Weight } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
@@ -76,9 +80,9 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
   const goalWeight = goalSettings?.goalWeight ?? null;
   const startWeight = goalSettings?.startWeight ?? null;
 
-  const { data: progressData, isLoading: isLoadingProgress } = useQuery({
-    queryKey: ["clientProgressEntries"],
-    queryFn: fetchClientProgressEntries,
+  const { data: progressSummary, isLoading: isLoadingProgress } = useQuery({
+    queryKey: CLIENT_PROGRESS_SUMMARY_QUERY_KEY,
+    queryFn: fetchClientProgressSummary,
     staleTime: 60 * 1000,
   });
 
@@ -103,9 +107,7 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CLIENT_PROGRESS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ["clientProgressEntries"] });
-      queryClient.invalidateQueries({ queryKey: ["myPlans"] });
-      queryClient.invalidateQueries({ queryKey: ["clientSummary"] });
+      queryClient.invalidateQueries({ queryKey: CLIENT_PROGRESS_SUMMARY_QUERY_KEY });
     },
   });
 
@@ -119,16 +121,7 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
     },
   });
 
-  // Get latest weight from progress data
-  const progressEntries = progressData?.data || [];
-  const currentWeight =
-    progressEntries.length > 0
-      ? progressEntries.reduce((latest: any, entry: any) => {
-          if (!entry.weight) return latest;
-          if (!latest) return entry;
-          return new Date(entry.date) > new Date(latest.date) ? entry : latest;
-        }, null)?.weight || null
-      : null;
+  const currentWeight = progressSummary?.latestWeight ?? null;
 
   const onSubmit = async (data: WeightEditFormData) => {
     try {
@@ -299,16 +292,12 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
         }`}
         style={{ borderColor: tone.border }}
       >
-        <div
-          className={`pointer-events-none absolute rounded-full bg-sky-200/30 ${
-            shouldReduceEffects ? "-right-8 -top-8 h-24 w-24 blur-2xl" : "-right-12 -top-12 h-40 w-40 blur-3xl"
-          }`}
-        />
-        <div
-          className={`pointer-events-none absolute rounded-full bg-orange-200/25 ${
-            shouldReduceEffects ? "-bottom-10 -left-8 h-20 w-20 blur-2xl" : "-bottom-16 -left-12 h-36 w-36 blur-3xl"
-          }`}
-        />
+        {!compact ? (
+          <>
+            <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-sky-200/30 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-orange-200/25 blur-3xl" />
+          </>
+        ) : null}
 
         <div className="relative z-[1] space-y-3 sm:space-y-4">
           <div className="flex min-h-8 items-center justify-between gap-2.5">
@@ -317,13 +306,6 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
                 Weight Goal
               </h3>
             </div>
-
-            <span
-              className="rounded-full border px-2 py-0.5 text-xs font-semibold"
-              style={{ borderColor: tone.border, color: tone.accentStrong, background: tone.badgeBg }}
-            >
-              {Math.round(progressPercentage)}%
-            </span>
           </div>
 
           {isLoadingGoal || isLoadingProgress ? (
@@ -376,7 +358,9 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
                       style={{
                         transform: `rotate(${gaugeRotationDeg}deg)`,
                         transformOrigin: "50% 50%",
-                        transition: "stroke-dasharray 900ms cubic-bezier(0.22, 1, 0.36, 1)",
+                        transition: shouldReduceEffects
+                          ? "none"
+                          : "stroke-dasharray 900ms cubic-bezier(0.22, 1, 0.36, 1)",
                       }}
                       className="motion-reduce:transition-none"
                     />

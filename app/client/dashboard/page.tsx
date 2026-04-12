@@ -4,28 +4,20 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { motion } from "@/lib/motion";
 import {
   ArrowRight,
   BookOpenText,
   Calculator,
   Dumbbell,
-  Sparkles,
   UserCircle2,
   Utensils,
-  Waves,
 } from "lucide-react";
 import { useMyCoachQuery } from "@/lib/queries/coach";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import WaterIntakeWidget from "@/components/client/WaterIntakeWidget";
 import GoalWeightWidget from "@/components/client/GoalWeightWidget";
 import { cn } from "@/lib/utils";
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 10 },
-  animate: { opacity: 1, y: 0 },
-};
 
 const todayCoreActions = [
   {
@@ -48,22 +40,16 @@ const todayCoreActions = [
 
 const quickActions = [
   {
-    title: "Indian nutrition index",
-    description: "Look up macro and micronutrient values for Indian foods.",
+    title: "Indian Nutrition Index",
     href: "/indian-nutrition-index",
-    cta: "Open index",
     Icon: BookOpenText,
-    iconTone: "from-cyan-500 to-sky-500",
-    cardTone: "from-cyan-50 to-sky-50",
+    iconTone: "bg-cyan-50 text-cyan-600",
   },
   {
-    title: "Calorie calculator",
-    description: "Estimate daily calorie and macro targets for your goals.",
+    title: "Calorie Calculator",
     href: "/calorie-calculator",
-    cta: "Open calculator",
     Icon: Calculator,
-    iconTone: "from-violet-500 to-fuchsia-500",
-    cardTone: "from-violet-50 to-fuchsia-50",
+    iconTone: "bg-violet-50 text-violet-600",
   },
 ] as const;
 
@@ -76,11 +62,6 @@ function DashboardCardSkeleton({ label }: { label: string }) {
     </Card>
   );
 }
-
-const AssignedPlans = dynamic(() => import("@/components/client/AssignedPlans"), {
-  ssr: false,
-  loading: () => <DashboardCardSkeleton label="Loading your current plan..." />,
-});
 
 const ClientStats = dynamic(() => import("@/components/client/ClientStats"), {
   ssr: false,
@@ -98,20 +79,10 @@ function ConnectedWithCompanyName({ companyName }: { companyName: string }) {
 }
 
 export default function ClientDashboardPage() {
-  const { data: coach, isLoading } = useMyCoachQuery();
+  const { data: coach } = useMyCoachQuery();
   const [isMobileViewport, setIsMobileViewport] = useState(false);
-  const assignedPlansSectionRef = useRef<HTMLElement | null>(null);
   const quickStatsSectionRef = useRef<HTMLElement | null>(null);
-  const [shouldRenderAssignedPlans, setShouldRenderAssignedPlans] = useState(false);
   const [shouldRenderQuickStats, setShouldRenderQuickStats] = useState(false);
-  const reduceMotionForMobile = isMobileViewport;
-
-  const sectionMotionProps = reduceMotionForMobile
-    ? { initial: false as const, animate: { opacity: 1, y: 0 } }
-    : { variants: fadeInUp, initial: "initial" as const, animate: "animate" as const };
-
-  const getSectionTransition = (delay = 0) =>
-    reduceMotionForMobile ? { duration: 0 } : { duration: 0.28, delay };
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 639px)");
@@ -122,31 +93,6 @@ export default function ClientDashboardPage() {
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
-
-  useEffect(() => {
-    if (shouldRenderAssignedPlans) return;
-
-    if (typeof IntersectionObserver === "undefined") {
-      setShouldRenderAssignedPlans(true);
-      return;
-    }
-
-    const target = assignedPlansSectionRef.current;
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (!entry?.isIntersecting) return;
-        setShouldRenderAssignedPlans(true);
-        observer.disconnect();
-      },
-      { rootMargin: "280px 0px" }
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [shouldRenderAssignedPlans]);
 
   useEffect(() => {
     if (shouldRenderQuickStats) return;
@@ -175,14 +121,14 @@ export default function ClientDashboardPage() {
 
   return (
     <div className="client-page__sections space-y-4 md:space-y-5">
-      <motion.section {...sectionMotionProps} transition={getSectionTransition()}>
+      <section>
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
           <CardHeader className="gap-3 p-4 sm:p-6">
             <div className="space-y-2">
               <div className="flex min-w-0 items-center justify-between gap-2">
                 <h1 className="whitespace-nowrap text-lg font-bold tracking-tight text-white sm:text-3xl">My dashboard</h1>
 
-                {!isLoading && coach ? (
+                {coach ? (
                   <Link href="/client/coach" className="shrink-0">
                     <Button
                       size="sm"
@@ -204,28 +150,15 @@ export default function ClientDashboardPage() {
           </CardHeader>
         </Card>
 
-        {!isLoading && coach ? (
+        {coach ? (
           <div className="mt-2 flex min-w-0 items-center justify-center gap-1.5 text-center">
             <span className="whitespace-nowrap text-xs text-slate-600 sm:text-sm">Connected with</span>
             <ConnectedWithCompanyName companyName={coach.companyName || "FitCoach"} />
           </div>
         ) : null}
-      </motion.section>
+      </section>
 
-      <motion.section
-        {...sectionMotionProps}
-        transition={getSectionTransition(0.04)}
-        aria-labelledby="wellness-widgets-heading"
-        className="space-y-4"
-      >
-        <div className="flex items-center gap-2 px-1">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
-            <Waves className="h-4 w-4" />
-          </span>
-          <h2 id="wellness-widgets-heading" className="text-base font-semibold text-slate-900 md:text-lg">
-            Wellness & Goals
-          </h2>
-        </div>
+      <section>
         <div className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-1 sm:gap-4 xl:grid-cols-2">
           <div className="min-w-0 h-full">
             <WaterIntakeWidget compact={isMobileViewport} />
@@ -234,29 +167,12 @@ export default function ClientDashboardPage() {
             <GoalWeightWidget compact={isMobileViewport} />
           </div>
         </div>
-      </motion.section>
+      </section>
 
-      <motion.section
-        {...sectionMotionProps}
-        transition={getSectionTransition(0.08)}
-        className="space-y-2 sm:space-y-3"
-      >
-        <div className="flex items-center gap-2 px-1">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-            <Sparkles className="h-4 w-4" />
-          </span>
-          <h2 className="text-base font-semibold text-slate-900 md:text-lg">Today's tasks</h2>
-        </div>
-
+      <section>
         <div className="grid grid-cols-2 items-stretch gap-2 sm:gap-3">
-          {todayCoreActions.map((item, index) => (
-            <motion.div
-              key={item.title}
-              initial={reduceMotionForMobile ? false : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={reduceMotionForMobile ? { duration: 0 } : { duration: 0.22, delay: 0.05 + index * 0.03 }}
-              whileHover={reduceMotionForMobile ? undefined : { y: -2 }}
-            >
+          {todayCoreActions.map((item) => (
+            <div key={item.title}>
               <Link href={item.href} className="group block h-full cursor-pointer focus-visible:outline-none">
                 <div
                   className={cn(
@@ -280,94 +196,34 @@ export default function ClientDashboardPage() {
                   </div>
                 </div>
               </Link>
-            </motion.div>
+            </div>
           ))}
         </div>
-      </motion.section>
+      </section>
 
-      <motion.section
-        {...sectionMotionProps}
-        transition={getSectionTransition(0.12)}
-      >
-        <Card className="border-slate-200/80 bg-white/95">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                <Sparkles className="h-4 w-4" />
-              </span>
-              Daily shortcuts
-            </CardTitle>
-            <CardDescription>Jump into your most-used pages in one tap.</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid gap-3 sm:grid-cols-2">
-              {quickActions.map((item, index) => (
-                <motion.div
-                  key={item.title}
-                  initial={reduceMotionForMobile ? false : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={reduceMotionForMobile ? { duration: 0 } : { duration: 0.22, delay: 0.07 + index * 0.03 }}
-                  whileHover={reduceMotionForMobile ? undefined : { y: -2 }}
-                >
-                  <Link href={item.href} className="group block h-full">
-                    <div
-                      className={cn(
-                        "relative flex h-full min-h-[152px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 p-4 transition-all duration-200 hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.55)]",
-                        `bg-gradient-to-br ${item.cardTone}`
-                      )}
-                    >
-                      <div className="pointer-events-none absolute -right-8 -top-8 hidden h-24 w-24 rounded-full bg-white/60 blur-xl sm:block" />
+      <section>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {quickActions.map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className="group block min-h-[84px] rounded-xl border border-slate-200 bg-white p-4 transition-colors duration-200 hover:border-slate-300 hover:bg-slate-50"
+            >
+              <div className="flex h-full items-center gap-3">
+                <span className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-lg", item.iconTone)}>
+                  <item.Icon className="h-5 w-5" />
+                </span>
 
-                      <div className="flex items-start justify-between gap-3">
-                        <span
-                          className={cn(
-                            "grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br text-white shadow-sm",
-                            item.iconTone
-                          )}
-                        >
-                          <item.Icon className="h-5 w-5" />
-                        </span>
-                        <ArrowRight className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-indigo-600" />
-                      </div>
+                <h2 className="min-w-0 flex-1 truncate text-[15px] font-semibold text-slate-900">{item.title}</h2>
 
-                      <div className="space-y-2">
-                        <h2 className="text-lg font-semibold leading-tight text-slate-900 md:text-xl">{item.title}</h2>
-                        <p className="hidden text-xs leading-5 text-slate-600 sm:block">{item.description}</p>
-                      </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-600" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-                      <p className="text-xs font-semibold text-indigo-700 transition-colors group-hover:text-indigo-900">
-                        {item.cta}
-                      </p>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.section>
-
-      {isLoading ? (
-        <Card className="border-slate-200/80 bg-white/95">
-          <CardContent className="p-4">
-            <p className="text-sm text-slate-600">Checking coach assignment...</p>
-          </CardContent>
-        </Card>
-      ) : coach ? null : (
-        <Card className="border-amber-200/80 bg-amber-50/70">
-          <CardContent className="p-4">
-            <p className="text-sm text-amber-800">
-              You do not have a coach assigned yet. Once a coach is linked to your account, their details will appear here.
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      <motion.section ref={assignedPlansSectionRef} {...sectionMotionProps} transition={getSectionTransition(0.14)}>
-        {shouldRenderAssignedPlans ? <AssignedPlans /> : <DashboardCardSkeleton label="Loading your current plan..." />}
-      </motion.section>
-
-      <motion.section ref={quickStatsSectionRef} {...sectionMotionProps} transition={getSectionTransition(0.16)}>
+      <section ref={quickStatsSectionRef}>
         {shouldRenderQuickStats ? (
           <Card className="border-slate-200/80 bg-white/95">
             <CardContent className="p-4 pt-5 sm:p-5">
@@ -377,7 +233,7 @@ export default function ClientDashboardPage() {
         ) : (
           <DashboardCardSkeleton label="Loading quick stats..." />
         )}
-      </motion.section>
+      </section>
 
     </div>
   );

@@ -8,7 +8,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import api from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CLIENT_PROGRESS_QUERY_KEY } from "@/lib/queries/clientProgress";
+import {
+  CLIENT_PROGRESS_QUERY_KEY,
+  CLIENT_PROGRESS_SUMMARY_QUERY_KEY,
+} from "@/lib/queries/clientProgress";
 
 const ProgressSchema = z.object({
   // Basic measurements
@@ -232,8 +235,7 @@ export default function ProgressForm() {
     onSuccess: () => {
       toast.success("Progress updated successfully");
       queryClient.invalidateQueries({ queryKey: CLIENT_PROGRESS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ["myPlans"] });
-      queryClient.invalidateQueries({ queryKey: ["clientSummary"] });
+      queryClient.invalidateQueries({ queryKey: CLIENT_PROGRESS_SUMMARY_QUERY_KEY });
       reset();
     },
     onError: (err: unknown) => {

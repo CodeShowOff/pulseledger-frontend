@@ -2,68 +2,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import api from "@/lib/axios";
 import React from "react";
-import { fetchClientProgressEntries } from "@/lib/queries/clientProgress";
-
-type StatsResp = {
-  success: boolean;
-  data?: {
-    latestWeight?: number | null;
-    latestBMI?: number | null;
-    bloodPressureSystolic?: number | null;
-    bloodPressureDiastolic?: number | null;
-    completedTasksCount?: number;
-    activePlanTitle?: string | null;
-  };
-};
-
-const fetchClientSummary = async (): Promise<StatsResp> => {
-  // We will derive small summary by calling progress and plans endpoints.
-  // Backend might have a dedicated endpoint — replace if available.
-  const [progressResponse, plansRes] = await Promise.all([
-    fetchClientProgressEntries(),
-    api.get("/plans/my"),
-  ]);
-  const plans = Array.isArray(plansRes.data.data) ? plansRes.data.data : [];
-  const progress = progressResponse.data || [];
-
-  // Robust latest finder (max date among entries having the field)
-  const getLatestValue = (fieldName: string): any => {
-    let latest: { date: string; value: any } | null = null;
-    for (const raw of progress) {
-      const entry = raw as any;
-      if (entry[fieldName] != null) {
-        if (!latest || new Date(entry.date) > new Date(latest.date)) {
-          latest = { date: entry.date, value: entry[fieldName] };
-        }
-      }
-    }
-    return latest ? latest.value : null;
-  };
-
-  return {
-    success: true,
-    data: {
-      latestWeight: getLatestValue('weight'),
-      latestBMI: getLatestValue('bmi'),
-      bloodPressureSystolic: getLatestValue('bloodPressureSystolic'),
-      bloodPressureDiastolic: getLatestValue('bloodPressureDiastolic'),
-      activePlanTitle: plans[0]?.title ?? null,
-    },
-  };
-};
+import {
+  CLIENT_PROGRESS_SUMMARY_QUERY_KEY,
+  fetchClientProgressSummary,
+} from "@/lib/queries/clientProgress";
 
 const ClientStats = React.memo(function ClientStats() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["clientSummary"],
-    queryFn: fetchClientSummary,
+  const { data: stats, isLoading } = useQuery({
+    queryKey: CLIENT_PROGRESS_SUMMARY_QUERY_KEY,
+    queryFn: fetchClientProgressSummary,
     staleTime: 60 * 1000,
   });
 
   if (isLoading) return <p>Loading summary...</p>;
-
-  const stats = data?.data;
 
   return (
     <section>
@@ -76,13 +28,6 @@ const ClientStats = React.memo(function ClientStats() {
         }}>
           Quick Stats
         </h3>
-        <p style={{ 
-          fontSize: "0.8rem", 
-          color: "#6b7280",
-          marginTop: "0.25rem"
-        }}>
-          Track your latest health metrics
-        </p>
       </div>
       <div style={{
         display: "grid",
