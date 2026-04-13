@@ -4177,10 +4177,10 @@ body.chat-page-active .coach-content__inner {
 }
 
 .client-progress-refresh .client-progress-data__tabs {
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  border-radius: 0.9rem;
-  padding: 0.25rem;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
 }
 
 .client-progress-refresh .client-progress-data__tab-btn.btn {
@@ -4206,24 +4206,89 @@ body.chat-page-active .coach-content__inner {
 }
 
 .client-progress-refresh .profile-card.client-progress-data__card {
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #dbe4f0;
+  background: #f8fafc;
   border-radius: 1rem;
-  box-shadow: 0 14px 34px -28px rgba(15, 23, 42, 0.35);
+  box-shadow: 0 16px 36px -30px rgba(15, 23, 42, 0.3);
   padding: 1rem;
+  position: relative;
+  overflow: visible;
 }
 
 .client-progress-refresh .client-card__section-title {
   margin-bottom: 0;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.05rem;
+  font-weight: 700;
   color: #0f172a;
+}
+
+.client-progress-refresh .client-progress-data__section-actions {
+  position: static;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.65rem;
+}
+
+.client-progress-refresh .client-progress-data__edit-btn.btn {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding-inline: 0.72rem;
+  padding-block: 0.22rem;
+  min-height: 30px;
+  border-color: #c9d4e8;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 20px -14px rgba(15, 23, 42, 0.42);
+}
+
+.client-progress-refresh .client-progress-data__basic-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.client-progress-refresh .client-progress-data__metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.client-progress-refresh .client-progress-data__metric-field {
+  min-height: 84px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.client-progress-refresh .client-progress-data__metric-field .profile-field__value {
+  font-size: 1.06rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.client-progress-refresh .client-progress-data__notes-field {
+  padding: 0.85rem 0.95rem;
+}
+
+.client-progress-refresh .client-progress-data__notes-field .profile-field__value {
+  margin-top: 0.42rem;
+}
+
+.client-progress-refresh .client-progress-data__text-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+}
+
+.client-progress-refresh .client-progress-data__text-field {
+  padding: 0.85rem 0.95rem;
 }
 
 .client-progress-refresh .profile-field {
   border-radius: 0.8rem;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid #dce5f2;
+  background: #ffffff;
   padding: 0.75rem 0.85rem;
 }
 
@@ -4232,13 +4297,57 @@ body.chat-page-active .coach-content__inner {
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: #64748b;
+  font-weight: 600;
+}
+
+.client-progress-data__scroll-label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.client-progress-data__scroll-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-width: max-content;
+  will-change: transform;
+  animation: client-progress-label-marquee 9s linear infinite;
+}
+
+.client-progress-data__scroll-track > span {
+  white-space: nowrap;
+}
+
+@keyframes client-progress-label-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 0.75rem));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .client-progress-data__scroll-track {
+    animation: none;
+  }
 }
 
 .client-progress-refresh .profile-field__value {
-  margin-top: 0.25rem;
-  font-size: 0.9rem;
+  margin-top: 0.35rem;
+  font-size: 0.96rem;
   font-weight: 600;
   color: #0f172a;
+  line-height: 1.35;
+}
+
+.client-progress-refresh .client-progress-data__value-text {
+  font-weight: 500;
+  line-height: 1.55;
+  color: #1e293b;
 }
 
 .client-progress-refresh .client-form__label {
@@ -4265,6 +4374,24 @@ body.chat-page-active .coach-content__inner {
 .client-progress-refresh .btn.btn--primary {
   border-radius: 0.72rem;
   min-height: 34px;
+}
+
+@media (min-width: 640px) {
+  .client-progress-refresh .client-progress-data__metrics-grid--basic {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .client-progress-refresh .client-progress-data__metrics-grid--scale {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .client-progress-refresh .client-progress-data__metrics-grid--lifestyle {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .client-progress-refresh .client-progress-data__metrics-grid--vitals {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (min-width: 768px) {

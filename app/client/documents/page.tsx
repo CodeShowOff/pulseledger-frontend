@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   type UserDocument,
@@ -34,7 +34,7 @@ const fadeInUp = {
 };
 
 const MAX_DOCUMENT_SIZE_BYTES = 2 * 1024 * 1024;
-const acceptedFileHint = "PDF, JPG, PNG, WEBP up to 2MB";
+const acceptedFileHint = "PDF and Image up to 2 MB";
 const allowedDocumentMimeTypes = new Set([
   "application/pdf",
   "image/jpeg",
@@ -328,16 +328,14 @@ export default function ClientDocumentsPage() {
     <div className="client-page__sections space-y-4 md:space-y-5">
       <motion.section variants={fadeInUp} initial="initial" animate="animate" transition={{ duration: 0.28 }}>
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-3 p-5 sm:p-6">
-            <Badge className="w-fit border-white/25 bg-white/15 text-white">Secure vault</Badge>
-            <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">Health documents</CardTitle>
-            <CardDescription className="max-w-2xl text-sm !text-white/90 md:text-base">
-              Upload prescriptions, lab reports, and other medical files so everything is organized and easy to access.
-            </CardDescription>
+          <CardHeader className="gap-3 p-4 sm:p-6">
+            <h1 className="whitespace-nowrap text-lg font-bold tracking-tight text-white sm:text-3xl">
+              Health documents
+            </h1>
 
             <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/95">
               <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-              Visible only to you (coach cannot view)
+              Visible only to you
             </div>
           </CardHeader>
         </Card>
@@ -357,7 +355,6 @@ export default function ClientDocumentsPage() {
               </span>
               Upload a new document
             </CardTitle>
-            <CardDescription>Supported formats: {acceptedFileHint}</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4 pt-0">
@@ -388,6 +385,8 @@ export default function ClientDocumentsPage() {
                   void handleFileChange(e);
                 }}
               />
+
+              <p className="text-xs font-medium text-slate-500">Formats: {acceptedFileHint}</p>
 
               <div className="flex flex-wrap items-center gap-2.5">
                 <Button
@@ -432,9 +431,6 @@ export default function ClientDocumentsPage() {
                 </Button>
               </div>
 
-              <p className="text-xs text-slate-500">
-                Max size is 2MB. Large images are automatically compressed before upload when possible.
-              </p>
             </div>
 
             {selectedFile ? (
@@ -457,7 +453,7 @@ export default function ClientDocumentsPage() {
                       sizes="(max-width: 640px) 100vw, 220px"
                       loading="lazy"
                       unoptimized
-                      className="h-[140px] w-full rounded-xl border border-slate-200 object-cover"
+                      className="h-[140px] w-full rounded-xl border border-slate-200 bg-white object-contain"
                     />
                   ) : (
                     <iframe
@@ -496,7 +492,6 @@ export default function ClientDocumentsPage() {
                   </span>
                   Your uploaded documents
                 </CardTitle>
-                <CardDescription>Open any file in a new tab.</CardDescription>
               </div>
 
               <Badge variant={docs.length > 0 ? "success" : "secondary"}>
@@ -575,7 +570,7 @@ export default function ClientDocumentsPage() {
                             sizes="(max-width: 640px) 100vw, 220px"
                             loading="lazy"
                             unoptimized
-                            className="h-[140px] w-full rounded-xl border border-slate-200 object-cover"
+                            className="h-[140px] w-full rounded-xl border border-slate-200 bg-white object-contain"
                           />
                         ) : kind === "pdf" ? (
                           <iframe

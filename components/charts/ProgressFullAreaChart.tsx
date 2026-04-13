@@ -21,6 +21,10 @@ interface ProgressFullAreaChartProps {
   chartId: string;
   dataKey: string;
   color: string;
+  primaryName?: string;
+  secondaryDataKey?: string;
+  secondaryColor?: string;
+  secondaryName?: string;
   chartHeight: number;
   tickInterval: number;
   yAxisDomain: [number, number];
@@ -31,10 +35,16 @@ export default function ProgressFullAreaChart({
   chartId,
   dataKey,
   color,
+  primaryName,
+  secondaryDataKey,
+  secondaryColor,
+  secondaryName,
   chartHeight,
   tickInterval,
   yAxisDomain,
 }: ProgressFullAreaChartProps) {
+  const isDualSeries = Boolean(secondaryDataKey && secondaryColor);
+
   return (
     <ResponsiveContainer width="100%" height={chartHeight}>
       <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
@@ -98,16 +108,44 @@ export default function ProgressFullAreaChart({
           }}
           labelStyle={{ color: "#1e293b", fontWeight: "600" }}
         />
-        <Area
-          type="monotone"
-          dataKey={dataKey}
-          stroke={color}
-          strokeWidth={2}
-          fill={`url(#gradient-full-${chartId})`}
-          baseValue="dataMin"
-          dot={{ fill: color, r: 3 }}
-          activeDot={{ r: 5, strokeWidth: 2, stroke: "#ffffff" }}
-        />
+        {isDualSeries ? (
+          <>
+            <Area
+              type="monotone"
+              dataKey={dataKey}
+              name={primaryName ?? dataKey}
+              stroke={color}
+              strokeWidth={2.5}
+              fill="none"
+              dot={{ fill: color, r: 3 }}
+              activeDot={{ r: 5, strokeWidth: 2, stroke: "#ffffff" }}
+              connectNulls={false}
+            />
+            <Area
+              type="monotone"
+              dataKey={secondaryDataKey!}
+              name={secondaryName ?? secondaryDataKey!}
+              stroke={secondaryColor!}
+              strokeWidth={2.5}
+              fill="none"
+              dot={{ fill: secondaryColor!, r: 3 }}
+              activeDot={{ r: 5, strokeWidth: 2, stroke: "#ffffff" }}
+              connectNulls={false}
+            />
+          </>
+        ) : (
+          <Area
+            type="monotone"
+            dataKey={dataKey}
+            name={primaryName ?? dataKey}
+            stroke={color}
+            strokeWidth={2}
+            fill={`url(#gradient-full-${chartId})`}
+            baseValue="dataMin"
+            dot={{ fill: color, r: 3 }}
+            activeDot={{ r: 5, strokeWidth: 2, stroke: "#ffffff" }}
+          />
+        )}
       </AreaChart>
     </ResponsiveContainer>
   );

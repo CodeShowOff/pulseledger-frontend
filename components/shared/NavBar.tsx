@@ -10,12 +10,12 @@ import { useUnreadChatCount } from "@/lib/queries/chat";
 import {
   House,
   LayoutDashboard,
-  BarChart3,
+  LineChart,
   CreditCard,
   Package,
   Users,
   ClipboardList,
-  MessageCircleMore,
+  MessageSquare,
 } from "lucide-react";
 
 const Navbar = React.memo(function Navbar() {
@@ -79,14 +79,14 @@ const Navbar = React.memo(function Navbar() {
   const clientLinks = [
     { label: "Dashboard", href: "/client/dashboard", icon: LayoutDashboard },
     { label: "Plan", href: "/client/subscriptions", icon: CreditCard },
-    { label: "Chat", href: "/client/chat", icon: MessageCircleMore },
-    { label: "Progress", href: "/client/progress", icon: BarChart3 },
+    { label: "Chat", href: "/client/chat", icon: MessageSquare },
+    { label: "Progress", href: "/client/progress", icon: LineChart },
     { label: "Products", href: "/client/products", icon: Package },
   ];
 
   const coachLinks = [
     { label: "Dashboard", href: "/coach/dashboard", icon: LayoutDashboard },
-    { label: "Chat", href: "/coach/chat", icon: MessageCircleMore },
+    { label: "Chat", href: "/coach/chat", icon: MessageSquare },
     { label: "Clients", href: "/coach/clients", icon: Users },
     { label: "Plans", href: "/coach/plans", icon: ClipboardList },
     { label: "Products", href: "/coach/products", icon: Package },

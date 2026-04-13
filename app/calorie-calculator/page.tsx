@@ -95,12 +95,11 @@ export default function CalorieCalculatorPage() {
   return (
     <div className="profile-shell">
       <div className="profile-inner">
-        <section className="profile-header" style={{ marginBottom: "1rem" }}>
-          <div>
-            <h1 className="profile-header__title">Daily Calorie Calculator</h1>
-            <p className="profile-header__subtitle">
-              Estimate your daily calorie needs based on your body and activity level.
-            </p>
+        <section className="profile-header" style={{ marginBottom: "0.85rem" }}>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <h1 className="profile-header__title" style={{ margin: 0, textAlign: "center" }}>
+              Daily Calorie Calculator
+            </h1>
           </div>
         </section>
 

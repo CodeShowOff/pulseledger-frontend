@@ -11,12 +11,10 @@ import {
 } from "@/lib/queries/clientProgress";
 import api from "@/lib/axios";
 import { LineChart } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -43,25 +41,46 @@ interface DetailedProgressChartsProps {
   viewerRole?: "client" | "coach" | "admin"; // Role of the viewer
 }
 
+interface ChartConfig {
+  id: string;
+  label: string;
+  unit: string;
+  color: string;
+  dataKey: string;
+  primaryLabel?: string;
+  secondaryDataKey?: string;
+  secondaryColor?: string;
+  secondaryLabel?: string;
+}
+
 export default function DetailedProgressCharts({ clientId, viewerRole = "client" }: DetailedProgressChartsProps = {}) {
   const router = useRouter();
   const [activeChart, setActiveChart] = useState<string>("weight");
 
-  const charts = useMemo(
+  const charts = useMemo<ChartConfig[]>(
     () => [
       { id: "weight", label: "Weight", unit: "kg", color: "#3b82f6", dataKey: "weight" },
-      { id: "height", label: "Height", unit: "cm", color: "#8b5cf6", dataKey: "height" },
+      // { id: "height", label: "Height", unit: "cm", color: "#8b5cf6", dataKey: "height" },
       { id: "bmi", label: "BMI", unit: "", color: "#10b981", dataKey: "bmi" },
       { id: "bodyFat", label: "Body Fat %", unit: "", color: "#ef4444", dataKey: "bodyFatPercentage" },
       { id: "visceralFat", label: "Visceral Fat", unit: "", color: "#f97316", dataKey: "visceralFatLevel" },
       { id: "muscleMass", label: "Muscle Mass", unit: "kg", color: "#06b6d4", dataKey: "muscleMass" },
       { id: "metabolicAge", label: "Metabolic Age", unit: "years", color: "#a855f7", dataKey: "metabolicAge" },
-      { id: "bodyWater", label: "Body Water %", unit: "", color: "#0ea5e9", dataKey: "bodyWaterPercentage" },
+      // { id: "bodyWater", label: "Body Water %", unit: "", color: "#0ea5e9", dataKey: "bodyWaterPercentage" },
       { id: "boneMass", label: "Bone Mass", unit: "kg", color: "#64748b", dataKey: "boneMass" },
-      { id: "bloodSugarFasting", label: "Blood Sugar (Fasting)", unit: "mg/dL", color: "#dc2626", dataKey: "bloodSugarFasting" },
-      { id: "bloodSugarRandom", label: "Blood Sugar (Random)", unit: "mg/dL", color: "#f59e0b", dataKey: "bloodSugarRandom" },
-      { id: "bpSystolic", label: "BP Systolic", unit: "mmHg", color: "#e11d48", dataKey: "bloodPressureSystolic" },
-      { id: "bpDiastolic", label: "BP Diastolic", unit: "mmHg", color: "#2563eb", dataKey: "bloodPressureDiastolic" },
+      // { id: "bloodSugarFasting", label: "Blood Sugar (Fasting)", unit: "mg/dL", color: "#dc2626", dataKey: "bloodSugarFasting" },
+      // { id: "bloodSugarRandom", label: "Blood Sugar (Random)", unit: "mg/dL", color: "#f59e0b", dataKey: "bloodSugarRandom" },
+      {
+        id: "bloodPressure",
+        label: "Blood Pressure",
+        unit: "mmHg",
+        color: "#e11d48",
+        dataKey: "bloodPressureSystolic",
+        primaryLabel: "Systolic",
+        secondaryDataKey: "bloodPressureDiastolic",
+        secondaryColor: "#2563eb",
+        secondaryLabel: "Diastolic",
+      },
     ],
     []
   );
@@ -93,16 +112,16 @@ export default function DetailedProgressCharts({ clientId, viewerRole = "client"
             date: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }), // label only
             isoDate: entry.date, // preserve full date for precise comparisons if needed
             weight: typeof entry.weight === "number" ? entry.weight : null,
-            height: typeof entry.height === "number" ? entry.height : null,
+            // height: typeof entry.height === "number" ? entry.height : null,
             bmi: typeof entry.bmi === "number" ? entry.bmi : null,
             bodyFatPercentage: typeof entry.bodyFatPercentage === "number" ? entry.bodyFatPercentage : null,
             visceralFatLevel: typeof entry.visceralFatLevel === "number" ? entry.visceralFatLevel : null,
             muscleMass: typeof entry.muscleMass === "number" ? entry.muscleMass : null,
             metabolicAge: typeof entry.metabolicAge === "number" ? entry.metabolicAge : null,
-            bodyWaterPercentage: typeof entry.bodyWaterPercentage === "number" ? entry.bodyWaterPercentage : null,
+            // bodyWaterPercentage: typeof entry.bodyWaterPercentage === "number" ? entry.bodyWaterPercentage : null,
             boneMass: typeof entry.boneMass === "number" ? entry.boneMass : null,
-            bloodSugarFasting: typeof entry.bloodSugarFasting === "number" ? entry.bloodSugarFasting : null,
-            bloodSugarRandom: typeof entry.bloodSugarRandom === "number" ? entry.bloodSugarRandom : null,
+            // bloodSugarFasting: typeof entry.bloodSugarFasting === "number" ? entry.bloodSugarFasting : null,
+            // bloodSugarRandom: typeof entry.bloodSugarRandom === "number" ? entry.bloodSugarRandom : null,
             bloodPressureSystolic: typeof entry.bloodPressureSystolic === "number" ? entry.bloodPressureSystolic : null,
             bloodPressureDiastolic: typeof entry.bloodPressureDiastolic === "number" ? entry.bloodPressureDiastolic : null,
           };
@@ -113,8 +132,16 @@ export default function DetailedProgressCharts({ clientId, viewerRole = "client"
   // Filter data to only show points where the current chart's field has a value
   const filteredData = useMemo(() => {
     if (!allData) return [];
-    return allData.filter((point) => point[currentChart.dataKey] != null);
-  }, [allData, currentChart.dataKey]);
+    return allData.filter((point) => {
+      const hasPrimaryValue = point[currentChart.dataKey] != null;
+      if (!currentChart.secondaryDataKey) {
+        return hasPrimaryValue;
+      }
+
+      const hasSecondaryValue = point[currentChart.secondaryDataKey] != null;
+      return hasPrimaryValue || hasSecondaryValue;
+    });
+  }, [allData, currentChart.dataKey, currentChart.secondaryDataKey]);
 
   // Show only last 7 entries for preview
   const data = useMemo(() => {
@@ -166,9 +193,6 @@ export default function DetailedProgressCharts({ clientId, viewerRole = "client"
             </span>
             Progress charts
           </CardTitle>
-          <CardDescription>
-            Health metrics over time.
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-8 text-center text-sm text-slate-600">
@@ -190,9 +214,6 @@ export default function DetailedProgressCharts({ clientId, viewerRole = "client"
               </span>
               Progress charts
             </CardTitle>
-            <CardDescription>
-              Last 7 entries.
-            </CardDescription>
           </div>
 
           {hasData && filteredData.length > 7 ? (
@@ -226,22 +247,13 @@ export default function DetailedProgressCharts({ clientId, viewerRole = "client"
                     : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                 )}
               >
-                {chart.label}
+                {chart.unit ? `${chart.label} (${chart.unit})` : chart.label}
               </button>
             );
           })}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-4 md:p-5">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-slate-900 md:text-base">
-              {currentChart.label} {currentChart.unit && `(${currentChart.unit})`}
-            </h3>
-            <Badge variant="secondary" className="normal-case tracking-normal">
-              Last {Math.min(data.length, 7)} entries
-            </Badge>
-          </div>
-
+        <div>
           {!hasData ? (
             <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-10 text-center text-sm text-slate-600">
               No data available for {currentChart.label}
@@ -253,44 +265,13 @@ export default function DetailedProgressCharts({ clientId, viewerRole = "client"
                 chartId={currentChart.id}
                 dataKey={currentChart.dataKey}
                 color={currentChart.color}
+                primaryName={currentChart.primaryLabel ?? currentChart.label}
+                secondaryDataKey={currentChart.secondaryDataKey}
+                secondaryColor={currentChart.secondaryColor}
+                secondaryName={currentChart.secondaryLabel}
               />
             </div>
           )}
-
-          {hasData ? (
-            <div className="mt-4 grid gap-3 border-t border-slate-200 pt-4 sm:grid-cols-3">
-              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-center">
-                <p className="text-lg font-semibold text-slate-900">{filteredData.length}</p>
-                <p className="text-xs text-slate-500">Total entries</p>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-center">
-                <p className="text-lg font-semibold text-slate-900">
-                  {(() => {
-                    if (data.length === 0) return "-";
-                    const latestPoint = data[data.length - 1];
-                    const value = latestPoint[currentChart.dataKey];
-                    return typeof value === "number" ? value.toFixed(1) : value || "-";
-                  })()}
-                </p>
-                <p className="text-xs text-slate-500">Latest</p>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-center">
-                <p className="text-lg font-semibold text-slate-900">
-                  {(() => {
-                    const values = filteredData
-                      .map((d) => d[currentChart.dataKey])
-                      .filter((v) => v != null && typeof v === "number") as number[];
-                    if (values.length === 0) return "-";
-                    const avg = values.reduce((a, b) => a + b, 0) / values.length;
-                    return avg.toFixed(1);
-                  })()}
-                </p>
-                <p className="text-xs text-slate-500">Overall average</p>
-              </div>
-            </div>
-          ) : null}
         </div>
       </CardContent>
     </Card>

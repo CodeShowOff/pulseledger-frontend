@@ -278,8 +278,7 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
                 className={`mx-auto ${ringSize} rounded-full border border-sky-200/70 ${compact ? "" : "animate-pulse"}`}
                 style={{ borderWidth: ringStrokeWidth }}
               />
-              <div className={`grid grid-cols-2 border-t border-sky-100/80 pt-2 ${compact ? "gap-1.5 text-center" : "gap-3 text-left"}`}>
-                <div className={`h-[58px] rounded-xl bg-sky-100/75 ${compact ? "" : "animate-pulse"}`} />
+              <div className={`border-t border-sky-100/80 pt-2 ${compact ? "text-center" : "text-left"}`}>
                 <div className={`h-[58px] rounded-xl bg-sky-100/75 ${compact ? "" : "animate-pulse"}`} />
               </div>
             </div>
@@ -380,16 +379,7 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
                 </div>
               </div>
 
-              <div className={`grid grid-cols-2 border-t border-sky-100/80 pt-2 ${compact ? "gap-1.5 text-center" : "gap-3 text-left"}`}>
-                <div className="min-w-0">
-                  <p className={compact ? "text-[10px] font-semibold leading-tight text-slate-500" : "text-[11px] font-medium uppercase tracking-wide text-slate-500"}>
-                    Consumed
-                  </p>
-                  <p className={compact ? "mt-0.5 whitespace-nowrap text-[1.02rem] font-bold leading-tight text-slate-900" : "mt-1 text-sm font-bold text-slate-900 sm:text-base"}>
-                    {totalLiters.toFixed(1)}L
-                  </p>
-                </div>
-
+              <div className={`border-t border-sky-100/80 pt-2 ${compact ? "text-center" : "text-left"}`}>
                 <div className="min-w-0">
                   <p className={compact ? "text-[10px] font-semibold leading-tight text-slate-500" : "text-[11px] font-medium uppercase tracking-wide text-slate-500"}>
                     Remaining

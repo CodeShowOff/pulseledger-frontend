@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -132,9 +131,6 @@ export default function ProgressPhotos() {
                 </span>
                 Progress photo journal
               </CardTitle>
-              <CardDescription>
-                Photo timeline.
-              </CardDescription>
             </div>
             <Badge variant="secondary" className="normal-case tracking-normal">
               {photos.length} photo{photos.length !== 1 ? "s" : ""}
@@ -206,22 +202,19 @@ export default function ProgressPhotos() {
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200/80 bg-white/95">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+      <Card className="border-slate-200/80 bg-white/95 md:max-w-[460px]">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
               <Camera className="h-4 w-4" />
             </span>
             Upload progress photo
           </CardTitle>
-          <CardDescription>
-            Max file size: 5MB.
-          </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 pt-0">
           {!previewUrl ? (
-            <div>
+            <div className="max-w-[360px]">
               <input
                 id="photo-upload"
                 type="file"
@@ -231,24 +224,24 @@ export default function ProgressPhotos() {
               />
               <label
                 htmlFor="photo-upload"
-                className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-10 text-center transition-colors hover:border-indigo-300 hover:bg-indigo-50/40"
+                className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-3 py-3.5 text-center transition-colors hover:border-indigo-300 hover:bg-indigo-50/40"
               >
-                <span className="mb-3 grid h-11 w-11 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm">
-                  <Camera className="h-5 w-5" />
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-indigo-600 shadow-sm">
+                  <Camera className="h-4 w-4" />
                 </span>
                 <p className="text-sm font-semibold text-slate-700">Choose photo</p>
-                <p className="mt-1 text-xs text-slate-500">JPG, PNG, WEBP up to 5MB</p>
               </label>
+              <p className="mt-1 text-[11px] text-slate-500">JPG, PNG, WEBP up to 5MB</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              <div className="relative w-full max-w-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+            <div className="space-y-3">
+              <div className="relative w-full max-w-[360px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
                 <Image
                   src={previewUrl}
                   alt="Preview"
-                  width={420}
-                  height={420}
-                  sizes="(max-width: 640px) 100vw, 420px"
+                  width={360}
+                  height={360}
+                  sizes="(max-width: 640px) 100vw, 360px"
                   className="h-auto w-full object-cover"
                 />
                 <button
@@ -265,7 +258,7 @@ export default function ProgressPhotos() {
                 </button>
               </div>
 
-              <div className="max-w-[520px]">
+              <div className="max-w-[360px]">
                 <label htmlFor="photo-caption" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Caption (optional)
                 </label>

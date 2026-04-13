@@ -28,18 +28,17 @@ const fadeInUp = {
 
 const chartOptions = [
   { id: "weight", label: "Weight" },
-  { id: "height", label: "Height" },
+  // { id: "height", label: "Height" },
   { id: "bmi", label: "BMI" },
   { id: "bodyFat", label: "Body Fat %" },
   { id: "visceralFat", label: "Visceral Fat" },
   { id: "muscleMass", label: "Muscle Mass" },
   { id: "metabolicAge", label: "Metabolic Age" },
-  { id: "bodyWater", label: "Body Water %" },
+  // { id: "bodyWater", label: "Body Water %" },
   { id: "boneMass", label: "Bone Mass" },
-  { id: "bloodSugarFasting", label: "Blood Sugar (Fasting)" },
-  { id: "bloodSugarRandom", label: "Blood Sugar (Random)" },
-  { id: "bpSystolic", label: "BP Systolic" },
-  { id: "bpDiastolic", label: "BP Diastolic" },
+  // { id: "bloodSugarFasting", label: "Blood Sugar (Fasting)" },
+  // { id: "bloodSugarRandom", label: "Blood Sugar (Random)" },
+  { id: "bloodPressure", label: "Blood Pressure" },
 ] as const;
 
 function DetailedChartContent() {
@@ -49,9 +48,12 @@ function DetailedChartContent() {
   const chartType = searchParams.get("chart") || "weight";
   const clientId = params.id as string;
 
+  const normalizedChartType =
+    chartType === "bpSystolic" || chartType === "bpDiastolic" ? "bloodPressure" : chartType;
+
   const validChartIds = new Set(chartOptions.map((option) => option.id));
-  const resolvedChartType = validChartIds.has(chartType as (typeof chartOptions)[number]["id"])
-    ? chartType
+  const resolvedChartType = validChartIds.has(normalizedChartType as (typeof chartOptions)[number]["id"])
+    ? normalizedChartType
     : "weight";
 
   const handleChartChange = (nextChartType: string) => {

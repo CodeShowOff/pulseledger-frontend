@@ -24,7 +24,6 @@ import { useAuthStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -47,6 +46,13 @@ export default function ProfilePage() {
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useProfileQuery();
   const [uploading, setUploading] = useState(false);
+  const [basicInfoEditing, setBasicInfoEditing] = useState(false);
+  const [basicInfoSaving, setBasicInfoSaving] = useState(false);
+  const [basicInfoValue, setBasicInfoValue] = useState({
+    fullName: "",
+    phone: "",
+    whatsappNumber: "",
+  });
   const [addressEditing, setAddressEditing] = useState(false);
   const [addressValue, setAddressValue] = useState({
     phoneNumber: "",
@@ -86,6 +92,8 @@ export default function ProfilePage() {
   const awardInputRef = useRef<HTMLInputElement | null>(null);
   const transformationInputRef = useRef<HTMLInputElement | null>(null);
   const setAvatarUrl = useAuthStore((s) => s.setAvatarUrl);
+  const setUser = useAuthStore((s) => s.setUser);
+  const authUser = useAuthStore((s) => s.user);
   const storeAvatar = useAuthStore((s) => s.user?.avatarUrl);
   const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
@@ -95,6 +103,80 @@ export default function ProfilePage() {
   });
 
   const currentAddress = data?.address || null;
+
+  const startEditBasicInfo = () => {
+    setBasicInfoValue({
+      fullName: data?.fullName || "",
+      phone: data?.phone || "",
+      whatsappNumber: data?.whatsappNumber || "",
+    });
+    setBasicInfoEditing(true);
+  };
+
+  const cancelEditBasicInfo = () => {
+    setBasicInfoEditing(false);
+    setBasicInfoValue({
+      fullName: data?.fullName || "",
+      phone: data?.phone || "",
+      whatsappNumber: data?.whatsappNumber || "",
+    });
+  };
+
+  const saveBasicInfo = async () => {
+    if (!data) return;
+
+    const phonePattern = /^\+?[0-9()\-\s]{7,30}$/;
+    const nextFullName = basicInfoValue.fullName.trim();
+    const nextPhone = basicInfoValue.phone.trim();
+    const nextWhatsappNumber = basicInfoValue.whatsappNumber.trim();
+
+    if (nextFullName.length < 3) {
+      toast.error("Full name must be at least 3 characters.");
+      return;
+    }
+
+    if (nextPhone && !phonePattern.test(nextPhone)) {
+      toast.error("Please enter a valid phone number.");
+      return;
+    }
+
+    if (nextWhatsappNumber && !phonePattern.test(nextWhatsappNumber)) {
+      toast.error("Please enter a valid WhatsApp number.");
+      return;
+    }
+
+    const payload = {
+      fullName: nextFullName,
+      phone: nextPhone || null,
+      whatsappNumber: nextWhatsappNumber || null,
+    };
+
+    try {
+      setBasicInfoSaving(true);
+      await api.put("/users/profile", payload);
+
+      queryClient.setQueryData(PROFILE_QUERY_KEY, (prev: unknown) =>
+        prev ? { ...(prev as Record<string, unknown>), ...payload } : prev
+      );
+
+      if (authUser) {
+        setUser({ ...authUser, fullName: nextFullName });
+      }
+
+      setBasicInfoEditing(false);
+      toast.success("Basic profile information updated.");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        toast.error((err.response?.data as { message?: string } | undefined)?.message || "Failed to update profile details.");
+      } else if (err instanceof Error) {
+        toast.error(err.message || "Failed to update profile details.");
+      } else {
+        toast.error("Failed to update profile details.");
+      }
+    } finally {
+      setBasicInfoSaving(false);
+    }
+  };
 
   const startEditAddress = () => {
     setAddressValue({
@@ -353,7 +435,6 @@ export default function ProfilePage() {
           <CardHeader className="gap-3 p-4 sm:gap-4 sm:p-6 md:p-7">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-1.5 sm:space-y-2">
-                <Badge className="hidden w-fit border-white/25 bg-white/15 text-white sm:inline-flex">Profile Center</Badge>
                 <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
                   <span className="inline-flex items-center gap-2">
                     <User className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -361,7 +442,7 @@ export default function ProfilePage() {
                   </span>
                 </CardTitle>
                 <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block md:text-base">
-                  Your account, contact and health information in one polished workspace.
+                  Your account and contact information in one polished workspace.
                 </CardDescription>
               </div>
 
@@ -515,32 +596,101 @@ export default function ProfilePage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                <User className="h-4 w-4" />
-              </span>
-              Basic Info
-            </CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <User className="h-4 w-4" />
+                </span>
+                Basic Info
+              </CardTitle>
+
+              {!basicInfoEditing ? (
+                <Button type="button" variant="outline" size="sm" onClick={startEditBasicInfo}>
+                  Edit
+                </Button>
+              ) : null}
+            </div>
           </CardHeader>
           <CardContent>
-            <dl className="grid gap-2 sm:grid-cols-2">
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 sm:col-span-2">
-                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Full name</dt>
-                <dd className="mt-1 break-words text-sm font-medium text-slate-900">{data.fullName || "-"}</dd>
+            {!basicInfoEditing ? (
+              <dl className="grid gap-2 sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 sm:col-span-2">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Full name</dt>
+                  <dd className="mt-1 break-words text-sm font-medium text-slate-900">{data.fullName || "-"}</dd>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 sm:col-span-2">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Email</dt>
+                  <dd className="mt-1 break-all text-sm font-medium text-slate-900">{data.email || "-"}</dd>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Phone</dt>
+                  <dd className="mt-1 text-sm font-medium text-slate-900">{data.phone || "-"}</dd>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">WhatsApp</dt>
+                  <dd className="mt-1 text-sm font-medium text-slate-900">{data.whatsappNumber || "-"}</dd>
+                </div>
+              </dl>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <label htmlFor="basic-full-name" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Full name
+                    </label>
+                    <Input
+                      id="basic-full-name"
+                      type="text"
+                      value={basicInfoValue.fullName}
+                      onChange={(e) => setBasicInfoValue((prev) => ({ ...prev, fullName: e.target.value }))}
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <label htmlFor="basic-email" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Email (read only)
+                    </label>
+                    <Input id="basic-email" type="email" value={data.email || ""} readOnly disabled />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="basic-phone" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Phone
+                    </label>
+                    <Input
+                      id="basic-phone"
+                      type="tel"
+                      value={basicInfoValue.phone}
+                      onChange={(e) => setBasicInfoValue((prev) => ({ ...prev, phone: e.target.value }))}
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="basic-whatsapp" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      WhatsApp
+                    </label>
+                    <Input
+                      id="basic-whatsapp"
+                      type="tel"
+                      value={basicInfoValue.whatsappNumber}
+                      onChange={(e) => setBasicInfoValue((prev) => ({ ...prev, whatsappNumber: e.target.value }))}
+                      placeholder="Enter your WhatsApp number"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button type="button" variant="secondary" onClick={cancelEditBasicInfo} disabled={basicInfoSaving}>
+                    Cancel
+                  </Button>
+                  <Button type="button" onClick={saveBasicInfo} disabled={basicInfoSaving}>
+                    {basicInfoSaving ? "Saving..." : "Save"}
+                  </Button>
+                </div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 sm:col-span-2">
-                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Email</dt>
-                <dd className="mt-1 break-all text-sm font-medium text-slate-900">{data.email || "-"}</dd>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
-                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Phone</dt>
-                <dd className="mt-1 text-sm font-medium text-slate-900">{data.phone || "-"}</dd>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
-                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">WhatsApp</dt>
-                <dd className="mt-1 text-sm font-medium text-slate-900">{data.whatsappNumber || "-"}</dd>
-              </div>
-            </dl>
+            )}
           </CardContent>
         </Card>
 
@@ -570,36 +720,6 @@ export default function ProfilePage() {
             </dl>
           </CardContent>
         </Card>
-
-        {data.role === "client" && (
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base md:text-lg">Health Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid gap-2 sm:grid-cols-3">
-                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
-                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Weight</dt>
-                  <dd className="mt-1 text-sm font-medium text-slate-900">
-                    {typeof data.weight === "number" ? `${data.weight} kg` : "-"}
-                  </dd>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
-                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Height</dt>
-                  <dd className="mt-1 text-sm font-medium text-slate-900">
-                    {typeof data.height === "number" ? `${data.height} cm` : "-"}
-                  </dd>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
-                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">BMI</dt>
-                  <dd className="mt-1 text-sm font-medium text-slate-900">
-                    {typeof data.bmi === "number" ? data.bmi : "-"}
-                  </dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
-        )}
 
         {data.role === "coach" && (
           <Card className="lg:col-span-2">

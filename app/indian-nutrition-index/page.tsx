@@ -175,57 +175,52 @@ export default function IndianNutritionIndexPage() {
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: "0.125rem",
+          gap: "0",
           alignItems: "center",
           textAlign: "center",
-          marginTop: "1.5rem",
-          marginBottom: "1rem",
+          marginTop: "1.1rem",
+          marginBottom: "0.4rem",
         }}
       >
           <h1
             className="profile-header__title"
             style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0 }}
           >
-            Indian Food Nutrition Index
+            Indian Nutrition Search
           </h1>
-          <p
-            className="profile-header__subtitle"
-            style={{ fontSize: "0.85rem", margin: 0 }}
-          >
-          Search and explore nutrition facts for popular Indian dishes.
-        </p>
       </header>
 
       <section
         className="profile-card"
         style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "1rem",
+          display: "grid",
+          gridTemplateColumns: isMobile
+            ? "minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr)"
+            : "minmax(260px, 2fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr)",
+          gap: isMobile ? "0.65rem" : "0.75rem",
           alignItems: "flex-end",
-          padding: "1.25rem 1.5rem",
+          padding: isMobile ? "0.9rem" : "1rem 1.1rem",
         }}
       >
-        <div style={{ minWidth: 220, flex: "1 1 220px" }}>
-          <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.35rem" }}>SEARCH</label>
+        <div style={{ minWidth: 0, gridColumn: isMobile ? "1 / -1" : "auto" }}>
+          <label className="profile-field__label" style={{ fontSize: "0.76rem", marginBottom: "0.3rem" }}>SEARCH DISH</label>
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Dish or category"
+            placeholder="Search dish or category"
             className="auth-form__input"
-            style={{ padding: "0.6rem 0.85rem", fontSize: "0.9rem" }}
+            style={{ padding: "0.5rem 0.75rem", fontSize: "0.88rem", minHeight: "36px" }}
           />
         </div>
 
-        <div style={{ display: "flex", gap: "1rem", alignItems: "flex-end", flexWrap: "nowrap" }}>
-          <div style={{ minWidth: 110, width: 110 }}>
-            <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.35rem" }}>TYPE</label>
+        <div style={{ minWidth: 0 }}>
+          <label className="profile-field__label" style={{ fontSize: "0.76rem", marginBottom: "0.3rem" }}>TYPE</label>
             <select
               value={vegFilter}
               onChange={(e) => setVegFilter(e.target.value as "all" | "veg" | "nonveg")}
               className="auth-form__input"
-              style={{ padding: "0.6rem 0.5rem", fontSize: "0.9rem", width: "100%" }}
+            style={{ padding: "0.5rem 0.5rem", fontSize: "0.88rem", width: "100%", minHeight: "36px" }}
             >
               <option value="all">All</option>
               <option value="veg">Veg only</option>
@@ -233,21 +228,21 @@ export default function IndianNutritionIndexPage() {
             </select>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.35rem" }}>HIGH PROTEIN</label>
+        <div style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+          <label className="profile-field__label" style={{ fontSize: "0.72rem", marginBottom: "0.3rem", whiteSpace: "nowrap" }}>HIGH PROTEIN</label>
             <label style={{ 
               display: "flex", 
               alignItems: "center", 
               justifyContent: "center",
               fontSize: "0.875rem", 
               cursor: "pointer", 
-              padding: "0.6rem 0.85rem",
-              border: highProtein ? "2px solid #3b82f6" : "2px solid #e2e8f0",
-              borderRadius: "8px",
+              padding: "0.45rem",
+              border: highProtein ? "1.5px solid #3b82f6" : "1.5px solid #d7dee8",
+              borderRadius: "10px",
               background: highProtein ? "#eff6ff" : "#ffffff",
               transition: "all 0.2s ease",
               width: "100%",
-              minHeight: "38px",
+              minHeight: "36px",
             }}>
               <input
                 id="highProtein"
@@ -256,8 +251,8 @@ export default function IndianNutritionIndexPage() {
                 onChange={(e) => setHighProtein(e.target.checked)}
                 style={{ 
                   margin: 0,
-                  width: "18px",
-                  height: "18px",
+                  width: "17px",
+                  height: "17px",
                   cursor: "pointer",
                   accentColor: "#3b82f6",
                 }}
@@ -265,21 +260,21 @@ export default function IndianNutritionIndexPage() {
             </label>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <label className="profile-field__label" style={{ fontSize: "0.8rem", marginBottom: "0.35rem" }}>LOW CALORIE</label>
+        <div style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+          <label className="profile-field__label" style={{ fontSize: "0.72rem", marginBottom: "0.3rem", whiteSpace: "nowrap" }}>LOW CALORIE</label>
             <label style={{ 
               display: "flex", 
               alignItems: "center", 
               justifyContent: "center",
               fontSize: "0.875rem", 
               cursor: "pointer", 
-              padding: "0.6rem 0.85rem",
-              border: lowCalorie ? "2px solid #10b981" : "2px solid #e2e8f0",
-              borderRadius: "8px",
+              padding: "0.45rem",
+              border: lowCalorie ? "1.5px solid #10b981" : "1.5px solid #d7dee8",
+              borderRadius: "10px",
               background: lowCalorie ? "#ecfdf5" : "#ffffff",
               transition: "all 0.2s ease",
               width: "100%",
-              minHeight: "38px",
+              minHeight: "36px",
             }}>
               <input
                 id="lowCalorie"
@@ -288,15 +283,14 @@ export default function IndianNutritionIndexPage() {
                 onChange={(e) => setLowCalorie(e.target.checked)}
                 style={{ 
                   margin: 0,
-                  width: "18px",
-                  height: "18px",
+                  width: "17px",
+                  height: "17px",
                   cursor: "pointer",
                   accentColor: "#10b981",
                 }}
               />
             </label>
           </div>
-        </div>
       </section>
 
       <section style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>

@@ -11,8 +11,8 @@ export type ProfileResponse = {
   avatarUrl?: string | null;
   paymentQrUrl?: string | null;
   paymentQrPublicId?: string | null;
-  phone?: string;
-  whatsappNumber?: string;
+  phone?: string | null;
+  whatsappNumber?: string | null;
   address?: {
     phoneNumber?: string | null;
     line1?: string | null;

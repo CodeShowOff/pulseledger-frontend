@@ -38,26 +38,50 @@ interface FullProgressChartProps {
   clientId?: string;
 }
 
-const chartConfigs = [
+interface ChartConfig {
+  id: string;
+  label: string;
+  unit: string;
+  color: string;
+  dataKey: string;
+  primaryLabel?: string;
+  secondaryDataKey?: string;
+  secondaryColor?: string;
+  secondaryLabel?: string;
+}
+
+const chartConfigs: ChartConfig[] = [
   { id: "weight", label: "Weight", unit: "kg", color: "#3b82f6", dataKey: "weight" },
-  { id: "height", label: "Height", unit: "cm", color: "#8b5cf6", dataKey: "height" },
+  // { id: "height", label: "Height", unit: "cm", color: "#8b5cf6", dataKey: "height" },
   { id: "bmi", label: "BMI", unit: "", color: "#10b981", dataKey: "bmi" },
   { id: "bodyFat", label: "Body Fat %", unit: "", color: "#ef4444", dataKey: "bodyFatPercentage" },
   { id: "visceralFat", label: "Visceral Fat", unit: "", color: "#f97316", dataKey: "visceralFatLevel" },
   { id: "muscleMass", label: "Muscle Mass", unit: "kg", color: "#06b6d4", dataKey: "muscleMass" },
   { id: "metabolicAge", label: "Metabolic Age", unit: "years", color: "#a855f7", dataKey: "metabolicAge" },
-  { id: "bodyWater", label: "Body Water %", unit: "", color: "#0ea5e9", dataKey: "bodyWaterPercentage" },
+  // { id: "bodyWater", label: "Body Water %", unit: "", color: "#0ea5e9", dataKey: "bodyWaterPercentage" },
   { id: "boneMass", label: "Bone Mass", unit: "kg", color: "#64748b", dataKey: "boneMass" },
-  { id: "bloodSugarFasting", label: "Blood Sugar (Fasting)", unit: "mg/dL", color: "#dc2626", dataKey: "bloodSugarFasting" },
-  { id: "bloodSugarRandom", label: "Blood Sugar (Random)", unit: "mg/dL", color: "#f59e0b", dataKey: "bloodSugarRandom" },
-  { id: "bpSystolic", label: "BP Systolic", unit: "mmHg", color: "#e11d48", dataKey: "bloodPressureSystolic" },
-  { id: "bpDiastolic", label: "BP Diastolic", unit: "mmHg", color: "#2563eb", dataKey: "bloodPressureDiastolic" },
+  // { id: "bloodSugarFasting", label: "Blood Sugar (Fasting)", unit: "mg/dL", color: "#dc2626", dataKey: "bloodSugarFasting" },
+  // { id: "bloodSugarRandom", label: "Blood Sugar (Random)", unit: "mg/dL", color: "#f59e0b", dataKey: "bloodSugarRandom" },
+  {
+    id: "bloodPressure",
+    label: "Blood Pressure",
+    unit: "mmHg",
+    color: "#e11d48",
+    dataKey: "bloodPressureSystolic",
+    primaryLabel: "Systolic",
+    secondaryDataKey: "bloodPressureDiastolic",
+    secondaryColor: "#2563eb",
+    secondaryLabel: "Diastolic",
+  },
 ];
 
 export default function FullProgressChart({ chartType, clientId }: FullProgressChartProps) {
+  const normalizedChartType =
+    chartType === "bpSystolic" || chartType === "bpDiastolic" ? "bloodPressure" : chartType;
+
   const chartConfig = useMemo(
-    () => chartConfigs.find((c) => c.id === chartType) || chartConfigs[0],
-    [chartType]
+    () => chartConfigs.find((c) => c.id === normalizedChartType) || chartConfigs[0],
+    [normalizedChartType]
   );
 
   const { data: allData, isLoading } = useQuery({
@@ -78,16 +102,16 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
           date: new Date(entry.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
           isoDate: entry.date,
           weight: typeof entry.weight === "number" ? entry.weight : null,
-          height: typeof entry.height === "number" ? entry.height : null,
+          // height: typeof entry.height === "number" ? entry.height : null,
           bmi: typeof entry.bmi === "number" ? entry.bmi : null,
           bodyFatPercentage: typeof entry.bodyFatPercentage === "number" ? entry.bodyFatPercentage : null,
           visceralFatLevel: typeof entry.visceralFatLevel === "number" ? entry.visceralFatLevel : null,
           muscleMass: typeof entry.muscleMass === "number" ? entry.muscleMass : null,
           metabolicAge: typeof entry.metabolicAge === "number" ? entry.metabolicAge : null,
-          bodyWaterPercentage: typeof entry.bodyWaterPercentage === "number" ? entry.bodyWaterPercentage : null,
+          // bodyWaterPercentage: typeof entry.bodyWaterPercentage === "number" ? entry.bodyWaterPercentage : null,
           boneMass: typeof entry.boneMass === "number" ? entry.boneMass : null,
-          bloodSugarFasting: typeof entry.bloodSugarFasting === "number" ? entry.bloodSugarFasting : null,
-          bloodSugarRandom: typeof entry.bloodSugarRandom === "number" ? entry.bloodSugarRandom : null,
+          // bloodSugarFasting: typeof entry.bloodSugarFasting === "number" ? entry.bloodSugarFasting : null,
+          // bloodSugarRandom: typeof entry.bloodSugarRandom === "number" ? entry.bloodSugarRandom : null,
           bloodPressureSystolic: typeof entry.bloodPressureSystolic === "number" ? entry.bloodPressureSystolic : null,
           bloodPressureDiastolic: typeof entry.bloodPressureDiastolic === "number" ? entry.bloodPressureDiastolic : null,
         }));
@@ -96,8 +120,16 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
 
   const data = useMemo(() => {
     if (!allData) return [];
-    return allData.filter((point) => point[chartConfig.dataKey] != null);
-  }, [allData, chartConfig.dataKey]);
+    return allData.filter((point) => {
+      const hasPrimaryValue = point[chartConfig.dataKey] != null;
+      if (!chartConfig.secondaryDataKey) {
+        return hasPrimaryValue;
+      }
+
+      const hasSecondaryValue = point[chartConfig.secondaryDataKey] != null;
+      return hasPrimaryValue || hasSecondaryValue;
+    });
+  }, [allData, chartConfig.dataKey, chartConfig.secondaryDataKey]);
 
   const shouldEnableHorizontalScroll = data.length > 8;
 
@@ -120,7 +152,7 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
     return 0; // Show all ticks
   }, [data.length]);
 
-  const values = useMemo(
+  const primaryValues = useMemo(
     () =>
       data
         .map((d) => d[chartConfig.dataKey])
@@ -128,9 +160,26 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
     [data, chartConfig.dataKey]
   );
 
+  const secondaryValues = useMemo(() => {
+    const secondaryKey = chartConfig.secondaryDataKey;
+    if (!secondaryKey) return [] as number[];
+
+    return data
+      .map((d) => d[secondaryKey])
+      .filter((v) => v != null && typeof v === "number") as number[];
+  }, [data, chartConfig.secondaryDataKey]);
+
+  const values = useMemo(
+    () => (chartConfig.secondaryDataKey ? [...primaryValues, ...secondaryValues] : primaryValues),
+    [chartConfig.secondaryDataKey, primaryValues, secondaryValues]
+  );
+
   const minValue = values.length > 0 ? Math.min(...values) : 0;
   const maxValue = values.length > 0 ? Math.max(...values) : 0;
   const latestValue = data[data.length - 1]?.[chartConfig.dataKey];
+  const latestSecondaryValue = chartConfig.secondaryDataKey
+    ? data[data.length - 1]?.[chartConfig.secondaryDataKey]
+    : null;
 
   const yAxisDomain = useMemo<[number, number]>(() => {
     if (values.length === 0) return [0, 100];
@@ -204,7 +253,13 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
         <div style={{ textAlign: "center" }}>
           <p style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem" }}>Latest</p>
           <p style={{ fontWeight: "600", color: "#1e293b", fontSize: "1.25rem" }}>
-            {typeof latestValue === "number" ? latestValue.toFixed(1) : "-"}
+            {chartConfig.secondaryDataKey
+              ? typeof latestValue === "number" && typeof latestSecondaryValue === "number"
+                ? `${Math.round(latestValue)}/${Math.round(latestSecondaryValue)}`
+                : "-"
+              : typeof latestValue === "number"
+                ? latestValue.toFixed(1)
+                : "-"}
           </p>
         </div>
         <div style={{ textAlign: "center" }}>
@@ -241,6 +296,10 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
             chartId={chartConfig.id}
             dataKey={chartConfig.dataKey}
             color={chartConfig.color}
+            primaryName={chartConfig.primaryLabel ?? chartConfig.label}
+            secondaryDataKey={chartConfig.secondaryDataKey}
+            secondaryColor={chartConfig.secondaryColor}
+            secondaryName={chartConfig.secondaryLabel}
             chartHeight={chartHeight}
             tickInterval={tickInterval}
             yAxisDomain={yAxisDomain}

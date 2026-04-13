@@ -314,8 +314,7 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
                 className={`mx-auto ${ringSize} rounded-full border border-slate-200/70 ${compact ? "" : "animate-pulse"}`}
                 style={{ borderWidth: ringStrokeWidth }}
               />
-              <div className={`grid grid-cols-2 ${compact ? "gap-2" : "gap-2.5"}`}>
-                <div className={`h-[58px] rounded-xl bg-slate-200/75 ${compact ? "" : "animate-pulse"}`} />
+              <div>
                 <div className={`h-[58px] rounded-xl bg-slate-200/75 ${compact ? "" : "animate-pulse"}`} />
               </div>
             </div>
@@ -412,18 +411,9 @@ export default function GoalWeightWidget({ compact = false }: GoalWeightWidgetPr
               </div>
 
               <div
-                className={`grid grid-cols-2 pt-2 ${compact ? "gap-1.5 text-center" : "gap-3 text-left"}`}
+                className={`pt-2 ${compact ? "text-center" : "text-left"}`}
                 style={{ borderTopWidth: 1, borderTopStyle: "solid", borderTopColor: tone.border }}
               >
-                <div className="min-w-0">
-                  <p className={compact ? "text-[10px] font-semibold leading-tight text-slate-500" : "text-[11px] font-medium uppercase tracking-wide text-slate-500"}>
-                    Current
-                  </p>
-                  <p className={compact ? "mt-0.5 whitespace-nowrap text-[1.02rem] font-bold leading-tight text-slate-900" : "mt-1 text-sm font-bold text-slate-900 sm:text-base"}>
-                    {displayWeight != null ? `${currentWeightLabel} kg` : "--"}
-                  </p>
-                </div>
-
                 <div className="min-w-0">
                   <p className={compact ? "text-[10px] font-semibold leading-tight text-slate-500" : "text-[11px] font-medium uppercase tracking-wide text-slate-500"}>
                     Remaining

@@ -143,14 +143,13 @@ export default function ProductsPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-4 p-6 md:p-7">
+          <CardHeader className="gap-3 p-4 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-2">
-                <Badge className="w-fit border-white/25 bg-white/15 text-white">Storefront</Badge>
-                <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+                <h1 className="whitespace-nowrap text-lg font-bold tracking-tight text-white sm:text-3xl">
                   Products
-                </CardTitle>
-                <CardDescription className="max-w-xl text-sm !text-white/90 md:text-base">
+                </h1>
+                <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block sm:text-base">
                   Discover your coach’s products and add them to cart.
                 </CardDescription>
               </div>
@@ -252,7 +251,6 @@ export default function ProductsPage() {
               </span>
               Product catalog
             </CardTitle>
-            <CardDescription>Browse pricing, discounts, and categories.</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -266,15 +264,14 @@ export default function ProductsPage() {
                   return (
                     <article key={p._id} className="h-full">
                       <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-3 transition-all hover:border-indigo-200 hover:shadow-[0_14px_30px_-24px_rgba(79,70,229,0.55)]">
-                        <div className="relative mb-3 flex h-[170px] items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                        <div className="relative mb-3 h-[170px] overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
                           {p.imageUrl ? (
                             <Image
                               src={p.imageUrl}
                               alt={p.name}
-                              width={180}
-                              height={160}
+                              fill
                               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, (max-width: 1536px) 33vw, 25vw"
-                              className="h-[150px] w-full object-contain p-2"
+                              className="object-contain"
                             />
                           ) : (
                             <span className="grid h-10 w-10 place-items-center rounded-xl bg-white text-slate-400 shadow-sm">

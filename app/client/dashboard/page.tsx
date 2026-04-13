@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
-  ArrowRight,
   BookOpenText,
   Calculator,
   Dumbbell,
@@ -40,7 +39,7 @@ const todayCoreActions = [
 
 const quickActions = [
   {
-    title: "Indian Nutrition Index",
+    title: "Nutrition Index",
     href: "/indian-nutrition-index",
     Icon: BookOpenText,
     iconTone: "bg-cyan-50 text-cyan-600",
@@ -202,21 +201,26 @@ export default function ClientDashboardPage() {
       </section>
 
       <section>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid grid-cols-2 items-stretch gap-2 sm:gap-3">
           {quickActions.map((item) => (
             <Link
               key={item.title}
               href={item.href}
-              className="group block min-h-[84px] rounded-xl border border-slate-200 bg-white p-4 transition-colors duration-200 hover:border-slate-300 hover:bg-slate-50"
+              className="group block h-full rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 p-3 shadow-[0_1px_0_0_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_28px_-24px_rgba(15,23,42,0.6)] sm:p-4"
             >
-              <div className="flex h-full items-center gap-3">
-                <span className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-lg", item.iconTone)}>
-                  <item.Icon className="h-5 w-5" />
+              <div className="flex min-h-[108px] flex-col items-center justify-center gap-2.5 text-center sm:min-h-[124px] sm:gap-3">
+                <span
+                  className={cn(
+                    "grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-white/80 shadow-sm sm:h-14 sm:w-14",
+                    item.iconTone
+                  )}
+                >
+                  <item.Icon className="h-6 w-6 sm:h-7 sm:w-7" />
                 </span>
 
-                <h2 className="min-w-0 flex-1 truncate text-[15px] font-semibold text-slate-900">{item.title}</h2>
-
-                <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-600" />
+                <h2 className="text-sm font-semibold leading-tight tracking-tight text-slate-900 sm:text-base">
+                  {item.title}
+                </h2>
               </div>
             </Link>
           ))}

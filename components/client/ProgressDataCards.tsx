@@ -12,6 +12,17 @@ import api from "@/lib/axios";
 import axios from "axios";
 import { toast } from "sonner";
 
+function ScrollingMetricLabel({ text }: { text: string }) {
+  return (
+    <dt className="profile-field__label client-progress-data__scroll-label" title={text}>
+      <span className="client-progress-data__scroll-track">
+        <span>{text}</span>
+        <span aria-hidden="true">{text}</span>
+      </span>
+    </dt>
+  );
+}
+
 export default function ProgressDataCards() {
   const queryClient = useQueryClient();
   const [editingSection, setEditingSection] = useState<string | null>(null);
@@ -372,9 +383,9 @@ export default function ProgressDataCards() {
   const sections = [
     { id: "basic", label: "Basic Measurements" },
     { id: "scale", label: "Smart Scale" },
+    { id: "vitals", label: "Vitals" },
     { id: "lifestyle", label: "Lifestyle & Habits" },
     { id: "health", label: "Health History" },
-    { id: "vitals", label: "Vitals" },
   ];
 
   return (
@@ -400,41 +411,42 @@ export default function ProgressDataCards() {
       {/* Basic Info Card */}
       {activeSection === "basic" && (
         <div className="profile-card client-progress-data__card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-          <h2 className="client-card__section-title">Basic Measurements</h2>
-          {editingSection !== "basic" && (
+        {editingSection !== "basic" ? (
+          <div className="client-progress-data__section-actions">
             <button
               type="button"
-              className="btn btn--outline"
-              style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
+              className="btn btn--outline client-progress-data__edit-btn"
               onClick={() => handleEdit("basic")}
             >
               Edit
             </button>
-          )}
-        </div>
+          </div>
+        ) : null}
 
         {editingSection !== "basic" ? (
-          <div className="profile-fields" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
-            <div className="profile-field">
+          <div className="client-progress-data__basic-view">
+            <div className="profile-fields client-progress-data__metrics-grid client-progress-data__metrics-grid--basic">
+            <div className="profile-field client-progress-data__metric-field">
               <dt className="profile-field__label">Age</dt>
               <dd className="profile-field__value">{basicInfo.age ?? "-"}</dd>
             </div>
-            <div className="profile-field">
+            <div className="profile-field client-progress-data__metric-field">
               <dt className="profile-field__label">Gender</dt>
               <dd className="profile-field__value">{basicInfo.gender || "-"}</dd>
             </div>
-            <div className="profile-field">
+            <div className="profile-field client-progress-data__metric-field">
               <dt className="profile-field__label">Weight (kg)</dt>
               <dd className="profile-field__value">{basicInfo.weight != null ? basicInfo.weight.toFixed(1) : "-"}</dd>
             </div>
-            <div className="profile-field">
+            <div className="profile-field client-progress-data__metric-field">
               <dt className="profile-field__label">Height (cm)</dt>
               <dd className="profile-field__value">{basicInfo.height ?? "-"}</dd>
             </div>
-            <div className="profile-field" style={{ gridColumn: "1 / -1" }}>
+            </div>
+
+            <div className="profile-field client-progress-data__notes-field">
               <dt className="profile-field__label">Notes</dt>
-              <dd className="profile-field__value">{basicInfo.notes || "-"}</dd>
+              <dd className="profile-field__value client-progress-data__value-text">{basicInfo.notes || "-"}</dd>
             </div>
           </div>
         ) : (
@@ -522,43 +534,41 @@ export default function ProgressDataCards() {
       {/* Smart Scale Card */}
       {activeSection === "scale" && (
       <div className="profile-card client-progress-data__card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-          <h2 className="client-card__section-title">Smart Scale Measurements</h2>
-          {editingSection !== "scale" && (
+        {editingSection !== "scale" ? (
+          <div className="client-progress-data__section-actions">
             <button
               type="button"
-              className="btn btn--outline"
-              style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
+              className="btn btn--outline client-progress-data__edit-btn"
               onClick={() => handleEdit("scale")}
             >
               Edit
             </button>
-          )}
-        </div>
+          </div>
+        ) : null}
 
         {editingSection !== "scale" ? (
-          <div className="profile-fields" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
-            <div className="profile-field">
+          <div className="profile-fields client-progress-data__metrics-grid client-progress-data__metrics-grid--scale">
+            <div className="profile-field client-progress-data__metric-field">
               <dt className="profile-field__label">Body Fat %</dt>
               <dd className="profile-field__value">{smartScale.bodyFatPercentage != null ? smartScale.bodyFatPercentage.toFixed(1) : "-"}</dd>
             </div>
-            <div className="profile-field">
-              <dt className="profile-field__label">Visceral Fat Level</dt>
+            <div className="profile-field client-progress-data__metric-field">
+              <dt className="profile-field__label">Visceral Fat</dt>
               <dd className="profile-field__value">{smartScale.visceralFatLevel != null ? smartScale.visceralFatLevel.toFixed(1) : "-"}</dd>
             </div>
-            <div className="profile-field">
+            <div className="profile-field client-progress-data__metric-field">
               <dt className="profile-field__label">Muscle Mass (kg)</dt>
               <dd className="profile-field__value">{smartScale.muscleMass != null ? smartScale.muscleMass.toFixed(1) : "-"}</dd>
             </div>
-            <div className="profile-field">
+            <div className="profile-field client-progress-data__metric-field">
               <dt className="profile-field__label">Metabolic Age</dt>
               <dd className="profile-field__value">{smartScale.metabolicAge != null ? `${smartScale.metabolicAge} years` : "-"}</dd>
             </div>
-            <div className="profile-field">
+            <div className="profile-field client-progress-data__metric-field">
               <dt className="profile-field__label">Body Water %</dt>
               <dd className="profile-field__value">{smartScale.bodyWaterPercentage != null ? smartScale.bodyWaterPercentage.toFixed(1) : "-"}</dd>
             </div>
-            <div className="profile-field">
+            <div className="profile-field client-progress-data__metric-field">
               <dt className="profile-field__label">Bone Mass (kg)</dt>
               <dd className="profile-field__value">{smartScale.boneMass != null ? smartScale.boneMass.toFixed(1) : "-"}</dd>
             </div>
@@ -658,33 +668,34 @@ export default function ProgressDataCards() {
       {/* Lifestyle Card */}
       {activeSection === "lifestyle" && (
       <div className="profile-card client-progress-data__card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-          <h2 className="client-card__section-title">Lifestyle & Habits</h2>
-          {editingSection !== "lifestyle" && (
+        {editingSection !== "lifestyle" ? (
+          <div className="client-progress-data__section-actions">
             <button
               type="button"
-              className="btn btn--outline"
-              style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
+              className="btn btn--outline client-progress-data__edit-btn"
               onClick={() => handleEdit("lifestyle")}
             >
               Edit
             </button>
-          )}
-        </div>
+          </div>
+        ) : null}
 
         {editingSection !== "lifestyle" ? (
-          <div className="profile-fields" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
-            <div className="profile-field">
-              <dt className="profile-field__label">Daily Activity Level</dt>
-              <dd className="profile-field__value">{lifestyle.dailyActivityLevel || "-"}</dd>
+          <div className="client-progress-data__basic-view">
+            <div className="profile-fields client-progress-data__metrics-grid client-progress-data__metrics-grid--lifestyle">
+              <div className="profile-field client-progress-data__metric-field">
+                <ScrollingMetricLabel text="Daily Activity Level" />
+                <dd className="profile-field__value">{lifestyle.dailyActivityLevel || "-"}</dd>
+              </div>
+              <div className="profile-field client-progress-data__metric-field">
+                <dt className="profile-field__label">Hydration Habits</dt>
+                <dd className="profile-field__value">{lifestyle.hydrationHabits || "-"}</dd>
+              </div>
             </div>
-            <div className="profile-field">
-              <dt className="profile-field__label">Hydration Habits</dt>
-              <dd className="profile-field__value">{lifestyle.hydrationHabits || "-"}</dd>
-            </div>
-            <div className="profile-field" style={{ gridColumn: "1 / -1" }}>
+
+            <div className="profile-field client-progress-data__notes-field">
               <dt className="profile-field__label">Personal Goals</dt>
-              <dd className="profile-field__value">{lifestyle.personalGoals || "-"}</dd>
+              <dd className="profile-field__value client-progress-data__value-text">{lifestyle.personalGoals || "-"}</dd>
             </div>
           </div>
         ) : (
@@ -758,37 +769,35 @@ export default function ProgressDataCards() {
       {/* Health History Card */}
       {activeSection === "health" && (
       <div className="profile-card client-progress-data__card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-          <h2 className="client-card__section-title">Health History</h2>
-          {editingSection !== "health" && (
+        {editingSection !== "health" ? (
+          <div className="client-progress-data__section-actions">
             <button
               type="button"
-              className="btn btn--outline"
-              style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
+              className="btn btn--outline client-progress-data__edit-btn"
               onClick={() => handleEdit("health")}
             >
               Edit
             </button>
-          )}
-        </div>
+          </div>
+        ) : null}
 
         {editingSection !== "health" ? (
-          <div className="profile-fields" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
-            <div className="profile-field">
+          <div className="profile-fields client-progress-data__text-grid">
+            <div className="profile-field client-progress-data__text-field">
               <dt className="profile-field__label">Health Conditions</dt>
-              <dd className="profile-field__value" style={{ whiteSpace: "pre-wrap" }}>{healthHistory.healthConditions || "-"}</dd>
+              <dd className="profile-field__value client-progress-data__value-text" style={{ whiteSpace: "pre-wrap" }}>{healthHistory.healthConditions || "-"}</dd>
             </div>
-            <div className="profile-field">
+            <div className="profile-field client-progress-data__text-field">
               <dt className="profile-field__label">Allergies</dt>
-              <dd className="profile-field__value" style={{ whiteSpace: "pre-wrap" }}>{healthHistory.allergies || "-"}</dd>
+              <dd className="profile-field__value client-progress-data__value-text" style={{ whiteSpace: "pre-wrap" }}>{healthHistory.allergies || "-"}</dd>
             </div>
-            <div className="profile-field">
+            <div className="profile-field client-progress-data__text-field">
               <dt className="profile-field__label">Medications</dt>
-              <dd className="profile-field__value" style={{ whiteSpace: "pre-wrap" }}>{healthHistory.medications || "-"}</dd>
+              <dd className="profile-field__value client-progress-data__value-text" style={{ whiteSpace: "pre-wrap" }}>{healthHistory.medications || "-"}</dd>
             </div>
-            <div className="profile-field">
+            <div className="profile-field client-progress-data__text-field">
               <dt className="profile-field__label">Past Weight Changes</dt>
-              <dd className="profile-field__value" style={{ whiteSpace: "pre-wrap" }}>{healthHistory.pastWeightChanges || "-"}</dd>
+              <dd className="profile-field__value client-progress-data__value-text" style={{ whiteSpace: "pre-wrap" }}>{healthHistory.pastWeightChanges || "-"}</dd>
             </div>
           </div>
         ) : (
@@ -861,32 +870,30 @@ export default function ProgressDataCards() {
       {/* Vitals Card */}
       {activeSection === "vitals" && (
       <div className="profile-card client-progress-data__card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-          <h2 className="client-card__section-title">Vitals</h2>
-          {editingSection !== "vitals" && (
+        {editingSection !== "vitals" ? (
+          <div className="client-progress-data__section-actions">
             <button
               type="button"
-              className="btn btn--outline"
-              style={{ fontSize: "0.8rem", paddingInline: "0.75rem", paddingBlock: "0.25rem" }}
+              className="btn btn--outline client-progress-data__edit-btn"
               onClick={() => handleEdit("vitals")}
             >
               Edit
             </button>
-          )}
-        </div>
+          </div>
+        ) : null}
 
         {editingSection !== "vitals" ? (
-          <div className="profile-fields" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
-            <div className="profile-field">
-              <dt className="profile-field__label">Fasting Blood Sugar (mg/dL)</dt>
+          <div className="profile-fields client-progress-data__metrics-grid client-progress-data__metrics-grid--vitals">
+            <div className="profile-field client-progress-data__metric-field">
+              <ScrollingMetricLabel text="Fasting Blood Sugar (mg/dL)" />
               <dd className="profile-field__value">{vitals.bloodSugarFasting != null ? vitals.bloodSugarFasting.toFixed(0) : "-"}</dd>
             </div>
-            <div className="profile-field">
-              <dt className="profile-field__label">Random Blood Sugar (mg/dL)</dt>
+            <div className="profile-field client-progress-data__metric-field">
+              <ScrollingMetricLabel text="Random Blood Sugar (mg/dL)" />
               <dd className="profile-field__value">{vitals.bloodSugarRandom != null ? vitals.bloodSugarRandom.toFixed(0) : "-"}</dd>
             </div>
-            <div className="profile-field">
-              <dt className="profile-field__label">Blood Pressure (mmHg)</dt>
+            <div className="profile-field client-progress-data__metric-field">
+              <ScrollingMetricLabel text="Blood Pressure (mmHg)" />
               <dd className="profile-field__value">
                 {vitals.bloodPressureSystolic != null && vitals.bloodPressureDiastolic != null
                   ? `${Math.round(vitals.bloodPressureSystolic)}/${Math.round(vitals.bloodPressureDiastolic)}`

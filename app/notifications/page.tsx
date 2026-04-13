@@ -130,7 +130,6 @@ export default function NotificationsPage() {
           <CardHeader className="gap-4 p-6 md:p-7">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-2">
-                <Badge className="w-fit border-white/25 bg-white/15 text-white">Inbox</Badge>
                 <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
                   Notifications
                 </h1>
@@ -165,7 +164,6 @@ export default function NotificationsPage() {
               </span>
               Filters and actions
             </CardTitle>
-            <CardDescription>Switch views and quickly manage your inbox.</CardDescription>
           </CardHeader>
 
           <CardContent className="pt-0">
@@ -301,9 +299,6 @@ export default function NotificationsPage() {
                 </span>
                 Notification feed
               </CardTitle>
-              <CardDescription>
-                {list.length} item{list.length !== 1 ? "s" : ""} in this view.
-              </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-3">
