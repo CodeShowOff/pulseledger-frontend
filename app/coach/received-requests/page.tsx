@@ -4,7 +4,31 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { motion } from "@/lib/motion";
-import { UserPlus, Mail, Phone, Calendar, MessageSquare, Weight } from "lucide-react";
+import {
+  Calendar,
+  ClipboardList,
+  FilePenLine,
+  Filter,
+  Loader2,
+  Mail,
+  MessageSquare,
+  Phone,
+  Sparkles,
+  UserPlus,
+  Weight,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+type ContactStatus = "pending" | "contacted" | "converted" | "rejected";
 
 interface ContactRequest {
   _id: string;
@@ -17,7 +41,7 @@ interface ContactRequest {
   age: number;
   gender: "male" | "female" | "other";
   message: string;
-  status: "pending" | "contacted" | "converted" | "rejected";
+  status: ContactStatus;
   notes?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -34,26 +58,40 @@ interface ContactRequestsResponse {
   };
 }
 
-const fetchContactRequests = async (status?: string): Promise<ContactRequestsResponse> => {
+const STATUS_FILTER_OPTIONS: Array<{ value: "" | ContactStatus; label: string }> = [
+  { value: "", label: "All" },
+  { value: "pending", label: "Pending" },
+  { value: "contacted", label: "Contacted" },
+  { value: "converted", label: "Converted" },
+  { value: "rejected", label: "Rejected" },
+];
+
+const STATUS_BADGE_CLASS: Record<ContactStatus, string> = {
+  pending: "border-amber-200 bg-amber-50 text-amber-700",
+  contacted: "border-blue-200 bg-blue-50 text-blue-700",
+  converted: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  rejected: "border-rose-200 bg-rose-50 text-rose-700",
+};
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+};
+
+const fetchContactRequests = async (
+  status?: string
+): Promise<ContactRequestsResponse> => {
   const params = status ? `?status=${status}` : "";
   const res = await api.get(`/contact-requests/coach/requests${params}`);
   return res.data;
 };
 
-const statusColors = {
-  pending: { bg: "#fef3c7", text: "#92400e", border: "#fbbf24" },
-  contacted: { bg: "#dbeafe", text: "#1e40af", border: "#3b82f6" },
-  converted: { bg: "#d1fae5", text: "#065f46", border: "#10b981" },
-  rejected: { bg: "#fee2e2", text: "#991b1b", border: "#ef4444" },
-};
-
 export default function ReceivedRequestsPage() {
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<"" | ContactStatus>("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNotes, setEditNotes] = useState("");
-  const [editStatus, setEditStatus] = useState<string>("");
-  
+  const [editStatus, setEditStatus] = useState<ContactStatus>("pending");
+
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
@@ -62,7 +100,15 @@ export default function ReceivedRequestsPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, status, notes }: { id: string; status: string; notes?: string }) => {
+    mutationFn: async ({
+      id,
+      status,
+      notes,
+    }: {
+      id: string;
+      status: ContactStatus;
+      notes?: string;
+    }) => {
       const res = await api.put(`/contact-requests/coach/requests/${id}`, { status, notes });
       return res.data;
     },
@@ -72,7 +118,7 @@ export default function ReceivedRequestsPage() {
     },
   });
 
-  const handleUpdateStatus = (id: string, status: string, notes?: string) => {
+  const handleUpdateStatus = (id: string, status: ContactStatus, notes?: string) => {
     updateMutation.mutate({ id, status, notes });
   };
 
@@ -84,7 +130,7 @@ export default function ReceivedRequestsPage() {
 
   const cancelEditing = () => {
     setEditingId(null);
-    setEditStatus("");
+    setEditStatus("pending");
     setEditNotes("");
   };
 
@@ -93,7 +139,10 @@ export default function ReceivedRequestsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    const parsed = new Date(dateString);
+    if (Number.isNaN(parsed.getTime())) return "-";
+
+    return parsed.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -102,267 +151,350 @@ export default function ReceivedRequestsPage() {
     });
   };
 
-  return (
-    <motion.div
-      className="profile-shell"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="profile-inner">
-        <header className="profile-header">
-          <div>
-            <h1 className="profile-header__title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <UserPlus className="w-6 h-6" />
-              Received Contact Requests
-            </h1>
-          </div>
-          <div className="profile-header__badge">
-            <span />
-            {data?.pagination.total || 0} Total Requests
-          </div>
-        </header>
-
-        {/* Status Filter */}
-        <div className="profile-card" style={{ marginBottom: "1.25rem" }}>
-          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-            <button
-              className={`btn ${!selectedStatus ? "btn--primary" : "btn--outline"}`}
-              onClick={() => setSelectedStatus("")}
-              style={{ fontSize: "0.9rem" }}
-            >
-              All
-            </button>
-            <button
-              className={`btn ${selectedStatus === "pending" ? "btn--primary" : "btn--outline"}`}
-              onClick={() => setSelectedStatus("pending")}
-              style={{ fontSize: "0.9rem" }}
-            >
-              Pending
-            </button>
-            <button
-              className={`btn ${selectedStatus === "contacted" ? "btn--primary" : "btn--outline"}`}
-              onClick={() => setSelectedStatus("contacted")}
-              style={{ fontSize: "0.9rem" }}
-            >
-              Contacted
-            </button>
-            <button
-              className={`btn ${selectedStatus === "converted" ? "btn--primary" : "btn--outline"}`}
-              onClick={() => setSelectedStatus("converted")}
-              style={{ fontSize: "0.9rem" }}
-            >
-              Converted
-            </button>
-            <button
-              className={`btn ${selectedStatus === "rejected" ? "btn--primary" : "btn--outline"}`}
-              onClick={() => setSelectedStatus("rejected")}
-              style={{ fontSize: "0.9rem" }}
-            >
-              Rejected
-            </button>
-          </div>
+  if (isLoading) {
+    return (
+      <div className="space-y-5 pt-4 md:pt-6">
+        <div className="h-[220px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+        <div className="h-[120px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+        <div className="grid gap-3 xl:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div
+              key={`request-skeleton-${idx}`}
+              className="h-[260px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70"
+            />
+          ))}
         </div>
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="profile-card">
-            <p className="profile-header__subtitle">Loading contact requests...</p>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="profile-card" style={{ backgroundColor: "#fee2e2", borderColor: "#ef4444" }}>
-            <p style={{ color: "#991b1b" }}>Failed to load contact requests. Please try again.</p>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && !error && data?.data.length === 0 && (
-          <div className="profile-card" style={{ textAlign: "center", padding: "2rem" }}>
-            <UserPlus style={{ width: 48, height: 48, margin: "0 auto 1rem", opacity: 0.5 }} />
-            <h3 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>No Contact Requests</h3>
-            <p className="profile-header__subtitle">
-              {selectedStatus
-                ? `No ${selectedStatus} requests found.`
-                : "You haven't received any contact requests yet."}
-            </p>
-          </div>
-        )}
-
-        {/* Contact Requests List */}
-        {!isLoading && !error && data && data.data.length > 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            {data.data.map((request) => (
-              <div key={request._id} className="profile-card" style={{ position: "relative" }}>
-                {/* Status Badge */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "1rem",
-                    right: "1rem",
-                    padding: "0.25rem 0.75rem",
-                    borderRadius: "12px",
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    backgroundColor: statusColors[request.status].bg,
-                    color: statusColors[request.status].text,
-                    border: `1px solid ${statusColors[request.status].border}`,
-                  }}
-                >
-                  {request.status}
-                </div>
-
-                {/* Header */}
-                <div style={{ marginBottom: "1rem", paddingRight: "100px" }}>
-                  <h3 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "0.25rem" }}>
-                    {request.firstName} {request.lastName}
-                  </h3>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", color: "#6b7280" }}>
-                    <Calendar className="w-4 h-4" />
-                    <span>{formatDate(request.createdAt)}</span>
-                  </div>
-                </div>
-
-                {/* Contact Info Grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.75rem", marginBottom: "1rem" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <Phone className="w-4 h-4 text-gray-500" />
-                    <span style={{ fontSize: "0.9rem" }}>{request.phone}</span>
-                  </div>
-                  
-                  {request.email && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <Mail className="w-4 h-4 text-gray-500" />
-                      <span style={{ fontSize: "0.9rem" }}>{request.email}</span>
-                    </div>
-                  )}
-
-                  <div style={{ fontSize: "0.9rem" }}>
-                    <strong>Age:</strong> {request.age} | <strong>Gender:</strong> {request.gender}
-                  </div>
-
-                  {(request.height || request.weight) && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <Weight className="w-4 h-4 text-gray-500" />
-                      <span style={{ fontSize: "0.9rem" }}>
-                        {request.height && `${request.height}cm`}
-                        {request.height && request.weight && " | "}
-                        {request.weight && `${request.weight}kg`}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Message */}
-                <div style={{ marginBottom: "1rem" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                    <MessageSquare className="w-4 h-4 text-gray-500" />
-                    <strong style={{ fontSize: "0.9rem" }}>Message:</strong>
-                  </div>
-                  <p style={{ 
-                    fontSize: "0.9rem", 
-                    lineHeight: "1.6", 
-                    whiteSpace: "pre-wrap",
-                    padding: "0.75rem",
-                    backgroundColor: "#f9fafb",
-                    borderRadius: "6px",
-                    border: "1px solid #e5e7eb"
-                  }}>
-                    {request.message}
-                  </p>
-                </div>
-
-                {/* Notes Section */}
-                {editingId === request._id ? (
-                  <div style={{ marginBottom: "1rem" }}>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem", fontWeight: 600 }}>
-                      Status:
-                    </label>
-                    <select
-                      className="client-form__control"
-                      value={editStatus}
-                      onChange={(e) => setEditStatus(e.target.value)}
-                      style={{ marginBottom: "0.75rem" }}
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="contacted">Contacted</option>
-                      <option value="converted">Converted</option>
-                      <option value="rejected">Rejected</option>
-                    </select>
-
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem", fontWeight: 600 }}>
-                      Notes:
-                    </label>
-                    <textarea
-                      className="client-form__control"
-                      rows={3}
-                      maxLength={500}
-                      placeholder="Add your notes here..."
-                      value={editNotes}
-                      onChange={(e) => setEditNotes(e.target.value)}
-                      style={{ resize: "vertical", fontFamily: "inherit" }}
-                    />
-                  </div>
-                ) : (
-                  request.notes && (
-                    <div style={{ marginBottom: "1rem" }}>
-                      <strong style={{ fontSize: "0.9rem", display: "block", marginBottom: "0.25rem" }}>Your Notes:</strong>
-                      <p style={{ fontSize: "0.9rem", fontStyle: "italic", color: "#6b7280" }}>{request.notes}</p>
-                    </div>
-                  )
-                )}
-
-                {/* Action Buttons */}
-                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-                  {editingId === request._id ? (
-                    <>
-                      <button
-                        className="btn btn--primary"
-                        onClick={() => saveEditing(request._id)}
-                        disabled={updateMutation.isPending}
-                        style={{ fontSize: "0.85rem" }}
-                      >
-                        {updateMutation.isPending ? "Saving..." : "Save"}
-                      </button>
-                      <button
-                        className="btn btn--ghost"
-                        onClick={cancelEditing}
-                        disabled={updateMutation.isPending}
-                        style={{ fontSize: "0.85rem" }}
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className="btn btn--outline"
-                        onClick={() => startEditing(request)}
-                        style={{ fontSize: "0.85rem" }}
-                      >
-                        Update Status
-                      </button>
-                      {request.status === "pending" && (
-                        <button
-                          className="btn btn--primary"
-                          onClick={() => handleUpdateStatus(request._id, "contacted")}
-                          disabled={updateMutation.isPending}
-                          style={{ fontSize: "0.85rem", backgroundColor: "#3b82f6", borderColor: "#3b82f6" }}
-                        >
-                          Mark as Contacted
-                        </button>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-    </motion.div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="pt-4 md:pt-6">
+        <Card className="border-rose-200 bg-rose-50">
+          <CardContent className="py-6">
+            <p className="text-sm font-medium text-rose-700">
+              Failed to load contact requests. Please try again.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5 pt-4 md:pt-6">
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28 }}
+      >
+        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
+          <CardHeader className="gap-3 p-4 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                <h1 className="text-lg font-bold tracking-tight text-white sm:text-3xl">
+                  Received contact requests
+                </h1>
+                <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block sm:text-base">
+                  Stay on top of every new lead and move requests through your funnel quickly.
+                </CardDescription>
+              </div>
+
+              <Badge
+                variant="secondary"
+                className="w-fit border-white/25 bg-white/10 px-2.5 py-1 text-white"
+                aria-label={`${data?.pagination.total ?? 0} contact request${
+                  (data?.pagination.total ?? 0) === 1 ? "" : "s"
+                }`}
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                {(data?.pagination.total ?? 0) > 99
+                  ? "99+"
+                  : data?.pagination.total ?? 0} {" "}
+                Total
+              </Badge>
+            </div>
+          </CardHeader>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.05 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Filter className="h-4 w-4" />
+              </span>
+              Filter requests
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex w-max gap-2">
+                {STATUS_FILTER_OPTIONS.map((option) => {
+                  const active = selectedStatus === option.value;
+
+                  return (
+                    <Button
+                      key={option.value || "all"}
+                      type="button"
+                      size="sm"
+                      variant={active ? "default" : "outline"}
+                      onClick={() => setSelectedStatus(option.value)}
+                      className={cn(
+                        "min-w-[92px] snap-start justify-center whitespace-nowrap rounded-full",
+                        active
+                          ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                          : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      )}
+                    >
+                      {option.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.1 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <ClipboardList className="h-4 w-4" />
+              </span>
+              Requests queue
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-3">
+            {(data?.data.length ?? 0) === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-10 text-center">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-slate-500 shadow-sm">
+                  <Sparkles className="h-5 w-5" />
+                </span>
+                <p className="mt-3 text-sm font-semibold text-slate-700">No contact requests found</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {selectedStatus
+                    ? `No ${selectedStatus} requests are available right now.`
+                    : "New contact requests will appear here once clients submit them."}
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-3 xl:grid-cols-2">
+                {data?.data.map((request, index) => {
+                  const isEditing = editingId === request._id;
+
+                  return (
+                    <motion.article
+                      key={request._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.22, delay: index * 0.02 }}
+                    >
+                      <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-slate-50/60 p-4 transition-colors hover:border-indigo-200 hover:bg-indigo-50/20">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <h3 className="text-sm font-semibold text-slate-900 sm:text-base">
+                              {request.firstName} {request.lastName}
+                            </h3>
+                            <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-slate-500">
+                              <Calendar className="h-3.5 w-3.5" />
+                              {formatDate(request.createdAt)}
+                            </p>
+                          </div>
+
+                          <Badge
+                            variant="secondary"
+                            className={cn(
+                              "px-2 py-0.5 text-[10px] normal-case tracking-normal",
+                              STATUS_BADGE_CLASS[request.status]
+                            )}
+                          >
+                            {request.status}
+                          </Badge>
+                        </div>
+
+                        <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                          <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-600">
+                            <Phone className="h-3.5 w-3.5 text-slate-400" />
+                            <span className="truncate">{request.phone}</span>
+                          </div>
+
+                          {request.email ? (
+                            <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-600">
+                              <Mail className="h-3.5 w-3.5 text-slate-400" />
+                              <span className="truncate">{request.email}</span>
+                            </div>
+                          ) : null}
+
+                          <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-600">
+                            <span className="font-semibold text-slate-700">Age/Gender:</span>
+                            <span>
+                              {request.age} • {request.gender}
+                            </span>
+                          </div>
+
+                          {request.height || request.weight ? (
+                            <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-600">
+                              <Weight className="h-3.5 w-3.5 text-slate-400" />
+                              <span>
+                                {request.height ? `${request.height} cm` : "-"}
+                                {request.height && request.weight ? " • " : ""}
+                                {request.weight ? `${request.weight} kg` : ""}
+                              </span>
+                            </div>
+                          ) : null}
+                        </div>
+
+                        <div className="mt-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+                          <p className="mb-1 inline-flex items-center gap-1.5 font-semibold text-slate-700">
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            Message
+                          </p>
+                          <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                            {request.message}
+                          </p>
+                        </div>
+
+                        {isEditing ? (
+                          <div className="mt-3 space-y-2 rounded-xl border border-indigo-100 bg-indigo-50/60 p-3">
+                            <div>
+                              <label
+                                htmlFor={`status-${request._id}`}
+                                className="text-xs font-semibold text-slate-700"
+                              >
+                                Status
+                              </label>
+                              <select
+                                id={`status-${request._id}`}
+                                value={editStatus}
+                                onChange={(e) =>
+                                  setEditStatus(e.target.value as ContactStatus)
+                                }
+                                className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-indigo-300"
+                              >
+                                <option value="pending">Pending</option>
+                                <option value="contacted">Contacted</option>
+                                <option value="converted">Converted</option>
+                                <option value="rejected">Rejected</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label
+                                htmlFor={`notes-${request._id}`}
+                                className="text-xs font-semibold text-slate-700"
+                              >
+                                Notes
+                              </label>
+                              <textarea
+                                id={`notes-${request._id}`}
+                                rows={3}
+                                maxLength={500}
+                                placeholder="Add your notes here..."
+                                value={editNotes}
+                                onChange={(e) => setEditNotes(e.target.value)}
+                                className="mt-1 w-full resize-y rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-700 outline-none transition-colors focus:border-indigo-300"
+                              />
+                              <p className="mt-1 text-right text-[11px] text-slate-500">
+                                {editNotes.length}/500
+                              </p>
+                            </div>
+                          </div>
+                        ) : request.notes ? (
+                          <div className="mt-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+                            <p className="mb-0.5 font-semibold text-slate-700">Your notes</p>
+                            <p className="whitespace-pre-wrap text-sm italic text-slate-600">
+                              {request.notes}
+                            </p>
+                          </div>
+                        ) : null}
+
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {isEditing ? (
+                            <>
+                              <Button
+                                type="button"
+                                onClick={() => saveEditing(request._id)}
+                                disabled={updateMutation.isPending}
+                                className="bg-indigo-600 text-white hover:bg-indigo-700"
+                              >
+                                {updateMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Saving...
+                                  </>
+                                ) : (
+                                  "Save"
+                                )}
+                              </Button>
+
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={cancelEditing}
+                                disabled={updateMutation.isPending}
+                              >
+                                Cancel
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => startEditing(request)}
+                              >
+                                <FilePenLine className="h-4 w-4" />
+                                Update status
+                              </Button>
+
+                              {request.status === "pending" ? (
+                                <Button
+                                  type="button"
+                                  onClick={() =>
+                                    handleUpdateStatus(request._id, "contacted")
+                                  }
+                                  disabled={updateMutation.isPending}
+                                  className="bg-blue-600 text-white hover:bg-blue-700"
+                                >
+                                  {updateMutation.isPending ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      Updating...
+                                    </>
+                                  ) : (
+                                    "Mark as contacted"
+                                  )}
+                                </Button>
+                              ) : null}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </motion.article>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.section>
+    </div>
   );
 }

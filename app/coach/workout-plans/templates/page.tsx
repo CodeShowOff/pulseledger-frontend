@@ -109,36 +109,31 @@ export default function CoachWorkoutTemplatesPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-              <div className="space-y-1.5">
-                <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
-                  Workout Templates
-                </Badge>
-                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
-                  Build plans faster with proven templates
-                </CardTitle>
-                <CardDescription className="max-w-2xl text-xs !text-white/90 sm:text-sm md:text-base">
+          <CardHeader className="gap-3 p-4 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                <h1 className="whitespace-nowrap text-lg font-bold tracking-tight text-white sm:text-3xl">
+                  Build plans faster
+                </h1>
+                <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block sm:text-base">
                   Browse admin-curated workout templates, preview details, and clone the best fit into your coaching library.
                 </CardDescription>
               </div>
 
-              <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:gap-2 md:justify-end">
-                <Link href="/coach/workout-plans" className="min-w-0">
+              <div className="flex w-full flex-nowrap gap-1.5 sm:w-auto sm:gap-2 md:justify-end">
+                <Link href="/coach/workout-plans" className="min-w-0 flex-1 sm:flex-none">
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
                     <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Workouts
                   </Button>
                 </Link>
-                <Link href="/coach/workout-plans/create" className="min-w-0">
+                <Link href="/coach/workout-plans/create" className="min-w-0 flex-1 sm:flex-none">
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
                     <Dumbbell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Blank Plan
@@ -164,7 +159,6 @@ export default function CoachWorkoutTemplatesPage() {
               </span>
               Filter templates
             </CardTitle>
-            <CardDescription>Find templates by name, category, or difficulty.</CardDescription>
           </CardHeader>
 
           <CardContent className="pt-0">
@@ -239,11 +233,6 @@ export default function CoachWorkoutTemplatesPage() {
               </span>
               Template catalog
             </CardTitle>
-            <CardDescription>
-              {isFetching && !isLoading
-                ? "Refreshing templates..."
-                : "Preview templates and clone them into editable plans."}
-            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -274,7 +263,6 @@ export default function CoachWorkoutTemplatesPage() {
                           <h3 className="line-clamp-2 text-sm font-semibold text-slate-900">
                             {template.name}
                           </h3>
-                          <p className="text-xs text-slate-500">Created template</p>
                         </div>
                         {template.isFeatured ? (
                           <Badge className="border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] text-amber-700">

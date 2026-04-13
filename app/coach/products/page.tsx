@@ -17,7 +17,6 @@ import {
   Package,
   PackagePlus,
   Pencil,
-  RefreshCw,
   Search,
   ShoppingBag,
   TicketPercent,
@@ -34,7 +33,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 
 type CoachRef = string | { _id: string };
 
@@ -302,8 +300,6 @@ export default function CoachProductsPage() {
     [products]
   );
 
-  const totalProducts = pagination?.total ?? products.length;
-
   const deleteMutation = useMutation<void, Error, string>({
     mutationFn: async (id: string) => {
       await api.delete(`/products/${id}`);
@@ -342,67 +338,46 @@ export default function CoachProductsPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-              <div className="space-y-1.5">
-                <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
-                  Storefront
-                </Badge>
-                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
+          <CardHeader className="gap-3 p-4 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                <h1 className="text-lg font-bold tracking-tight text-white sm:text-3xl">
                   Manage your products like a pro
-                </CardTitle>
+                </h1>
+                <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block sm:text-base">
+                  Manage products, vouchers, and incoming orders from one place.
+                </CardDescription>
               </div>
 
-              <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:gap-2 md:justify-end">
-                <Link href="/coach/orders" className="col-span-2 sm:col-span-1">
+              <div className="flex w-full flex-nowrap gap-1.5 sm:w-auto sm:gap-2 md:justify-end">
+                <Link href="/coach/orders" className="min-w-0 flex-1 sm:flex-none">
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
-                    <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    Received Orders
+                    <ShoppingBag className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                    <span className="sm:hidden">Orders</span>
+                    <span className="hidden sm:inline">Received Orders</span>
                   </Button>
                 </Link>
-                <Link href="/coach/vouchers" className="min-w-0">
+                <Link href="/coach/vouchers" className="min-w-0 flex-1 sm:flex-none">
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
-                    <TicketPercent className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <TicketPercent className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                     Vouchers
                   </Button>
                 </Link>
-                <Link href="/coach/products/create" className="min-w-0">
+                <Link href="/coach/products/create" className="min-w-0 flex-1 sm:flex-none">
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap rounded-xl !bg-white px-2 text-[11px] font-semibold leading-none !text-indigo-700 hover:!bg-indigo-50 sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
-                    <PackagePlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    Add Product
+                    <PackagePlus className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                    <span className="sm:hidden">Add</span>
+                    <span className="hidden sm:inline">Add Product</span>
                   </Button>
                 </Link>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 pt-1.5 sm:gap-3 sm:pt-2">
-              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
-                <p className="text-[10px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
-                  Products
-                </p>
-                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
-                  {isLoading ? "--" : totalProducts}
-                </p>
-              </div>
-              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
-                <p className="text-[10px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
-                  Visible categories
-                </p>
-                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
-                  {isLoading ? "--" : categoryOptions.length}
-                </p>
               </div>
             </div>
           </CardHeader>
@@ -444,38 +419,27 @@ export default function CoachProductsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Category
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => {
-                    setCategory(e.target.value);
-                    setPage(1);
-                  }}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus-visible:ring-2 focus-visible:ring-indigo-300/70"
-                >
-                  <option value="">All categories</option>
-                  {categoryOptions.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex md:items-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => queryClient.invalidateQueries({ queryKey: ["coachProducts"] })}
-                  disabled={isFetching}
-                  className="w-full md:w-auto"
-                >
-                  <RefreshCw className={cn("h-4 w-4", isFetching ? "animate-spin" : "")} />
-                  Refresh
-                </Button>
+              <div className="md:col-span-2 md:col-start-2">
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Category
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => {
+                      setCategory(e.target.value);
+                      setPage(1);
+                    }}
+                    className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus-visible:ring-2 focus-visible:ring-indigo-300/70"
+                  >
+                    <option value="">All categories</option>
+                    {categoryOptions.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
           </CardContent>

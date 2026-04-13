@@ -326,79 +326,83 @@ export default function ClientDetailPage() {
         initial="initial"
         animate="animate"
         transition={{ duration: 0.28 }}
+        className="space-y-2"
       >
-        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-4 p-6 md:p-7">
-            <div className="space-y-2">
-              <div className="min-w-[240px] flex-1 space-y-2">
-                <div className="flex justify-end">
-                  <p className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-blue-100">
-                    Member since
-                    <span className="ml-1.5 text-xs font-semibold normal-case tracking-normal text-white">
-                      {formatShortMonthYear(client.createdAt)}
-                    </span>
-                  </p>
-                </div>
+        <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50/80 p-4 shadow-sm sm:p-5 md:p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-slate-300/90 bg-slate-100 shadow-sm">
+                {client.avatarUrl ? (
+                  <Image
+                    src={client.avatarUrl}
+                    alt={client.fullName}
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="grid h-full w-full place-items-center text-lg font-semibold text-slate-700">
+                    {client.fullName?.charAt(0)?.toUpperCase() || "C"}
+                  </span>
+                )}
+              </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-white/30 bg-white/15">
-                    {client.avatarUrl ? (
-                      <Image
-                        src={client.avatarUrl}
-                        alt={client.fullName}
-                        fill
-                        sizes="64px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <span className="grid h-full w-full place-items-center text-lg font-semibold text-white">
-                        {client.fullName?.charAt(0)?.toUpperCase() || "C"}
-                      </span>
-                    )}
-                  </div>
+              <div className="min-w-0 space-y-2">
+                <h1 className="truncate text-[1.72rem] font-bold leading-tight tracking-tight text-slate-900 md:text-4xl">
+                  {client.fullName}
+                </h1>
 
-                  <CardTitle className="min-w-0 text-3xl font-bold tracking-tight text-white md:text-4xl">
-                    {client.fullName}
-                  </CardTitle>
-                </div>
-
-                <CardDescription className="max-w-2xl text-sm !text-white/90 md:text-base">
-                  Complete profile and activity history for this client.
-                </CardDescription>
-                <div className="flex flex-wrap items-center gap-2 pt-2">
-                  {whatsappHref ? (
-                    <a
-                      href={whatsappHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-xl border border-emerald-500 bg-gradient-to-r from-emerald-600 to-green-500 px-4 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.85)] transition-all hover:brightness-105"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      WhatsApp
-                    </a>
-                  ) : null}
-
-                  <Link href={`/coach/chat?clientId=${id}`}>
-                    <Button variant="outline" className="whitespace-nowrap border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                      <MessageSquare className="h-4 w-4" />
-                      Chat
-                    </Button>
-                  </Link>
-
-                  <Link href={`/coach/clients/${id}/history`}>
-                    <Button
-                      variant="outline"
-                      className="whitespace-nowrap border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-                    >
-                      <CalendarDays className="h-4 w-4" />
-                      View workout & diet history
-                    </Button>
-                  </Link>
-                </div>
+                <p className="truncate text-sm font-medium text-slate-600">
+                  {client.email}
+                </p>
               </div>
             </div>
-          </CardHeader>
-        </Card>
+
+            <p className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+              Member since
+              <span className="ml-1.5 text-xs font-semibold normal-case tracking-normal text-slate-800">
+                {formatShortMonthYear(client.createdAt)}
+              </span>
+            </p>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3 md:flex md:flex-wrap">
+            {whatsappHref ? (
+              <a
+                href={whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-emerald-500 bg-gradient-to-r from-emerald-600 to-green-500 px-4 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.85)] transition-all hover:brightness-105"
+              >
+                <MessageCircle className="h-4 w-4" />
+                WhatsApp
+              </a>
+            ) : null}
+
+            <Link href={`/coach/chat?clientId=${id}`} className="col-span-1">
+              <Button
+                variant="outline"
+                className="h-10 w-full rounded-xl !border-blue-600 !bg-blue-600 px-4 text-sm font-semibold !text-white transition-all duration-200 hover:!border-blue-700 hover:!bg-blue-700 hover:!text-white"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Chat
+              </Button>
+            </Link>
+
+            <Link
+              href={`/coach/clients/${id}/history`}
+              className={cn("col-span-2 md:col-auto", !whatsappHref && "col-span-1")}
+            >
+              <Button
+                variant="outline"
+                className="h-10 w-full rounded-xl !border-blue-600 !bg-blue-600 px-4 text-sm font-semibold !text-white transition-all duration-200 hover:!border-blue-700 hover:!bg-blue-700 hover:!text-white"
+              >
+                <CalendarDays className="h-4 w-4" />
+                View workout & diet history
+              </Button>
+            </Link>
+          </div>
+        </div>
       </motion.section>
 
       <motion.section
@@ -416,7 +420,6 @@ export default function ClientDetailPage() {
               </span>
               Profile overview
             </CardTitle>
-            <CardDescription>Primary contact and account details.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
@@ -458,7 +461,6 @@ export default function ClientDetailPage() {
               </span>
               Plan overview
             </CardTitle>
-            <CardDescription>Current subscription or default template details.</CardDescription>
           </CardHeader>
           <CardContent>
             {activePlan ? (
@@ -515,7 +517,6 @@ export default function ClientDetailPage() {
               </span>
               Health information
             </CardTitle>
-            <CardDescription>Latest body metrics captured for this client.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
@@ -574,7 +575,7 @@ export default function ClientDetailPage() {
         animate="animate"
         transition={{ duration: 0.28, delay: 0.1 }}
       >
-        <ClientProgressPhotos clientId={id} clientName={client.fullName} />
+        <ClientProgressPhotos clientId={id} />
       </motion.section>
 
       <motion.section
@@ -591,7 +592,6 @@ export default function ClientDetailPage() {
               </span>
               Plan requests
             </CardTitle>
-            <CardDescription>Approve or decline incoming plan requests from this client.</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-3">
@@ -680,7 +680,6 @@ export default function ClientDetailPage() {
               </span>
               Orders history
             </CardTitle>
-            <CardDescription>Latest order activity and payment details for this client.</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">

@@ -93,6 +93,11 @@ function formatRelativeTime(value: string) {
   return new Date(timestamp).toLocaleDateString();
 }
 
+function formatStatusLabel(value?: string) {
+  if (!value) return "--";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 function getActivityIcon(notification: NotificationItem) {
   switch (notification.type) {
     case "order":
@@ -321,21 +326,18 @@ export default function CoachDashboard() {
       title: "Total Clients",
       value: statsLoading ? "--" : `${stats?.clients ?? 0}`,
       Icon: Users,
-      delta: "+12% this month",
       tone: "from-blue-500 to-indigo-500",
     },
     {
       title: "Active Plans",
       value: statsLoading ? "--" : `${stats?.plans ?? 0}`,
       Icon: ClipboardList,
-      delta: "+6% weekly",
       tone: "from-violet-500 to-fuchsia-500",
     },
     {
       title: "Products",
       value: statsLoading ? "--" : `${stats?.products ?? 0}`,
       Icon: BookOpen,
-      delta: "Stable",
       tone: "from-emerald-500 to-teal-500",
     },
     {
@@ -343,21 +345,14 @@ export default function CoachDashboard() {
       value:
         subscription && Number.isFinite(subscription.daysRemaining)
           ? `${subscription.daysRemaining} days`
-          : "Active",
+          : formatStatusLabel(subscription?.status),
       Icon: Clock,
       delta: subscription?.status === "expired" ? "Action required" : "On track",
       tone: "from-amber-500 to-orange-500",
     },
   ];
 
-  const chartData = progressData?.length
-    ? progressData
-    : [
-        { week: "W1", avgBMI: 26.1 },
-        { week: "W2", avgBMI: 25.7 },
-        { week: "W3", avgBMI: 25.4 },
-        { week: "W4", avgBMI: 25.1 },
-      ];
+  const chartData = progressData?.length ? progressData : [];
 
   return (
     <div className="min-h-screen p-2 md:p-4">
@@ -365,37 +360,54 @@ export default function CoachDashboard() {
         <div className="grid min-h-[calc(100vh-108px)] grid-cols-1 gap-3">
           <div className="space-y-3">
             <section className="grid gap-3 lg:grid-cols-[1.3fr_1fr]">
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.3 }}>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05, duration: 0.3 }}
+              >
                 <Card className="h-full overflow-hidden border-slate-200/80 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-                  <CardHeader>
-                    <Badge className="w-fit border-white/30 bg-white/10 text-white">Performance Hub</Badge>
-                    <CardTitle className="mt-2 text-2xl font-bold text-white sm:text-3xl">
-                      Welcome back, {user?.fullName?.split(" ")[0] || "Coach"}
-                    </CardTitle>
-                    <CardDescription className="hidden max-w-xl text-white/95 sm:block">
-                      Manage your coaching dashboard in one place.
-                    </CardDescription>
+                  <CardHeader className="gap-3 p-4 sm:p-6">
+                    <div className="space-y-2">
+                      <h1 className="whitespace-nowrap text-lg font-bold tracking-tight text-white sm:text-3xl">
+                        Welcome back, {user?.fullName?.split(" ")[0] || "Coach"}
+                      </h1>
+                      <CardDescription className="hidden max-w-2xl text-sm !text-white/90 lg:block lg:text-base">
+                        Manage your coaching dashboard in one place.
+                      </CardDescription>
+                    </div>
                   </CardHeader>
                   <CardContent className="hidden gap-3 sm:grid sm:grid-cols-3">
                     <div className="rounded-xl border border-white/20 bg-white/10 p-3">
-                      <p className="text-xs uppercase tracking-wide text-blue-100">Focus</p>
+                      <p className="text-xs uppercase tracking-wide text-blue-100">
+                        Focus
+                      </p>
                       <p className="mt-1 text-sm font-semibold">
                         <span className="sm:hidden">Retention</span>
-                        <span className="hidden sm:inline">Client retention</span>
+                        <span className="hidden sm:inline">
+                          Client retention
+                        </span>
                       </p>
                     </div>
                     <div className="rounded-xl border border-white/20 bg-white/10 p-3">
-                      <p className="text-xs uppercase tracking-wide text-blue-100">Today</p>
+                      <p className="text-xs uppercase tracking-wide text-blue-100">
+                        Today
+                      </p>
                       <p className="mt-1 text-sm font-semibold">
                         <span className="sm:hidden">Improvements</span>
-                        <span className="hidden sm:inline">Plan improvements</span>
+                        <span className="hidden sm:inline">
+                          Plan improvements
+                        </span>
                       </p>
                     </div>
                     <div className="rounded-xl border border-white/20 bg-white/10 p-3">
-                      <p className="text-xs uppercase tracking-wide text-blue-100">Status</p>
+                      <p className="text-xs uppercase tracking-wide text-blue-100">
+                        Status
+                      </p>
                       <p className="mt-1 text-sm font-semibold">
                         <span className="sm:hidden">Healthy</span>
-                        <span className="hidden sm:inline">All systems healthy</span>
+                        <span className="hidden sm:inline">
+                          All systems healthy
+                        </span>
                       </p>
                     </div>
                   </CardContent>
@@ -416,25 +428,34 @@ export default function CoachDashboard() {
                       </span>
                       Quick links
                     </CardTitle>
-                    <CardDescription className="hidden text-xs sm:block">Frequently used tools.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-1.5 px-4 pb-4 pt-0">
                     {quickCards.slice(0, 4).map((card) => (
                       <Link key={card.title} href={card.href} className="block">
-                        <div className={cn(
-                          "group flex items-center justify-between rounded-xl border px-3 py-2 transition-all",
-                          card.cardClass
-                        )}>
+                        <div
+                          className={cn(
+                            "group flex items-center justify-between rounded-xl border px-3 py-2 transition-all",
+                            card.cardClass,
+                          )}
+                        >
                           <div className="flex items-center gap-2">
-                            <span className={cn(
-                              "grid h-7 w-7 place-items-center rounded-md bg-white shadow-sm",
-                              card.iconClass
-                            )}>
+                            <span
+                              className={cn(
+                                "grid h-7 w-7 place-items-center rounded-md bg-white shadow-sm",
+                                card.iconClass,
+                              )}
+                            >
                               <card.Icon className="h-3.5 w-3.5" />
                             </span>
-                            <p className="text-sm font-medium text-slate-700">{card.title}</p>
+                            <p className="text-sm font-medium text-slate-700">
+                              {card.title}
+                            </p>
                           </div>
-                          <span className={cn("transition-colors", card.arrowClass)}>→</span>
+                          <span
+                            className={cn("transition-colors", card.arrowClass)}
+                          >
+                            →
+                          </span>
                         </div>
                       </Link>
                     ))}
@@ -443,7 +464,11 @@ export default function CoachDashboard() {
               </motion.div>
             </section>
 
-            {subscription && (subscription.status === "expired" || subscription.status === "trial" || (subscription.status === "active" && subscription.daysRemaining <= 3)) ? (
+            {subscription &&
+            (subscription.status === "expired" ||
+              subscription.status === "trial" ||
+              (subscription.status === "active" &&
+                subscription.daysRemaining <= 3)) ? (
               <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
                 <Card
                   className={cn(
@@ -451,8 +476,8 @@ export default function CoachDashboard() {
                     subscriptionTone === "danger"
                       ? "border-rose-400/90 bg-gradient-to-r from-rose-100 via-rose-100 to-red-100"
                       : subscriptionTone === "warn"
-                      ? "border-amber-200 bg-amber-50/90"
-                      : "border-blue-200 bg-blue-50/90"
+                        ? "border-amber-200 bg-amber-50/90"
+                        : "border-blue-200 bg-blue-50/90",
                   )}
                 >
                   <CardContent className="flex flex-col items-stretch gap-3 px-4 pb-4 pt-4 sm:px-5 sm:py-4">
@@ -460,25 +485,49 @@ export default function CoachDashboard() {
                       <div
                         className={cn(
                           "mt-0.5 rounded-xl p-2",
-                          subscriptionTone === "danger" ? "bg-rose-200/80" : "bg-white/80"
+                          subscriptionTone === "danger"
+                            ? "bg-rose-200/80"
+                            : "bg-white/80",
                         )}
                       >
                         {subscription.status === "expired" ? (
                           <AlertCircle className="h-5 w-5 text-rose-700" />
                         ) : (
-                          <Clock className={cn("h-5 w-5", subscriptionTone === "danger" ? "text-rose-700" : "text-amber-600")} />
+                          <Clock
+                            className={cn(
+                              "h-5 w-5",
+                              subscriptionTone === "danger"
+                                ? "text-rose-700"
+                                : "text-amber-600",
+                            )}
+                          />
                         )}
                       </div>
                       <div className="space-y-1">
-                        <p className={cn("text-sm font-semibold", subscriptionTone === "danger" ? "text-rose-900" : "text-slate-900")}>
+                        <p
+                          className={cn(
+                            "text-sm font-semibold",
+                            subscriptionTone === "danger"
+                              ? "text-rose-900"
+                              : "text-slate-900",
+                          )}
+                        >
                           {subscription.status === "expired"
                             ? "Subscription expired"
                             : subscription.status === "trial"
-                            ? `Trial ends in ${subscription.daysRemaining} day${subscription.daysRemaining !== 1 ? "s" : ""}`
-                            : `Subscription ends in ${subscription.daysRemaining} day${subscription.daysRemaining !== 1 ? "s" : ""}`}
+                              ? `Trial ends in ${subscription.daysRemaining} day${subscription.daysRemaining !== 1 ? "s" : ""}`
+                              : `Subscription ends in ${subscription.daysRemaining} day${subscription.daysRemaining !== 1 ? "s" : ""}`}
                         </p>
-                        <p className={cn("text-sm", subscriptionTone === "danger" ? "text-rose-800" : "text-slate-600")}>
-                          Pay ₹{subscription.platformFee} to keep uninterrupted access to all coach tools.
+                        <p
+                          className={cn(
+                            "text-sm",
+                            subscriptionTone === "danger"
+                              ? "text-rose-800"
+                              : "text-slate-600",
+                          )}
+                        >
+                          Pay ₹{subscription.platformFee} to keep uninterrupted
+                          access to all coach tools.
                         </p>
                       </div>
                     </div>
@@ -491,8 +540,8 @@ export default function CoachDashboard() {
                           subscriptionTone === "danger"
                             ? "bg-rose-600 text-white hover:bg-rose-700"
                             : subscriptionTone === "warn"
-                            ? "bg-amber-500 text-white hover:bg-amber-600"
-                            : "bg-blue-600 text-white hover:bg-blue-700"
+                              ? "bg-amber-500 text-white hover:bg-amber-600"
+                              : "bg-blue-600 text-white hover:bg-blue-700",
                         )}
                       >
                         Manage Subscription
@@ -504,69 +553,86 @@ export default function CoachDashboard() {
             ) : null}
 
             <section>
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.28 }}>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12, duration: 0.28 }}
+              >
                 <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2 px-1">
                     <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
                       <Sparkles className="h-4 w-4" />
                     </span>
-                    <h2 className="text-base font-semibold text-slate-900 md:text-lg">Workspace modules</h2>
+                    <h2 className="text-base font-semibold text-slate-900 md:text-lg">
+                      Workspace modules
+                    </h2>
                   </div>
 
                   <div className="grid grid-cols-2 items-stretch gap-2 sm:gap-3 xl:grid-cols-3">
-                      {moduleActions.map((item, index) => (
-                        <motion.div
-                          key={item.label}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.14 + index * 0.03, duration: 0.24 }}
-                            whileHover={{ y: -2 }}
+                    {moduleActions.map((item, index) => (
+                      <motion.div
+                        key={item.label}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                          delay: 0.14 + index * 0.03,
+                          duration: 0.24,
+                        }}
+                        whileHover={{ y: -2 }}
+                      >
+                        <Link
+                          href={item.href}
+                          className="group block h-full cursor-pointer focus-visible:outline-none"
                         >
-                            <Link href={item.href} className="group block h-full cursor-pointer focus-visible:outline-none">
-                              <div
+                          <div
+                            className={cn(
+                              "relative flex h-full min-h-[124px] cursor-pointer select-none items-center justify-center overflow-hidden rounded-2xl border-4 border-white p-3 transition-all duration-200 shadow-[0_14px_24px_-20px_rgba(15,23,42,0.4)] hover:-translate-y-0.5 hover:border-white hover:brightness-[1.02] hover:shadow-[0_20px_30px_-20px_rgba(15,23,42,0.48)] active:translate-y-[1px] active:scale-[0.99] active:shadow-[0_10px_22px_-20px_rgba(15,23,42,0.42)] group-focus-visible:ring-4 group-focus-visible:ring-indigo-200 group-focus-visible:ring-offset-2 md:min-h-[136px] md:p-4",
+                              `bg-gradient-to-br ${item.bg}`,
+                            )}
+                          >
+                            <div className="pointer-events-none absolute -right-8 -top-8 hidden h-20 w-20 rounded-full bg-white/60 blur-xl sm:block" />
+
+                            <div className="relative z-[1] flex w-full flex-col items-center justify-center text-center">
+                              <span
                                 className={cn(
-                                  "relative flex h-full min-h-[124px] cursor-pointer select-none items-center justify-center overflow-hidden rounded-2xl border-4 border-white p-3 transition-all duration-200 shadow-[0_14px_24px_-20px_rgba(15,23,42,0.4)] hover:-translate-y-0.5 hover:border-white hover:brightness-[1.02] hover:shadow-[0_20px_30px_-20px_rgba(15,23,42,0.48)] active:translate-y-[1px] active:scale-[0.99] active:shadow-[0_10px_22px_-20px_rgba(15,23,42,0.42)] group-focus-visible:ring-4 group-focus-visible:ring-indigo-200 group-focus-visible:ring-offset-2 md:min-h-[136px] md:p-4",
-                                  `bg-gradient-to-br ${item.bg}`
+                                  "mb-2 grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md",
+                                  item.color,
                                 )}
                               >
-                                <div className="pointer-events-none absolute -right-8 -top-8 hidden h-20 w-20 rounded-full bg-white/60 blur-xl sm:block" />
+                                <item.Icon className="h-6 w-6" />
+                              </span>
 
-                                <div className="relative z-[1] flex w-full flex-col items-center justify-center text-center">
-                                  <span
-                                    className={cn(
-                                      "mb-2 grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md",
-                                      item.color
-                                    )}
-                                  >
-                                    <item.Icon className="h-6 w-6" />
-                                  </span>
-
-                                  <p className="text-sm font-semibold leading-tight text-slate-900 md:text-base">{item.description}</p>
-                                </div>
-                              </div>
-                          </Link>
-                        </motion.div>
-                      ))}
-                    </div>
+                              <p className="text-sm font-semibold leading-tight text-slate-900 md:text-base">
+                                {item.description}
+                              </p>
+                            </div>
+                          </div>
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
               </motion.div>
             </section>
 
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14, duration: 0.25 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.14, duration: 0.25 }}
+            >
               <Card className="relative overflow-hidden border-indigo-200/80 bg-gradient-to-r from-indigo-50 via-blue-50 to-violet-50">
                 <CardContent className="relative px-4 pb-4 pt-5 sm:px-5 sm:pb-5 sm:pt-6">
                   <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-indigo-300/20 blur-2xl" />
                   <div className="pointer-events-none absolute -bottom-16 right-24 h-36 w-36 rounded-full bg-violet-300/20 blur-2xl" />
 
                   <div className="relative space-y-3">
-                    <div className="flex items-start gap-3">
-                      <span className="mt-0.5 grid h-9 w-9 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm">
                         <Link2 className="h-4 w-4" />
                       </span>
-                      <div>
-                        <p className="text-sm font-semibold uppercase tracking-wide text-indigo-700">Referral</p>
-                        <p className="text-sm text-slate-600">
-                          Share your profile link.
+                      <div className="flex min-h-9 items-center">
+                        <p className="text-sm font-semibold uppercase tracking-wide text-indigo-700">
+                          Referral
                         </p>
                       </div>
                     </div>
@@ -577,7 +643,7 @@ export default function CoachDashboard() {
                         "flex w-full items-center gap-2 rounded-xl border border-indigo-200/80 bg-white/90 px-3 py-2 text-left transition",
                         referralCode
                           ? "hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
-                          : "cursor-not-allowed opacity-80"
+                          : "cursor-not-allowed opacity-80",
                       )}
                       onClick={async () => {
                         if (!referralCode) return;
@@ -592,7 +658,10 @@ export default function CoachDashboard() {
                       disabled={!referralCode}
                       aria-label="Copy referral code"
                     >
-                      <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">
+                      <Badge
+                        variant="secondary"
+                        className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100"
+                      >
                         Code
                       </Badge>
                       <p className="truncate font-mono text-sm font-semibold text-slate-800">
@@ -612,7 +681,9 @@ export default function CoachDashboard() {
                         onClick={async () => {
                           if (!publicProfileUrl) return;
                           try {
-                            await navigator.clipboard.writeText(publicProfileUrl);
+                            await navigator.clipboard.writeText(
+                              publicProfileUrl,
+                            );
                             setCopiedLink(true);
                             setTimeout(() => setCopiedLink(false), 1600);
                           } catch {
@@ -622,8 +693,15 @@ export default function CoachDashboard() {
                       >
                         {copiedLink ? "Copied" : "Copy Link"}
                       </Button>
-                      <Link href={publicProfileUrl || "#"} target="_blank" className="w-full">
-                        <Button size="sm" className="h-10 w-full bg-indigo-600 hover:bg-indigo-700">
+                      <Link
+                        href={publicProfileUrl || "#"}
+                        target="_blank"
+                        className="w-full"
+                      >
+                        <Button
+                          size="sm"
+                          className="h-10 w-full bg-indigo-600 hover:bg-indigo-700"
+                        >
                           Open Public Profile
                         </Button>
                       </Link>
@@ -645,13 +723,21 @@ export default function CoachDashboard() {
                   <Card className="border-slate-200/80 bg-white/95 transition-all hover:shadow-[0_16px_40px_-30px_rgba(79,70,229,0.5)]">
                     <CardContent className="p-4">
                       <div className="mb-3 flex items-center justify-between">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{item.title}</p>
-                        <span className={cn("grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br text-white", item.tone)}>
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                          {item.title}
+                        </p>
+                        <span
+                          className={cn(
+                            "grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br text-white",
+                            item.tone,
+                          )}
+                        >
                           <item.Icon className="h-4 w-4" />
                         </span>
                       </div>
-                      <p className="text-2xl font-bold text-slate-900">{item.value}</p>
-                      <p className="mt-1 text-xs text-slate-500">{item.delta}</p>
+                      <p className="text-2xl font-bold text-slate-900">
+                        {item.value}
+                      </p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -660,7 +746,10 @@ export default function CoachDashboard() {
 
             <section className="grid gap-3 xl:grid-cols-[1.6fr_1fr]">
               <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
-                <CoachProgressTrendCard chartData={chartData} isLoading={progressLoading} />
+                <CoachProgressTrendCard
+                  chartData={chartData}
+                  isLoading={progressLoading}
+                />
               </motion.div>
 
               <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
@@ -676,21 +765,34 @@ export default function CoachDashboard() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {activityLoading ? (
-                      <p className="text-sm text-slate-500">Loading activity...</p>
+                      <p className="text-sm text-slate-500">
+                        Loading activity...
+                      </p>
                     ) : activityError ? (
-                      <p className="text-sm text-rose-600">Failed to load activity.</p>
+                      <p className="text-sm text-rose-600">
+                        Failed to load activity.
+                      </p>
                     ) : latestActivity.length === 0 ? (
-                      <p className="text-sm text-slate-500">No recent activity yet.</p>
+                      <p className="text-sm text-slate-500">
+                        No recent activity yet.
+                      </p>
                     ) : (
                       latestActivity.map((item) => (
-                        <div key={item._id} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                        <div
+                          key={item._id}
+                          className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3"
+                        >
                           <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-slate-600 shadow-sm">
                             <item.Icon className="h-4 w-4" />
                           </span>
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-slate-700">{item.label}</p>
+                            <p className="truncate text-sm font-medium text-slate-700">
+                              {item.label}
+                            </p>
                             <div className="flex items-center gap-2">
-                              <p className="text-xs text-slate-500">{item.time}</p>
+                              <p className="text-xs text-slate-500">
+                                {item.time}
+                              </p>
                               {item.isUnread ? (
                                 <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
                                   New
@@ -711,16 +813,21 @@ export default function CoachDashboard() {
                 <Card className="border-slate-200/80 bg-white/95">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0">
                     <div>
-                      <CardTitle className="text-base">Recent clients</CardTitle>
-                      <CardDescription>Latest client records.</CardDescription>
+                      <CardTitle className="text-base">
+                        Recent clients
+                      </CardTitle>
                     </div>
                     <Link href="/coach/clients">
-                      <Button variant="outline" size="sm">View all</Button>
+                      <Button variant="outline" size="sm">
+                        View all
+                      </Button>
                     </Link>
                   </CardHeader>
                   <CardContent>
                     {clientsLoading ? (
-                      <p className="text-sm text-slate-500">Loading clients...</p>
+                      <p className="text-sm text-slate-500">
+                        Loading clients...
+                      </p>
                     ) : (clients ?? []).length === 0 ? (
                       <p className="text-sm text-slate-500">No clients yet.</p>
                     ) : (
@@ -735,7 +842,9 @@ export default function CoachDashboard() {
                             key={client._id}
                             className="flex cursor-pointer items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-slate-700 transition-colors hover:bg-slate-100/80"
                             tabIndex={0}
-                            onClick={() => router.push(`/coach/clients/${client._id}`)}
+                            onClick={() =>
+                              router.push(`/coach/clients/${client._id}`)
+                            }
                             onKeyDown={(e) => {
                               if (e.key === "Enter" || e.key === " ") {
                                 e.preventDefault();
@@ -743,7 +852,9 @@ export default function CoachDashboard() {
                               }
                             }}
                           >
-                            <p className="min-w-0 truncate font-medium">{client.fullName}</p>
+                            <p className="min-w-0 truncate font-medium">
+                              {client.fullName}
+                            </p>
 
                             <Link
                               href={`/coach/chat?clientId=${client._id}`}
@@ -767,7 +878,6 @@ export default function CoachDashboard() {
                 </Card>
               </motion.div>
             </section>
-
           </div>
         </div>
       </div>

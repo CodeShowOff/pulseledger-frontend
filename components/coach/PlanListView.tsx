@@ -183,7 +183,7 @@ export default function PlanListView() {
                       className="h-9 min-w-0 flex-1 px-2 text-xs border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 sm:flex-none sm:px-3 sm:text-sm"
                     >
                       <Users className="h-4 w-4" />
-                      View Clients
+                      Clients
                     </Button>
 
                     <Link href={`/coach/plans/${plan._id}/edit`} className="flex-1 min-w-0 sm:flex-none">

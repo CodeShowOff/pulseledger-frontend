@@ -378,21 +378,15 @@ export default function PlatformFeeManagementPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-              <div className="space-y-1.5">
-                <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
-                  Billing & Access
-                </Badge>
-                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
+          <CardHeader className="gap-3 p-4 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                <h1 className="text-lg font-bold tracking-tight text-white sm:text-3xl">
                   Platform fee management
-                </CardTitle>
-                <CardDescription className="max-w-2xl text-xs !text-white/90 sm:text-sm md:text-base">
-                  Keep your workspace active with monthly platform payments.
-                </CardDescription>
+                </h1>
               </div>
 
-              <div className="flex w-full flex-col gap-1.5 sm:w-auto sm:items-end sm:text-right sm:gap-2">
+              <div className="flex w-full flex-col gap-1.5 sm:w-auto sm:items-end sm:gap-2">
                 <div
                   className={cn(
                     "inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide sm:px-3 sm:py-1.5 sm:text-xs",
@@ -402,12 +396,12 @@ export default function PlatformFeeManagementPage() {
                   <span className={cn("h-2 w-2 rounded-full", statusMeta.dot)} />
                   {statusMeta.label}
                 </div>
-                <div className="w-full sm:w-auto">
+
+                <div className="flex w-full flex-nowrap gap-1.5 sm:w-auto sm:gap-2 md:justify-end">
+                  <div className="min-w-0 flex-1 sm:flex-none">
                   <Button
                     type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap rounded-xl !bg-white px-2 text-[11px] font-semibold leading-none !text-indigo-700 hover:!bg-indigo-50 sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                     onClick={() => setShowPaymentForm(true)}
                   >
                     <CreditCard className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
@@ -416,6 +410,7 @@ export default function PlatformFeeManagementPage() {
                       {pendingPayments.length > 0 ? "Submit another payment" : "Submit payment"}
                     </span>
                   </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -536,7 +531,6 @@ export default function PlatformFeeManagementPage() {
               </span>
               Payment snapshot
             </CardTitle>
-            <CardDescription>Track account health and payment processing at a glance.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
@@ -747,9 +741,6 @@ export default function PlatformFeeManagementPage() {
                   </span>
                   Payment history
                 </CardTitle>
-                <CardDescription>
-                  {paymentHistory.length} total payment{paymentHistory.length !== 1 ? "s" : ""}
-                </CardDescription>
               </div>
               <Button
                 type="button"
@@ -879,9 +870,6 @@ export default function PlatformFeeManagementPage() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <CardTitle className="text-lg">Submit payment</CardTitle>
-                  <CardDescription>
-                    Upload your payment proof and transaction details for admin verification.
-                  </CardDescription>
                 </div>
                 <button
                   type="button"
@@ -897,16 +885,6 @@ export default function PlatformFeeManagementPage() {
             </CardHeader>
 
             <CardContent className="space-y-4 pt-5">
-              <div className="rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-3 text-sm text-sky-900">
-                <p className="mb-2 font-semibold">Payment instructions</p>
-                <ol className="list-decimal space-y-1 pl-5 text-sky-800">
-                  <li>Pay {formatCurrency(subscription.platformFee)} using the QR code.</li>
-                  <li>Take a screenshot of the payment confirmation.</li>
-                  <li>Upload the screenshot and submit the form below.</li>
-                  <li>Admin usually verifies within 24 hours.</li>
-                </ol>
-              </div>
-
               {subscription.paymentQrUrl ? (
                 <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-center">
                   <p className="mb-2 text-sm font-medium text-slate-700">Scan QR code to pay</p>

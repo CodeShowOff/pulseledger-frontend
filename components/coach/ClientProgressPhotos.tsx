@@ -5,12 +5,10 @@ import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { CalendarDays, Camera, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -25,7 +23,6 @@ interface ProgressPhoto {
 
 interface ClientProgressPhotosProps {
   clientId: string;
-  clientName: string;
 }
 
 function formatPhotoDate(value: string) {
@@ -40,7 +37,6 @@ function formatPhotoDate(value: string) {
 
 export default function ClientProgressPhotos({
   clientId,
-  clientName,
 }: ClientProgressPhotosProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<ProgressPhoto | null>(null);
 
@@ -61,18 +57,12 @@ export default function ClientProgressPhotos({
         <CardHeader className="pb-3">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="space-y-1">
-              <Badge variant="secondary" className="w-fit normal-case tracking-normal">
-                Progress journal
-              </Badge>
               <CardTitle className="flex items-center gap-2 text-base md:text-lg">
                 <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
                   <Camera className="h-4 w-4" />
                 </span>
-                Progress photos ({photos.length})
+                Progress photos
               </CardTitle>
-              <CardDescription>
-                {clientName}&apos;s transformation timeline in one visual gallery.
-              </CardDescription>
             </div>
           </div>
         </CardHeader>

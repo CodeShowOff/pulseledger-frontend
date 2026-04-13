@@ -8,7 +8,7 @@ import api from "@/lib/axios";
 import ClientWorkoutHistoryCalendar from "@/components/coach/ClientWorkoutHistoryCalendar";
 import ClientDietHistoryCalendar from "@/components/coach/ClientDietHistoryCalendar";
 import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
 type ClientData = {
   fullName?: string;
@@ -49,9 +49,6 @@ export default function CoachClientHistoryPage() {
             <CalendarDays className="h-5 w-5 text-indigo-600" />
             Workout & Diet History
           </CardTitle>
-          <CardDescription>
-            Daily history timeline for {clientName}. Use this page to track adherence and consistency.
-          </CardDescription>
         </CardHeader>
       </Card>
 

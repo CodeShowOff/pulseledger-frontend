@@ -81,15 +81,6 @@ type CoachSubscriptionsResponse = {
   };
 };
 
-const EMPTY_TOTALS = {
-  total: 0,
-  approved: 0,
-  pending: 0,
-  rejected: 0,
-  expired: 0,
-  cancelled: 0,
-};
-
 const RECENT_REQUESTS_PAGE_SIZE = 6;
 
 const fadeInUp = {
@@ -145,18 +136,6 @@ export default function CoachSubscriptionsPage() {
 
   const subscriptions = data?.data ?? [];
   const { data: pendingRequests = [] } = useCoachPendingPlanRequests();
-
-  const fallbackTotals = useMemo(() => {
-    const base = subscriptions.reduce((acc, sub) => {
-      acc.total += 1;
-      if (STATUS_KEYS.includes(sub.status)) acc[sub.status] += 1;
-      return acc;
-    }, { ...EMPTY_TOTALS });
-    // Include pending plan requests that are not yet subscriptions
-    base.total += pendingRequests.length;
-    base.pending += pendingRequests.length;
-    return base;
-  }, [subscriptions, pendingRequests]);
 
   const fallbackPlanSummary = useMemo<PlanAggregate[]>(() => {
     const map = new Map<string, PlanAggregate>();
@@ -216,19 +195,6 @@ export default function CoachSubscriptionsPage() {
       })()
     : fallbackPlanSummary;
 
-  const summaryStats = (() => {
-    const base = data?.summary?.totals ? { ...data.summary.totals } : { ...fallbackTotals };
-    if (pendingRequests.length) {
-      // If backend already includes pending they would appear; we detect by comparing pending count
-      const backendPending = data?.summary?.totals?.pending ?? 0;
-      // Assume backend totals do NOT include plan requests (current behavior). If future backend includes them, prevent double count.
-      if (backendPending < pendingRequests.length || !data?.summary?.totals) {
-        base.total += pendingRequests.length;
-        base.pending += pendingRequests.length;
-      }
-    }
-    return base;
-  })();
   const planAssignments = data?.summary?.assignments ?? [];
   const pendingCount = pendingRequests.length;
   const totalRecentRequestPages = Math.max(
@@ -292,59 +258,32 @@ export default function CoachSubscriptionsPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-              <div className="space-y-1.5">
-                <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
-                  Subscriptions
-                </Badge>
-                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
+          <CardHeader className="gap-3 p-4 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                <h1 className="text-lg font-bold tracking-tight text-white sm:text-3xl">
                   Client subscriptions at a glance
-                </CardTitle>
-                <CardDescription className="max-w-2xl text-xs !text-white/90 sm:text-sm md:text-base">
+                </h1>
+                <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block sm:text-base">
                   Monitor approvals, pending requests, and plan performance.
                 </CardDescription>
               </div>
 
-              <div className="flex w-full sm:w-auto sm:justify-end">
-                <Link href="/coach/plan-requests" className="w-full sm:w-auto">
+              <div className="flex w-full flex-nowrap gap-1.5 sm:w-auto sm:gap-2 md:justify-end">
+                <Link href="/coach/plan-requests" className="min-w-0 flex-1 sm:flex-none">
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
                     <ClipboardList className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
-                    <span className="sm:hidden">Plan Requests</span>
-                    <span className="hidden sm:inline">View Plan Requests</span>
+                    Plan Requests
                     {pendingCount > 0 ? (
-                      <span className="ml-1 hidden min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold text-white sm:inline-flex">
+                      <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
                         {pendingCount > 99 ? "99+" : pendingCount}
                       </span>
                     ) : null}
                   </Button>
                 </Link>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 pt-1.5 sm:gap-3 sm:pt-2">
-              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
-                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
-                  <span className="sm:hidden">Requests</span>
-                  <span className="hidden sm:inline">Total requests</span>
-                </p>
-                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">{summaryStats.total}</p>
-              </div>
-              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
-                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
-                  Approved
-                </p>
-                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">{summaryStats.approved}</p>
-              </div>
-              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
-                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
-                  Pending
-                </p>
-                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">{summaryStats.pending}</p>
               </div>
             </div>
           </CardHeader>
@@ -365,9 +304,6 @@ export default function CoachSubscriptionsPage() {
               </span>
               Plan status matrix
             </CardTitle>
-            <CardDescription>
-              Compare subscription outcomes across each plan.
-            </CardDescription>
           </CardHeader>
 
           <CardContent>
@@ -456,9 +392,6 @@ export default function CoachSubscriptionsPage() {
                 </span>
                 Pending plan requests
               </CardTitle>
-              <CardDescription>
-                Requests waiting for approval and subscription conversion.
-              </CardDescription>
             </CardHeader>
 
             <CardContent>
@@ -513,9 +446,6 @@ export default function CoachSubscriptionsPage() {
                 </span>
                 Current plan assignments
               </CardTitle>
-              <CardDescription>
-                Active assignment sources for client plans.
-              </CardDescription>
             </CardHeader>
 
             <CardContent>
@@ -587,9 +517,6 @@ export default function CoachSubscriptionsPage() {
                 </span>
                 Recent requests
               </CardTitle>
-              <CardDescription>
-                Latest subscription activity from your clients.
-              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {recentRequests.map((sub, index) => (

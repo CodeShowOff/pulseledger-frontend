@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
-import { X, User, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { X, User, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import PlanFormPortal from "@/components/coach/PlanFormPortal";
 
@@ -166,103 +166,64 @@ export default function PlanClientsModal({ planId, planTitle, onClose }: PlanCli
               {/* Client List */}
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                 {data.clients.map((client) => (
-                  <div
+                  <Link
                     key={client._id}
+                    href={`/coach/clients/${client._id}`}
                     style={{
                       border: "1px solid #e5e7eb",
                       borderRadius: "8px",
                       padding: "1rem",
                       backgroundColor: "#fafafa",
                       display: "flex",
-                      justifyContent: "space-between",
                       alignItems: "center",
-                      gap: "1rem",
+                      gap: "0.75rem",
+                      textDecoration: "none",
+                      color: "#111827",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flex: 1 }}>
-                      {client.avatarUrl ? (
-                        <Image
-                          src={client.avatarUrl}
-                          alt={client.fullName}
-                          width={40}
-                          height={40}
-                          sizes="40px"
-                          loading="lazy"
-                          style={{
-                            width: "40px",
-                            height: "40px",
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: "40px",
-                            height: "40px",
-                            borderRadius: "50%",
-                            backgroundColor: "#e5e7eb",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <User style={{ width: "20px", height: "20px", color: "#6b7280" }} />
-                        </div>
-                      )}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p
-                          style={{
-                            fontSize: "0.95rem",
-                            fontWeight: 600,
-                            color: "#111827",
-                            margin: 0,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {client.fullName}
-                        </p>
-                        <p
-                          style={{
-                            fontSize: "0.8rem",
-                            color: "#6b7280",
-                            margin: "0.15rem 0 0 0",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {client.email}
-                        </p>
-                        <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0.25rem 0 0 0" }}>
-                          Started: {new Date(client.startDate).toLocaleDateString()} • Ends:{" "}
-                          {new Date(client.endDate).toLocaleDateString()}
-                        </p>
+                    {client.avatarUrl ? (
+                      <Image
+                        src={client.avatarUrl}
+                        alt={client.fullName}
+                        width={40}
+                        height={40}
+                        sizes="40px"
+                        loading="lazy"
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "50%",
+                          backgroundColor: "#e5e7eb",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <User style={{ width: "20px", height: "20px", color: "#6b7280" }} />
                       </div>
-                    </div>
-                    <Link
-                      href={`/coach/clients/${client._id}`}
+                    )}
+                    <p
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.35rem",
-                        padding: "0.5rem 0.85rem",
-                        fontSize: "0.85rem",
-                        borderRadius: "6px",
-                        border: "1px solid #e5e7eb",
-                        backgroundColor: "#fff",
-                        color: "#374151",
-                        textDecoration: "none",
-                        fontWeight: 500,
+                        fontSize: "0.95rem",
+                        fontWeight: 600,
+                        margin: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
                       }}
                     >
-                      <ExternalLink style={{ width: "14px", height: "14px" }} />
-                      View Profile
-                    </Link>
-                  </div>
+                      {client.fullName}
+                    </p>
+                  </Link>
                 ))}
               </div>
 

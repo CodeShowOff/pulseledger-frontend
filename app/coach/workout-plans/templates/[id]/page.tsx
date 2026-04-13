@@ -123,37 +123,31 @@ export default function CoachViewWorkoutTemplatePage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
-                    Workout Template
+          <CardHeader className="gap-3 p-4 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                {template.isFeatured ? (
+                  <Badge className="w-fit !border-amber-200 !bg-amber-100 !text-amber-900 text-[10px] sm:text-xs">
+                    <Star className="mr-1 h-3 w-3" />
+                    Featured
                   </Badge>
-                  {template.isFeatured ? (
-                    <Badge className="w-fit !border-amber-200 !bg-amber-100 !text-amber-900 text-[10px] sm:text-xs">
-                      <Star className="mr-1 h-3 w-3" />
-                      Featured
-                    </Badge>
-                  ) : null}
-                </div>
+                ) : null}
 
-                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
+                <h1 className="text-lg font-bold tracking-tight text-white sm:text-3xl">
                   {template.name}
-                </CardTitle>
+                </h1>
 
-                <CardDescription className="max-w-2xl text-xs !text-white/90 sm:text-sm md:text-base">
+                <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block sm:text-base">
                   {template.description ||
                     "Review this template and clone it into your coach workspace."}
                 </CardDescription>
               </div>
 
-              <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:gap-2 md:justify-end">
+              <div className="grid w-full grid-cols-2 gap-1.5 sm:w-auto sm:gap-2 md:justify-end">
                 <Link href="/coach/workout-plans/templates" className="min-w-0">
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
                     <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Templates
@@ -163,8 +157,7 @@ export default function CoachViewWorkoutTemplatePage() {
                 <Link href="/coach/workout-plans" className="min-w-0">
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
                     <Dumbbell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Workouts
@@ -173,10 +166,9 @@ export default function CoachViewWorkoutTemplatePage() {
 
                 <Button
                   type="button"
-                  size="sm"
                   onClick={handleUseTemplate}
                   disabled={createFromTemplate.isPending || !safeTemplateId}
-                  className="col-span-2 h-8 w-full !bg-white px-2.5 text-xs !text-indigo-700 hover:!bg-indigo-50 sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                  className="col-span-2 h-9 w-full justify-center gap-1.5 rounded-xl !bg-white px-2 text-[11px] font-semibold leading-none !text-indigo-700 hover:!bg-indigo-50 sm:h-10 sm:px-3 sm:text-sm"
                 >
                   <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   {createFromTemplate.isPending ? "Creating..." : "Use Template"}

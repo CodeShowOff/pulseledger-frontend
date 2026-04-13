@@ -164,19 +164,18 @@ export default function CoachPlanRequestsPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-4 p-6 md:p-7">
+          <CardHeader className="gap-3 p-4 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-2">
-                <Badge className="w-fit border-white/25 bg-white/15 text-white">Plan Operations</Badge>
-                <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+                <h1 className="text-lg font-bold tracking-tight text-white sm:text-3xl">
                   Pending plan requests
-                </CardTitle>
-                <CardDescription className="max-w-2xl text-sm !text-white/90 md:text-base">
+                </h1>
+                <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block sm:text-base">
                   Review incoming requests, verify payment context, and approve or decline with clarity.
                 </CardDescription>
               </div>
 
-              <div className="flex flex-wrap gap-2 md:justify-end">
+              <div className="flex w-full flex-nowrap gap-1.5 sm:w-auto sm:gap-2 md:justify-end">
                 <Badge
                   variant="warning"
                   className="w-fit border-rose-300/50 bg-rose-500 text-white"
@@ -204,9 +203,6 @@ export default function CoachPlanRequestsPage() {
               </span>
               Requests queue
             </CardTitle>
-            <CardDescription>
-              Open each request, review notes and payment proof, then take action.
-            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-3">

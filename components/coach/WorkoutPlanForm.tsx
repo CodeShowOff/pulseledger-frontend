@@ -341,9 +341,6 @@ export default function WorkoutPlanForm({ plan, onSuccess }: Props) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-slate-900">Basic Information</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Define plan identity and subscription linkage before building sessions.
-            </p>
           </div>
           <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-700">
             Step 1
@@ -470,7 +467,6 @@ export default function WorkoutPlanForm({ plan, onSuccess }: Props) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-slate-900">Weekly Schedule</h2>
-            <p className="mt-1 text-sm text-slate-500">Expand each day to assign exercises and session details.</p>
           </div>
           <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-700">
             Step 2

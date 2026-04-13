@@ -13,7 +13,6 @@ import {
   Sparkles,
   Wallet,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -150,19 +149,14 @@ export default function EarningsDashboard() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-              <div className="space-y-1.5">
-                <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
-                  Revenue Hub
-                </Badge>
-                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
-                  Earnings dashboard
-                </CardTitle>
-                <CardDescription className="max-w-2xl text-xs !text-white/90 sm:text-sm md:text-base">
-                  Track subscription and order income.
-                </CardDescription>
-              </div>
+          <CardHeader className="gap-3 p-4 sm:p-6">
+            <div className="space-y-2">
+              <h1 className="text-lg font-bold tracking-tight text-white sm:text-3xl">
+                Earnings dashboard
+              </h1>
+              <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block sm:text-base">
+                Track subscription and order income.
+              </CardDescription>
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-1.5 sm:gap-3 sm:pt-2">
@@ -194,28 +188,24 @@ export default function EarningsDashboard() {
           {
             title: "Total earnings",
             value: formatCurrency(summary.totalEarnings),
-            subtitle: "Subscriptions + orders",
             Icon: Wallet,
             iconTone: "bg-emerald-50 text-emerald-600",
           },
           {
             title: "Subscription earnings",
             value: formatCurrency(summary.subscriptionEarnings),
-            subtitle: `${summary.subscriptionCount} approved subscriptions`,
             Icon: ClipboardList,
             iconTone: "bg-blue-50 text-blue-600",
           },
           {
             title: "Order earnings",
             value: formatCurrency(summary.orderEarnings),
-            subtitle: `${summary.orderCount} approved/completed orders`,
             Icon: Package,
             iconTone: "bg-amber-50 text-amber-600",
           },
           {
             title: "Average per order",
             value: formatCurrency(averagePerOrder),
-            subtitle: "Order revenue average",
             Icon: Banknote,
             iconTone: "bg-violet-50 text-violet-600",
           },
@@ -233,7 +223,6 @@ export default function EarningsDashboard() {
                 </span>
               </div>
               <p className="text-2xl font-bold text-slate-900">{item.value}</p>
-              <p className="mt-1 text-xs text-slate-500">{item.subtitle}</p>
             </CardContent>
           </Card>
         ))}
@@ -253,9 +242,6 @@ export default function EarningsDashboard() {
               </span>
               Earnings trend
             </CardTitle>
-            <CardDescription>
-              Monthly comparison of subscription and product order revenue.
-            </CardDescription>
           </CardHeader>
 
           <CardContent>
@@ -288,7 +274,6 @@ export default function EarningsDashboard() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base md:text-lg">Subscription summary</CardTitle>
-            <CardDescription>Performance from approved subscriptions.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2.5">
             {[
@@ -323,7 +308,6 @@ export default function EarningsDashboard() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base md:text-lg">Order summary</CardTitle>
-            <CardDescription>Performance from approved/completed product orders.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2.5">
             {[

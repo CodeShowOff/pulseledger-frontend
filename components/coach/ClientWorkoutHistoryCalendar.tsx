@@ -276,9 +276,6 @@ export default function ClientWorkoutHistoryCalendar({ clientId, clientName }: P
     <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
       <header className="mb-4">
         <h2 className="text-base font-semibold text-slate-900">Workout history calendar</h2>
-        <p className="mt-1 text-xs text-slate-500">
-          Track {clientName || "client"}&apos;s workout consistency and completion day by day.
-        </p>
       </header>
 
       {loadError ? (

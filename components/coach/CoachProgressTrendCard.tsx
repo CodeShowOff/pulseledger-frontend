@@ -38,6 +38,8 @@ export default function CoachProgressTrendCard({ chartData, isLoading }: CoachPr
       <CardContent>
         {isLoading ? (
           <p className="text-sm text-slate-500">Loading chart data...</p>
+        ) : chartData.length === 0 ? (
+          <p className="text-sm text-slate-500">No progress data available yet.</p>
         ) : (
           <div className="w-full min-w-0">
             <ResponsiveContainer width="100%" height={280} minWidth={0}>

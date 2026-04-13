@@ -5,13 +5,11 @@ import Link from "next/link";
 import { motion } from "@/lib/motion";
 import { ArrowLeft, FileText, Sparkles } from "lucide-react";
 import WorkoutPlanForm from "@/components/coach/WorkoutPlanForm";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 
 const fadeInUp = {
@@ -29,36 +27,31 @@ export default function CreateWorkoutPlanPage() {
         transition={{ duration: 0.28 }}
       >
         <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-3 p-4 sm:p-5 md:gap-4 md:p-7">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-              <div className="space-y-1.5">
-                <Badge className="w-fit border-white/25 bg-white/15 text-[11px] text-white sm:text-xs">
-                  Workout Builder
-                </Badge>
-                <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
+          <CardHeader className="gap-3 p-4 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                <h1 className="whitespace-nowrap text-lg font-bold tracking-tight text-white sm:text-3xl">
                   Create a new workout plan
-                </CardTitle>
-                <CardDescription className="max-w-2xl text-xs !text-white/90 sm:text-sm md:text-base">
+                </h1>
+                <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block sm:text-base">
                   Configure plan basics, map weekly sessions, and assign exercises your clients can follow with confidence.
                 </CardDescription>
               </div>
 
-              <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:gap-2 md:justify-end">
-                <Link href="/coach/workout-plans" className="min-w-0">
+              <div className="flex w-full flex-nowrap gap-1.5 sm:w-auto sm:gap-2 md:justify-end">
+                <Link href="/coach/workout-plans" className="min-w-0 flex-1 sm:flex-none">
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
                     <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Workouts
                   </Button>
                 </Link>
-                <Link href="/coach/workout-plans/templates" className="min-w-0">
+                <Link href="/coach/workout-plans/templates" className="min-w-0 flex-1 sm:flex-none">
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="h-8 w-full border-white/25 bg-white/10 px-2.5 text-xs text-white hover:bg-white/20 hover:text-white sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
                     <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Templates
@@ -84,9 +77,6 @@ export default function CreateWorkoutPlanPage() {
             </span>
             Plan setup
           </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Fill in plan details and build weekly sessions below.
-          </p>
         </div>
 
         <WorkoutPlanForm />
