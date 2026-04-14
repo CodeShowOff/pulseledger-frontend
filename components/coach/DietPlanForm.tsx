@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -14,9 +14,11 @@ import {
   ChevronDown,
   ChevronUp,
   Search,
+  Check,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import { Button } from "@/components/ui/button";
 import {
   useCreateCoachDietPlan,
   useUpdateCoachDietPlan,
@@ -26,17 +28,25 @@ import {
 } from "@/lib/queries/diet";
 
 // Schema
-const foodSchema = z.object({
-  foodItemId: z.string().optional(),
-  foodName: z.string().min(1),
-  quantity: z.coerce.number().min(0.1),
-  unit: z.string().default("g"),
-  calories: z.number().optional(),
-  protein: z.number().optional(),
-  carbs: z.number().optional(),
-  fat: z.number().optional(),
-  notes: z.string().optional(),
-});
+const foodSchema = z
+  .object({
+    foodItemId: z.any().optional(),
+    foodName: z.string().optional(),
+    quantity: z.coerce.number().min(0.1),
+    unit: z.string().default("g"),
+    calories: z.number().optional(),
+    protein: z.number().optional(),
+    carbs: z.number().optional(),
+    fat: z.number().optional(),
+    notes: z.string().optional(),
+  })
+  .refine(
+    (food) => Boolean(food.foodName?.trim()) || Boolean(food.foodItemId),
+    {
+      message: "Food name is required",
+      path: ["foodName"],
+    }
+  );
 
 const mealSchema = z.object({
   mealType: z.string(),
@@ -158,9 +168,82 @@ const DAYS_OF_WEEK = [
   { value: 6, label: "Saturday" },
 ];
 
+type FoodItemReference = {
+  _id?: string;
+  name?: string;
+  servingUnit?: string;
+};
+
+function normalizeMealFoodsForForm(foods?: Array<Record<string, unknown>>) {
+  return (foods || []).map((food) => {
+    const foodItemRef =
+      typeof food.foodItemId === "object" && food.foodItemId !== null
+        ? (food.foodItemId as FoodItemReference)
+        : null;
+
+    const quantity = Number(food.quantity);
+
+    return {
+      ...food,
+      foodItemId:
+        typeof food.foodItemId === "string"
+          ? food.foodItemId
+          : foodItemRef?._id,
+      foodName:
+        (typeof food.foodName === "string" ? food.foodName : "") ||
+        foodItemRef?.name ||
+        "",
+      unit:
+        (typeof food.unit === "string" ? food.unit : "") ||
+        foodItemRef?.servingUnit ||
+        "g",
+      quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+      calories: typeof food.calories === "number" ? food.calories : undefined,
+      protein: typeof food.protein === "number" ? food.protein : undefined,
+      carbs: typeof food.carbs === "number" ? food.carbs : undefined,
+      fat: typeof food.fat === "number" ? food.fat : undefined,
+    };
+  });
+}
+
+function normalizeMealsForForm(meals?: Array<Record<string, unknown>>) {
+  return (meals || []).map((meal) => ({
+    ...meal,
+    foods: normalizeMealFoodsForForm(
+      Array.isArray(meal.foods) ? (meal.foods as Array<Record<string, unknown>>) : []
+    ),
+  }));
+}
+
+function normalizeWeeklyScheduleForForm(schedule?: CoachDietPlan["weeklySchedule"]) {
+  return (schedule || []).map((day, dayIndex) => ({
+    dayOfWeek: typeof day.dayOfWeek === "number" ? day.dayOfWeek : dayIndex,
+    dayNumber: day.dayNumber ?? dayIndex + 1,
+    dayName: day.dayName || DAYS_OF_WEEK[dayIndex]?.label || `Day ${dayIndex + 1}`,
+    meals: normalizeMealsForForm(
+      Array.isArray(day.meals) ? (day.meals as Array<Record<string, unknown>>) : []
+    ),
+    notes: day.notes || "",
+  }));
+}
+
+function toFoodItemIdString(foodItemId: unknown): string | undefined {
+  if (typeof foodItemId === "string") {
+    return foodItemId;
+  }
+
+  if (foodItemId && typeof foodItemId === "object") {
+    const nestedId = (foodItemId as { _id?: unknown })._id;
+    if (typeof nestedId === "string") {
+      return nestedId;
+    }
+  }
+
+  return undefined;
+}
+
 export default function DietPlanForm({ plan, onSuccess }: Props) {
   const router = useRouter();
-  const [expandedMeals, setExpandedMeals] = useState<number[]>([0]);
   const [expandedDays, setExpandedDays] = useState<number[]>([0]);
   const [foodSearch, setFoodSearch] = useState("");
   const [showFoodPicker, setShowFoodPicker] = useState<{
@@ -198,9 +281,17 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
     dayOfWeek: i,
     dayNumber: i + 1,
     dayName: DAYS_OF_WEEK[i].label,
-    meals: [...defaultMeals],
+    meals: defaultMeals.map((meal) => ({
+      ...meal,
+      foods: [],
+    })),
     notes: "",
   }));
+
+  const normalizedMeals = normalizeMealsForForm(
+    Array.isArray(plan?.meals) ? (plan?.meals as Array<Record<string, unknown>>) : []
+  );
+  const normalizedWeeklySchedule = normalizeWeeklyScheduleForForm(plan?.weeklySchedule);
 
   const {
     register,
@@ -226,8 +317,9 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
       },
       mealsPerDay: plan?.mealsPerDay || 3,
       daysPerWeek: plan?.daysPerWeek || 7,
-      meals: plan?.meals || defaultMeals,
-      weeklySchedule: plan?.weeklySchedule || defaultWeeklySchedule,
+      meals: normalizedMeals.length > 0 ? normalizedMeals : defaultMeals,
+      weeklySchedule:
+        normalizedWeeklySchedule.length > 0 ? normalizedWeeklySchedule : defaultWeeklySchedule,
       dietaryRestrictions: plan?.dietaryRestrictions || [],
       allergyNotes: plan?.allergyNotes || "",
       foodsToAvoid: plan?.foodsToAvoid || [],
@@ -237,7 +329,6 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
     },
   });
 
-  const watchMeals = watch("meals") || [];
   const watchWeeklySchedule = watch("weeklySchedule") || [];
 
   const toggleDay = (dayIndex: number) => {
@@ -246,39 +337,6 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
         ? prev.filter((d) => d !== dayIndex)
         : [...prev, dayIndex]
     );
-  };
-
-  const toggleMeal = (mealIndex: number) => {
-    setExpandedMeals((prev) =>
-      prev.includes(mealIndex)
-        ? prev.filter((m) => m !== mealIndex)
-        : [...prev, mealIndex]
-    );
-  };
-
-  const addMeal = () => {
-    const currentMeals = watchMeals;
-    const newMeal = {
-      mealType: "lunch",
-      name: `Meal ${currentMeals.length + 1}`,
-      time: "",
-      foods: [],
-    };
-    setValue("meals", [...currentMeals, newMeal]);
-    setExpandedMeals((prev) => [...prev, currentMeals.length]);
-  };
-
-  const removeMeal = (mealIndex: number) => {
-    const currentMeals = [...watchMeals];
-    currentMeals.splice(mealIndex, 1);
-    setValue("meals", currentMeals);
-    setExpandedMeals((prev) => prev.filter((m) => m !== mealIndex));
-  };
-
-  const updateMeal = (mealIndex: number, field: string, value: any) => {
-    const currentMeals = [...watchMeals];
-    currentMeals[mealIndex] = { ...currentMeals[mealIndex], [field]: value };
-    setValue("meals", currentMeals);
   };
 
   const addFoodToMeal = (mealIndex: number, food: FoodItem, dayIndex?: number) => {
@@ -320,6 +378,20 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
         setValue("weeklySchedule", currentSchedule);
       }
     }
+  };
+
+  const onInvalid = (formErrors: FieldErrors<FormValues>) => {
+    void formErrors;
+    toast.error("Please review required fields before saving.");
+  };
+
+  const handleCancel = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push("/coach/diet-plans");
   };
 
   const updateFoodInMeal = (
@@ -378,15 +450,36 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
   };
 
   const onSubmit = async (data: FormValues) => {
+    const sanitizedData: FormValues = {
+      ...data,
+      meals: data.meals?.map((meal) => ({
+        ...meal,
+        foods: meal.foods?.map((food) => ({
+          ...food,
+          foodItemId: toFoodItemIdString((food as { foodItemId?: unknown }).foodItemId),
+        })),
+      })),
+      weeklySchedule: data.weeklySchedule?.map((day) => ({
+        ...day,
+        meals: day.meals?.map((meal) => ({
+          ...meal,
+          foods: meal.foods?.map((food) => ({
+            ...food,
+            foodItemId: toFoodItemIdString((food as { foodItemId?: unknown }).foodItemId),
+          })),
+        })),
+      })),
+    };
+
     try {
       if (plan) {
         await updateMutation.mutateAsync({
           id: plan._id,
-          data: data as any,
+          data: sanitizedData as any,
         });
         toast.success("Diet plan updated");
       } else {
-        await createMutation.mutateAsync(data as any);
+        await createMutation.mutateAsync(sanitizedData as any);
         toast.success("Diet plan created");
       }
       onSuccess?.();
@@ -396,638 +489,589 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="coach-plan-form">
-      {/* Basic Info Section */}
-      <div className="coach-plan-form__section coach-plan-form__section--main">
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "1rem" }}>
-          Basic Information
-        </h2>
+  const labelClass = "mb-1.5 block text-[0.82rem] font-semibold tracking-wide text-slate-700";
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100";
+  const compactInputClass =
+    "w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100";
 
-        <div className="coach-plan-form__row">
-          <div className="auth-form__field" style={{ flex: 2 }}>
-            <label className="auth-form__label">Plan Name *</label>
+  return (
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="flex flex-col gap-5">
+      <section className="space-y-6 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900">Basic Information</h2>
+          <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-700">
+            Step 1
+          </span>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className={labelClass}>Plan Name *</label>
             <input
               {...register("name")}
-              className="auth-form__input"
+              className={inputClass}
               placeholder="e.g., High Protein Weight Loss Plan"
             />
             {errors.name && (
-              <p className="auth-form__error">{errors.name.message}</p>
+              <p className="mt-1 text-xs font-medium text-rose-600">{errors.name.message}</p>
             )}
           </div>
 
-          <div className="auth-form__field" style={{ flex: 1 }}>
-            <label className="auth-form__label">Dietary Type</label>
-            <select {...register("dietaryType")} className="auth-form__input">
-              {DIETARY_TYPES.map((d) => (
-                <option key={d.value} value={d.value}>
-                  {d.label}
+          <div>
+            <label className={labelClass}>Dietary Type</label>
+            <select {...register("dietaryType")} className={inputClass}>
+              {DIETARY_TYPES.map((dietType) => (
+                <option key={dietType.value} value={dietType.value}>
+                  {dietType.label}
                 </option>
               ))}
             </select>
           </div>
         </div>
 
-        <div className="coach-plan-form__row">
-          <div className="auth-form__field" style={{ flex: 1 }}>
-            <label className="auth-form__label">Goal</label>
-            <select {...register("goal")} className="auth-form__input">
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <label className={labelClass}>Goal</label>
+            <select {...register("goal")} className={inputClass}>
               <option value="">Select...</option>
-              {GOALS.map((g) => (
-                <option key={g.value} value={g.value}>
-                  {g.label}
+              {GOALS.map((goal) => (
+                <option key={goal.value} value={goal.value}>
+                  {goal.label}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="auth-form__field" style={{ flex: 1 }}>
-            <label className="auth-form__label">Meals Per Day</label>
+          <div>
+            <label className={labelClass}>Meals Per Day</label>
             <input
               type="number"
               {...register("mealsPerDay")}
-              className="auth-form__input"
+              className={inputClass}
               min={1}
               max={8}
             />
           </div>
+
+          <div>
+            <label className={labelClass}>Days Per Week</label>
+            <input
+              type="number"
+              {...register("daysPerWeek")}
+              className={inputClass}
+              min={1}
+              max={7}
+            />
+          </div>
         </div>
 
-        <div className="auth-form__field">
-          <label className="auth-form__label">Description</label>
+        <div>
+          <label className={labelClass}>Description</label>
           <textarea
             {...register("description")}
-            className="auth-form__input"
+            className={`${inputClass} min-h-[120px] resize-y`}
             rows={3}
             placeholder="Describe what this diet plan is about..."
           />
         </div>
 
-        <div className="auth-form__field">
-          <label className="auth-form__label">Link to Subscription Plans</label>
+        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 sm:p-4">
+          <label className={labelClass}>Link to Subscription Plans</label>
           <Controller
             name="subscriptionPlanIds"
             control={control}
             render={({ field }) => (
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "0.5rem",
-                }}
-              >
-                {subscriptionPlans.map((sp: any) => (
-                  <label
-                    key={sp._id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.35rem",
-                      padding: "0.4rem 0.75rem",
-                      borderRadius: "6px",
-                      border: "1px solid #e5e7eb",
-                      backgroundColor: field.value?.includes(sp._id)
-                        ? "#f0fdf4"
-                        : "#fff",
-                      cursor: "pointer",
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={field.value?.includes(sp._id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          field.onChange([...(field.value || []), sp._id]);
-                        } else {
-                          field.onChange(
-                            field.value?.filter((id: string) => id !== sp._id)
-                          );
-                        }
-                      }}
-                    />
-                    {sp.title}
-                  </label>
-                ))}
-                {subscriptionPlans.length === 0 && (
-                  <p style={{ color: "#6b7280", fontSize: "0.85rem" }}>
-                    No subscription plans available
-                  </p>
-                )}
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {subscriptionPlans.map((subscriptionPlan) => {
+                  const selected = field.value?.includes(subscriptionPlan._id);
+                  return (
+                    <label
+                      key={subscriptionPlan._id}
+                      className={`inline-flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2 text-sm transition-all ${
+                        selected
+                          ? "border-indigo-300 bg-indigo-50 text-indigo-700 shadow-sm"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={selected}
+                        onChange={(event) => {
+                          if (event.target.checked) {
+                            field.onChange([...(field.value || []), subscriptionPlan._id]);
+                          } else {
+                            field.onChange(
+                              field.value?.filter((id: string) => id !== subscriptionPlan._id)
+                            );
+                          }
+                        }}
+                      />
+                      <span
+                        className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                          selected
+                            ? "border-indigo-500 bg-indigo-500 text-white"
+                            : "border-slate-300 bg-white text-transparent"
+                        }`}
+                      >
+                        <Check className="h-3 w-3" />
+                      </span>
+                      <span className="min-w-0 truncate font-medium">{subscriptionPlan.title}</span>
+                    </label>
+                  );
+                })}
+
+                {subscriptionPlans.length === 0 ? (
+                  <p className="text-sm text-slate-500">No subscription plans available</p>
+                ) : null}
               </div>
             )}
           />
+          <p className="mt-1 text-xs text-slate-500">
+            Clients subscribed to these plans can be assigned this diet plan faster.
+          </p>
         </div>
-      </div>
+      </section>
 
-      {/* Daily Targets Section */}
-      <div className="coach-plan-form__section">
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "1rem" }}>
-          Daily Nutritional Targets
-        </h2>
+      <section className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900">Daily Nutritional Targets</h2>
+          <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-700">
+            Step 2
+          </span>
+        </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "1rem",
-          }}
-        >
-          <div className="auth-form__field">
-            <label className="auth-form__label">Calories (kcal)</label>
-            <input
-              type="number"
-              {...register("dailyTargets.calories")}
-              className="auth-form__input"
-            />
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div>
+            <label className={labelClass}>Calories (kcal)</label>
+            <input type="number" {...register("dailyTargets.calories")} className={inputClass} />
           </div>
-          <div className="auth-form__field">
-            <label className="auth-form__label">Protein (g)</label>
-            <input
-              type="number"
-              {...register("dailyTargets.protein")}
-              className="auth-form__input"
-            />
+          <div>
+            <label className={labelClass}>Protein (g)</label>
+            <input type="number" {...register("dailyTargets.protein")} className={inputClass} />
           </div>
-          <div className="auth-form__field">
-            <label className="auth-form__label">Carbs (g)</label>
-            <input
-              type="number"
-              {...register("dailyTargets.carbohydrates")}
-              className="auth-form__input"
-            />
+          <div>
+            <label className={labelClass}>Carbs (g)</label>
+            <input type="number" {...register("dailyTargets.carbohydrates")} className={inputClass} />
           </div>
-          <div className="auth-form__field">
-            <label className="auth-form__label">Fat (g)</label>
-            <input
-              type="number"
-              {...register("dailyTargets.fat")}
-              className="auth-form__input"
-            />
+          <div>
+            <label className={labelClass}>Fat (g)</label>
+            <input type="number" {...register("dailyTargets.fat")} className={inputClass} />
           </div>
-          <div className="auth-form__field">
-            <label className="auth-form__label">Fiber (g)</label>
-            <input
-              type="number"
-              {...register("dailyTargets.fiber")}
-              className="auth-form__input"
-            />
+          <div>
+            <label className={labelClass}>Fiber (g)</label>
+            <input type="number" {...register("dailyTargets.fiber")} className={inputClass} />
           </div>
-          <div className="auth-form__field">
-            <label className="auth-form__label">Water (L)</label>
+          <div>
+            <label className={labelClass}>Water (L)</label>
             <input
               type="number"
               step="0.1"
               {...register("dailyTargets.water")}
-              className="auth-form__input"
+              className={inputClass}
             />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Meals Section */}
-      <div className="coach-plan-form__section">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1rem",
-          }}
-        >
-          <h2 style={{ fontSize: "1rem", fontWeight: 600, margin: 0 }}>
-            Weekly Meal Plan
-          </h2>
+      <section className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Weekly Meal Plan</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Build a complete week-long schedule with meals and food items for each day.
+            </p>
+          </div>
+          <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-700">
+            Step 3
+          </span>
         </div>
 
-        {/* Description */}
-        <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "1rem" }}>
-          Create a detailed week-long meal plan with different meals for each day.
-        </p>
-
-        {/* Weekly Schedule - Day-wise */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div className="mt-4 space-y-3">
           {watchWeeklySchedule.map((day, dayIndex) => {
-              const isDayExpanded = expandedDays.includes(dayIndex);
+            const isDayExpanded = expandedDays.includes(dayIndex);
 
-              return (
-                <div
-                  key={dayIndex}
-                  style={{
-                    border: "2px solid #e5e7eb",
-                    borderRadius: "8px",
-                    backgroundColor: "#fff",
-                  }}
+            return (
+              <div
+                key={dayIndex}
+                className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+              >
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-slate-50/70"
+                  onClick={() => toggleDay(dayIndex)}
                 >
-                  {/* Day Header */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "0.85rem 1rem",
-                      cursor: "pointer",
-                      backgroundColor: "#f9fafb",
-                      borderBottom: isDayExpanded ? "2px solid #e5e7eb" : "none",
-                      borderRadius: isDayExpanded ? "6px 6px 0 0" : "6px",
-                    }}
-                    onClick={() => toggleDay(dayIndex)}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                      <span style={{ fontWeight: 700, fontSize: "1rem", color: "#16a34a" }}>
-                        Day {dayIndex + 1}
-                      </span>
-                      <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>
-                        {day.dayName || DAYS_OF_WEEK[dayIndex].label}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "0.7rem",
-                          padding: "0.2rem 0.6rem",
-                          borderRadius: "999px",
-                          backgroundColor: "#f0fdf4",
-                          color: "#16a34a",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {day.meals?.length || 0} meals
-                      </span>
-                    </div>
-                    {isDayExpanded ? (
-                      <ChevronUp style={{ width: 20, height: 20, color: "#6b7280" }} />
-                    ) : (
-                      <ChevronDown style={{ width: 20, height: 20, color: "#6b7280" }} />
-                    )}
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="text-sm font-semibold text-slate-800">
+                      Day {dayIndex + 1} · {day.dayName || DAYS_OF_WEEK[dayIndex].label}
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                      {day.meals?.length || 0} meals
+                    </span>
                   </div>
+                  {isDayExpanded ? (
+                    <ChevronUp className="h-[18px] w-[18px] shrink-0 text-slate-500" />
+                  ) : (
+                    <ChevronDown className="h-[18px] w-[18px] shrink-0 text-slate-500" />
+                  )}
+                </button>
 
-                  {/* Day Content */}
-                  {isDayExpanded && (
-                    <div style={{ padding: "1rem" }}>
-                      {/* Day Meals */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                        {day.meals?.map((meal, mealIndex) => (
-                          <div
-                            key={mealIndex}
-                            style={{
-                              border: "1px solid #e5e7eb",
-                              borderRadius: "6px",
-                              backgroundColor: "#fff",
-                            }}
-                          >
-                            {/* Meal Header */}
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                padding: "0.6rem 0.85rem",
-                                backgroundColor: "#fafafa",
-                              }}
+                {isDayExpanded ? (
+                  <div className="space-y-4 border-t border-slate-200 px-4 py-4">
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <label className={labelClass}>Day Name</label>
+                        <input
+                          type="text"
+                          value={day.dayName || ""}
+                          onChange={(event) =>
+                            setValue(`weeklySchedule.${dayIndex}.dayName`, event.target.value)
+                          }
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className={labelClass}>Day Notes</label>
+                        <input
+                          type="text"
+                          value={day.notes || ""}
+                          onChange={(event) =>
+                            setValue(`weeklySchedule.${dayIndex}.notes`, event.target.value)
+                          }
+                          className={inputClass}
+                          placeholder="Optional note for this day"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {day.meals?.map((meal, mealIndex) => (
+                        <div
+                          key={`${meal.mealType || "meal"}-${mealIndex}`}
+                          className="rounded-xl border border-slate-200 bg-white"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2 rounded-t-xl border-b border-slate-200 bg-slate-50 px-3 py-2.5">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <Utensils className="h-3.5 w-3.5 text-emerald-600" />
+                              <p className="truncate text-sm font-semibold text-slate-800">
+                                {meal.name || MEAL_TYPES.find((m) => m.value === meal.mealType)?.label || "Meal"}
+                              </p>
+                              <span className="text-xs text-slate-500">
+                                ({meal.foods?.length || 0} foods)
+                              </span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeMealFromDay(dayIndex, mealIndex)}
+                              className="h-7 px-2 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
                             >
-                              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                <Utensils style={{ width: 14, height: 14, color: "#16a34a" }} />
-                                <span style={{ fontWeight: 600, fontSize: "0.85rem" }}>
-                                  {meal.name || MEAL_TYPES.find((m) => m.value === meal.mealType)?.label}
-                                </span>
-                                <span style={{ fontSize: "0.7rem", color: "#6b7280" }}>
-                                  ({meal.foods?.length || 0} foods)
-                                </span>
-                              </div>
-                              {mealIndex > 0 && (
-                                <button
-                                  type="button"
-                                  onClick={() => removeMealFromDay(dayIndex, mealIndex)}
-                                  style={{
-                                    padding: "0.25rem",
-                                    backgroundColor: "#fee2e2",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: "pointer",
-                                  }}
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+
+                          <div className="space-y-3 p-3">
+                            <div className="grid gap-2 sm:grid-cols-3">
+                              <div>
+                                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                                  Meal Type
+                                </label>
+                                <select
+                                  value={meal.mealType}
+                                  onChange={(event) =>
+                                    updateMealInDay(dayIndex, mealIndex, "mealType", event.target.value)
+                                  }
+                                  className={compactInputClass}
                                 >
-                                  <Trash2 style={{ width: 12, height: 12, color: "#dc2626" }} />
-                                </button>
-                              )}
+                                  {MEAL_TYPES.map((mealType) => (
+                                    <option key={mealType.value} value={mealType.value}>
+                                      {mealType.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                                  Name
+                                </label>
+                                <input
+                                  type="text"
+                                  value={meal.name || ""}
+                                  onChange={(event) =>
+                                    updateMealInDay(dayIndex, mealIndex, "name", event.target.value)
+                                  }
+                                  placeholder="e.g., Power Breakfast"
+                                  className={compactInputClass}
+                                />
+                              </div>
+
+                              <div>
+                                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                                  Time
+                                </label>
+                                <input
+                                  type="time"
+                                  value={meal.time || ""}
+                                  onChange={(event) =>
+                                    updateMealInDay(dayIndex, mealIndex, "time", event.target.value)
+                                  }
+                                  className={compactInputClass}
+                                />
+                              </div>
                             </div>
 
-                            {/* Meal Details */}
-                            <div style={{ padding: "0.75rem" }}>
-                              <div
-                                style={{
-                                  display: "grid",
-                                  gridTemplateColumns: "1fr 1fr 1fr",
-                                  gap: "0.5rem",
-                                  marginBottom: "0.75rem",
-                                }}
-                              >
-                                <div>
-                                  <label style={{ fontSize: "0.7rem", color: "#6b7280", display: "block", marginBottom: "0.2rem" }}>
-                                    Meal Type
-                                  </label>
-                                  <select
-                                    value={meal.mealType}
-                                    onChange={(e) => updateMealInDay(dayIndex, mealIndex, "mealType", e.target.value)}
-                                    style={{
-                                      width: "100%",
-                                      padding: "0.35rem 0.4rem",
-                                      fontSize: "0.8rem",
-                                      border: "1px solid #e5e7eb",
-                                      borderRadius: "4px",
-                                    }}
-                                  >
-                                    {MEAL_TYPES.map((mt) => (
-                                      <option key={mt.value} value={mt.value}>
-                                        {mt.label}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                                <div>
-                                  <label style={{ fontSize: "0.7rem", color: "#6b7280", display: "block", marginBottom: "0.2rem" }}>
-                                    Name
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={meal.name || ""}
-                                    onChange={(e) => updateMealInDay(dayIndex, mealIndex, "name", e.target.value)}
-                                    placeholder="e.g., Power Breakfast"
-                                    style={{
-                                      width: "100%",
-                                      padding: "0.35rem 0.4rem",
-                                      fontSize: "0.8rem",
-                                      border: "1px solid #e5e7eb",
-                                      borderRadius: "4px",
-                                    }}
-                                  />
-                                </div>
-                                <div>
-                                  <label style={{ fontSize: "0.7rem", color: "#6b7280", display: "block", marginBottom: "0.2rem" }}>
-                                    Time
-                                  </label>
-                                  <input
-                                    type="time"
-                                    value={meal.time || ""}
-                                    onChange={(e) => updateMealInDay(dayIndex, mealIndex, "time", e.target.value)}
-                                    style={{
-                                      width: "100%",
-                                      padding: "0.35rem 0.4rem",
-                                      fontSize: "0.8rem",
-                                      border: "1px solid #e5e7eb",
-                                      borderRadius: "4px",
-                                    }}
-                                  />
-                                </div>
-                              </div>
+                            <div className="space-y-2">
+                              {meal.foods?.map((food, foodIndex) => (
+                                <div
+                                  key={`${food.foodName || "food"}-${foodIndex}`}
+                                  className="grid grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto]"
+                                >
+                                  <div>
+                                    <p className="truncate text-xs font-semibold text-slate-800">{food.foodName}</p>
+                                    <p className="mt-0.5 text-[10px] text-slate-500">
+                                      {(food.calories ?? "—") + " kcal"} • {(food.protein ?? "—") + "g P"} • {(food.carbs ?? "—") + "g C"} • {(food.fat ?? "—") + "g F"}
+                                    </p>
+                                  </div>
 
-                              {/* Foods in this meal */}
-                              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "0.75rem" }}>
-                                {meal.foods?.map((food, foodIndex) => (
-                                  <div
-                                    key={foodIndex}
-                                    style={{
-                                      display: "grid",
-                                      gridTemplateColumns: "2fr 1fr 70px 70px 70px auto",
-                                      gap: "0.4rem",
-                                      alignItems: "center",
-                                      padding: "0.4rem",
-                                      backgroundColor: "#f9fafb",
-                                      borderRadius: "4px",
-                                    }}
-                                  >
-                                    <span style={{ fontSize: "0.8rem", fontWeight: 500 }}>
-                                      {food.foodName}
-                                    </span>
+                                  <div>
+                                    <label className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-slate-500">
+                                      Quantity
+                                    </label>
                                     <input
                                       type="number"
+                                      min={0.1}
+                                      step={0.1}
                                       value={food.quantity}
-                                      onChange={(e) =>
+                                      onChange={(event) =>
                                         updateFoodInMeal(
                                           mealIndex,
                                           foodIndex,
                                           "quantity",
-                                          parseFloat(e.target.value) || 0,
+                                          parseFloat(event.target.value) || 0,
                                           dayIndex
                                         )
                                       }
-                                      style={{
-                                        padding: "0.3rem",
-                                        fontSize: "0.75rem",
-                                        border: "1px solid #e5e7eb",
-                                        borderRadius: "4px",
-                                      }}
+                                      className={compactInputClass}
                                     />
-                                    <span style={{ fontSize: "0.7rem", color: "#6b7280", textAlign: "center" }}>
-                                      {food.calories || 0} kcal
-                                    </span>
-                                    <span style={{ fontSize: "0.7rem", color: "#6b7280", textAlign: "center" }}>
-                                      {food.protein || 0}g P
-                                    </span>
-                                    <span style={{ fontSize: "0.7rem", color: "#6b7280", textAlign: "center" }}>
-                                      {food.carbs || 0}g C
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => removeFoodFromMeal(mealIndex, foodIndex, dayIndex)}
-                                      style={{
-                                        padding: "0.3rem",
-                                        backgroundColor: "#fee2e2",
-                                        border: "none",
-                                        borderRadius: "4px",
-                                        cursor: "pointer",
-                                      }}
-                                    >
-                                      <Trash2 style={{ width: 12, height: 12, color: "#dc2626" }} />
-                                    </button>
                                   </div>
-                                ))}
-                              </div>
 
-                              {/* Add Food to this meal */}
-                              {showFoodPicker?.mealIndex === mealIndex && showFoodPicker?.dayIndex === dayIndex ? (
-                                <div
-                                  style={{
-                                    border: "1px solid #e5e7eb",
-                                    borderRadius: "6px",
-                                    padding: "0.6rem",
-                                    backgroundColor: "#fff",
-                                  }}
-                                >
-                                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.6rem" }}>
-                                    <Search style={{ width: 14, height: 14, color: "#9ca3af" }} />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeFoodFromMeal(mealIndex, foodIndex, dayIndex)}
+                                    className="h-9 self-end px-2 text-rose-600 hover:bg-rose-50 hover:text-rose-700 sm:self-auto"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              ))}
+
+                              {(!meal.foods || meal.foods.length === 0) ? (
+                                <div className="rounded-md border border-dashed border-slate-300 bg-white px-3 py-3 text-xs text-slate-500">
+                                  No foods added for this meal yet.
+                                </div>
+                              ) : null}
+                            </div>
+
+                            {showFoodPicker?.mealIndex === mealIndex &&
+                            showFoodPicker?.dayIndex === dayIndex ? (
+                              <div className="rounded-lg border border-slate-200 bg-white p-3">
+                                <div className="mb-3 flex flex-wrap items-center gap-2">
+                                  <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-200 bg-white px-2">
+                                    <Search className="h-4 w-4 shrink-0 text-slate-400" />
                                     <input
                                       type="text"
                                       placeholder="Search foods..."
                                       value={foodSearch}
-                                      onChange={(e) => setFoodSearch(e.target.value)}
-                                      style={{
-                                        flex: 1,
-                                        padding: "0.35rem",
-                                        fontSize: "0.8rem",
-                                        border: "1px solid #e5e7eb",
-                                        borderRadius: "4px",
-                                      }}
+                                      onChange={(event) => setFoodSearch(event.target.value)}
+                                      className="w-full border-0 bg-transparent py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
                                       autoFocus
                                     />
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setShowFoodPicker(null);
-                                        setFoodSearch("");
-                                      }}
-                                      style={{
-                                        padding: "0.35rem 0.6rem",
-                                        fontSize: "0.75rem",
-                                        backgroundColor: "#f3f4f6",
-                                        border: "none",
-                                        borderRadius: "4px",
-                                        cursor: "pointer",
-                                      }}
-                                    >
-                                      Cancel
-                                    </button>
                                   </div>
-                                  <div style={{ maxHeight: "180px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-                                    {foodItems.map((food) => (
-                                      <button
-                                        key={food._id}
-                                        type="button"
-                                        onClick={() => addFoodToMeal(mealIndex, food, dayIndex)}
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "space-between",
-                                          gap: "0.4rem",
-                                          padding: "0.4rem 0.6rem",
-                                          fontSize: "0.8rem",
-                                          backgroundColor: "#f9fafb",
-                                          border: "none",
-                                          borderRadius: "4px",
-                                          cursor: "pointer",
-                                          textAlign: "left",
-                                        }}
-                                      >
-                                        <span>{food.name}</span>
-                                        <span style={{ fontSize: "0.7rem", color: "#9ca3af" }}>
-                                          {food.nutrition.calories} kcal
-                                        </span>
-                                      </button>
-                                    ))}
-                                    {foodItems.length === 0 && (
-                                      <p style={{ padding: "0.75rem", textAlign: "center", color: "#6b7280", fontSize: "0.8rem" }}>
-                                        No foods found
-                                      </p>
-                                    )}
-                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setShowFoodPicker(null);
+                                      setFoodSearch("");
+                                    }}
+                                    className="h-9"
+                                  >
+                                    Cancel
+                                  </Button>
                                 </div>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => setShowFoodPicker({ mealIndex, dayIndex })}
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "0.4rem",
-                                    padding: "0.4rem 0.8rem",
-                                    fontSize: "0.8rem",
-                                    backgroundColor: "#f0fdf4",
-                                    border: "1px solid #dcfce7",
-                                    borderRadius: "4px",
-                                    color: "#16a34a",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  <Plus style={{ width: 14, height: 14 }} />
-                                  Add Food
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
 
-                        {/* Add Meal to Day Button */}
-                        <button
-                          type="button"
-                          onClick={() => addMealToDay(dayIndex)}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.4rem",
-                            padding: "0.5rem 0.85rem",
-                            fontSize: "0.8rem",
-                            backgroundColor: "#f0fdf4",
-                            border: "1px dashed #16a34a",
-                            borderRadius: "6px",
-                            color: "#16a34a",
-                            cursor: "pointer",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Plus style={{ width: 14, height: 14 }} />
-                          Add Meal to {day.dayName}
-                        </button>
-                      </div>
+                                <div className="flex max-h-[220px] flex-col gap-1 overflow-y-auto">
+                                  {foodItems.map((foodItem) => (
+                                    <button
+                                      key={foodItem._id}
+                                      type="button"
+                                      onClick={() => addFoodToMeal(mealIndex, foodItem, dayIndex)}
+                                      className="flex items-center justify-between gap-2 rounded-md bg-slate-50 px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100"
+                                    >
+                                      <span className="truncate font-medium">{foodItem.name}</span>
+                                      <span className="shrink-0 text-[11px] text-slate-400">
+                                        {foodItem.nutrition.calories} kcal
+                                      </span>
+                                    </button>
+                                  ))}
+
+                                  {foodItems.length === 0 ? (
+                                    <p className="px-2 py-4 text-center text-sm text-slate-500">No foods found</p>
+                                  ) : null}
+                                </div>
+                              </div>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowFoodPicker({ mealIndex, dayIndex })}
+                                className="h-9 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                                Add Food
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => addMealToDay(dayIndex)}
+                        className="h-10 w-full justify-center gap-2 border-emerald-300 border-dashed bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add Meal to {day.dayName || DAYS_OF_WEEK[dayIndex].label}
+                      </Button>
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="space-y-4 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900">Additional Instructions</h2>
+          <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-700">
+            Step 4
+          </span>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className={labelClass}>Dietary Restrictions</label>
+            <Controller
+              name="dietaryRestrictions"
+              control={control}
+              render={({ field }) => (
+                <input
+                  value={(field.value || []).join(", ")}
+                  onChange={(event) =>
+                    field.onChange(
+                      event.target.value
+                        .split(",")
+                        .map((item) => item.trim())
+                        .filter(Boolean)
+                    )
+                  }
+                  className={inputClass}
+                  placeholder="e.g., lactose_free, gluten_free"
+                />
+              )}
+            />
+            <p className="mt-1 text-xs text-slate-500">Comma-separated values.</p>
+          </div>
+
+          <div>
+            <label className={labelClass}>Foods to Avoid</label>
+            <Controller
+              name="foodsToAvoid"
+              control={control}
+              render={({ field }) => (
+                <input
+                  value={(field.value || []).join(", ")}
+                  onChange={(event) =>
+                    field.onChange(
+                      event.target.value
+                        .split(",")
+                        .map((item) => item.trim())
+                        .filter(Boolean)
+                    )
+                  }
+                  className={inputClass}
+                  placeholder="e.g., refined_sugar, deep_fried_foods"
+                />
+              )}
+            />
+            <p className="mt-1 text-xs text-slate-500">Comma-separated values.</p>
           </div>
         </div>
 
-      {/* Additional Instructions */}
-      <div className="coach-plan-form__section">
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "1rem" }}>
-          Additional Instructions
-        </h2>
-
-        <div className="auth-form__field">
-          <label className="auth-form__label">Allergy Notes</label>
+        <div>
+          <label className={labelClass}>Allergy Notes</label>
           <input
             {...register("allergyNotes")}
-            className="auth-form__input"
+            className={inputClass}
             placeholder="Any allergy-related notes..."
           />
         </div>
 
-        <div className="auth-form__field">
-          <label className="auth-form__label">Custom Instructions</label>
+        <div>
+          <label className={labelClass}>Custom Instructions</label>
           <textarea
             {...register("customInstructions")}
-            className="auth-form__input"
+            className={`${inputClass} min-h-[110px] resize-y`}
             rows={3}
             placeholder="Any additional guidelines for the client..."
           />
         </div>
-      </div>
+      </section>
 
-      {/* Actions */}
-      <div className="coach-plan-form__actions">
-        <button
+      <div className="mt-1 flex flex-col-reverse gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end">
+        <Button
           type="button"
-          onClick={() => router.back()}
-          className="btn btn--outline"
+          onClick={handleCancel}
+          variant="outline"
+          size="lg"
+          className="h-11 w-full rounded-2xl border-slate-300 px-5 text-sm font-semibold text-slate-700 sm:w-auto"
         >
           Cancel
-        </button>
-        <button
+        </Button>
+
+        <Button
           type="button"
           onClick={() => {
             setValue("isDraft", true);
-            handleSubmit(onSubmit)();
+            handleSubmit(onSubmit, onInvalid)();
           }}
-          className="btn btn--outline"
+          variant="outline"
+          size="lg"
+          className="h-11 w-full rounded-2xl border-slate-300 px-5 text-sm font-semibold text-slate-700 sm:w-auto"
           disabled={isSubmitting}
         >
           Save as Draft
-        </button>
-        <button
+        </Button>
+
+        <Button
           type="submit"
-          className="btn btn--primary"
+          size="lg"
+          className="h-11 w-full rounded-2xl px-6 text-sm font-semibold sm:w-auto"
+          onClick={() => setValue("isDraft", false)}
           disabled={isSubmitting}
         >
           {isSubmitting ? "Saving..." : plan ? "Update Plan" : "Create Plan"}
-        </button>
+        </Button>
       </div>
     </form>
   );

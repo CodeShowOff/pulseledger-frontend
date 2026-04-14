@@ -43,12 +43,14 @@ const quickActions = [
     href: "/indian-nutrition-index",
     Icon: BookOpenText,
     iconTone: "bg-cyan-50 text-cyan-600",
+    cardTone: "from-cyan-50 to-sky-50",
   },
   {
     title: "Calorie Calculator",
     href: "/calorie-calculator",
     Icon: Calculator,
     iconTone: "bg-violet-50 text-violet-600",
+    cardTone: "from-violet-50 to-purple-50",
   },
 ] as const;
 
@@ -206,9 +208,14 @@ export default function ClientDashboardPage() {
             <Link
               key={item.title}
               href={item.href}
-              className="group block h-full rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 p-3 shadow-[0_1px_0_0_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_28px_-24px_rgba(15,23,42,0.6)] sm:p-4"
+              className={cn(
+                "group relative block h-full overflow-hidden rounded-2xl border-4 border-white p-3 shadow-[0_14px_24px_-20px_rgba(15,23,42,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white hover:brightness-[1.02] hover:shadow-[0_20px_30px_-20px_rgba(15,23,42,0.48)] active:translate-y-[1px] active:scale-[0.99] active:shadow-[0_10px_22px_-20px_rgba(15,23,42,0.42)] sm:p-4",
+                `bg-gradient-to-br ${item.cardTone}`
+              )}
             >
-              <div className="flex min-h-[108px] flex-col items-center justify-center gap-2.5 text-center sm:min-h-[124px] sm:gap-3">
+              <div className="pointer-events-none absolute -right-8 -top-8 hidden h-20 w-20 rounded-full bg-white/60 blur-xl sm:block" />
+
+              <div className="relative z-[1] flex min-h-[108px] flex-col items-center justify-center gap-2.5 text-center sm:min-h-[124px] sm:gap-3">
                 <span
                   className={cn(
                     "grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-white/80 shadow-sm sm:h-14 sm:w-14",

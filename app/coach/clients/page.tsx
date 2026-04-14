@@ -7,11 +7,10 @@ import { motion } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import { Users } from "lucide-react";
-import { useCoachPendingPlanRequests } from "@/lib/queries/planRequests";
+import { useCoachPendingContactRequestsCount } from "@/lib/queries/contactRequests";
 
 export default function CoachClientsPage() {
-  const { data: pendingRequestsData = [] } = useCoachPendingPlanRequests();
-  const pendingCount = pendingRequestsData.length;
+  const { data: pendingCount = 0 } = useCoachPendingContactRequestsCount();
 
   return (
     <div className="mx-auto w-full max-w-[1640px] space-y-5 pt-2 md:pt-3">
@@ -42,7 +41,7 @@ export default function CoachClientsPage() {
                     className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
                     <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    Received Requests
+                    Contact Requests
                     {pendingCount > 0 ? (
                       <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-xs font-bold leading-none text-white">
                         {pendingCount > 99 ? "99+" : pendingCount}

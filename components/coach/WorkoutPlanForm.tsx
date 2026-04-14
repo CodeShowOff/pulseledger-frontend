@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray, Controller, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -30,8 +30,8 @@ import {
 
 // Schema
 const exerciseSchema = z.object({
-  exerciseId: z.string().optional(),
-  exerciseName: z.string().min(1, "Exercise name required"),
+  exerciseId: z.string().min(1, "Exercise is required"),
+  exerciseName: z.string().optional(),
   reps: z.string().optional(),
   weight: z.string().optional(),
   duration: z.string().optional(),
@@ -284,6 +284,21 @@ export default function WorkoutPlanForm({ plan, onSuccess }: Props) {
     );
   };
 
+  const toExerciseIdString = (exerciseId: unknown): string | undefined => {
+    if (typeof exerciseId === "string") {
+      return exerciseId;
+    }
+
+    if (exerciseId && typeof exerciseId === "object") {
+      const nestedId = (exerciseId as { _id?: unknown })._id;
+      if (typeof nestedId === "string") {
+        return nestedId;
+      }
+    }
+
+    return undefined;
+  };
+
   const onSubmit = async (data: FormValues) => {
     try {
       // Transform weeklySchedule to match backend structure
@@ -299,7 +314,7 @@ export default function WorkoutPlanForm({ plan, onSuccess }: Props) {
           workouts: day.isRestDay ? [] : [{
             name: day.sessionName || "Workout",
             exercises: (day.exercises || []).map((ex, idx) => ({
-              exerciseId: ex.exerciseId,
+              exerciseId: toExerciseIdString((ex as { exerciseId?: unknown }).exerciseId),
               exerciseName: ex.exerciseName,
               order: idx + 1,
               reps: ex.reps ? parseInt(ex.reps) || undefined : undefined,
@@ -329,6 +344,20 @@ export default function WorkoutPlanForm({ plan, onSuccess }: Props) {
     }
   };
 
+  const onInvalid = (formErrors: FieldErrors<FormValues>) => {
+    void formErrors;
+    toast.error("Please review required fields before saving.");
+  };
+
+  const handleCancel = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push("/coach/workout-plans");
+  };
+
   const labelClass = "mb-1.5 block text-[0.82rem] font-semibold tracking-wide text-slate-700";
   const inputClass =
     "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100";
@@ -336,7 +365,7 @@ export default function WorkoutPlanForm({ plan, onSuccess }: Props) {
     "w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100";
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="flex flex-col gap-5">
       <section className="space-y-6 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -558,7 +587,7 @@ export default function WorkoutPlanForm({ plan, onSuccess }: Props) {
                                 <div className="flex min-w-0 items-center gap-2 sm:col-span-2 lg:col-span-1">
                                   <GripVertical className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                                   <span className="truncate text-sm font-medium text-slate-800">
-                                    {ex.exerciseName}
+                                    {ex.exerciseName || "Exercise"}
                                   </span>
                                 </div>
                                 <div className="space-y-1">
@@ -727,7 +756,7 @@ export default function WorkoutPlanForm({ plan, onSuccess }: Props) {
       <div className="mt-1 flex flex-col-reverse gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end">
         <Button
           type="button"
-          onClick={() => router.back()}
+          onClick={handleCancel}
           variant="outline"
           size="lg"
           className="h-11 w-full rounded-2xl border-slate-300 px-5 text-sm font-semibold text-slate-700 sm:w-auto"
@@ -738,7 +767,7 @@ export default function WorkoutPlanForm({ plan, onSuccess }: Props) {
           type="button"
           onClick={() => {
             setValue("isDraft", true);
-            handleSubmit(onSubmit)();
+            handleSubmit(onSubmit, onInvalid)();
           }}
           variant="outline"
           size="lg"

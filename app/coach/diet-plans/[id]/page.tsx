@@ -1,19 +1,56 @@
-// app/coach/diet-plans/[id]/page.tsx
 "use client";
 
-import React, { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
+import { useMemo } from "react";
+import { useParams } from "next/navigation";
+import { motion } from "@/lib/motion";
 import {
+  Apple,
   ArrowLeft,
+  Calendar,
+  Droplets,
   Edit2,
+  Flame,
+  Sparkles,
   Target,
   Utensils,
-  Flame,
-  Droplets,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
-import { useCoachDietPlan } from "@/lib/queries/diet";
+import {
+  useCoachDietPlan,
+  type CoachDietPlan,
+  type Meal,
+  type MealFood,
+} from "@/lib/queries/diet";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+const DAYS_SUNDAY_FIRST = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+const DAYS_MONDAY_FIRST = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 const MEAL_TYPE_LABELS: Record<string, string> = {
   breakfast: "Breakfast",
@@ -26,770 +63,610 @@ const MEAL_TYPE_LABELS: Record<string, string> = {
   post_workout: "Post-Workout",
 };
 
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+};
+
+type DietPlanDay = NonNullable<CoachDietPlan["weeklySchedule"]>[number];
+
+type DisplayMealFood = Omit<MealFood, "foodItemId"> & {
+  foodItemId?: string | { name?: string; servingUnit?: string };
+};
+
+function prettifyLabel(value?: string) {
+  if (!value) return "Not set";
+  return value
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function getDayLabel(day: DietPlanDay, dayIndex: number) {
+  if (day.dayName?.trim()) return day.dayName;
+
+  if (typeof day.dayOfWeek === "number" && day.dayOfWeek >= 0 && day.dayOfWeek < 7) {
+    return DAYS_SUNDAY_FIRST[day.dayOfWeek];
+  }
+
+  if (typeof day.dayNumber === "number" && day.dayNumber >= 1 && day.dayNumber <= 7) {
+    return DAYS_MONDAY_FIRST[day.dayNumber - 1];
+  }
+
+  return DAYS_SUNDAY_FIRST[dayIndex] || `Day ${dayIndex + 1}`;
+}
+
+function getMealLabel(meal: Meal, mealIndex: number) {
+  if (meal.name?.trim()) return meal.name;
+  if (meal.mealType?.trim()) {
+    return MEAL_TYPE_LABELS[meal.mealType] || prettifyLabel(meal.mealType);
+  }
+
+  return `Meal ${mealIndex + 1}`;
+}
+
+function getFoodName(food: DisplayMealFood) {
+  if (typeof food.foodItemId === "object" && food.foodItemId?.name) {
+    return food.foodItemId.name;
+  }
+
+  return food.foodName || "Food item";
+}
+
+function getFoodUnit(food: DisplayMealFood) {
+  if (food.unit) return food.unit;
+
+  if (typeof food.foodItemId === "object" && food.foodItemId?.servingUnit) {
+    return food.foodItemId.servingUnit;
+  }
+
+  return "";
+}
+
 export default function ViewDietPlanPage() {
-  const router = useRouter();
   const params = useParams();
-  const planId = params?.id as string;
-  const [expandedDays, setExpandedDays] = useState<number[]>([]);
+  const planIdParam = params?.id;
+  const planId = Array.isArray(planIdParam) ? planIdParam[0] : planIdParam;
+  const safePlanId = typeof planId === "string" ? planId : "";
 
-  const { data: plan, isLoading, error } = useCoachDietPlan(planId);
+  const { data: plan, isLoading, error } = useCoachDietPlan(safePlanId);
 
-  const toggleDay = (dayIndex: number) => {
-    setExpandedDays(prev => 
-      prev.includes(dayIndex) 
-        ? prev.filter(i => i !== dayIndex)
-        : [...prev, dayIndex]
-    );
-  };
+  const nutritionTargets = useMemo(() => {
+    if (!plan?.dailyTargets) return [];
+
+    const { calories, protein, carbohydrates, fat, fiber, water } = plan.dailyTargets;
+
+    return [
+      calories != null
+        ? {
+            key: "calories",
+            label: "Calories",
+            value: `${calories} kcal`,
+            tone: "border-orange-200 bg-orange-50 text-orange-700",
+          }
+        : null,
+      protein != null
+        ? {
+            key: "protein",
+            label: "Protein",
+            value: `${protein}g`,
+            tone: "border-rose-200 bg-rose-50 text-rose-700",
+          }
+        : null,
+      carbohydrates != null
+        ? {
+            key: "carbohydrates",
+            label: "Carbs",
+            value: `${carbohydrates}g`,
+            tone: "border-blue-200 bg-blue-50 text-blue-700",
+          }
+        : null,
+      fat != null
+        ? {
+            key: "fat",
+            label: "Fat",
+            value: `${fat}g`,
+            tone: "border-amber-200 bg-amber-50 text-amber-700",
+          }
+        : null,
+      fiber != null
+        ? {
+            key: "fiber",
+            label: "Fiber",
+            value: `${fiber}g`,
+            tone: "border-emerald-200 bg-emerald-50 text-emerald-700",
+          }
+        : null,
+      water != null
+        ? {
+            key: "water",
+            label: "Water",
+            value: `${water} L`,
+            tone: "border-cyan-200 bg-cyan-50 text-cyan-700",
+          }
+        : null,
+    ].filter((target): target is NonNullable<typeof target> => target !== null);
+  }, [plan?.dailyTargets]);
 
   if (isLoading) {
     return (
-      <div className="admin-page" style={{ padding: "2rem", textAlign: "center" }}>
-        Loading plan...
+      <div className="space-y-4 pt-4 md:pt-6">
+        <Card>
+          <CardContent className="p-6 text-sm text-slate-600">
+            Loading plan...
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error || !plan) {
     return (
-      <div className="admin-page" style={{ padding: "2rem", textAlign: "center" }}>
-        Plan not found
+      <div className="space-y-4 pt-4 md:pt-6">
+        <Card>
+          <CardContent className="flex flex-col gap-3 p-6">
+            <p className="text-sm font-medium text-rose-700">Plan not found.</p>
+            <Link href="/coach/diet-plans" className="w-fit">
+              <Button variant="outline" size="sm">
+                Back to Diet Plans
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="admin-page" style={{ paddingBottom: "2rem" }}>
-      <div className="admin-page-header">
-        <button
-          onClick={() => router.back()}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            padding: "0.5rem 1rem",
-            backgroundColor: "transparent",
-            border: "none",
-            cursor: "pointer",
-            color: "var(--admin-color-text-secondary)",
-            marginBottom: "1rem",
-          }}
-        >
-          <ArrowLeft style={{ width: 18, height: 18 }} />
-          Back
-        </button>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <h1 className="admin-page-header__title" style={{ margin: 0 }}>
-                {plan.name}
-              </h1>
-              {plan.isDraft && (
-                <span
-                  style={{
-                    padding: "0.25rem 0.75rem",
-                    fontSize: "0.75rem",
-                    backgroundColor: "#fef3c7",
-                    color: "#d97706",
-                    borderRadius: "999px",
-                  }}
-                >
-                  Draft
-                </span>
-              )}
-            </div>
-            {plan.description && (
-              <p
-                className="admin-page-header__description"
-                style={{ marginTop: "0.5rem" }}
-              >
-                {plan.description}
-              </p>
-            )}
-          </div>
-          <button
-            onClick={() => router.push(`/coach/diet-plans/${planId}/edit`)}
-            className="btn btn--primary"
-            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-          >
-            <Edit2 style={{ width: 16, height: 16 }} />
-            Edit Plan
-          </button>
-        </div>
-      </div>
-
-      {/* Plan Overview */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "1rem",
-          marginBottom: "2rem",
-        }}
+    <div className="space-y-5 pt-4 md:pt-6">
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28 }}
       >
-        <div
-          style={{
-            padding: "1rem",
-            backgroundColor: "#f0fdf4",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-          }}
-        >
-          <Target style={{ width: 20, height: 20, color: "#16a34a" }} />
-          <div>
-            <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Goal</p>
-            <p style={{ fontWeight: 600, textTransform: "capitalize" }}>
-              {plan.goal?.replace(/_/g, " ") || "Not set"}
-            </p>
-          </div>
-        </div>
+        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
+          <CardHeader className="gap-3 p-4 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                {plan.isDraft ? (
+                  <Badge className="w-fit !border-amber-200 !bg-amber-100 !text-amber-900 text-[10px] sm:text-xs">
+                    Draft
+                  </Badge>
+                ) : null}
 
-        <div
-          style={{
-            padding: "1rem",
-            backgroundColor: "#fef3c7",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-          }}
-        >
-          <Flame style={{ width: 20, height: 20, color: "#d97706" }} />
-          <div>
-            <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Daily Calories</p>
-            <p style={{ fontWeight: 600 }}>
-              {plan.dailyTargets?.calories || 0} kcal
-            </p>
-          </div>
-        </div>
+                <h1 className="text-lg font-bold tracking-tight text-white sm:text-3xl">
+                  {plan.name}
+                </h1>
 
-        <div
-          style={{
-            padding: "1rem",
-            backgroundColor: "#eff6ff",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-          }}
-        >
-          <Utensils style={{ width: 20, height: 20, color: "#2563eb" }} />
-          <div>
-            <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Meals/Day</p>
-            <p style={{ fontWeight: 600 }}>
-              {plan.mealsPerDay || plan.meals?.length || 0}
-            </p>
-          </div>
-        </div>
+                <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block sm:text-base">
+                  {plan.description ||
+                    "Review your meal structure, targets, and schedule before assigning this plan."}
+                </CardDescription>
+              </div>
 
-        <div
-          style={{
-            padding: "1rem",
-            backgroundColor: "#f0f9ff",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-          }}
-        >
-          <Droplets style={{ width: 20, height: 20, color: "#0ea5e9" }} />
-          <div>
-            <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Water</p>
-            <p style={{ fontWeight: 600 }}>
-              {plan.dailyTargets?.water || 0} L/day
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Daily Targets */}
-      {plan.dailyTargets && (
-        <div style={{ marginBottom: "2rem" }}>
-          <h2
-            style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.75rem" }}
-          >
-            Daily Nutritional Targets
-          </h2>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(5, 1fr)",
-              gap: "1rem",
-              padding: "1rem",
-              backgroundColor: "#f9fafb",
-              borderRadius: "8px",
-            }}
-          >
-            <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Calories</p>
-              <p style={{ fontSize: "1.25rem", fontWeight: 700, color: "#f97316" }}>
-                {plan.dailyTargets.calories || 0}
-              </p>
-              <p style={{ fontSize: "0.7rem", color: "#9ca3af" }}>kcal</p>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Protein</p>
-              <p style={{ fontSize: "1.25rem", fontWeight: 700, color: "#ef4444" }}>
-                {plan.dailyTargets.protein || 0}
-              </p>
-              <p style={{ fontSize: "0.7rem", color: "#9ca3af" }}>g</p>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Carbs</p>
-              <p style={{ fontSize: "1.25rem", fontWeight: 700, color: "#3b82f6" }}>
-                {plan.dailyTargets.carbohydrates || 0}
-              </p>
-              <p style={{ fontSize: "0.7rem", color: "#9ca3af" }}>g</p>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Fat</p>
-              <p style={{ fontSize: "1.25rem", fontWeight: 700, color: "#eab308" }}>
-                {plan.dailyTargets.fat || 0}
-              </p>
-              <p style={{ fontSize: "0.7rem", color: "#9ca3af" }}>g</p>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>Fiber</p>
-              <p style={{ fontSize: "1.25rem", fontWeight: 700, color: "#22c55e" }}>
-                {plan.dailyTargets.fiber || 0}
-              </p>
-              <p style={{ fontSize: "0.7rem", color: "#9ca3af" }}>g</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Linked Subscription Plans */}
-      {plan.subscriptionPlanIds && plan.subscriptionPlanIds.length > 0 && (
-        <div style={{ marginBottom: "2rem" }}>
-          <h2
-            style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.75rem" }}
-          >
-            Linked Subscription Plans
-          </h2>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-            {plan.subscriptionPlanIds.map((sp: any) => (
-              <span
-                key={sp._id}
-                style={{
-                  padding: "0.35rem 0.75rem",
-                  fontSize: "0.85rem",
-                  backgroundColor: "#f3f4f6",
-                  borderRadius: "6px",
-                }}
-              >
-                {sp.title}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Meal Plan */}
-      <div>
-        <h2
-          style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.75rem" }}
-        >
-          Meal Plan
-        </h2>
-
-        {plan.weeklySchedule && plan.weeklySchedule.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            {plan.weeklySchedule.map((day: any, dayIndex: number) => {
-              const dayName = day.dayName || ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][day.dayOfWeek] || `Day ${dayIndex + 1}`;
-              const isExpanded = expandedDays.includes(dayIndex);
-              
-              return (
-                <div
-                  key={dayIndex}
-                  style={{
-                    border: "2px solid #e5e7eb",
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    onClick={() => toggleDay(dayIndex)}
-                    style={{
-                      padding: "1rem",
-                      backgroundColor: "#f0fdf4",
-                      borderBottom: isExpanded ? "2px solid #e5e7eb" : "none",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
+              <div className="flex w-full flex-nowrap gap-1.5 sm:w-auto sm:gap-2 md:justify-end">
+                <Link href="/coach/diet-plans" className="min-w-0 flex-1 sm:flex-none">
+                  <Button
+                    variant="outline"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
-                    <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                        <h3 style={{ fontSize: "0.95rem", fontWeight: 600, color: "#16a34a", margin: 0 }}>
-                          {dayName}
-                        </h3>
-                        <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
-                          ({day.meals?.length || 0} meals)
-                        </span>
-                      </div>
-                      {day.notes && (
-                        <p style={{ fontSize: "0.8rem", color: "#6b7280", marginTop: "0.25rem", fontStyle: "italic", margin: "0.25rem 0 0 0" }}>
-                          💡 {day.notes}
-                        </p>
+                    <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    Diet Plans
+                  </Button>
+                </Link>
+
+                <Link href={`/coach/diet-plans/${safePlanId}/edit`} className="min-w-0 flex-1 sm:flex-none">
+                  <Button className="h-9 w-full justify-center gap-1.5 whitespace-nowrap rounded-xl !bg-white px-2 text-[11px] font-semibold leading-none !text-indigo-700 hover:!bg-indigo-50 sm:h-10 sm:w-auto sm:px-3 sm:text-sm">
+                    <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    Edit Plan
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </motion.section>
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.05 }}
+      >
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Target className="h-4 w-4" />
+              </span>
+              Plan overview
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                <p className="text-[10px] uppercase tracking-wide text-slate-500">Goal</p>
+                <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                  <Target className="h-3.5 w-3.5 text-emerald-600" />
+                  {prettifyLabel(plan.goal)}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                <p className="text-[10px] uppercase tracking-wide text-slate-500">Dietary Type</p>
+                <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                  <Apple className="h-3.5 w-3.5 text-blue-600" />
+                  {prettifyLabel(plan.dietaryType)}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                <p className="text-[10px] uppercase tracking-wide text-slate-500">Meals / Day</p>
+                <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                  <Utensils className="h-3.5 w-3.5 text-amber-600" />
+                  {plan.mealsPerDay || plan.meals?.length || 0}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                <p className="text-[10px] uppercase tracking-wide text-slate-500">Days / Week</p>
+                <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                  <Calendar className="h-3.5 w-3.5 text-pink-600" />
+                  {plan.daysPerWeek || plan.weeklySchedule?.length || 0} days
+                </p>
+              </div>
+            </div>
+
+            {nutritionTargets.length > 0 ? (
+              <div>
+                <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <Flame className="h-4 w-4 text-slate-500" />
+                  Daily targets
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {nutritionTargets.map((target) => (
+                    <Badge
+                      key={target.key}
+                      className={cn(
+                        "border px-2 py-0.5 text-[11px] normal-case tracking-normal",
+                        target.tone
                       )}
-                    </div>
-                    {isExpanded ? (
-                      <ChevronUp style={{ width: 20, height: 20, color: "#16a34a" }} />
-                    ) : (
-                      <ChevronDown style={{ width: 20, height: 20, color: "#16a34a" }} />
-                    )}
-                  </div>
+                    >
+                      {target.label}: {target.value}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
-                  {isExpanded && (
-                    <div>
-                      {day.meals && day.meals.length > 0 ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "1rem", padding: "1rem" }}>
-                      {day.meals.map((meal: any, mealIndex: number) => (
-                        <div
-                          key={mealIndex}
-                          style={{
-                            border: "1px solid #e5e7eb",
-                            borderRadius: "8px",
-                            overflow: "hidden",
-                          }}
+            {(plan.dietaryRestrictions && plan.dietaryRestrictions.length > 0) ||
+            (plan.foodsToAvoid && plan.foodsToAvoid.length > 0) ? (
+              <div className="grid gap-3 md:grid-cols-2">
+                {plan.dietaryRestrictions && plan.dietaryRestrictions.length > 0 ? (
+                  <div>
+                    <p className="mb-2 text-sm font-semibold text-slate-800">Dietary restrictions</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {plan.dietaryRestrictions.map((restriction, index) => (
+                        <Badge
+                          key={`${restriction}-${index}`}
+                          variant="secondary"
+                          className="px-2 py-0.5 text-[11px] normal-case tracking-normal"
                         >
-                          <div
-                            style={{
-                              padding: "0.75rem 1rem",
-                              backgroundColor: "#fafafa",
-                              borderBottom: "1px solid #e5e7eb",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            <div
-                              style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
-                            >
-                              <Utensils style={{ width: 16, height: 16, color: "#16a34a" }} />
-                              <span style={{ fontWeight: 600 }}>
-                                {meal.name || MEAL_TYPE_LABELS[meal.mealType] || "Meal"}
-                              </span>
-                              {meal.time && (
-                                <span
-                                  style={{
-                                    fontSize: "0.75rem",
-                                    padding: "0.2rem 0.5rem",
-                                    backgroundColor: "#fff",
-                                    borderRadius: "4px",
-                                    color: "#6b7280",
-                                  }}
-                                >
-                                  {meal.time}
-                                </span>
-                              )}
-                            </div>
-                            <span
-                              style={{
-                                fontSize: "0.75rem",
-                                padding: "0.2rem 0.5rem",
-                                backgroundColor: "#e5e7eb",
-                                borderRadius: "4px",
-                                color: "#6b7280",
-                              }}
-                            >
-                              {meal.foods?.length || 0} items
-                            </span>
-                          </div>
-
-                          {meal.foods && meal.foods.length > 0 && (
-                            <div style={{ padding: "0.75rem 1rem" }}>
-                              <table style={{ width: "100%", fontSize: "0.85rem" }}>
-                                <thead>
-                                  <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-                                    <th
-                                      style={{
-                                        textAlign: "left",
-                                        padding: "0.5rem 0.5rem 0.5rem 0",
-                                        fontWeight: 500,
-                                        color: "#6b7280",
-                                      }}
-                                    >
-                                      Food
-                                    </th>
-                                    <th
-                                      style={{
-                                        textAlign: "center",
-                                        padding: "0.5rem",
-                                        fontWeight: 500,
-                                        color: "#6b7280",
-                                      }}
-                                    >
-                                      Quantity
-                                    </th>
-                                    <th
-                                      style={{
-                                        textAlign: "center",
-                                        padding: "0.5rem",
-                                        fontWeight: 500,
-                                        color: "#6b7280",
-                                      }}
-                                    >
-                                      Calories
-                                    </th>
-                                    <th
-                                      style={{
-                                        textAlign: "center",
-                                        padding: "0.5rem",
-                                        fontWeight: 500,
-                                        color: "#6b7280",
-                                      }}
-                                    >
-                                      Protein
-                                    </th>
-                                    <th
-                                      style={{
-                                        textAlign: "center",
-                                        padding: "0.5rem",
-                                        fontWeight: 500,
-                                        color: "#6b7280",
-                                      }}
-                                    >
-                                      Carbs
-                                    </th>
-                                    <th
-                                      style={{
-                                        textAlign: "center",
-                                        padding: "0.5rem",
-                                        fontWeight: 500,
-                                        color: "#6b7280",
-                                      }}
-                                    >
-                                      Fat
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {meal.foods.map((food: any, foodIndex: number) => (
-                                    <tr
-                                      key={foodIndex}
-                                      style={{
-                                        borderBottom:
-                                          foodIndex < meal.foods.length - 1
-                                            ? "1px solid #f3f4f6"
-                                            : "none",
-                                      }}
-                                    >
-                                      <td style={{ padding: "0.5rem 0.5rem 0.5rem 0" }}>
-                                        {food.foodName ||
-                                          food.foodItemId?.name ||
-                                          "Food item"}
-                                      </td>
-                                      <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                                        {food.quantity} {food.unit || "g"}
-                                      </td>
-                                      <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                                        {food.calories || "-"} kcal
-                                      </td>
-                                      <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                                        {food.protein || "-"}g
-                                      </td>
-                                      <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                                        {food.carbs || "-"}g
-                                      </td>
-                                      <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                                        {food.fat || "-"}g
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
-
-                          {(!meal.foods || meal.foods.length === 0) && (
-                            <div
-                              style={{
-                                padding: "1rem",
-                                textAlign: "center",
-                                color: "#9ca3af",
-                                fontSize: "0.85rem",
-                              }}
-                            >
-                              No foods added for this meal
-                            </div>
-                          )}
-                        </div>
+                          {prettifyLabel(restriction)}
+                        </Badge>
                       ))}
                     </div>
-                  ) : (
-                    <p
-                      style={{
-                        padding: "1rem",
-                        textAlign: "center",
-                        color: "#6b7280",
-                        fontStyle: "italic",
-                      }}
-                    >
-                      No meals added for this day
+                  </div>
+                ) : null}
+
+                {plan.foodsToAvoid && plan.foodsToAvoid.length > 0 ? (
+                  <div>
+                    <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
+                      <Droplets className="h-4 w-4 text-slate-500" />
+                      Foods to avoid
                     </p>
-                  )}
+                    <div className="flex flex-wrap gap-1.5">
+                      {plan.foodsToAvoid.map((food, index) => (
+                        <Badge
+                          key={`${food}-${index}`}
+                          variant="danger"
+                          className="px-2 py-0.5 text-[11px] normal-case tracking-normal"
+                        >
+                          {prettifyLabel(food)}
+                        </Badge>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      {plan.subscriptionPlanIds && plan.subscriptionPlanIds.length > 0 ? (
+        <motion.section
+          variants={fadeInUp}
+          initial="initial"
+          animate="animate"
+          transition={{ duration: 0.28, delay: 0.1 }}
+        >
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <Sparkles className="h-4 w-4" />
+                </span>
+                Linked subscription plans
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent>
+              <div className="flex flex-wrap gap-1.5">
+                {plan.subscriptionPlanIds.map((subscriptionPlan) => (
+                  <Badge
+                    key={subscriptionPlan._id}
+                    className="border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] normal-case tracking-normal text-indigo-700"
+                  >
+                    {subscriptionPlan.title}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.section>
+      ) : null}
+
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.15 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Calendar className="h-4 w-4" />
+              </span>
+              Meal schedule
+            </CardTitle>
+            <CardDescription>Daily meal structure with foods and nutrition cues.</CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            {plan.weeklySchedule && plan.weeklySchedule.length > 0 ? (
+              <div className="space-y-2">
+                {plan.weeklySchedule.map((day: DietPlanDay, dayIndex: number) => {
+                  const dayLabel = getDayLabel(day, dayIndex);
+                  const meals = day.meals ?? [];
+
+                  return (
+                    <article
+                      key={`${day.dayName || day.dayNumber || day.dayOfWeek || "day"}-${dayIndex}`}
+                      className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-emerald-50/60 px-3 py-2.5">
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-semibold text-slate-900">{dayLabel}</h3>
+                          {day.notes ? (
+                            <p className="text-xs text-slate-600">{day.notes}</p>
+                          ) : null}
+                        </div>
+
+                        <Badge
+                          variant="secondary"
+                          className="border border-slate-200 bg-white px-2 py-0.5 text-[11px] normal-case tracking-normal text-slate-700"
+                        >
+                          {meals.length} {meals.length === 1 ? "meal" : "meals"}
+                        </Badge>
+                      </div>
+
+                      {meals.length > 0 ? (
+                        <div className="space-y-2 p-3">
+                          {meals.map((meal: Meal, mealIndex: number) => {
+                            const foods = (meal.foods ?? []) as DisplayMealFood[];
+
+                            return (
+                              <section
+                                key={`${meal.mealType || "meal"}-${mealIndex}`}
+                                className="rounded-lg border border-slate-200 bg-slate-50/70 p-3"
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <p className="text-sm font-semibold text-slate-800">
+                                    {getMealLabel(meal, mealIndex)}
+                                  </p>
+
+                                  <div className="flex items-center gap-1.5">
+                                    {meal.time ? (
+                                      <Badge
+                                        variant="secondary"
+                                        className="px-2 py-0.5 text-[10px] normal-case tracking-normal"
+                                      >
+                                        {meal.time}
+                                      </Badge>
+                                    ) : null}
+
+                                    <Badge
+                                      variant="secondary"
+                                      className="px-2 py-0.5 text-[10px] normal-case tracking-normal"
+                                    >
+                                      {foods.length} items
+                                    </Badge>
+                                  </div>
+                                </div>
+
+                                {foods.length > 0 ? (
+                                  <ul className="mt-2 space-y-1.5">
+                                    {foods.map((food, foodIndex) => {
+                                      const macros = [
+                                        food.calories != null ? `${food.calories} kcal` : null,
+                                        food.protein != null ? `${food.protein}g P` : null,
+                                        food.carbs != null ? `${food.carbs}g C` : null,
+                                        food.fat != null ? `${food.fat}g F` : null,
+                                      ].filter(Boolean);
+
+                                      return (
+                                        <li
+                                          key={`${food.foodName || "food"}-${foodIndex}`}
+                                          className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5"
+                                        >
+                                          <div className="flex items-center justify-between gap-3">
+                                            <p className="truncate text-xs font-medium text-slate-800">
+                                              {getFoodName(food)}
+                                            </p>
+                                            <p className="shrink-0 text-[11px] font-semibold text-slate-500">
+                                              {food.quantity} {getFoodUnit(food)}
+                                            </p>
+                                          </div>
+
+                                          {macros.length > 0 ? (
+                                            <p className="mt-1 text-[10px] text-slate-500">
+                                              {macros.join(" • ")}
+                                            </p>
+                                          ) : null}
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                ) : (
+                                  <p className="mt-2 text-xs text-slate-500">No foods in this meal.</p>
+                                )}
+
+                                {meal.notes ? (
+                                  <p className="mt-2 text-[11px] text-slate-500">Note: {meal.notes}</p>
+                                ) : null}
+                              </section>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="px-3 py-3 text-sm text-slate-500">No meals added for this day.</div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            ) : plan.meals && plan.meals.length > 0 ? (
+              <div className="space-y-2">
+                <article className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                  <div className="border-b border-slate-200 bg-emerald-50/60 px-3 py-2.5">
+                    <h3 className="text-sm font-semibold text-slate-900">Daily meals</h3>
+                  </div>
+
+                  <div className="space-y-2 p-3">
+                    {plan.meals.map((meal: Meal, mealIndex: number) => {
+                      const foods = (meal.foods ?? []) as DisplayMealFood[];
+
+                      return (
+                        <section
+                          key={`${meal.mealType || "daily-meal"}-${mealIndex}`}
+                          className="rounded-lg border border-slate-200 bg-slate-50/70 p-3"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="text-sm font-semibold text-slate-800">
+                              {getMealLabel(meal, mealIndex)}
+                            </p>
+
+                            <div className="flex items-center gap-1.5">
+                              {meal.time ? (
+                                <Badge
+                                  variant="secondary"
+                                  className="px-2 py-0.5 text-[10px] normal-case tracking-normal"
+                                >
+                                  {meal.time}
+                                </Badge>
+                              ) : null}
+
+                              <Badge
+                                variant="secondary"
+                                className="px-2 py-0.5 text-[10px] normal-case tracking-normal"
+                              >
+                                {foods.length} items
+                              </Badge>
+                            </div>
+                          </div>
+
+                          {foods.length > 0 ? (
+                            <ul className="mt-2 space-y-1.5">
+                              {foods.map((food, foodIndex) => (
+                                <li
+                                  key={`${food.foodName || "food"}-${foodIndex}`}
+                                  className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-2.5 py-1.5"
+                                >
+                                  <p className="truncate text-xs font-medium text-slate-800">
+                                    {getFoodName(food)}
+                                  </p>
+                                  <p className="shrink-0 text-[11px] font-semibold text-slate-500">
+                                    {food.quantity} {getFoodUnit(food)}
+                                  </p>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="mt-2 text-xs text-slate-500">No foods in this meal.</p>
+                          )}
+
+                          {meal.notes ? (
+                            <p className="mt-2 text-[11px] text-slate-500">Note: {meal.notes}</p>
+                          ) : null}
+                        </section>
+                      );
+                    })}
+                  </div>
+                </article>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-8 text-center text-sm text-slate-500">
+                No meals configured for this plan.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      {plan.allergyNotes || plan.customInstructions ? (
+        <motion.section
+          variants={fadeInUp}
+          initial="initial"
+          animate="animate"
+          transition={{ duration: 0.28, delay: 0.2 }}
+        >
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <Sparkles className="h-4 w-4" />
+                </span>
+                Additional notes
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent className="space-y-3">
+              {plan.allergyNotes ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Allergy notes
+                  </p>
+                  <p className="mt-1 text-sm text-slate-700">{plan.allergyNotes}</p>
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "1rem",
-            }}
-          >
-            {plan.meals?.map((meal: any, mealIndex: number) => (
-              <div
-                key={mealIndex}
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    padding: "0.75rem 1rem",
-                    backgroundColor: "#f0fdf4",
-                    borderBottom: "1px solid #e5e7eb",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
-                  >
-                    <Utensils style={{ width: 16, height: 16, color: "#16a34a" }} />
-                    <span style={{ fontWeight: 600 }}>
-                      {meal.name || MEAL_TYPE_LABELS[meal.mealType] || "Meal"}
-                    </span>
-                    {meal.time && (
-                      <span
-                        style={{
-                          fontSize: "0.75rem",
-                          padding: "0.2rem 0.5rem",
-                          backgroundColor: "#fff",
-                          borderRadius: "4px",
-                          color: "#6b7280",
-                        }}
-                      >
-                        {meal.time}
-                      </span>
-                    )}
-                  </div>
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      padding: "0.2rem 0.5rem",
-                      backgroundColor: "#e5e7eb",
-                      borderRadius: "4px",
-                      color: "#6b7280",
-                    }}
-                  >
-                    {meal.foods?.length || 0} items
-                  </span>
+              ) : null}
+
+              {plan.customInstructions ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Custom instructions
+                  </p>
+                  <p className="mt-1 text-sm text-slate-700">{plan.customInstructions}</p>
                 </div>
-
-                {meal.foods && meal.foods.length > 0 && (
-                  <div style={{ padding: "0.75rem 1rem" }}>
-                    <table style={{ width: "100%", fontSize: "0.85rem" }}>
-                      <thead>
-                        <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-                          <th
-                            style={{
-                              textAlign: "left",
-                              padding: "0.5rem 0.5rem 0.5rem 0",
-                              fontWeight: 500,
-                              color: "#6b7280",
-                            }}
-                          >
-                            Food
-                          </th>
-                          <th
-                            style={{
-                              textAlign: "center",
-                              padding: "0.5rem",
-                              fontWeight: 500,
-                              color: "#6b7280",
-                            }}
-                          >
-                            Quantity
-                          </th>
-                          <th
-                            style={{
-                              textAlign: "center",
-                              padding: "0.5rem",
-                              fontWeight: 500,
-                              color: "#6b7280",
-                            }}
-                          >
-                            Calories
-                          </th>
-                          <th
-                            style={{
-                              textAlign: "center",
-                              padding: "0.5rem",
-                              fontWeight: 500,
-                              color: "#6b7280",
-                            }}
-                          >
-                            Protein
-                          </th>
-                          <th
-                            style={{
-                              textAlign: "center",
-                              padding: "0.5rem",
-                              fontWeight: 500,
-                              color: "#6b7280",
-                            }}
-                          >
-                            Carbs
-                          </th>
-                          <th
-                            style={{
-                              textAlign: "center",
-                              padding: "0.5rem",
-                              fontWeight: 500,
-                              color: "#6b7280",
-                            }}
-                          >
-                            Fat
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {meal.foods.map((food: any, foodIndex: number) => (
-                          <tr
-                            key={foodIndex}
-                            style={{
-                              borderBottom:
-                                foodIndex < meal.foods.length - 1
-                                  ? "1px solid #f3f4f6"
-                                  : "none",
-                            }}
-                          >
-                            <td style={{ padding: "0.5rem 0.5rem 0.5rem 0" }}>
-                              {food.foodName ||
-                                food.foodItemId?.name ||
-                                "Food item"}
-                            </td>
-                            <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                              {food.quantity} {food.unit || "g"}
-                            </td>
-                            <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                              {food.calories || "-"} kcal
-                            </td>
-                            <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                              {food.protein || "-"}g
-                            </td>
-                            <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                              {food.carbs || "-"}g
-                            </td>
-                            <td style={{ textAlign: "center", padding: "0.5rem" }}>
-                              {food.fat || "-"}g
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {(!meal.foods || meal.foods.length === 0) && (
-                  <div
-                    style={{
-                      padding: "1rem",
-                      textAlign: "center",
-                      color: "#9ca3af",
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    No foods added for this meal
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {(!plan.meals || plan.meals.length === 0) && (
-              <div
-                style={{
-                  padding: "2rem",
-                  textAlign: "center",
-                  color: "#9ca3af",
-                  backgroundColor: "#f9fafb",
-                  borderRadius: "8px",
-                }}
-              >
-                No meals configured for this plan
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Additional Instructions */}
-      {(plan.allergyNotes || plan.customInstructions) && (
-        <div style={{ marginTop: "2rem" }}>
-          <h2
-            style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.75rem" }}
-          >
-            Additional Notes
-          </h2>
-          <div
-            style={{
-              padding: "1rem",
-              backgroundColor: "#f9fafb",
-              borderRadius: "8px",
-            }}
-          >
-            {plan.allergyNotes && (
-              <div style={{ marginBottom: plan.customInstructions ? "1rem" : 0 }}>
-                <p
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "#6b7280",
-                    marginBottom: "0.25rem",
-                  }}
-                >
-                  Allergy Notes
-                </p>
-                <p style={{ fontSize: "0.9rem" }}>{plan.allergyNotes}</p>
-              </div>
-            )}
-            {plan.customInstructions && (
-              <div>
-                <p
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "#6b7280",
-                    marginBottom: "0.25rem",
-                  }}
-                >
-                  Custom Instructions
-                </p>
-                <p style={{ fontSize: "0.9rem" }}>{plan.customInstructions}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+              ) : null}
+            </CardContent>
+          </Card>
+        </motion.section>
+      ) : null}
     </div>
   );
 }
