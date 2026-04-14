@@ -14,7 +14,7 @@ import {
   CreditCard,
   Package,
   Users,
-  ClipboardList,
+  FileText,
   MessageSquare,
 } from "lucide-react";
 
@@ -88,14 +88,14 @@ const Navbar = React.memo(function Navbar() {
     { label: "Dashboard", href: "/coach/dashboard", icon: LayoutDashboard },
     { label: "Chat", href: "/coach/chat", icon: MessageSquare },
     { label: "Clients", href: "/coach/clients", icon: Users },
-    { label: "Plans", href: "/coach/plans", icon: ClipboardList },
+    { label: "Plans", href: "/coach/plans", icon: FileText },
     { label: "Products", href: "/coach/products", icon: Package },
   ];
 
   const adminLinks = [
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { label: "Users", href: "/admin/users", icon: Users },
-    { label: "Plans", href: "/admin/plans", icon: ClipboardList },
+    { label: "Plans", href: "/admin/plans", icon: FileText },
     { label: "Products", href: "/admin/products", icon: Package },
     { label: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
   ];

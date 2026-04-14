@@ -198,7 +198,6 @@ export default function CoachDashboard() {
       href: "/profile",
       Icon: UserCircle2,
       color: "from-sky-500 to-cyan-500",
-      bg: "from-sky-50 to-cyan-50",
     },
     {
       label: "Platform Fee",
@@ -206,7 +205,6 @@ export default function CoachDashboard() {
       href: "/coach/platform-fee",
       Icon: CreditCard,
       color: "from-indigo-500 to-blue-500",
-      bg: "from-indigo-50 to-blue-50",
     },
     {
       label: "Workouts",
@@ -214,7 +212,6 @@ export default function CoachDashboard() {
       href: "/coach/workout-plans",
       Icon: Dumbbell,
       color: "from-orange-500 to-amber-500",
-      bg: "from-orange-50 to-amber-50",
     },
     {
       label: "Nutrition",
@@ -222,7 +219,6 @@ export default function CoachDashboard() {
       href: "/coach/diet-plans",
       Icon: UtensilsCrossed,
       color: "from-emerald-500 to-lime-500",
-      bg: "from-emerald-50 to-lime-50",
     },
     {
       label: "Revenue",
@@ -230,7 +226,6 @@ export default function CoachDashboard() {
       href: "/coach/earnings",
       Icon: Wallet,
       color: "from-violet-500 to-fuchsia-500",
-      bg: "from-violet-50 to-fuchsia-50",
     },
     {
       label: "Reviews",
@@ -238,7 +233,6 @@ export default function CoachDashboard() {
       href: "/coach/reviews",
       Icon: Star,
       color: "from-rose-500 to-pink-500",
-      bg: "from-rose-50 to-pink-50",
     },
   ];
 
@@ -584,25 +578,18 @@ export default function CoachDashboard() {
                           href={item.href}
                           className="group block h-full cursor-pointer focus-visible:outline-none"
                         >
-                          <div
-                            className={cn(
-                              "relative flex h-full min-h-[124px] cursor-pointer select-none items-center justify-center overflow-hidden rounded-2xl border-4 border-white p-3 transition-all duration-200 shadow-[0_14px_24px_-20px_rgba(15,23,42,0.4)] hover:-translate-y-0.5 hover:border-white hover:brightness-[1.02] hover:shadow-[0_20px_30px_-20px_rgba(15,23,42,0.48)] active:translate-y-[1px] active:scale-[0.99] active:shadow-[0_10px_22px_-20px_rgba(15,23,42,0.42)] group-focus-visible:ring-4 group-focus-visible:ring-indigo-200 group-focus-visible:ring-offset-2 md:min-h-[136px] md:p-4",
-                              `bg-gradient-to-br ${item.bg}`,
-                            )}
-                          >
-                            <div className="pointer-events-none absolute -right-8 -top-8 hidden h-20 w-20 rounded-full bg-white/60 blur-xl sm:block" />
-
-                            <div className="relative z-[1] flex w-full flex-col items-center justify-center text-center">
+                          <div className="flex h-full min-h-[136px] cursor-pointer select-none items-center justify-center rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 p-3 shadow-[0_1px_0_0_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_28px_-24px_rgba(15,23,42,0.6)] active:translate-y-[1px] group-focus-visible:ring-4 group-focus-visible:ring-indigo-200 group-focus-visible:ring-offset-2 md:min-h-[148px] md:p-4">
+                            <div className="flex w-full flex-col items-center justify-center gap-3 text-center">
                               <span
                                 className={cn(
-                                  "mb-2 grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md",
+                                  "grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md",
                                   item.color,
                                 )}
                               >
-                                <item.Icon className="h-6 w-6" />
+                                <item.Icon className="h-7 w-7" />
                               </span>
 
-                              <p className="text-sm font-semibold leading-tight text-slate-900 md:text-base">
+                              <p className="mt-1 text-sm font-semibold leading-tight text-slate-900 md:text-base">
                                 {item.description}
                               </p>
                             </div>
