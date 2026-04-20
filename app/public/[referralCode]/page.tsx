@@ -10,9 +10,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { 
   Instagram, Facebook, Twitter, Linkedin, Youtube, Globe, Phone, Mail,
-  MapPin, Calendar, Award, Users, FileText, ShoppingBag, Star, 
-  ChevronRight, ChevronLeft, CheckCircle2, Check, Sparkles, TrendingUp,
-  Clock, Target, Heart, ArrowRight, Send
+  MapPin, Calendar, Award, Users, Star, 
+  ChevronRight, ChevronLeft, CheckCircle2, Check, TrendingUp,
+  Clock, Target, Heart, ArrowRight, Send, UserPlus
 } from "lucide-react";
 import "./coach-profile.css";
 
@@ -284,8 +284,6 @@ function PublicCoachProfileContent() {
   const location = [coach.address?.city, coach.address?.state].filter(Boolean).join(", ");
   const hasSocialLinks = coach.socialMedia && Object.values(coach.socialMedia).some(Boolean);
   const hasGalleryItems = (coach.awards?.length || 0) > 0 || (coach.transformations?.length || 0) > 0;
-  const coachFirstName = coach.fullName?.trim().split(/\s+/)[0] || "Coach";
-  const joinWithLabel = `Join with ${coachFirstName}`;
 
   return (
     <div className={`cpp ${isVisible ? 'cpp--visible' : ''}`}>
@@ -322,11 +320,6 @@ function PublicCoachProfileContent() {
           </div>
 
           <div className="cpp-hero__info">
-            <div className="cpp-hero__badge">
-              <Sparkles size={14} />
-              <span>FitCoach Certified Coach</span>
-            </div>
-            
             <h1 className="cpp-hero__name">{coach.fullName}</h1>
 
             <div className="cpp-hero__meta">
@@ -361,11 +354,11 @@ function PublicCoachProfileContent() {
         <div className="cpp-cta__container">
           <button onClick={scrollToContactForm} className="cpp-btn cpp-btn--primary cpp-btn--lg">
             <Send size={18} />
-            Get in Touch
+            Contact
           </button>
-          <button onClick={handleJoinClick} className="cpp-btn cpp-btn--secondary cpp-btn--lg" title={joinWithLabel}>
-            <span className="cpp-cta__join-text">{joinWithLabel}</span>
-            <ArrowRight size={18} />
+          <button onClick={handleJoinClick} className="cpp-btn cpp-btn--secondary cpp-btn--lg" title={`Connect with ${coach.fullName}`}>
+            <UserPlus size={18} />
+            Join Coach
           </button>
         </div>
       </div>
@@ -380,26 +373,6 @@ function PublicCoachProfileContent() {
             <div className="cpp-stats__content">
               <span className="cpp-stats__number">{stats.clientsCount}</span>
               <span className="cpp-stats__label">Happy Clients</span>
-            </div>
-          </div>
-          <div className="cpp-stats__divider" />
-          <div className="cpp-stats__item">
-            <div className="cpp-stats__icon cpp-stats__icon--plans">
-              <FileText size={24} />
-            </div>
-            <div className="cpp-stats__content">
-              <span className="cpp-stats__number">{stats.plansCount}</span>
-              <span className="cpp-stats__label">Custom Plans</span>
-            </div>
-          </div>
-          <div className="cpp-stats__divider" />
-          <div className="cpp-stats__item">
-            <div className="cpp-stats__icon cpp-stats__icon--products">
-              <ShoppingBag size={24} />
-            </div>
-            <div className="cpp-stats__content">
-              <span className="cpp-stats__number">{stats.productsCount}</span>
-              <span className="cpp-stats__label">Products</span>
             </div>
           </div>
           {coach.experienceYears && (
@@ -421,13 +394,125 @@ function PublicCoachProfileContent() {
 
       {/* Main Content */}
       <main className="cpp-main">
+        {/* Results Section (Transformations) */}
+        {(coach.transformations?.length || 0) > 0 && (
+          <section className="cpp-section cpp-gallery cpp-gallery--results">
+            <div className="cpp-section__header">
+              <h2 className="cpp-section__title">
+                <TrendingUp size={24} />
+                Results
+              </h2>
+            </div>
+
+            <div className="cpp-gallery__grid">
+              {((coach.transformations || []).slice(transformsPage * 3, transformsPage * 3 + 3)).map((t, idx) => (
+                <div key={t.publicId || idx} className="cpp-gallery__tile">
+                  {t?.url ? (
+                    <Image
+                      src={t.url}
+                      alt={`Result ${transformsPage * 4 + idx + 1}`}
+                      width={360}
+                      height={360}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="cpp-gallery__image"
+                    />
+                  ) : (
+                    <div className="cpp-gallery__placeholder">No image</div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop pager */}
+            {((coach.transformations?.length || 0) > 3) && (
+              <div className="cpp-gallery__pager">
+                <button className="cpp-gallery__pager-btn" disabled={transformsPage <= 0} onClick={() => setTransformsPage(p => Math.max(0, p - 1))}>Previous</button>
+                <div className="cpp-gallery__pager-info">Page {transformsPage + 1} of {Math.ceil((coach.transformations?.length || 0) / 3)}</div>
+                <button className="cpp-gallery__pager-btn" disabled={transformsPage >= Math.ceil((coach.transformations?.length || 0) / 3) - 1} onClick={() => setTransformsPage(p => Math.min(Math.ceil((coach.transformations?.length || 0) / 3) - 1, p + 1))}>Next</button>
+              </div>
+            )}
+
+            <div className="cpp-gallery__carousel-mobile">
+              <div className="cpp-gallery__viewport-mobile">
+                <button
+                  className="cpp-gallery__nav cpp-gallery__nav--prev"
+                  disabled={(coach.transformations?.length || 0) <= 1}
+                  onClick={() => setTransformsIndex((p) => (p - 1 + (coach.transformations?.length || 1)) % (coach.transformations?.length || 1))}
+                  aria-label="Previous result"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                {coach.transformations?.[transformsIndex]?.url ? (
+                  <Image
+                    src={coach.transformations[transformsIndex].url}
+                    alt={`Result`}
+                    width={600}
+                    height={600}
+                    sizes="(max-width: 768px) 90vw, 600px"
+                    className="cpp-gallery__image"
+                  />
+                ) : (
+                  <div className="cpp-gallery__placeholder" />
+                )}
+                <button
+                  className="cpp-gallery__nav cpp-gallery__nav--next"
+                  disabled={(coach.transformations?.length || 0) <= 1}
+                  onClick={() => setTransformsIndex((p) => (p + 1) % Math.max(1, (coach.transformations?.length || 1)))}
+                  aria-label="Next result"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+              {(coach.transformations?.length || 0) > 0 && (
+                <div className="cpp-gallery__thumbs" aria-label="Transformation image previews">
+                  {coach.transformations!.map((result, i) => (
+                    <button
+                      key={result.publicId || `result-thumb-${i}`}
+                      type="button"
+                      className={`cpp-gallery__thumb ${i === transformsIndex ? "cpp-gallery__thumb--active" : ""}`}
+                      onClick={() => setTransformsIndex(i)}
+                      aria-label={`Show result ${i + 1}`}
+                      aria-current={i === transformsIndex ? "true" : undefined}
+                    >
+                      {result?.url ? (
+                        <Image
+                          src={result.url}
+                          alt={`Result preview ${i + 1}`}
+                          width={84}
+                          height={84}
+                          sizes="84px"
+                          className="cpp-gallery__thumb-image"
+                        />
+                      ) : (
+                        <span className="cpp-gallery__thumb-placeholder">N/A</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {(coach.transformations?.length || 0) > 1 && (
+              <div className="cpp-gallery__dots">
+                {coach.transformations!.map((_, i) => (
+                  <button
+                    key={i}
+                    className={`cpp-gallery__dot ${i === transformsIndex ? 'cpp-gallery__dot--active' : ''}`}
+                    onClick={() => setTransformsIndex(i)}
+                    aria-label={`Show result ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         {/* About Section */}
         {(coach.description || coach.bio || hasSocialLinks) && (
           <section className="cpp-section cpp-about">
             <div className="cpp-section__header">
               <h2 className="cpp-section__title">
                 <Heart size={24} />
-                About Me
+                About Coach
               </h2>
             </div>
             <div className="cpp-about__content">
@@ -595,118 +680,6 @@ function PublicCoachProfileContent() {
           </section>
         )}
 
-        {/* Results Section (Transformations) */}
-        {(coach.transformations?.length || 0) > 0 && (
-          <section className="cpp-section cpp-gallery cpp-gallery--results">
-            <div className="cpp-section__header">
-              <h2 className="cpp-section__title">
-                <TrendingUp size={24} />
-                Results
-              </h2>
-            </div>
-
-            <div className="cpp-gallery__grid">
-              {((coach.transformations || []).slice(transformsPage * 3, transformsPage * 3 + 3)).map((t, idx) => (
-                <div key={t.publicId || idx} className="cpp-gallery__tile">
-                  {t?.url ? (
-                    <Image
-                      src={t.url}
-                      alt={`Result ${transformsPage * 4 + idx + 1}`}
-                      width={360}
-                      height={360}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="cpp-gallery__image"
-                    />
-                  ) : (
-                    <div className="cpp-gallery__placeholder">No image</div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop pager */}
-            {((coach.transformations?.length || 0) > 3) && (
-              <div className="cpp-gallery__pager">
-                <button className="cpp-gallery__pager-btn" disabled={transformsPage <= 0} onClick={() => setTransformsPage(p => Math.max(0, p - 1))}>Previous</button>
-                <div className="cpp-gallery__pager-info">Page {transformsPage + 1} of {Math.ceil((coach.transformations?.length || 0) / 3)}</div>
-                <button className="cpp-gallery__pager-btn" disabled={transformsPage >= Math.ceil((coach.transformations?.length || 0) / 3) - 1} onClick={() => setTransformsPage(p => Math.min(Math.ceil((coach.transformations?.length || 0) / 3) - 1, p + 1))}>Next</button>
-              </div>
-            )}
-
-            <div className="cpp-gallery__carousel-mobile">
-              <div className="cpp-gallery__viewport-mobile">
-                <button
-                  className="cpp-gallery__nav cpp-gallery__nav--prev"
-                  disabled={(coach.transformations?.length || 0) <= 1}
-                  onClick={() => setTransformsIndex((p) => (p - 1 + (coach.transformations?.length || 1)) % (coach.transformations?.length || 1))}
-                  aria-label="Previous result"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                {coach.transformations?.[transformsIndex]?.url ? (
-                  <Image
-                    src={coach.transformations[transformsIndex].url}
-                    alt={`Result`}
-                    width={600}
-                    height={600}
-                    sizes="(max-width: 768px) 90vw, 600px"
-                    className="cpp-gallery__image"
-                  />
-                ) : (
-                  <div className="cpp-gallery__placeholder" />
-                )}
-                <button
-                  className="cpp-gallery__nav cpp-gallery__nav--next"
-                  disabled={(coach.transformations?.length || 0) <= 1}
-                  onClick={() => setTransformsIndex((p) => (p + 1) % Math.max(1, (coach.transformations?.length || 1)))}
-                  aria-label="Next result"
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </div>
-              {(coach.transformations?.length || 0) > 0 && (
-                <div className="cpp-gallery__thumbs" aria-label="Transformation image previews">
-                  {coach.transformations!.map((result, i) => (
-                    <button
-                      key={result.publicId || `result-thumb-${i}`}
-                      type="button"
-                      className={`cpp-gallery__thumb ${i === transformsIndex ? "cpp-gallery__thumb--active" : ""}`}
-                      onClick={() => setTransformsIndex(i)}
-                      aria-label={`Show result ${i + 1}`}
-                      aria-current={i === transformsIndex ? "true" : undefined}
-                    >
-                      {result?.url ? (
-                        <Image
-                          src={result.url}
-                          alt={`Result preview ${i + 1}`}
-                          width={84}
-                          height={84}
-                          sizes="84px"
-                          className="cpp-gallery__thumb-image"
-                        />
-                      ) : (
-                        <span className="cpp-gallery__thumb-placeholder">N/A</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            {(coach.transformations?.length || 0) > 1 && (
-              <div className="cpp-gallery__dots">
-                {coach.transformations!.map((_, i) => (
-                  <button
-                    key={i}
-                    className={`cpp-gallery__dot ${i === transformsIndex ? 'cpp-gallery__dot--active' : ''}`}
-                    onClick={() => setTransformsIndex(i)}
-                    aria-label={`Show result ${i + 1}`}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
         {/* Plans Section */}
         {plans && plans.length > 0 && (
           <section className="cpp-section cpp-plans">
@@ -715,9 +688,6 @@ function PublicCoachProfileContent() {
                 <Target size={24} />
                 Training Plans
               </h2>
-              <p className="cpp-section__subtitle">
-                Personalized programs designed to help you achieve your goals
-              </p>
             </div>
             
             <div className="cpp-plans__grid">

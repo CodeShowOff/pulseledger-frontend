@@ -148,7 +148,7 @@ export default function ClientWorkoutPlanDetailPage() {
           </p>
           <button
             onClick={() => router.back()}
-            className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+            className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold !text-white hover:bg-slate-800"
           >
             Go back
           </button>

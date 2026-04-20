@@ -4,6 +4,11 @@
   gap: 1.05rem;
 }
 
+.searchRow {
+  display: flex;
+  justify-content: flex-start;
+}
+
 .toolbarCard {
   border: 1px solid rgba(226, 232, 240, 0.9);
   background: rgba(255, 255, 255, 0.96);

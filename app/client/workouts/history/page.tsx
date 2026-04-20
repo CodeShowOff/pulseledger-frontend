@@ -473,7 +473,7 @@ export default function WorkoutHistoryPage() {
               <p className="text-sm text-slate-600">No workout log found for this date.</p>
               <Link
                 href="/client/workouts/today"
-                className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold !text-white hover:bg-slate-800"
               >
                 Start today&apos;s workout
                 <ChevronRight className="h-3.5 w-3.5" />
@@ -496,7 +496,7 @@ export default function WorkoutHistoryPage() {
           <p className="mt-1 text-sm text-slate-500">Complete your first workout and your timeline will appear here.</p>
           <Link
             href="/client/workouts/today"
-            className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold !text-white hover:bg-slate-800"
           >
             Start today&apos;s workout
             <ChevronRight className="h-3.5 w-3.5" />

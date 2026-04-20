@@ -80,31 +80,23 @@ export default function CoachClients() {
 
   return (
     <div className={styles.clientsRoot}>
-      <Card className={styles.toolbarCard}>
-        <CardContent className="px-5 pb-4 pt-5 md:px-5 md:pb-4 md:pt-5">
-          <div className={styles.toolbarInner}>
-            <div className={styles.toolbarCopy}>
-              <h2 className={styles.toolbarTitle}>Assigned Clients</h2>
-            </div>
-
-            <div className={styles.searchWrap}>
-              <Search className={styles.searchIcon} />
-              <Input
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="Search by name"
-                className={styles.searchInput}
-              />
-              {isFetching ? (
-                <span className={styles.searchStatus}>Updating...</span>
-              ) : null}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className={styles.searchRow}>
+        <div className={styles.searchWrap}>
+          <Search className={styles.searchIcon} />
+          <Input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search by name"
+            className={styles.searchInput}
+          />
+          {isFetching ? (
+            <span className={styles.searchStatus}>Updating...</span>
+          ) : null}
+        </div>
+      </div>
 
       <div className={styles.list}>
         {paginatedClients.map((client, idx) => {

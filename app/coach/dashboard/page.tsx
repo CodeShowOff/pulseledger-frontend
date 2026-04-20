@@ -11,11 +11,12 @@ import { NotificationItem, useLatestNotifications } from "@/lib/queries/notifica
 import { motion } from "@/lib/motion";
 import {
   AlertCircle,
-  BookOpen,
   ClipboardList,
   Clock,
   Dumbbell,
+  FileText,
   Link2,
+  Package,
   Sparkles,
   Star,
   Target,
@@ -91,11 +92,6 @@ function formatRelativeTime(value: string) {
   if (days < 7) return `${days}d ago`;
 
   return new Date(timestamp).toLocaleDateString();
-}
-
-function formatStatusLabel(value?: string) {
-  if (!value) return "--";
-  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function getActivityIcon(notification: NotificationItem) {
@@ -325,24 +321,14 @@ export default function CoachDashboard() {
     {
       title: "Active Plans",
       value: statsLoading ? "--" : `${stats?.plans ?? 0}`,
-      Icon: ClipboardList,
+      Icon: FileText,
       tone: "from-violet-500 to-fuchsia-500",
     },
     {
       title: "Products",
       value: statsLoading ? "--" : `${stats?.products ?? 0}`,
-      Icon: BookOpen,
+      Icon: Package,
       tone: "from-emerald-500 to-teal-500",
-    },
-    {
-      title: "Subscription",
-      value:
-        subscription && Number.isFinite(subscription.daysRemaining)
-          ? `${subscription.daysRemaining} days`
-          : formatStatusLabel(subscription?.status),
-      Icon: Clock,
-      delta: subscription?.status === "expired" ? "Action required" : "On track",
-      tone: "from-amber-500 to-orange-500",
     },
   ];
 
@@ -619,7 +605,7 @@ export default function CoachDashboard() {
                       </span>
                       <div className="flex min-h-9 items-center">
                         <p className="text-sm font-semibold uppercase tracking-wide text-indigo-700">
-                          Referral
+                          Invite Code
                         </p>
                       </div>
                     </div>
@@ -643,13 +629,13 @@ export default function CoachDashboard() {
                         }
                       }}
                       disabled={!referralCode}
-                      aria-label="Copy referral code"
+                      aria-label="Copy invite code"
                     >
                       <Badge
                         variant="secondary"
                         className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100"
                       >
-                        Code
+                        Invite
                       </Badge>
                       <p className="truncate font-mono text-sm font-semibold text-slate-800">
                         {referralCode || "Generating..."}
@@ -678,7 +664,7 @@ export default function CoachDashboard() {
                           }
                         }}
                       >
-                        {copiedLink ? "Copied" : "Copy Link"}
+                        {copiedLink ? "Copied" : "Copy Public Profile Link"}
                       </Button>
                       <Link
                         href={publicProfileUrl || "#"}
@@ -698,7 +684,7 @@ export default function CoachDashboard() {
               </Card>
             </motion.div>
 
-            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <section className="grid grid-cols-3 items-stretch gap-2 sm:gap-3">
               {kpis.map((item, index) => (
                 <motion.div
                   key={item.title}
@@ -707,22 +693,22 @@ export default function CoachDashboard() {
                   transition={{ delay: 0.12 + index * 0.04, duration: 0.25 }}
                   whileHover={{ y: -4 }}
                 >
-                  <Card className="border-slate-200/80 bg-white/95 transition-all hover:shadow-[0_16px_40px_-30px_rgba(79,70,229,0.5)]">
-                    <CardContent className="p-4">
-                      <div className="mb-3 flex items-center justify-between">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                  <Card className="h-full border-slate-200/80 bg-white/95 transition-all hover:shadow-[0_16px_40px_-30px_rgba(79,70,229,0.5)]">
+                    <CardContent className="px-3 pb-3 pt-4 sm:p-4">
+                      <div className="mb-3 flex items-start justify-end gap-1 sm:justify-between">
+                        <p className="hidden text-[10px] font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:block sm:text-xs">
                           {item.title}
                         </p>
                         <span
                           className={cn(
-                            "grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br text-white",
+                            "grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br text-white sm:h-9 sm:w-9 sm:rounded-xl",
                             item.tone,
                           )}
                         >
-                          <item.Icon className="h-4 w-4" />
+                          <item.Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </span>
                       </div>
-                      <p className="text-2xl font-bold text-slate-900">
+                      <p className="text-[1.9rem] font-bold leading-none text-slate-900 sm:text-2xl">
                         {item.value}
                       </p>
                     </CardContent>

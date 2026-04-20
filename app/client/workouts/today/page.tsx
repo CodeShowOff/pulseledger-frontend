@@ -714,7 +714,7 @@ export default function ClientTodayWorkoutPage() {
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={startWorkout}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 text-sm font-semibold !text-white transition hover:bg-slate-800"
             >
               <Play className="h-4 w-4" />
               Start session

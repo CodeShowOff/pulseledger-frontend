@@ -137,7 +137,7 @@ export default function ManageReviewsPage() {
 
   const filterOptions = useMemo(
     () => [
-      { value: "all" as const, label: "All reviews", count: stats.total },
+      { value: "all" as const, label: "All", count: stats.total },
       { value: "pending" as const, label: "Pending", count: stats.pending },
       { value: "approved" as const, label: "Approved", count: stats.approved },
     ],
@@ -164,35 +164,6 @@ export default function ManageReviewsPage() {
                 </CardDescription>
               </div>
             </div>
-
-            <div className="grid grid-cols-3 gap-2 pt-1.5 sm:gap-3 sm:pt-2">
-              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
-                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
-                  <span className="sm:hidden">Reviews</span>
-                  <span className="hidden sm:inline">Total reviews</span>
-                </p>
-                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
-                  {loading && !data ? "--" : stats.total}
-                </p>
-              </div>
-              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
-                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
-                  Approved
-                </p>
-                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
-                  {loading && !data ? "--" : stats.approved}
-                </p>
-              </div>
-              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
-                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
-                  <span className="sm:hidden">Pending</span>
-                  <span className="hidden sm:inline">Pending approval</span>
-                </p>
-                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
-                  {loading && !data ? "--" : stats.pending}
-                </p>
-              </div>
-            </div>
           </CardHeader>
         </Card>
       </motion.section>
@@ -213,7 +184,7 @@ export default function ManageReviewsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {filterOptions.map((option) => {
                 const active = filter === option.value;
                 return (
@@ -227,6 +198,7 @@ export default function ManageReviewsPage() {
                       setPage(1);
                     }}
                     className={cn(
+                      "w-full justify-center px-2",
                       active
                         ? option.value === "approved"
                           ? "bg-emerald-600 text-white hover:bg-emerald-700"
