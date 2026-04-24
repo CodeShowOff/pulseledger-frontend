@@ -308,26 +308,30 @@ export default function ClientSubscriptionsPage() {
         initial="initial"
         animate="animate"
         transition={{ duration: 0.28, delay: 0.1 }}
-        className="grid grid-cols-2 gap-3"
+        className="grid grid-cols-2 items-stretch overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95"
       >
         <Link
           href="/client/workouts"
-          className="group rounded-2xl border-4 border-white bg-gradient-to-br from-indigo-50 via-indigo-100/70 to-violet-100/80 p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-white hover:shadow"
+          className="group block h-full min-h-[136px] cursor-pointer select-none p-2.5 transition-colors duration-200 hover:bg-slate-50/70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-200 focus-visible:ring-offset-2 md:min-h-[148px] md:p-3"
         >
-          <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md">
-            <Dumbbell className="h-8 w-8" />
-          </span>
-          <p className="mt-2.5 text-sm font-semibold text-slate-800">Workouts Plan</p>
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-center">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md transition-transform duration-200 group-hover:scale-[1.03]">
+              <Dumbbell className="h-7 w-7" />
+            </span>
+            <p className="mt-1 text-sm font-semibold leading-tight text-slate-900 md:text-base">Workouts Plan</p>
+          </div>
         </Link>
 
         <Link
           href="/client/diet"
-          className="group rounded-2xl border-4 border-white bg-gradient-to-br from-emerald-50 via-emerald-100/70 to-teal-100/80 p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-white hover:shadow"
+          className="group block h-full min-h-[136px] cursor-pointer select-none border-l border-slate-200/80 p-2.5 transition-colors duration-200 hover:bg-slate-50/70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-200 focus-visible:ring-offset-2 md:min-h-[148px] md:p-3"
         >
-          <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md">
-            <UtensilsCrossed className="h-8 w-8" />
-          </span>
-          <p className="mt-2.5 text-sm font-semibold text-slate-800">Diet Plan</p>
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-center">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md transition-transform duration-200 group-hover:scale-[1.03]">
+              <UtensilsCrossed className="h-7 w-7" />
+            </span>
+            <p className="mt-1 text-sm font-semibold leading-tight text-slate-900 md:text-base">Diet Plan</p>
+          </div>
         </Link>
       </motion.section>
 

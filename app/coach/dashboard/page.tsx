@@ -540,48 +540,37 @@ export default function CoachDashboard() {
               >
                 <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2 px-1">
-                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                      <Sparkles className="h-4 w-4" />
-                    </span>
-                    <h2 className="text-base font-semibold text-slate-900 md:text-lg">
-                      Workspace modules
-                    </h2>
                   </div>
 
-                  <div className="grid grid-cols-2 items-stretch gap-2 sm:gap-3 xl:grid-cols-3">
+                  <div className="grid grid-cols-2 items-stretch overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 xl:grid-cols-3">
                     {moduleActions.map((item, index) => (
-                      <motion.div
+                      <Link
                         key={item.label}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                          delay: 0.14 + index * 0.03,
-                          duration: 0.24,
-                        }}
-                        whileHover={{ y: -2 }}
+                        href={item.href}
+                        className={cn(
+                          "group block h-full min-h-[136px] cursor-pointer select-none p-2.5 transition-colors duration-200 hover:bg-slate-50/70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-200 focus-visible:ring-offset-2 md:min-h-[148px] md:p-3",
+                          index % 2 === 1 && "border-l border-slate-200/80",
+                          index >= 2 && "border-t border-slate-200/80",
+                          index % 3 !== 0 ? "xl:border-l" : "xl:border-l-0",
+                          index >= 3 ? "xl:border-t" : "xl:border-t-0",
+                          "xl:border-slate-200/80",
+                        )}
                       >
-                        <Link
-                          href={item.href}
-                          className="group block h-full cursor-pointer focus-visible:outline-none"
-                        >
-                          <div className="flex h-full min-h-[136px] cursor-pointer select-none items-center justify-center rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 p-3 shadow-[0_1px_0_0_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_28px_-24px_rgba(15,23,42,0.6)] active:translate-y-[1px] group-focus-visible:ring-4 group-focus-visible:ring-indigo-200 group-focus-visible:ring-offset-2 md:min-h-[148px] md:p-4">
-                            <div className="flex w-full flex-col items-center justify-center gap-3 text-center">
-                              <span
-                                className={cn(
-                                  "grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md",
-                                  item.color,
-                                )}
-                              >
-                                <item.Icon className="h-7 w-7" />
-                              </span>
+                        <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-center">
+                          <span
+                            className={cn(
+                              "grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md transition-transform duration-200 group-hover:scale-[1.03]",
+                              item.color,
+                            )}
+                          >
+                            <item.Icon className="h-7 w-7" />
+                          </span>
 
-                              <p className="mt-1 text-sm font-semibold leading-tight text-slate-900 md:text-base">
-                                {item.description}
-                              </p>
-                            </div>
-                          </div>
-                        </Link>
-                      </motion.div>
+                          <p className="mt-1 text-sm font-semibold leading-tight text-slate-900 md:text-base">
+                            {item.description}
+                          </p>
+                        </div>
+                      </Link>
                     ))}
                   </div>
                 </div>

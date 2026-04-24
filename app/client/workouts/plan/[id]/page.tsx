@@ -167,9 +167,9 @@ export default function ClientWorkoutPlanDetailPage() {
         Back to workouts
       </Link>
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 p-5 shadow-sm">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-start gap-3">
-          <div className="rounded-2xl border border-slate-200 p-2.5 text-slate-700">
+          <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-2.5 text-indigo-600">
             <Dumbbell className="h-5 w-5" />
           </div>
 
@@ -182,25 +182,25 @@ export default function ClientWorkoutPlanDetailPage() {
         <div className="mt-4 grid grid-cols-2 gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
           {plan.category ? (
             <span className="rounded-full border border-slate-200 px-2.5 py-1 text-center">
-              <Target className="mr-1 inline h-3 w-3" />
+              <Target className="mr-1 inline h-3 w-3 text-indigo-600" />
               {plan.category.replace(/_/g, " ")}
             </span>
           ) : null}
           {plan.difficulty ? (
             <span className="rounded-full border border-slate-200 px-2.5 py-1 text-center">
-              <Flame className="mr-1 inline h-3 w-3" />
+              <Flame className="mr-1 inline h-3 w-3 text-orange-600" />
               {plan.difficulty}
             </span>
           ) : null}
           {plan.durationWeeks ? (
             <span className="rounded-full border border-slate-200 px-2.5 py-1 text-center">
-              <Calendar className="mr-1 inline h-3 w-3" />
+              <Calendar className="mr-1 inline h-3 w-3 text-violet-600" />
               {plan.durationWeeks} weeks
             </span>
           ) : null}
           {plan.daysPerWeek ? (
             <span className="rounded-full border border-slate-200 px-2.5 py-1 text-center">
-              <Info className="mr-1 inline h-3 w-3" />
+              <Info className="mr-1 inline h-3 w-3 text-cyan-600" />
               {plan.daysPerWeek} days/week
             </span>
           ) : null}

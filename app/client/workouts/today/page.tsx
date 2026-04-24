@@ -177,8 +177,6 @@ export default function ClientTodayWorkoutPage() {
   const [exerciseTimerResetToken, setExerciseTimerResetToken] = useState(0);
 
   const [showMoodDialog, setShowMoodDialog] = useState(false);
-  const [selectedMood, setSelectedMood] = useState<number | null>(null);
-  const [workoutNotes, setWorkoutNotes] = useState("");
   const markWorkoutMissedMutation = useMarkWorkoutMissed();
 
   const { data: todayWorkouts = [], isLoading, error } = useClientTodayWorkout();
@@ -215,8 +213,6 @@ export default function ClientTodayWorkoutPage() {
     setExerciseTimerDurationSeconds(20);
     setExerciseTimerResetToken((previous) => previous + 1);
     setShowMoodDialog(false);
-    setSelectedMood(null);
-    setWorkoutNotes("");
     setSelectedPreviewIndex(0);
   }, [selectedTodayPlanId]);
 
@@ -270,10 +266,6 @@ export default function ClientTodayWorkoutPage() {
       const response = await api.post(`/client/workouts/${workoutLogId}/complete`, {
         exerciseLogs,
         actualDuration: duration,
-        moodAfter: selectedMood,
-        clientNotes:
-          workoutNotes ||
-          `Completed ${completedExercises.size} of ${selectedTodayWorkout.exercises?.length || 0} exercises`,
       });
 
       return response.data;
@@ -367,6 +359,8 @@ export default function ClientTodayWorkoutPage() {
       setRestDurationSeconds(activeExercise.restSeconds || 20);
       setRestTimerResetToken((previous) => previous + 1);
       setIsResting(true);
+    } else if (updatedCompleted.size === exercises.length) {
+      setShowMoodDialog(true);
     }
 
     setIsExerciseTimerRunning(false);
@@ -462,8 +456,13 @@ export default function ClientTodayWorkoutPage() {
   };
 
   const finishWorkout = () => {
-    if (completedExercises.size === 0) {
-      toast.error("Complete at least one exercise to log your workout.");
+    if (!exercises.length) {
+      toast.error("No exercises found for this session.");
+      return;
+    }
+
+    if (completedExercises.size < exercises.length) {
+      toast.error("Complete all exercises to submit your workout.");
       return;
     }
 
@@ -538,11 +537,6 @@ export default function ClientTodayWorkoutPage() {
   };
 
   const submitWorkout = () => {
-    if (selectedMood === null) {
-      toast.error("Please pick your post-workout mood.");
-      return;
-    }
-
     completeWorkoutMutation.mutate();
   };
 
@@ -805,7 +799,7 @@ export default function ClientTodayWorkoutPage() {
               Exit
             </button>
 
-            {completedExercises.size > 0 && !showMoodDialog ? (
+            {completedExercises.size === exercises.length && exercises.length > 0 && !showMoodDialog ? (
               <button
                 onClick={finishWorkout}
                 disabled={completeWorkoutMutation.isPending}
@@ -813,17 +807,11 @@ export default function ClientTodayWorkoutPage() {
                   "inline-flex h-9 items-center gap-1 rounded-full px-3 text-xs font-semibold text-white transition",
                   completeWorkoutMutation.isPending
                     ? "cursor-not-allowed bg-slate-400"
-                    : completedExercises.size === exercises.length
-                      ? "bg-gradient-to-r from-emerald-600 to-green-500 hover:brightness-110"
-                      : "bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110"
+                    : "bg-gradient-to-r from-emerald-600 to-green-500 hover:brightness-110"
                 )}
               >
                 <Trophy className="h-3.5 w-3.5" />
-                {completeWorkoutMutation.isPending
-                  ? "Saving..."
-                  : completedExercises.size === exercises.length
-                    ? "Complete"
-                    : `Finish early (${completedExercises.size}/${exercises.length})`}
+                {completeWorkoutMutation.isPending ? "Saving..." : "Submit workout"}
               </button>
             ) : null}
           </div>
@@ -1048,48 +1036,12 @@ export default function ClientTodayWorkoutPage() {
       {showMoodDialog ? (
         <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-3">
           <div className="w-full max-w-md max-h-[86vh] overflow-y-auto rounded-t-[28px] border border-slate-200 bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-xl sm:max-h-[90vh] sm:rounded-3xl sm:pb-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-base font-semibold text-slate-900">How are you feeling?</h3>
-                <p className="mt-1 text-xs text-slate-500">1 = exhausted, 5 = energized</p>
-              </div>
-
-              <button
-                onClick={() => setShowMoodDialog(false)}
-                className="rounded-full border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
-              >
-                <X className="h-4 w-4" />
-              </button>
+            <div>
+              <h3 className="text-base font-semibold text-slate-900">Finish workout?</h3>
+              <p className="mt-1 text-xs text-slate-500">
+                This will submit your workout progress for today.
+              </p>
             </div>
-
-            <div className="mt-3 grid grid-cols-5 gap-2">
-              {[1, 2, 3, 4, 5].map((mood) => {
-                const emoji = mood === 1 ? "😫" : mood === 2 ? "😓" : mood === 3 ? "😐" : mood === 4 ? "😊" : "🤩";
-                const selected = selectedMood === mood;
-
-                return (
-                  <button
-                    key={mood}
-                    onClick={() => setSelectedMood(mood)}
-                    className={cn(
-                      "aspect-square rounded-2xl border text-2xl transition",
-                      selected
-                        ? "border-indigo-400 bg-indigo-50 shadow-sm"
-                        : "border-slate-200 bg-slate-50 hover:border-indigo-200 hover:bg-indigo-50/40"
-                    )}
-                  >
-                    {emoji}
-                  </button>
-                );
-              })}
-            </div>
-
-            <textarea
-              value={workoutNotes}
-              onChange={(event) => setWorkoutNotes(event.target.value)}
-              placeholder="Notes (optional): energy level, pain points, anything your coach should know..."
-              className="mt-3 min-h-[90px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-indigo-300 focus:bg-white focus:ring-2 focus:ring-indigo-100"
-            />
 
             <div className="mt-3 grid grid-cols-2 gap-2">
               <button

@@ -27,51 +27,60 @@ import { cn } from "@/lib/utils";
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-const MEAL_META: Record<string, { icon: LucideIcon; chip: string; card: string }> = {
+const MEAL_META: Record<string, { icon: LucideIcon; chip: string; card: string; iconColor: string }> = {
   breakfast: {
     icon: Coffee,
     chip: "bg-amber-100 text-amber-700",
     card: "border-amber-200 bg-amber-50/50",
+    iconColor: "text-amber-600",
   },
   mid_morning_snack: {
     icon: Sun,
     chip: "bg-lime-100 text-lime-700",
     card: "border-lime-200 bg-lime-50/50",
+    iconColor: "text-lime-600",
   },
   lunch: {
     icon: Sun,
     chip: "bg-emerald-100 text-emerald-700",
     card: "border-emerald-200 bg-emerald-50/50",
+    iconColor: "text-emerald-600",
   },
   afternoon_snack: {
     icon: Sun,
     chip: "bg-cyan-100 text-cyan-700",
     card: "border-cyan-200 bg-cyan-50/50",
+    iconColor: "text-cyan-600",
   },
   dinner: {
     icon: Moon,
     chip: "bg-violet-100 text-violet-700",
     card: "border-violet-200 bg-violet-50/50",
+    iconColor: "text-violet-600",
   },
   evening_snack: {
     icon: Moon,
     chip: "bg-fuchsia-100 text-fuchsia-700",
     card: "border-fuchsia-200 bg-fuchsia-50/50",
+    iconColor: "text-fuchsia-600",
   },
   pre_workout: {
     icon: Dumbbell,
     chip: "bg-pink-100 text-pink-700",
     card: "border-pink-200 bg-pink-50/50",
+    iconColor: "text-pink-600",
   },
   post_workout: {
     icon: Dumbbell,
     chip: "bg-rose-100 text-rose-700",
     card: "border-rose-200 bg-rose-50/50",
+    iconColor: "text-rose-600",
   },
   bedtime_snack: {
     icon: Moon,
     chip: "bg-indigo-100 text-indigo-700",
     card: "border-indigo-200 bg-indigo-50/50",
+    iconColor: "text-indigo-600",
   },
 };
 
@@ -136,9 +145,9 @@ export default function ClientDietPlanDetailPage() {
         Back to nutrition
       </Link>
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 p-5 shadow-sm">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-start gap-3">
-          <div className="rounded-2xl border border-slate-200 p-2.5 text-slate-700">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-2.5 text-emerald-600">
             <Utensils className="h-5 w-5" />
           </div>
 
@@ -151,28 +160,28 @@ export default function ClientDietPlanDetailPage() {
         <div className="mt-4 grid grid-cols-2 gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
           {plan.goal ? (
             <span className="rounded-full border border-slate-200 px-2.5 py-1 text-center">
-              <Target className="mr-1 inline h-3 w-3" />
+              <Target className="mr-1 inline h-3 w-3 text-rose-600" />
               {formatText(plan.goal)}
             </span>
           ) : null}
 
           {plan.dietaryType ? (
             <span className="rounded-full border border-slate-200 px-2.5 py-1 text-center">
-              <Sparkles className="mr-1 inline h-3 w-3" />
+              <Sparkles className="mr-1 inline h-3 w-3 text-violet-600" />
               {formatText(plan.dietaryType)}
             </span>
           ) : null}
 
           {plan.mealsPerDay ? (
             <span className="rounded-full border border-slate-200 px-2.5 py-1 text-center">
-              <Clock3 className="mr-1 inline h-3 w-3" />
+              <Clock3 className="mr-1 inline h-3 w-3 text-amber-600" />
               {plan.mealsPerDay} meals/day
             </span>
           ) : null}
 
           {plan.daysPerWeek ? (
             <span className="rounded-full border border-slate-200 px-2.5 py-1 text-center">
-              <Calendar className="mr-1 inline h-3 w-3" />
+              <Calendar className="mr-1 inline h-3 w-3 text-cyan-600" />
               {plan.daysPerWeek} days/week
             </span>
           ) : null}
@@ -258,6 +267,7 @@ export default function ClientDietPlanDetailPage() {
                           icon: Utensils,
                           chip: "bg-slate-100 text-slate-700",
                           card: "border-slate-200 bg-slate-50/70",
+                          iconColor: "text-slate-600",
                         };
                         const MealIcon = meta.icon;
 
@@ -265,7 +275,7 @@ export default function ClientDietPlanDetailPage() {
                           <div key={`${meal.mealType}-${mealIndex}`} className={cn("rounded-2xl border p-3", meta.card)}>
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex items-center gap-2">
-                                <MealIcon className="h-4 w-4 text-slate-600" />
+                                <MealIcon className={cn("h-4 w-4", meta.iconColor)} />
                                 <p className="text-sm font-semibold text-slate-900">{formatText(meal.mealType)}</p>
                               </div>
                               <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", meta.chip)}>
@@ -325,6 +335,7 @@ export default function ClientDietPlanDetailPage() {
                 icon: Utensils,
                 chip: "bg-slate-100 text-slate-700",
                 card: "border-slate-200 bg-slate-50/70",
+                iconColor: "text-slate-600",
               };
               const MealIcon = meta.icon;
 
@@ -332,7 +343,7 @@ export default function ClientDietPlanDetailPage() {
                 <div key={`${meal.mealType}-${index}`} className={cn("rounded-2xl border p-3", meta.card)}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <MealIcon className="h-4 w-4 text-slate-600" />
+                      <MealIcon className={cn("h-4 w-4", meta.iconColor)} />
                       <p className="text-sm font-semibold text-slate-900">{formatText(meal.mealType)}</p>
                     </div>
                     <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", meta.chip)}>
