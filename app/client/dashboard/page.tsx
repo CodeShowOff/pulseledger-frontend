@@ -50,6 +50,8 @@ const quickActions = [
   },
 ] as const;
 
+const dashboardActions = [...todayCoreActions, ...quickActions] as const;
+
 function DashboardCardSkeleton({ label }: { label: string }) {
   return (
     <Card className="border-slate-200/80 bg-white/95">
@@ -167,55 +169,32 @@ export default function ClientDashboardPage() {
       </section>
 
       <section>
-        <div className="grid grid-cols-2 items-stretch gap-2 sm:gap-3">
-          {todayCoreActions.map((item) => (
-            <div key={item.title}>
-              <Link href={item.href} className="group block h-full cursor-pointer focus-visible:outline-none">
-                <div className="flex h-full min-h-[136px] cursor-pointer select-none items-center justify-center rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 p-3 shadow-[0_1px_0_0_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_28px_-24px_rgba(15,23,42,0.6)] active:translate-y-[1px] group-focus-visible:ring-4 group-focus-visible:ring-indigo-200 group-focus-visible:ring-offset-2 md:min-h-[148px] md:p-4">
-                  <div className="flex w-full flex-col items-center justify-center gap-3 text-center">
-                    <span
-                      className={cn(
-                        "grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md",
-                        item.iconTone
-                      )}
-                    >
-                      <item.Icon className="h-7 w-7" />
-                    </span>
+        <Card className="border-slate-200/80 bg-white/95">
+          <CardContent className="px-2.5 pb-2.5 pt-4 sm:px-3 sm:pb-3 sm:pt-4">
+            <div className="grid grid-cols-2 items-stretch gap-2 sm:gap-3">
+              {dashboardActions.map((item) => (
+                <Link key={item.title} href={item.href} className="group block h-full cursor-pointer focus-visible:outline-none">
+                  <div className="flex h-full min-h-[136px] cursor-pointer select-none items-center justify-center rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 p-3 shadow-[0_1px_0_0_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_28px_-24px_rgba(15,23,42,0.6)] active:translate-y-[1px] group-focus-visible:ring-4 group-focus-visible:ring-indigo-200 group-focus-visible:ring-offset-2 md:min-h-[148px] md:p-4">
+                    <div className="flex w-full flex-col items-center justify-center gap-3 text-center">
+                      <span
+                        className={cn(
+                          "grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md",
+                          item.iconTone
+                        )}
+                      >
+                        <item.Icon className="h-7 w-7" />
+                      </span>
 
-                    <h2 className="mt-1 text-sm font-semibold leading-tight text-slate-900 md:text-base">
-                      {item.title}
-                    </h2>
+                      <h2 className="mt-1 text-sm font-semibold leading-tight text-slate-900 md:text-base">
+                        {item.title}
+                      </h2>
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <div className="grid grid-cols-2 items-stretch gap-2 sm:gap-3">
-          {quickActions.map((item) => (
-            <Link key={item.title} href={item.href} className="group block h-full cursor-pointer focus-visible:outline-none">
-              <div className="flex h-full min-h-[136px] cursor-pointer select-none items-center justify-center rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 p-3 shadow-[0_1px_0_0_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_28px_-24px_rgba(15,23,42,0.6)] active:translate-y-[1px] group-focus-visible:ring-4 group-focus-visible:ring-indigo-200 group-focus-visible:ring-offset-2 md:min-h-[148px] md:p-4">
-                <div className="flex w-full flex-col items-center justify-center gap-3 text-center">
-                  <span
-                    className={cn(
-                      "grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md",
-                      item.iconTone
-                    )}
-                  >
-                    <item.Icon className="h-7 w-7" />
-                  </span>
-
-                  <h2 className="mt-1 text-sm font-semibold leading-tight text-slate-900 md:text-base">
-                    {item.title}
-                  </h2>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+          </CardContent>
+        </Card>
       </section>
 
       <section ref={quickStatsSectionRef}>
