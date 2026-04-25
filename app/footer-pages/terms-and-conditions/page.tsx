@@ -298,7 +298,7 @@ export default function TermsAndConditionsPage() {
               <h3 className="client-card__subsection-title">6.2 Subscription Terms</h3>
               <ul className="client-list">
                 <li><strong>Free Trial:</strong> New coaches receive a 28-day free trial period upon registration</li>
-                <li><strong>Monthly Fee:</strong> After the trial period, coaches must pay ₹99 per month to continue using the platform</li>
+                <li><strong>Monthly Fee:</strong> After the trial period, coaches must pay ₹199 per month to continue using the platform</li>
                 <li><strong>Subscription Duration:</strong> Each payment provides 30 days of platform access</li>
                 <li><strong>Payment Method:</strong> Payments are made via admin-provided QR code (UPI or bank transfer)</li>
                 <li><strong>Payment Proof:</strong> Coaches must upload payment proof screenshot when submitting payment</li>
@@ -956,7 +956,7 @@ export default function TermsAndConditionsPage() {
               <ul className="client-list">
                 <li>GST registration and compliance for coaching services and product sales is the sole responsibility of individual coaches</li>
                 <li>Coaches earning above the GST threshold must register and comply with GST regulations independently</li>
-                <li>FitCoach platform subscription fees (₹99/month) are subject to applicable GST</li>
+                <li>FitCoach platform subscription fees (₹199/month) are subject to applicable GST</li>
                 <li>Coaches are responsible for issuing GST-compliant invoices to their clients where required</li>
               </ul>
 

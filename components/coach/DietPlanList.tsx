@@ -10,8 +10,6 @@ import {
   Utensils,
   Calendar,
   Target,
-  ChevronLeft,
-  ChevronRight,
   Link as LinkIcon,
   Flame,
 } from "lucide-react";
@@ -20,6 +18,7 @@ import {
   useDeleteCoachDietPlan,
   type CoachDietPlan,
 } from "@/lib/queries/diet";
+import CompactPagination from "@/components/shared/CompactPagination";
 
 const PLANS_PER_PAGE = 6;
 
@@ -459,91 +458,16 @@ export default function DietPlanList() {
       {pagination.totalPages > 1 && (
         <div
           style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: "0.75rem",
             marginTop: "1.5rem",
             paddingTop: "1rem",
             borderTop: "1px solid #e5e7eb",
           }}
         >
-          <button
-            type="button"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "0.5rem",
-              borderRadius: "8px",
-              border: "1px solid #e5e7eb",
-              backgroundColor: currentPage === 1 ? "#f3f4f6" : "#fff",
-              cursor: currentPage === 1 ? "not-allowed" : "pointer",
-              opacity: currentPage === 1 ? 0.5 : 1,
-            }}
-          >
-            <ChevronLeft
-              style={{ width: "18px", height: "18px", color: "#374151" }}
-            />
-          </button>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(
-              (page) => (
-                <button
-                  key={page}
-                  type="button"
-                  onClick={() => setCurrentPage(page)}
-                  style={{
-                    minWidth: "32px",
-                    height: "32px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: "8px",
-                    border:
-                      page === currentPage ? "none" : "1px solid #e5e7eb",
-                    backgroundColor: page === currentPage ? "#2563eb" : "#fff",
-                    color: page === currentPage ? "#fff" : "#374151",
-                    fontSize: "0.85rem",
-                    fontWeight: page === currentPage ? 600 : 400,
-                    cursor: "pointer",
-                  }}
-                >
-                  {page}
-                </button>
-              )
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={() =>
-              setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))
-            }
-            disabled={currentPage === pagination.totalPages}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "0.5rem",
-              borderRadius: "8px",
-              border: "1px solid #e5e7eb",
-              backgroundColor:
-                currentPage === pagination.totalPages ? "#f3f4f6" : "#fff",
-              cursor:
-                currentPage === pagination.totalPages
-                  ? "not-allowed"
-                  : "pointer",
-              opacity: currentPage === pagination.totalPages ? 0.5 : 1,
-            }}
-          >
-            <ChevronRight
-              style={{ width: "18px", height: "18px", color: "#374151" }}
-            />
-          </button>
+          <CompactPagination
+            currentPage={currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       )}
     </div>

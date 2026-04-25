@@ -5,8 +5,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 import axios from "axios";
-import { Download, Package, User, CreditCard, ChevronLeft, ChevronRight, CheckCircle, XCircle, ExternalLink, ChevronDown, ChevronUp, MapPin, Phone } from "lucide-react";
+import { Download, Package, User, CreditCard, CheckCircle, XCircle, ExternalLink, ChevronDown, ChevronUp, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
+import CompactPagination from "@/components/shared/CompactPagination";
 
 type CoachOrderStatus =
   | "pending"
@@ -467,44 +468,23 @@ export default function CoachOrdersPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="btn btn--outline"
-                style={{ display: "flex", alignItems: "center", gap: "0.25rem", padding: "0.4rem 0.75rem", fontSize: "0.85rem" }}
+            <div style={{ marginTop: "1.5rem" }}>
+              <CompactPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  color: "#6b7280",
+                  marginTop: "0.5rem",
+                  textAlign: "center",
+                }}
               >
-                <ChevronLeft size={16} />
-                Prev
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  type="button"
-                  onClick={() => setCurrentPage(page)}
-                  className={`btn ${currentPage === page ? "btn--primary" : "btn--outline"}`}
-                  style={{ padding: "0.4rem 0.75rem", fontSize: "0.85rem", minWidth: "2.5rem" }}
-                >
-                  {page}
-                </button>
-              ))}
-
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="btn btn--outline"
-                style={{ display: "flex", alignItems: "center", gap: "0.25rem", padding: "0.4rem 0.75rem", fontSize: "0.85rem" }}
-              >
-                Next
-                <ChevronRight size={16} />
-              </button>
-
-              <span style={{ fontSize: "0.85rem", color: "#6b7280", marginLeft: "0.5rem" }}>
                 Page {currentPage} of {totalPages}
-              </span>
+              </p>
             </div>
           )}
         </>

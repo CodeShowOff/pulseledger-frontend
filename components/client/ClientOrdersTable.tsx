@@ -6,7 +6,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 import axios from "axios";
-import { Download, Package, Calendar, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, Package, Calendar, CreditCard } from "lucide-react";
+import CompactPagination from "@/components/shared/CompactPagination";
 
 type OrderItem = { productId: string; name: string; quantity: number; price: number };
 type OrderStatus =
@@ -332,77 +333,15 @@ export default function ClientOrdersTable() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "0.75rem",
           marginTop: "1.5rem",
           paddingTop: "1rem",
           borderTop: "1px solid #e5e7eb"
         }}>
-          <button
-            type="button"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "0.5rem",
-              borderRadius: "8px",
-              border: "1px solid #e5e7eb",
-              backgroundColor: currentPage === 1 ? "#f3f4f6" : "#fff",
-              cursor: currentPage === 1 ? "not-allowed" : "pointer",
-              opacity: currentPage === 1 ? 0.5 : 1,
-            }}
-          >
-            <ChevronLeft style={{ width: "18px", height: "18px", color: "#374151" }} />
-          </button>
-          
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                type="button"
-                onClick={() => setCurrentPage(page)}
-                style={{
-                  minWidth: "32px",
-                  height: "32px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: "8px",
-                  border: page === currentPage ? "none" : "1px solid #e5e7eb",
-                  backgroundColor: page === currentPage ? "#2563eb" : "#fff",
-                  color: page === currentPage ? "#fff" : "#374151",
-                  fontSize: "0.85rem",
-                  fontWeight: page === currentPage ? 600 : 400,
-                  cursor: "pointer",
-                }}
-              >
-                {page}
-              </button>
-            ))}
-          </div>
-          
-          <button
-            type="button"
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "0.5rem",
-              borderRadius: "8px",
-              border: "1px solid #e5e7eb",
-              backgroundColor: currentPage === totalPages ? "#f3f4f6" : "#fff",
-              cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-              opacity: currentPage === totalPages ? 0.5 : 1,
-            }}
-          >
-            <ChevronRight style={{ width: "18px", height: "18px", color: "#374151" }} />
-          </button>
+          <CompactPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       )}
     </>

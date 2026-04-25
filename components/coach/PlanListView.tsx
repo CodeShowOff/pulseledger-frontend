@@ -8,8 +8,6 @@ import dynamic from "next/dynamic";
 import { motion } from "@/lib/motion";
 import {
   Calendar,
-  ChevronLeft,
-  ChevronRight,
   DollarSign,
   Edit,
   FileText,
@@ -25,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import CompactPagination from "@/components/shared/CompactPagination";
 
 const PlanClientsModal = dynamic(() => import("@/components/coach/PlanClientsModal"), {
   ssr: false,
@@ -237,38 +236,12 @@ export default function PlanListView() {
       </div>
 
       {totalPages > 1 ? (
-        <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-200 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <Button
-              key={page}
-              type="button"
-              size="icon"
-              variant={page === currentPage ? "default" : "outline"}
-              onClick={() => setCurrentPage(page)}
-            >
-              {page}
-            </Button>
-          ))}
-
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+        <div className="border-t border-slate-200 pt-4">
+          <CompactPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       ) : null}
 

@@ -24,7 +24,7 @@ const plans = [
   },
   {
     name: "Coach Basic",
-    price: "₹99",
+    price: "₹199",
     note: "per month",
     audience: "Platform fee for active coaches",
     features: [
@@ -32,11 +32,11 @@ const plans = [
       "No feature restrictions on core tools",
       "Plans, reminders, and progress tracking",
     ],
-    cta: "Choose ₹99 plan",
+    cta: "Choose ₹199 plan",
   },
   {
     name: "Coach Pro",
-    price: "₹199",
+    price: "₹299",
     note: "per month",
     tag: "Upcoming",
     audience: "For coaches who need advanced insights",
@@ -45,7 +45,7 @@ const plans = [
       "AI features",
       "Priority customer support",
     ],
-    cta: "Choose ₹199 plan",
+    cta: "Choose ₹299 plan",
   },
 ];
 
@@ -68,7 +68,7 @@ export default function PricingSection() {
           </h2>
 
           <p className={`mx-auto max-w-[62ch] text-base sm:text-lg ${textMuted}`}>
-            Client app access is free. Coaches get a 30-day free trial, then choose ₹99 or ₹199
+            Client app access is free. Coaches get a 30-day free trial, then choose ₹199 or ₹299
             per month.
           </p>
         </div>

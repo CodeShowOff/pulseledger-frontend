@@ -6,12 +6,12 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "@/lib/motion";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, MessageSquare, Search, User } from "lucide-react";
+import { MessageSquare, Search, User } from "lucide-react";
 import api from "@/lib/axios";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import CompactPagination from "@/components/shared/CompactPagination";
 import styles from "./CoachClients.module.css";
 
 type Client = {
@@ -20,7 +20,7 @@ type Client = {
   avatarUrl?: string | null;
 };
 
-const CLIENTS_PER_PAGE = 6;
+const CLIENTS_PER_PAGE = 20;
 
 const fetchClients = async (search = "") => {
   const params = new URLSearchParams({ page: "1", limit: "100" });
@@ -173,40 +173,11 @@ export default function CoachClients() {
             <p className={styles.pageText}>{pageInfoText}</p>
 
             <div className={styles.pageControls}>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-3.5 w-3.5" />
-                Prev
-              </Button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  type="button"
-                  variant={currentPage === page ? "default" : "outline"}
-                  size="sm"
-                  className="min-w-8 px-2"
-                  onClick={() => setCurrentPage(page)}
-                >
-                  {page}
-                </Button>
-              ))}
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-                <ChevronRight className="h-3.5 w-3.5" />
-              </Button>
+              <CompactPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
             </div>
           </CardContent>
         </Card>

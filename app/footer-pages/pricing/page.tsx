@@ -10,7 +10,7 @@ export default function PricingPage() {
       <div className="client-page__header">
         <h1 className="client-page__title">Platform Pricing</h1>
         <p className="client-page__subtitle">
-          Client app is free to use. Coaches get 30 days free, then choose ₹99 or ₹199 per month.
+          Client app is free to use. Coaches get 30 days free, then choose ₹199 or ₹299 per month.
         </p>
       </div>
 
@@ -182,7 +182,7 @@ export default function PricingPage() {
 
             <div style={{ textAlign: "center", marginBottom: "2rem" }}>
               <div style={{ fontSize: "3rem", fontWeight: "800", color: "#6b21a8" }}>
-                ₹99
+                ₹199
                 <span style={{ fontSize: "1.25rem", fontWeight: "600", color: "#94a3b8" }}>
                   /month
                 </span>
@@ -198,7 +198,7 @@ export default function PricingPage() {
                 "Same core feature set as the free trial",
                 "No feature restrictions on core tools",
                 "Plans, chat, reminders, and progress tracking",
-                "Continuous access for ₹99/month",
+                "Continuous access for ₹199/month",
               ].map((feature, idx) => (
                 <li
                   key={idx}
@@ -237,7 +237,7 @@ export default function PricingPage() {
                 background: "linear-gradient(135deg, #7c3aed, #a855f7)",
               }}
             >
-              Choose ₹99 Plan
+              Choose ₹199 Plan
             </Link>
           </div>
 
@@ -293,7 +293,7 @@ export default function PricingPage() {
 
             <div style={{ textAlign: "center", marginBottom: "2rem" }}>
               <div style={{ fontSize: "3rem", fontWeight: "800", color: "#166534" }}>
-                ₹199
+                ₹299
                 <span style={{ fontSize: "1.25rem", fontWeight: "600", color: "#94a3b8" }}>
                   /month
                 </span>
@@ -348,7 +348,7 @@ export default function PricingPage() {
                 background: "linear-gradient(135deg, #16a34a, #22c55e)",
               }}
             >
-              Choose ₹199 Plan
+              Choose ₹299 Plan
             </Link>
           </div>
         </div>
@@ -381,8 +381,8 @@ export default function PricingPage() {
               },
               {
                 step: "3",
-                title: "Choose ₹99 or ₹199 Plan",
-                description: "After trial, continue with Coach Basic (₹99) or Coach Pro (₹199).",
+                title: "Choose ₹199 or ₹299 Plan",
+                description: "After trial, continue with Coach Basic (₹199) or Coach Pro (₹299).",
               },
               {
                 step: "4",
@@ -433,7 +433,7 @@ export default function PricingPage() {
                 <strong>Payment Method:</strong> UPI or bank transfer via admin-provided QR code
               </li>
               <li>
-                <strong>Amount:</strong> ₹99/month (Coach Basic) or ₹199/month (Coach Pro)
+                <strong>Amount:</strong> ₹199/month (Coach Basic) or ₹299/month (Coach Pro)
               </li>
               <li>
                 <strong>Payment Proof:</strong> Upload screenshot of successful payment transaction
@@ -471,7 +471,7 @@ export default function PricingPage() {
               <li>Trial starts automatically upon coach registration</li>
               <li>Clients can use the app for free under their coach</li>
               <li>No credit card required for trial period</li>
-              <li>Choose ₹99 Basic or ₹199 Pro after trial ends</li>
+              <li>Choose ₹199 Basic or ₹299 Pro after trial ends</li>
               <li>Notifications sent 3 days and 1 day before expiration</li>
               <li>Access blocked after subscription expires</li>
               <li>Payment history available in your dashboard</li>

@@ -5,9 +5,10 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
-import { X, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, User } from "lucide-react";
 import Link from "next/link";
 import PlanFormPortal from "@/components/coach/PlanFormPortal";
+import CompactPagination from "@/components/shared/CompactPagination";
 
 type Client = {
   _id: string;
@@ -231,78 +232,16 @@ export default function PlanClientsModal({ planId, planTitle, onClose }: PlanCli
               {data.pagination.totalPages > 1 && (
                 <div
                   style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: "0.75rem",
                     marginTop: "1.5rem",
                     paddingTop: "1rem",
                     borderTop: "1px solid #e5e7eb",
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "0.5rem",
-                      borderRadius: "8px",
-                      border: "1px solid #e5e7eb",
-                      backgroundColor: currentPage === 1 ? "#f3f4f6" : "#fff",
-                      cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                      opacity: currentPage === 1 ? 0.5 : 1,
-                    }}
-                  >
-                    <ChevronLeft style={{ width: "18px", height: "18px", color: "#374151" }} />
-                  </button>
-
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    {Array.from({ length: data.pagination.totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        type="button"
-                        onClick={() => setCurrentPage(page)}
-                        style={{
-                          minWidth: "32px",
-                          height: "32px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          borderRadius: "8px",
-                          border: page === currentPage ? "none" : "1px solid #e5e7eb",
-                          backgroundColor: page === currentPage ? "#2563eb" : "#fff",
-                          color: page === currentPage ? "#fff" : "#374151",
-                          fontSize: "0.85rem",
-                          fontWeight: page === currentPage ? 600 : 400,
-                          cursor: "pointer",
-                        }}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setCurrentPage((p) => Math.min(data.pagination.totalPages, p + 1))}
-                    disabled={currentPage === data.pagination.totalPages}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "0.5rem",
-                      borderRadius: "8px",
-                      border: "1px solid #e5e7eb",
-                      backgroundColor: currentPage === data.pagination.totalPages ? "#f3f4f6" : "#fff",
-                      cursor: currentPage === data.pagination.totalPages ? "not-allowed" : "pointer",
-                      opacity: currentPage === data.pagination.totalPages ? 0.5 : 1,
-                    }}
-                  >
-                    <ChevronRight style={{ width: "18px", height: "18px", color: "#374151" }} />
-                  </button>
+                  <CompactPagination
+                    currentPage={currentPage}
+                    totalPages={data.pagination.totalPages}
+                    onPageChange={setCurrentPage}
+                  />
                 </div>
               )}
             </>

@@ -219,14 +219,14 @@ export default function RefundPolicyPage() {
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">5.1 About Platform Subscription</h3>
               <p>
-                Coaches on FitCoach are required to maintain an active platform subscription to access coaching features and manage clients. The platform subscription fee is ₹99 per month with a 28-day free trial for new coaches.
+                Coaches on FitCoach are required to maintain an active platform subscription to access coaching features and manage clients. The platform subscription fee is ₹199 per month with a 28-day free trial for new coaches.
               </p>
 
               <h3 className="client-card__subsection-title">5.2 Platform Subscription Refund Policy</h3>
               <ul className="client-list">
                 <li><strong>Free Trial Period:</strong> No charges during the 28-day trial period, so no refunds apply</li>
                 <li><strong>Payment Submission:</strong> When coaches submit platform subscription payments, they upload payment proof and transaction details</li>
-                <li><strong>Pending Payments:</strong> Payments awaiting admin approval can be cancelled with full refund (₹99) by contacting FitCoach support</li>
+                <li><strong>Pending Payments:</strong> Payments awaiting admin approval can be cancelled with full refund (₹199) by contacting FitCoach support</li>
                 <li><strong>Approved Payments:</strong> Once approved by admin, platform subscription is activated for 30 days</li>
               </ul>
 

@@ -72,7 +72,7 @@
 .list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.95rem;
+  gap: 0.5rem;
 }
 
 .cardMotion {
@@ -365,7 +365,9 @@
 .pageControls {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: flex-end;
+  min-width: 0;
+  flex: 1 1 20rem;
 }
 
 @media (max-width: 1280px) {
@@ -387,6 +389,20 @@
 @media (max-width: 680px) {
   .searchWrap {
     max-width: 100%;
+  }
+
+  .paginationInner {
+    justify-content: center;
+  }
+
+  .pageText {
+    width: 100%;
+    text-align: center;
+  }
+
+  .pageControls {
+    width: 100%;
+    justify-content: center;
   }
 
   .linkBtn {

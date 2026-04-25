@@ -190,42 +190,42 @@ export default function CoachDashboard() {
   const dashboardActions = [
     {
       label: "Visit My Profile",
-      description: "Manage profile",
+      description: "Profile",
       href: "/profile",
       Icon: UserCircle2,
       color: "from-sky-500 to-cyan-500",
     },
     {
       label: "Platform Fee",
-      description: "Manage billing",
+      description: "Billing",
       href: "/coach/platform-fee",
       Icon: CreditCard,
       color: "from-indigo-500 to-blue-500",
     },
     {
       label: "Workouts",
-      description: "Manage workouts",
+      description: "Workouts",
       href: "/coach/workout-plans",
       Icon: Dumbbell,
       color: "from-orange-500 to-amber-500",
     },
     {
       label: "Nutrition",
-      description: "Manage nutrition",
+      description: "Nutrition",
       href: "/coach/diet-plans",
       Icon: UtensilsCrossed,
       color: "from-emerald-500 to-lime-500",
     },
     {
       label: "Revenue",
-      description: "Manage revenue",
+      description: "Revenue",
       href: "/coach/earnings",
       Icon: Wallet,
       color: "from-violet-500 to-fuchsia-500",
     },
     {
       label: "Reviews",
-      description: "Manage reviews",
+      description: "Reviews",
       href: "/coach/reviews",
       Icon: Star,
       color: "from-rose-500 to-pink-500",
@@ -275,7 +275,7 @@ export default function CoachDashboard() {
       title: "Subscription",
       description: "Keep platform access active.",
       href: "/coach/platform-fee",
-      cta: "Manage Billing",
+      cta: "Open Billing",
       Icon: CreditCard,
       badge:
         subscription && Number.isFinite(subscription.daysRemaining)
@@ -539,8 +539,11 @@ export default function CoachDashboard() {
                 transition={{ delay: 0.12, duration: 0.28 }}
               >
                 <div className="space-y-2 sm:space-y-3">
-                  <div className="flex items-center gap-2 px-1">
-                  </div>
+                  {/* <div className="flex items-center gap-2 px-1">
+                    <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
+                      Quick Actions
+                    </h2>
+                  </div> */}
 
                   <div className="grid grid-cols-2 items-stretch overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 xl:grid-cols-3">
                     {moduleActions.map((item, index) => (
@@ -582,11 +585,8 @@ export default function CoachDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.14, duration: 0.25 }}
             >
-              <Card className="relative overflow-hidden border-indigo-200/80 bg-gradient-to-r from-indigo-50 via-blue-50 to-violet-50">
+              <Card className="relative overflow-hidden border-indigo-200/80">
                 <CardContent className="relative px-4 pb-4 pt-5 sm:px-5 sm:pb-5 sm:pt-6">
-                  <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-indigo-300/20 blur-2xl" />
-                  <div className="pointer-events-none absolute -bottom-16 right-24 h-36 w-36 rounded-full bg-violet-300/20 blur-2xl" />
-
                   <div className="relative space-y-3">
                     <div className="flex items-center gap-3">
                       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm">

@@ -372,9 +372,9 @@ export default function ClientDetailPage() {
                 href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-emerald-500 bg-gradient-to-r from-emerald-600 to-green-500 px-4 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.85)] transition-all hover:brightness-105"
+                className="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-emerald-500 bg-gradient-to-r from-emerald-600 to-green-500 px-4 text-sm font-semibold !text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.85)] transition-all hover:brightness-105 hover:!text-white"
               >
-                <MessageCircle className="h-4 w-4" />
+                <MessageCircle className="h-4 w-4 !text-white" />
                 WhatsApp
               </a>
             ) : null}

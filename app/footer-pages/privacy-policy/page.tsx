@@ -157,7 +157,7 @@ export default function PrivacyPolicyPage() {
               <h3 className="client-card__subsection-title">4.3 Payment and Transaction Processing</h3>
               <ul className="client-list">
                 <li>Process payments for subscriptions, products, and services</li>
-                <li>Process platform subscription fees for coaches (₹99 monthly fee with 28-day free trial)</li>
+                <li>Process platform subscription fees for coaches (₹199 monthly fee with 28-day free trial)</li>
                 <li>Verify payment proofs and transaction authenticity for all payment types</li>
                 <li>Track coach platform subscription status (trial, active, expired, suspended)</li>
                 <li>Send notifications about platform subscription expiry and payment reminders</li>
