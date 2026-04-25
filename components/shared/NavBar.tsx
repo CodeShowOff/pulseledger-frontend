@@ -109,7 +109,11 @@ const Navbar = React.memo(function Navbar() {
   }, [user]);
 
   const isChatRoute = pathname?.startsWith("/client/chat") || pathname?.startsWith("/coach/chat");
-  const showMobileBottomNav = !!user && !(isChatRoute && isChatConversationOpen);
+  const isClientWorkoutTodayRoute = pathname === "/client/workouts/today";
+  const showMobileBottomNav =
+    !!user &&
+    !(isChatRoute && isChatConversationOpen) &&
+    !isClientWorkoutTodayRoute;
 
   useEffect(() => {
     const body = document.body;

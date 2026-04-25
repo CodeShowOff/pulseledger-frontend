@@ -412,9 +412,9 @@ export default function ClientWorkoutPlanDetailPage() {
                           {isToday ? (
                             <Link
                               href="/client/workouts/today"
-                              className="mt-1 flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-sm font-semibold text-white transition hover:brightness-110"
+                              className="mt-1 flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-sm font-semibold !text-white transition hover:brightness-110"
                             >
-                              <Play className="h-4 w-4" />
+                              <Play className="h-4 w-4 !text-white" />
                               Start today&apos;s workout
                             </Link>
                           ) : null}

@@ -611,7 +611,7 @@ export default function DietPlanForm({ plan, onSuccess }: Props) {
                       <span
                         className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
                           selected
-                            ? "border-indigo-500 bg-indigo-500 text-white"
+                            ? "border-indigo-500 bg-indigo-500 !text-white"
                             : "border-slate-300 bg-white text-transparent"
                         }`}
                       >

@@ -5,7 +5,6 @@ import { motion } from "@/lib/motion";
 import { MessageSquareText, Search, SendHorizontal, Users } from "lucide-react";
 import api from "@/lib/axios";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -133,38 +132,20 @@ export default function CoachSendNotificationsPage() {
   const messagePct = Math.min(100, Math.round((message.length / MESSAGE_MAX) * 100));
 
   return (
-    <div className="space-y-5 pt-4 md:pt-6">
+    <div className="mx-auto w-full max-w-[1640px] space-y-5 pt-2 md:pt-3">
       <motion.section
         variants={fadeInUp}
         initial="initial"
         animate="animate"
         transition={{ duration: 0.28 }}
       >
-        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
-          <CardHeader className="gap-4 p-6 md:p-7">
+        <Card className="overflow-hidden border-indigo-100/70 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white shadow-[0_14px_30px_-25px_rgba(79,70,229,0.55)]">
+          <CardHeader className="gap-3 p-4 sm:p-6">
             <div className="space-y-2">
-              <Badge className="w-fit border-white/25 bg-white/15 text-white">Communication</Badge>
-              <CardTitle className="text-2xl font-bold tracking-tight text-white md:text-3xl">
-                Send notifications with precision
-              </CardTitle>
-              <CardDescription className="max-w-2xl text-sm !text-white/90 md:text-base">
+              <h1 className="text-lg font-bold tracking-tight text-white sm:text-3xl">Notifications</h1>
+              <CardDescription className="hidden max-w-2xl text-sm !text-white/90 sm:block sm:text-base">
                 Broadcast updates to all clients or target specific members with a focused message.
               </CardDescription>
-            </div>
-
-            <div className="grid gap-3 pt-2 sm:grid-cols-2">
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Recipient mode</p>
-                <p className="mt-1 text-xl font-semibold">
-                  {mode === "allClients" ? "All clients" : "Specific clients"}
-                </p>
-              </div>
-              <div className="rounded-xl border border-white/25 bg-white/10 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-blue-100">Audience size</p>
-                <p className="mt-1 text-xl font-semibold">
-                  {mode === "specific" ? `${selected.length} selected` : "All active clients"}
-                </p>
-              </div>
             </div>
           </CardHeader>
         </Card>
@@ -184,9 +165,6 @@ export default function CoachSendNotificationsPage() {
               </span>
               Notification setup
             </CardTitle>
-            <CardDescription>
-              Pick recipients, write your message, and send instantly.
-            </CardDescription>
           </CardHeader>
 
           <CardContent>
@@ -196,7 +174,8 @@ export default function CoachSendNotificationsPage() {
                   Recipient mode
                 </legend>
 
-                <div className="mt-2 flex flex-wrap items-center gap-2">
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                  <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-2">
                   <Button
                     type="button"
                     size="sm"
@@ -205,8 +184,8 @@ export default function CoachSendNotificationsPage() {
                     onClick={() => setMode("allClients")}
                     className={cn(
                       mode === "allClients"
-                        ? "border border-indigo-600"
-                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                        ? "w-full border border-indigo-600 sm:w-auto"
+                        : "w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-100 sm:w-auto"
                     )}
                   >
                     All my clients
@@ -220,16 +199,17 @@ export default function CoachSendNotificationsPage() {
                     onClick={() => setMode("specific")}
                     className={cn(
                       mode === "specific"
-                        ? "border border-indigo-600"
-                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                        ? "w-full border border-indigo-600 sm:w-auto"
+                        : "w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-100 sm:w-auto"
                     )}
                   >
                     Specific clients
                   </Button>
+                  </div>
 
                   <span
                     aria-live="polite"
-                    className="ml-auto rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600"
+                    className="ml-auto hidden rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600 sm:inline-flex"
                   >
                     {mode === "specific" ? `${selected.length} selected` : "All clients selected"}
                   </span>

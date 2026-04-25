@@ -14,7 +14,7 @@ export default function ToastProvider() {
       expand={false}
       visibleToasts={2}
       offset={16}
-      mobileOffset={{ bottom: 88, left: 12, right: 12 }}
+      mobileOffset={{ bottom: 76, left: 12, right: 12 }}
       toastOptions={{
         className: "fitcoach-toast",
         descriptionClassName: "fitcoach-toast__description",

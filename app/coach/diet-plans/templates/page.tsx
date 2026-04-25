@@ -129,7 +129,7 @@ export default function CoachDietTemplatesPage() {
                 <Link href="/coach/diet-plans" className="min-w-0 flex-1 sm:flex-none">
                   <Button
                     variant="outline"
-                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none !text-white hover:bg-white/20 hover:!text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
                     <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Diet Plans
@@ -138,7 +138,7 @@ export default function CoachDietTemplatesPage() {
                 <Link href="/coach/diet-plans/create" className="min-w-0 flex-1 sm:flex-none">
                   <Button
                     variant="outline"
-                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none !text-white hover:bg-white/20 hover:!text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
                     <UtensilsCrossed className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Blank Plan

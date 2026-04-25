@@ -26,7 +26,7 @@ export default function CoachDietPlansPage() {
                 <Link href="/coach/food-items" className="min-w-0 flex-1 sm:flex-none">
                   <Button
                     variant="outline"
-                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none !text-white hover:bg-white/20 hover:!text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
                     <Utensils className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                     <span className="sm:hidden">Food</span>
@@ -36,7 +36,7 @@ export default function CoachDietPlansPage() {
                 <Link href="/coach/diet-plans/templates" className="min-w-0 flex-1 sm:flex-none">
                   <Button
                     variant="outline"
-                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none text-white hover:bg-white/20 hover:text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
+                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap border-white/25 bg-white/10 px-2 text-[11px] font-semibold leading-none !text-white hover:bg-white/20 hover:!text-white sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
                   >
                     <FileText className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                     <span className="sm:hidden">Templates</span>
