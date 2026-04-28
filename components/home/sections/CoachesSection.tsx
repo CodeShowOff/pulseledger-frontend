@@ -28,9 +28,9 @@ export default function CoachesSection() {
               Everything you need to coach with clarity.
             </h2>
 
-            <p className={`${textMuted} mb-6 text-base leading-relaxed sm:text-lg`}>
-              Programs, scheduling, messaging, and progress—organized so you can focus on people.
-            </p>
+              <p className={`${textMuted} mb-6 text-base leading-relaxed sm:text-lg`}>
+                Programs, scheduling, messaging, progress.
+              </p>
 
             <div className="mb-7 space-y-3">
               {coachFeatures.map((feature) => (
@@ -89,7 +89,7 @@ export default function CoachesSection() {
           </h2>
 
           <p className={`${textMuted} mb-8 text-lg leading-relaxed`}>
-            Programs, scheduling, messaging, and progress—organized so you can focus on people.
+            Programs, scheduling, messaging, progress.
           </p>
 
           <div className="mb-8 space-y-4">

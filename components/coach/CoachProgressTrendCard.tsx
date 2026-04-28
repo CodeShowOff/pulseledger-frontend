@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { TrendingUp } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -23,7 +23,7 @@ type CoachProgressTrendCardProps = {
   isLoading: boolean;
 };
 
-export default function CoachProgressTrendCard({ chartData, isLoading }: CoachProgressTrendCardProps) {
+function CoachProgressTrendCard({ chartData, isLoading }: CoachProgressTrendCardProps) {
   return (
     <Card className="h-full border-slate-200/80 bg-white/95">
       <CardHeader>
@@ -42,7 +42,7 @@ export default function CoachProgressTrendCard({ chartData, isLoading }: CoachPr
           <p className="text-sm text-slate-500">No progress data available yet.</p>
         ) : (
           <div className="w-full min-w-0">
-            <ResponsiveContainer width="100%" height={280} minWidth={0}>
+            <ResponsiveContainer width="100%" height={280} minWidth={0} debounce={180}>
               <AreaChart data={chartData} margin={{ top: 8, right: 0, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="coachBmiGradient" x1="0" y1="0" x2="0" y2="1">
@@ -70,6 +70,7 @@ export default function CoachProgressTrendCard({ chartData, isLoading }: CoachPr
                 <Area
                   type="monotone"
                   dataKey="avgBMI"
+                  isAnimationActive={false}
                   stroke="#6366f1"
                   strokeWidth={2.5}
                   fill="url(#coachBmiGradient)"
@@ -84,3 +85,8 @@ export default function CoachProgressTrendCard({ chartData, isLoading }: CoachPr
     </Card>
   );
 }
+
+export default memo(
+  CoachProgressTrendCard,
+  (prev, next) => prev.isLoading === next.isLoading && prev.chartData === next.chartData,
+);

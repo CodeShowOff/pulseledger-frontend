@@ -65,7 +65,7 @@ export default function TwoPathsSection() {
               <div className="absolute bottom-0 left-0 right-0 p-5">
                 <h3 className={`${headingClass} mb-2 text-2xl text-[#F6F7F6]`}>For clients</h3>
                 <p className="mb-4 max-w-[32ch] text-sm leading-relaxed text-[#F6F7F6D9]">
-                  Follow your plan, log your day, and stay connected to your coach without overwhelm.
+                  Follow your plan, log your day, and stay connected to your coach.
                 </p>
                 <Link href="/#clients" className="text-sm font-medium" style={accentLinkStyle}>
                   Explore the experience

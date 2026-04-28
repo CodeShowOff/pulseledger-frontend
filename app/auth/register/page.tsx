@@ -29,8 +29,7 @@ export default function RegisterPage() {
     >
       <div className="auth-note">
         <p className="auth-note__text">
-          <strong>Note:</strong> If you want to use this platform without any
-          coach, use referral code: <span className="auth-note__code">FC-CLIENTS</span>
+          Dont have coach ? Use Coach Code: <span className="auth-note__code">FC-CLINETS</span>
         </p>
       </div>
       <Suspense fallback={<p className="text-sm text-gray-500">Loading form…</p>}>

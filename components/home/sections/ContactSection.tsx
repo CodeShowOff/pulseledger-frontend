@@ -53,23 +53,32 @@ export default function ContactSection() {
   };
 
   return (
-    <section id="contact" className={`${sectionPad} bg-[#F8FAFC] pb-10 pt-14 md:pb-8 md:pt-[10vh]`}>
+    <section
+      id="contact"
+      className={`${sectionPad} bg-[#F8FAFC] pb-10 pt-14 md:pb-8 md:pt-[10vh]`}
+    >
       <div className="mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:gap-[4vw]">
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col items-center text-center lg:items-start lg:text-left">
           <h2 className={`${headingClass} mb-6 text-[clamp(32px,3.2vw,52px)]`}>
             Let&apos;s talk.
           </h2>
 
-          <p className={`${textMuted} mb-8 text-base leading-relaxed sm:text-lg`}>
-            Questions about coaching, teams, or pricing? We&apos;re here to help.
+          <p
+            className={`${textMuted} mb-8 text-base leading-relaxed sm:text-lg`}
+          >
+            Questions about coaching, teams, or pricing? We&apos;re here to
+            help.
           </p>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 justify-center lg:justify-start">
             <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#1116111A] bg-[#F6F7F6]">
               <Mail className="h-4 w-4 text-[#111611]" strokeWidth={1.5} />
             </div>
-            <a href="mailto:hello@fitcoach.app" className="font-medium text-[#111611]">
-              hello@fitcoach.app
+            <a
+              href="mailto:mail.fitcoach@gmail.com"
+              className="font-medium text-[#111611]"
+            >
+              mail.fitcoach@gmail.com
             </a>
           </div>
         </div>
@@ -79,7 +88,10 @@ export default function ContactSection() {
         >
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="name" className="mb-2 block text-sm font-medium text-[#111611]">
+              <label
+                htmlFor="name"
+                className="mb-2 block text-sm font-medium text-[#111611]"
+              >
                 Name
               </label>
               <input
@@ -89,13 +101,18 @@ export default function ContactSection() {
                 placeholder="Your name"
                 className="w-full rounded-xl border border-[#1116111A] bg-[#F6F7F6] px-4 py-3 text-[#111611] placeholder:text-[#64748B]"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 disabled={submitMutation.isPending}
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="mb-2 block text-sm font-medium text-[#111611]">
+              <label
+                htmlFor="email"
+                className="mb-2 block text-sm font-medium text-[#111611]"
+              >
                 Email
               </label>
               <input
@@ -105,13 +122,18 @@ export default function ContactSection() {
                 placeholder="you@example.com"
                 className="w-full rounded-xl border border-[#1116111A] bg-[#F6F7F6] px-4 py-3 text-[#111611] placeholder:text-[#64748B]"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 disabled={submitMutation.isPending}
               />
             </div>
 
             <div>
-              <label htmlFor="message" className="mb-2 block text-sm font-medium text-[#111611]">
+              <label
+                htmlFor="message"
+                className="mb-2 block text-sm font-medium text-[#111611]"
+              >
                 Message
               </label>
               <textarea
@@ -121,7 +143,9 @@ export default function ContactSection() {
                 placeholder="How can we help?"
                 className="w-full resize-none rounded-xl border border-[#1116111A] bg-[#F6F7F6] px-4 py-3 text-[#111611] placeholder:text-[#64748B]"
                 value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, message: e.target.value })
+                }
                 disabled={submitMutation.isPending}
               />
             </div>

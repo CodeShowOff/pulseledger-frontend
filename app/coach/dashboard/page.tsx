@@ -3,12 +3,11 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import api from "@/lib/axios";
 import { NotificationItem, useLatestNotifications } from "@/lib/queries/notifications";
-import { motion } from "@/lib/motion";
 import {
   AlertCircle,
   ClipboardList,
@@ -19,7 +18,6 @@ import {
   Package,
   Sparkles,
   Star,
-  Target,
   MessageSquare,
   UserCircle2,
   Users,
@@ -74,6 +72,62 @@ interface SubscriptionStatus {
   totalPaid: number;
 }
 
+const DASHBOARD_ACTIONS = [
+  {
+    label: "Visit My Profile",
+    description: "Profile",
+    href: "/profile",
+    Icon: UserCircle2,
+    color: "from-sky-500 to-cyan-500",
+  },
+  {
+    label: "Platform Fee",
+    description: "Billing",
+    href: "/coach/platform-fee",
+    Icon: CreditCard,
+    color: "from-indigo-500 to-blue-500",
+  },
+  {
+    label: "Workouts",
+    description: "Workouts",
+    href: "/coach/workout-plans",
+    Icon: Dumbbell,
+    color: "from-orange-500 to-amber-500",
+  },
+  {
+    label: "Nutrition",
+    description: "Nutrition",
+    href: "/coach/diet-plans",
+    Icon: UtensilsCrossed,
+    color: "from-emerald-500 to-lime-500",
+  },
+  {
+    label: "Revenue",
+    description: "Revenue",
+    href: "/coach/earnings",
+    Icon: Wallet,
+    color: "from-violet-500 to-fuchsia-500",
+  },
+  {
+    label: "Reviews",
+    description: "Reviews",
+    href: "/coach/reviews",
+    Icon: Star,
+    color: "from-rose-500 to-pink-500",
+  },
+] as const;
+
+const MODULE_ACTION_ORDER: Record<string, number> = {
+  Workouts: 1,
+  Nutrition: 2,
+  "Platform Fee": 3,
+  Revenue: 4,
+  "Visit My Profile": 5,
+  Reviews: 6,
+};
+
+const EMPTY_PROGRESS_DATA: ProgressPoint[] = [];
+
 function formatRelativeTime(value: string) {
   const timestamp = new Date(value).getTime();
   if (!Number.isFinite(timestamp)) return "";
@@ -112,6 +166,32 @@ export default function CoachDashboard() {
   const user = useAuthStore((s) => s.user);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [shouldRenderChart, setShouldRenderChart] = useState(false);
+  const chartSectionRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (shouldRenderChart) return;
+
+    const node = chartSectionRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") {
+      setShouldRenderChart(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const hasVisibleEntry = entries.some((entry) => entry.isIntersecting);
+        if (hasVisibleEntry) {
+          setShouldRenderChart(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "240px 0px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [shouldRenderChart]);
 
   const { data: subscription } = useQuery<SubscriptionStatus>({
     queryKey: ["platformSubscription"],
@@ -136,6 +216,8 @@ export default function CoachDashboard() {
       const res = await api.get("/coach/client-progress");
       return (res.data ?? []) as ProgressPoint[];
     },
+    enabled: shouldRenderChart,
+    staleTime: 60_000,
   });
 
   const { data: clients, isLoading: clientsLoading } = useQuery<CoachClient[]>({
@@ -187,164 +269,48 @@ export default function CoachDashboard() {
       ? "warn"
       : "ok";
 
-  const dashboardActions = [
-    {
-      label: "Visit My Profile",
-      description: "Profile",
-      href: "/profile",
-      Icon: UserCircle2,
-      color: "from-sky-500 to-cyan-500",
-    },
-    {
-      label: "Platform Fee",
-      description: "Billing",
-      href: "/coach/platform-fee",
-      Icon: CreditCard,
-      color: "from-indigo-500 to-blue-500",
-    },
-    {
-      label: "Workouts",
-      description: "Workouts",
-      href: "/coach/workout-plans",
-      Icon: Dumbbell,
-      color: "from-orange-500 to-amber-500",
-    },
-    {
-      label: "Nutrition",
-      description: "Nutrition",
-      href: "/coach/diet-plans",
-      Icon: UtensilsCrossed,
-      color: "from-emerald-500 to-lime-500",
-    },
-    {
-      label: "Revenue",
-      description: "Revenue",
-      href: "/coach/earnings",
-      Icon: Wallet,
-      color: "from-violet-500 to-fuchsia-500",
-    },
-    {
-      label: "Reviews",
-      description: "Reviews",
-      href: "/coach/reviews",
-      Icon: Star,
-      color: "from-rose-500 to-pink-500",
-    },
-  ];
-
-  const moduleActionOrder: Record<string, number> = {
-    Workouts: 1,
-    Nutrition: 2,
-    "Platform Fee": 3,
-    Revenue: 4,
-    "Visit My Profile": 5,
-    Reviews: 6,
-  };
-
-  const moduleActions = [...dashboardActions].sort(
-    (a, b) =>
-      (moduleActionOrder[a.label] ?? Number.MAX_SAFE_INTEGER) -
-      (moduleActionOrder[b.label] ?? Number.MAX_SAFE_INTEGER)
+  const moduleActions = useMemo(
+    () =>
+      [...DASHBOARD_ACTIONS].sort(
+        (a, b) =>
+          (MODULE_ACTION_ORDER[a.label] ?? Number.MAX_SAFE_INTEGER) -
+          (MODULE_ACTION_ORDER[b.label] ?? Number.MAX_SAFE_INTEGER),
+      ),
+    [],
   );
 
-  const quickCards = [
-    {
-      title: "Earnings Center",
-      description: "Track revenue in one place.",
-      href: "/coach/earnings",
-      cta: "Open Revenue",
-      Icon: Wallet,
-      badge: "Finance",
-      cardClass: "border-emerald-200/80 bg-emerald-50/80 hover:border-emerald-300 hover:bg-emerald-100/70",
-      iconClass: "text-emerald-700 group-hover:text-emerald-800",
-      arrowClass: "text-emerald-500 group-hover:text-emerald-700",
-    },
-    {
-      title: "Public Profile",
-      description: "Share your profile link quickly.",
-      href: publicProfileUrl || "#",
-      cta: "Open Profile",
-      Icon: Link2,
-      isExternal: true,
-      badge: "Growth",
-      cardClass: "border-sky-200/80 bg-sky-50/80 hover:border-sky-300 hover:bg-sky-100/70",
-      iconClass: "text-sky-700 group-hover:text-sky-800",
-      arrowClass: "text-sky-500 group-hover:text-sky-700",
-    },
-    {
-      title: "Subscription",
-      description: "Keep platform access active.",
-      href: "/coach/platform-fee",
-      cta: "Open Billing",
-      Icon: CreditCard,
-      badge:
-        subscription && Number.isFinite(subscription.daysRemaining)
-          ? `${subscription.daysRemaining} Day${subscription.daysRemaining !== 1 ? "s" : ""} Left`
-          : "Checking status",
-      cardClass: "border-rose-200/80 bg-rose-50/80 hover:border-rose-300 hover:bg-rose-100/70",
-      iconClass: "text-rose-700 group-hover:text-rose-800",
-      arrowClass: "text-rose-500 group-hover:text-rose-700",
-    },
-    // {
-    //   title: "Workout Plans",
-    //   description: "Design and assign high-converting coaching workout templates.",
-    //   href: "/coach/workout-plans",
-    //   cta: "Open Workouts",
-    //   Icon: Dumbbell,
-    //   badge: "Training",
-    // },
-    // {
-    //   title: "Diet Plans",
-    //   description: "Create nutrition journeys and reusable premium meal plans.",
-    //   href: "/coach/diet-plans",
-    //   cta: "Open Nutrition",
-    //   Icon: UtensilsCrossed,
-    //   badge: "Nutrition",
-    // },
-    // {
-    //   title: "Client Reviews",
-    //   description: "Turn feedback into trust by showcasing top testimonials.",
-    //   href: "/coach/reviews",
-    //   cta: "Open Reviews",
-    //   Icon: Star,
-    //   badge: "Reputation",
-    // },
-  ];
+  const kpis = useMemo(
+    () => [
+      {
+        title: "Total Clients",
+        value: statsLoading ? "--" : `${stats?.clients ?? 0}`,
+        Icon: Users,
+        tone: "from-blue-500 to-indigo-500",
+      },
+      {
+        title: "Active Plans",
+        value: statsLoading ? "--" : `${stats?.plans ?? 0}`,
+        Icon: FileText,
+        tone: "from-violet-500 to-fuchsia-500",
+      },
+      {
+        title: "Products",
+        value: statsLoading ? "--" : `${stats?.products ?? 0}`,
+        Icon: Package,
+        tone: "from-emerald-500 to-teal-500",
+      },
+    ],
+    [statsLoading, stats?.clients, stats?.plans, stats?.products],
+  );
 
-  const kpis = [
-    {
-      title: "Total Clients",
-      value: statsLoading ? "--" : `${stats?.clients ?? 0}`,
-      Icon: Users,
-      tone: "from-blue-500 to-indigo-500",
-    },
-    {
-      title: "Active Plans",
-      value: statsLoading ? "--" : `${stats?.plans ?? 0}`,
-      Icon: FileText,
-      tone: "from-violet-500 to-fuchsia-500",
-    },
-    {
-      title: "Products",
-      value: statsLoading ? "--" : `${stats?.products ?? 0}`,
-      Icon: Package,
-      tone: "from-emerald-500 to-teal-500",
-    },
-  ];
-
-  const chartData = progressData?.length ? progressData : [];
+  const chartData = progressData?.length ? progressData : EMPTY_PROGRESS_DATA;
 
   return (
-    <div className="min-h-screen p-2 md:p-4">
-      <div className="mx-auto w-full max-w-[1640px]">
+    <div className="mx-auto w-full max-w-[1640px] space-y-5 pt-2 md:pt-3 min-h-screen">
         <div className="grid min-h-[calc(100vh-108px)] grid-cols-1 gap-3">
           <div className="space-y-3">
-            <section className="grid gap-3 lg:grid-cols-[1.3fr_1fr]">
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05, duration: 0.3 }}
-              >
+            <section>
+              <div>
                 <Card className="h-full overflow-hidden border-slate-200/80 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 text-white">
                   <CardHeader className="gap-3 p-4 sm:p-6">
                     <div className="space-y-2">
@@ -356,92 +322,8 @@ export default function CoachDashboard() {
                       </CardDescription>
                     </div>
                   </CardHeader>
-                  <CardContent className="hidden gap-3 sm:grid sm:grid-cols-3">
-                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
-                      <p className="text-xs uppercase tracking-wide text-blue-100">
-                        Focus
-                      </p>
-                      <p className="mt-1 text-sm font-semibold">
-                        <span className="sm:hidden">Retention</span>
-                        <span className="hidden sm:inline">
-                          Client retention
-                        </span>
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
-                      <p className="text-xs uppercase tracking-wide text-blue-100">
-                        Today
-                      </p>
-                      <p className="mt-1 text-sm font-semibold">
-                        <span className="sm:hidden">Improvements</span>
-                        <span className="hidden sm:inline">
-                          Plan improvements
-                        </span>
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
-                      <p className="text-xs uppercase tracking-wide text-blue-100">
-                        Status
-                      </p>
-                      <p className="mt-1 text-sm font-semibold">
-                        <span className="sm:hidden">Healthy</span>
-                        <span className="hidden sm:inline">
-                          All systems healthy
-                        </span>
-                      </p>
-                    </div>
-                  </CardContent>
                 </Card>
-              </motion.div>
-
-              <motion.div
-                className="hidden md:block"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.3 }}
-              >
-                <Card className="h-full border-slate-200/80 bg-white/95">
-                  <CardHeader className="space-y-1 px-4 pb-2 pt-4">
-                    <CardTitle className="flex items-center gap-2 text-[15px]">
-                      <span className="grid h-6 w-6 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                        <Target className="h-3.5 w-3.5" />
-                      </span>
-                      Quick links
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-1.5 px-4 pb-4 pt-0">
-                    {quickCards.slice(0, 4).map((card) => (
-                      <Link key={card.title} href={card.href} className="block">
-                        <div
-                          className={cn(
-                            "group flex items-center justify-between rounded-xl border px-3 py-2 transition-all",
-                            card.cardClass,
-                          )}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={cn(
-                                "grid h-7 w-7 place-items-center rounded-md bg-white shadow-sm",
-                                card.iconClass,
-                              )}
-                            >
-                              <card.Icon className="h-3.5 w-3.5" />
-                            </span>
-                            <p className="text-sm font-medium text-slate-700">
-                              {card.title}
-                            </p>
-                          </div>
-                          <span
-                            className={cn("transition-colors", card.arrowClass)}
-                          >
-                            →
-                          </span>
-                        </div>
-                      </Link>
-                    ))}
-                  </CardContent>
-                </Card>
-              </motion.div>
+              </div>
             </section>
 
             {subscription &&
@@ -449,7 +331,7 @@ export default function CoachDashboard() {
               subscription.status === "trial" ||
               (subscription.status === "active" &&
                 subscription.daysRemaining <= 3)) ? (
-              <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+              <div>
                 <Card
                   className={cn(
                     "border shadow-none",
@@ -529,15 +411,11 @@ export default function CoachDashboard() {
                     </Link>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             ) : null}
 
             <section>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.12, duration: 0.28 }}
-              >
+              <div>
                 <div className="space-y-2 sm:space-y-3">
                   {/* <div className="flex items-center gap-2 px-1">
                     <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
@@ -562,7 +440,7 @@ export default function CoachDashboard() {
                         <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-center">
                           <span
                             className={cn(
-                              "grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md transition-transform duration-200 group-hover:scale-[1.03]",
+                              "grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md",
                               item.color,
                             )}
                           >
@@ -577,14 +455,10 @@ export default function CoachDashboard() {
                     ))}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </section>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.14, duration: 0.25 }}
-            >
+            <div>
               <Card className="relative overflow-hidden border-indigo-200/80">
                 <CardContent className="relative px-4 pb-4 pt-5 sm:px-5 sm:pb-5 sm:pt-6">
                   <div className="relative space-y-3">
@@ -602,7 +476,7 @@ export default function CoachDashboard() {
                     <button
                       type="button"
                       className={cn(
-                        "flex w-full items-center gap-2 rounded-xl border border-indigo-200/80 bg-white/90 px-3 py-2 text-left transition",
+                        "flex w-full items-center gap-2 rounded-xl border border-indigo-200/80 bg-white/90 px-3 py-2 text-left",
                         referralCode
                           ? "hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
                           : "cursor-not-allowed opacity-80",
@@ -671,18 +545,12 @@ export default function CoachDashboard() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
 
             <section className="grid grid-cols-3 items-stretch gap-2 sm:gap-3">
               {kpis.map((item, index) => (
-                <motion.div
-                  key={item.title}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.12 + index * 0.04, duration: 0.25 }}
-                  whileHover={{ y: -4 }}
-                >
-                  <Card className="h-full border-slate-200/80 bg-white/95 transition-all hover:shadow-[0_16px_40px_-30px_rgba(79,70,229,0.5)]">
+                <div key={item.title}>
+                  <Card className="h-full border-slate-200/80 bg-white/95">
                     <CardContent className="px-3 pb-3 pt-4 sm:p-4">
                       <div className="mb-3 flex items-start justify-end gap-1 sm:justify-between">
                         <p className="hidden text-[10px] font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:block sm:text-xs">
@@ -702,19 +570,35 @@ export default function CoachDashboard() {
                       </p>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </div>
               ))}
             </section>
 
-            <section className="grid gap-3 xl:grid-cols-[1.6fr_1fr]">
-              <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
-                <CoachProgressTrendCard
-                  chartData={chartData}
-                  isLoading={progressLoading}
-                />
-              </motion.div>
+            <section className="grid gap-3 xl:grid-cols-3">
+              <div ref={chartSectionRef} className="xl:col-span-2">
+                {shouldRenderChart ? (
+                  <CoachProgressTrendCard
+                    chartData={chartData}
+                    isLoading={progressLoading}
+                  />
+                ) : (
+                  <Card className="h-full border-slate-200/80 bg-white/95">
+                    <CardHeader>
+                      <CardTitle className="text-base">
+                        Client progress trend
+                      </CardTitle>
+                      <CardDescription>
+                        Chart loads when visible to keep the dashboard snappy.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[280px] rounded-xl bg-slate-100" />
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
 
-              <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
+              <div>
                 <Card className="h-full border-slate-200/80 bg-white/95">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-base">
@@ -767,11 +651,11 @@ export default function CoachDashboard() {
                     )}
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             </section>
 
             <section>
-              <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
+              <div>
                 <Card className="border-slate-200/80 bg-white/95">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0">
                     <div>
@@ -838,11 +722,10 @@ export default function CoachDashboard() {
                     )}
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             </section>
           </div>
         </div>
-      </div>
     </div>
   );
 }

@@ -168,19 +168,17 @@ export default function CoachClients() {
       ) : null}
 
       {totalPages > 1 ? (
-        <Card className={styles.paginationCard}>
-          <CardContent className={styles.paginationInner}>
-            <p className={styles.pageText}>{pageInfoText}</p>
+        <div className={styles.paginationInner}>
+          <div className={styles.pageControls}>
+            <CompactPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
 
-            <div className={styles.pageControls}>
-              <CompactPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          </CardContent>
-        </Card>
+          <p className={styles.pageText}>{pageInfoText}</p>
+        </div>
       ) : null}
     </div>
   );

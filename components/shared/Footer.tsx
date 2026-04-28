@@ -50,7 +50,7 @@ const Footer = React.memo(function Footer() {
               <span className="footer-modern__logo-text">FITCOACH</span>
             </Link>
             <p className="footer-modern__tagline">
-              Transform your fitness journey with personalized coaching.
+              Personalized coaching to help you reach your fitness goals.
             </p>
           </div>
 

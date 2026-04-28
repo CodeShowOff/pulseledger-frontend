@@ -28,8 +28,7 @@ export default function HeroSection() {
           </h1>
 
           <p className={`${textMuted} mb-7 text-base leading-relaxed sm:text-lg`}>
-            A calm, modern space where coaches build programs and clients stay consistent—without
-            the noise.
+            Programs for coaches. Consistency for clients.
           </p>
 
           <div className="mb-7 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
@@ -103,8 +102,7 @@ export default function HeroSection() {
           </h1>
 
           <p className={`${textMuted} mb-8 text-lg leading-relaxed md:text-xl`}>
-            A calm, modern space where coaches build programs and clients stay consistent—without
-            the noise.
+            Programs for coaches. Consistency for clients.
           </p>
 
           <div className="flex flex-wrap items-center gap-4">

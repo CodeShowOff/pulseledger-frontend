@@ -52,19 +52,45 @@ const quickActions = [
 
 const dashboardActions = [...todayCoreActions, ...quickActions] as const;
 
-function DashboardCardSkeleton({ label }: { label: string }) {
+function QuickStatsLoadingContent() {
   return (
-    <Card className="border-slate-200/80 bg-white/95">
-      <CardContent className="p-4 sm:p-5">
-        <p className="text-sm text-slate-500">{label}</p>
-      </CardContent>
-    </Card>
+    <section>
+      <div className="mb-4">
+        <h3 className="m-0 text-base font-bold text-slate-900">Quick Stats</h3>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-br from-blue-100/70 via-blue-50/80 to-white p-5">
+          <div className="mb-3 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-[10px] bg-blue-500/80" />
+            <div className="h-3.5 w-28 rounded bg-slate-300/70" />
+          </div>
+          <div className="h-9 w-24 rounded bg-slate-300/70" />
+        </div>
+
+        <div className="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-100/70 via-emerald-50/80 to-white p-5">
+          <div className="mb-3 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-[10px] bg-emerald-500/80" />
+            <div className="h-3.5 w-28 rounded bg-slate-300/70" />
+          </div>
+          <div className="h-9 w-24 rounded bg-slate-300/70" />
+        </div>
+
+        <div className="rounded-2xl border border-amber-200/90 bg-gradient-to-br from-amber-100/70 via-amber-50/80 to-white p-5">
+          <div className="mb-3 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-[10px] bg-amber-500/80" />
+            <div className="h-3.5 w-28 rounded bg-slate-300/70" />
+          </div>
+          <div className="h-9 w-24 rounded bg-slate-300/70" />
+        </div>
+      </div>
+    </section>
   );
 }
 
 const ClientStats = dynamic(() => import("@/components/client/ClientStats"), {
   ssr: false,
-  loading: () => <DashboardCardSkeleton label="Loading quick stats..." />,
+  loading: () => <QuickStatsLoadingContent />,
 });
 
 function ConnectedWithCompanyName({ companyName }: { companyName: string }) {
@@ -164,14 +190,14 @@ export default function ClientDashboardPage() {
             {hasResolvedViewport ? (
               <WaterIntakeWidget compact={isMobileViewport} />
             ) : (
-              <div className="h-full min-h-[270px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+              <div className="h-full min-h-[270px] rounded-2xl border border-slate-200 bg-slate-100/70" />
             )}
           </div>
           <div className="min-w-0 h-full">
             {hasResolvedViewport ? (
               <GoalWeightWidget compact={isMobileViewport} />
             ) : (
-              <div className="h-full min-h-[270px] animate-pulse rounded-2xl border border-slate-200 bg-slate-100/70" />
+              <div className="h-full min-h-[270px] rounded-2xl border border-slate-200 bg-slate-100/70" />
             )}
           </div>
         </div>
@@ -184,7 +210,7 @@ export default function ClientDashboardPage() {
               key={item.title}
               href={item.href}
               className={cn(
-                "group block h-full min-h-[136px] cursor-pointer select-none p-2.5 transition-colors duration-200 hover:bg-slate-50/70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-200 focus-visible:ring-offset-2 md:min-h-[148px] md:p-3",
+                "block h-full min-h-[136px] cursor-pointer select-none p-2.5 hover:bg-slate-50/70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-200 focus-visible:ring-offset-2 md:min-h-[148px] md:p-3",
                 index % 2 === 1 && "border-l border-slate-200/80",
                 index >= 2 && "border-t border-slate-200/80"
               )}
@@ -192,7 +218,7 @@ export default function ClientDashboardPage() {
               <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-center">
                 <span
                   className={cn(
-                    "grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md transition-transform duration-200 group-hover:scale-[1.03]",
+                    "grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md",
                     item.iconTone
                   )}
                 >
@@ -216,7 +242,11 @@ export default function ClientDashboardPage() {
             </CardContent>
           </Card>
         ) : (
-          <DashboardCardSkeleton label="Loading quick stats..." />
+          <Card className="border-slate-200/80 bg-white/95">
+            <CardContent className="p-4 pt-5 sm:p-5">
+              <QuickStatsLoadingContent />
+            </CardContent>
+          </Card>
         )}
       </section>
 

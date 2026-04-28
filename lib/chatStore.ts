@@ -777,8 +777,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
 // Helper to get conversation display name
 export function getConversationName(conversation: Conversation, currentUserId: string): string {
-  if (conversation.name) return conversation.name;
-  
   if (conversation.type === "direct") {
     const coach = conversation.coachId;
     const client = conversation.clientId;
@@ -796,9 +794,25 @@ export function getConversationName(conversation: Conversation, currentUserId: s
   }
   
   if (conversation.type === "global_broadcast") {
-    return "Announcements";
+    // Check if current user is the coach
+    const coachId = typeof conversation.coachId === "object"
+      ? conversation.coachId._id
+      : conversation.coachId;
+
+    if (coachId && String(coachId) === String(currentUserId)) {
+      return "My Announcements";
+    }
+
+    // For clients, show the coach's name when available
+    if (typeof conversation.coachId === "object" && conversation.coachId.fullName) {
+      return `${conversation.coachId.fullName}'s Announcements`;
+    }
+
+    return conversation.name || "Announcements";
   }
   
+  if (conversation.name) return conversation.name;
+
   return "Chat";
 }
 

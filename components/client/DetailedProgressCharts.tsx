@@ -25,7 +25,7 @@ const ProgressPreviewAreaChart = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[350px] w-full min-w-0 animate-pulse rounded-xl border border-slate-200 bg-slate-100/70" />
+      <div className="h-[350px] w-full min-w-0 rounded-xl border border-slate-200 bg-slate-100/70" />
     ),
   }
 );
@@ -101,6 +101,7 @@ export default function DetailedProgressCharts({ clientId, viewerRole = "client"
       // Fetch for logged-in user
       return fetchClientProgressEntries();
     },
+    staleTime: 60_000,
     select: (response): ChartPoint[] => {
       const entries = response.data || [];
       return entries

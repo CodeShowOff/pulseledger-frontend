@@ -29,7 +29,7 @@ const RegisterSchema = z
       return true;
     },
     {
-      message: "Coach referral code is required for clients",
+      message: "Coach code is required for clients",
       path: ["coachId"],
     }
   )
@@ -62,7 +62,7 @@ export const RegisterForm: React.FC = () => {
     defaultValues: { role: "client" },
   });
 
-  // Auto-fill coach referral code if provided in query (?coach=...)
+  // Auto-fill coach code if provided in query (?coach=...)
   useEffect(() => {
     const coachCode = searchParams.get("coach");
     if (coachCode) {
@@ -91,6 +91,8 @@ export const RegisterForm: React.FC = () => {
         } else {
           // For clients, remove coachReferralCode as it's not applicable
           delete payload.coachReferralCode;
+          // For clients, remove companyName to avoid backend "not allowed to be empty"
+          delete payload.companyName;
         }
         const res = await api.post("/auth/register", payload);
         const email = res.data?.data?.email ?? payload.email;
@@ -238,11 +240,11 @@ export const RegisterForm: React.FC = () => {
       )}
       {watch("role") === "client" && (
         <div className="auth-form__field">
-          <label htmlFor="coachId">Coach Referral Code</label>
+          <label htmlFor="coachId">Coach Code</label>
           <input
             id="coachId"
-            {...register("coachId", { required: "Coach referral code is required" })}
-            placeholder="e.g., AB-4J7XZ2"
+            {...register("coachId", { required: "Coach code is required" })}
+            placeholder="e.g., FC-CLINETS"
             className="auth-form__input"
           />
           {errors.coachId && (

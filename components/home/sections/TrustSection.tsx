@@ -48,10 +48,10 @@ export default function TrustSection() {
             Practical tools. Measurable progress.
           </h2>
 
-          <p className={`mx-auto max-w-[65ch] text-base sm:text-lg ${textMuted}`}>
+          {/* <p className={`mx-auto max-w-[65ch] text-base sm:text-lg ${textMuted}`}>
             FitCoach is made for real coaching businesses: clear structure for clients and less
             busywork for coaches.
-          </p>
+          </p> */}
         </div>
 
         <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">

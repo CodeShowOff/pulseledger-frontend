@@ -237,7 +237,7 @@ textarea:focus-visible,
 }
 
 @media (max-width: 768px) {
-  body:not(.chat-page-active) .site-main {
+  body:not(.chat-page-active) .site-main.site-main--with-bottom-nav {
     padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
   }
 }
@@ -1391,6 +1391,7 @@ body.chat-page-active .coach-content__inner {
 /* Brand Section */
 .footer-modern__brand {
   max-width: 280px;
+  text-align: center;
 }
 
 .footer-modern__logo {
@@ -1429,7 +1430,11 @@ body.chat-page-active .coach-content__inner {
   color: #64748b;
   line-height: 1.6;
   margin: 0;
-  max-width: 17rem;
+  max-width: 22rem;
+  /* Prevent words from breaking mid-word */
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
 }
 
 .footer-modern__trust-badges {
@@ -1555,11 +1560,12 @@ body.chat-page-active .coach-content__inner {
 /* Bottom Bar */
 .footer-modern__bottom {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   gap: 1rem;
   border-top: 1px solid #e2e8f0;
   padding: 1.5rem 0 1.75rem;
+  text-align: center;
 }
 
 .footer-modern__copyright {
@@ -1571,7 +1577,8 @@ body.chat-page-active .coach-content__inner {
 .footer-modern__bottom-right {
   display: flex;
   align-items: center;
-  margin-left: auto;
+  margin-left: 0;
+  justify-content: center;
 }
 
 .footer-modern__socials {
@@ -1613,7 +1620,7 @@ body.chat-page-active .coach-content__inner {
 
   .footer-modern__brand {
     max-width: 20rem;
-    text-align: left;
+    text-align: center;
   }
 
   .footer-modern__trust-badges {
@@ -1630,15 +1637,15 @@ body.chat-page-active .coach-content__inner {
 
   .footer-modern__bottom {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.75rem;
-    text-align: left;
+    text-align: center;
     padding: 1rem 0 1.25rem;
   }
 
   .footer-modern__bottom-right {
     width: auto;
-    justify-content: flex-start;
+    justify-content: center;
     margin-left: 0;
   }
 }
@@ -3563,35 +3570,8 @@ body.chat-page-active .coach-content__inner {
   align-items: center;
   justify-content: center;
   padding: clamp(1rem, 2vw, 2rem) 1rem;
-  background:
-    radial-gradient(circle at 8% 10%, rgba(191, 219, 254, 0.55), transparent 28%),
-    radial-gradient(circle at 92% 18%, rgba(216, 180, 254, 0.42), transparent 32%),
-    linear-gradient(135deg, #eef2ff 0%, #f5f3ff 45%, #f8fbff 100%);
   position: relative;
   overflow: hidden;
-}
-
-.auth-shell::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
-  background-size: 26px 26px;
-  pointer-events: none;
-}
-
-.auth-shell::after {
-  content: "";
-  position: absolute;
-  width: 380px;
-  height: 380px;
-  border-radius: 999px;
-  bottom: -150px;
-  left: -120px;
-  background: radial-gradient(circle, rgba(191, 219, 254, 0.42) 0%, transparent 70%);
-  pointer-events: none;
 }
 
 .auth-shell > * {
@@ -3725,6 +3705,8 @@ body.chat-page-active .coach-content__inner {
 .auth-note__code {
   font-weight: 700;
   color: #1e3a8a;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .auth-form {

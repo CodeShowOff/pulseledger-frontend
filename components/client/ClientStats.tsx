@@ -8,6 +8,81 @@ import {
   fetchClientProgressSummary,
 } from "@/lib/queries/clientProgress";
 
+function QuickStatsSkeleton() {
+  return (
+    <section>
+      <div style={{ marginBottom: "1rem" }}>
+        <h3
+          style={{
+            fontSize: "1rem",
+            fontWeight: "700",
+            color: "#111827",
+            margin: "0",
+          }}
+        >
+          Quick Stats
+        </h3>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "1rem",
+        }}
+      >
+        <div
+          style={{
+            background: "linear-gradient(135deg, #dbeafe 0%, #eff6ff 70%, #ffffff 100%)",
+            borderRadius: "1rem",
+            border: "1px solid #bfdbfe",
+            padding: "1.25rem",
+            boxShadow: "0 4px 12px rgba(37, 99, 235, 0.1)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
+            <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#3b82f6" }} />
+            <div style={{ height: "12px", width: "120px", borderRadius: "999px", background: "#cbd5e1" }} />
+          </div>
+          <div style={{ height: "34px", width: "110px", borderRadius: "10px", background: "#cbd5e1" }} />
+        </div>
+
+        <div
+          style={{
+            background: "linear-gradient(135deg, #dcfce7 0%, #f0fdf4 70%, #ffffff 100%)",
+            borderRadius: "1rem",
+            border: "1px solid #bbf7d0",
+            padding: "1.25rem",
+            boxShadow: "0 4px 12px rgba(34, 197, 94, 0.1)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
+            <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#22c55e" }} />
+            <div style={{ height: "12px", width: "110px", borderRadius: "999px", background: "#cbd5e1" }} />
+          </div>
+          <div style={{ height: "34px", width: "90px", borderRadius: "10px", background: "#cbd5e1" }} />
+        </div>
+
+        <div
+          style={{
+            background: "linear-gradient(135deg, #fef3c7 0%, #fffbeb 70%, #ffffff 100%)",
+            borderRadius: "1rem",
+            border: "1px solid #fcd34d",
+            padding: "1.25rem",
+            boxShadow: "0 4px 12px rgba(217, 119, 6, 0.1)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
+            <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#f59e0b" }} />
+            <div style={{ height: "12px", width: "132px", borderRadius: "999px", background: "#cbd5e1" }} />
+          </div>
+          <div style={{ height: "34px", width: "128px", borderRadius: "10px", background: "#cbd5e1" }} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const ClientStats = React.memo(function ClientStats() {
   const { data: stats, isLoading } = useQuery({
     queryKey: CLIENT_PROGRESS_SUMMARY_QUERY_KEY,
@@ -15,7 +90,7 @@ const ClientStats = React.memo(function ClientStats() {
     staleTime: 60 * 1000,
   });
 
-  if (isLoading) return <p>Loading summary...</p>;
+  if (isLoading) return <QuickStatsSkeleton />;
 
   return (
     <section>
@@ -35,12 +110,11 @@ const ClientStats = React.memo(function ClientStats() {
         gap: "1rem"
       }}>
         <div style={{
-          background: "linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)",
+          background: "linear-gradient(135deg, #dbeafe 0%, #eff6ff 70%, #ffffff 100%)",
           borderRadius: "1rem",
-          border: "1px solid #e0e7ff",
+          border: "1px solid #bfdbfe",
           padding: "1.25rem",
-          boxShadow: "0 4px 12px rgba(37, 99, 235, 0.08)",
-          transition: "transform 0.2s ease, box-shadow 0.2s ease"
+          boxShadow: "0 4px 12px rgba(37, 99, 235, 0.1)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
             <div style={{
@@ -84,12 +158,11 @@ const ClientStats = React.memo(function ClientStats() {
         </div>
 
         <div style={{
-          background: "linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%)",
+          background: "linear-gradient(135deg, #dcfce7 0%, #f0fdf4 70%, #ffffff 100%)",
           borderRadius: "1rem",
-          border: "1px solid #dcfce7",
+          border: "1px solid #bbf7d0",
           padding: "1.25rem",
-          boxShadow: "0 4px 12px rgba(34, 197, 94, 0.08)",
-          transition: "transform 0.2s ease, box-shadow 0.2s ease"
+          boxShadow: "0 4px 12px rgba(34, 197, 94, 0.1)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
             <div style={{
@@ -127,12 +200,11 @@ const ClientStats = React.memo(function ClientStats() {
         </div>
 
         <div style={{
-          background: "linear-gradient(135deg, #fef3c7 0%, #ffffff 100%)",
+          background: "linear-gradient(135deg, #fef3c7 0%, #fffbeb 70%, #ffffff 100%)",
           borderRadius: "1rem",
-          border: "1px solid #fde68a",
+          border: "1px solid #fcd34d",
           padding: "1.25rem",
-          boxShadow: "0 4px 12px rgba(245, 158, 11, 0.08)",
-          transition: "transform 0.2s ease, box-shadow 0.2s ease"
+          boxShadow: "0 4px 12px rgba(217, 119, 6, 0.1)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
             <div style={{

@@ -138,7 +138,7 @@ export default function ProgressPhotos() {
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-5">
           {isLoading ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {Array.from({ length: 4 }).map((_, idx) => (
@@ -199,107 +199,97 @@ export default function ProgressPhotos() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
 
-      <Card className="border-slate-200/80 bg-white/95 md:max-w-[460px]">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-              <Camera className="h-4 w-4" />
-            </span>
-            Upload progress photo
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent className="space-y-3 pt-0">
-          {!previewUrl ? (
-            <div className="max-w-[360px]">
-              <input
-                id="photo-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="sr-only"
-              />
-              <label
-                htmlFor="photo-upload"
-                className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-3 py-3.5 text-center transition-colors hover:border-indigo-300 hover:bg-indigo-50/40"
-              >
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-indigo-600 shadow-sm">
-                  <Camera className="h-4 w-4" />
-                </span>
-                <p className="text-sm font-semibold text-slate-700">Choose photo</p>
-              </label>
-              <p className="mt-1 text-[11px] text-slate-500">JPG, PNG, WEBP up to 5MB</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="relative w-full max-w-[360px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-                <Image
-                  src={previewUrl}
-                  alt="Preview"
-                  width={360}
-                  height={360}
-                  sizes="(max-width: 640px) 100vw, 360px"
-                  className="h-auto w-full object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedFile(null);
-                    setPreviewUrl(null);
-                    setCaption("");
-                  }}
-                  className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
-                  aria-label="Remove selected photo"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="max-w-[360px]">
-                <label htmlFor="photo-caption" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Caption (optional)
-                </label>
+          <div className="w-full">
+            {!previewUrl ? (
+              <div className="w-full">
                 <input
-                  id="photo-caption"
-                  type="text"
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
-                  placeholder="Add a note about this photo..."
-                  maxLength={200}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus-visible:ring-2 focus-visible:ring-indigo-300/70"
+                  id="photo-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="sr-only"
                 />
-                <p className="mt-1 text-xs text-slate-500">{caption.length}/200 characters</p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" onClick={handleUpload} disabled={uploading}>
-                  {uploading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    "Upload photo"
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setSelectedFile(null);
-                    setPreviewUrl(null);
-                    setCaption("");
-                  }}
-                  disabled={uploading}
+                <label
+                  htmlFor="photo-upload"
+                  className="group flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-3 py-3.5 text-center transition-colors hover:border-indigo-300 hover:bg-indigo-50/40"
                 >
-                  Cancel
-                </Button>
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-indigo-600 shadow-sm">
+                    <Camera className="h-4 w-4" />
+                  </span>
+                  <p className="text-sm font-semibold text-slate-700">Choose photo</p>
+                </label>
+                <p className="mt-1 text-[11px] text-slate-500">JPG, PNG, WEBP up to 5MB</p>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="space-y-3">
+                <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                  <Image
+                    src={previewUrl}
+                    alt="Preview"
+                    width={360}
+                    height={360}
+                    sizes="(max-width: 640px) 100vw, 360px"
+                    className="h-auto w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setPreviewUrl(null);
+                      setCaption("");
+                    }}
+                    className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
+                    aria-label="Remove selected photo"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="w-full">
+                  <label htmlFor="photo-caption" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Caption (optional)
+                  </label>
+                  <input
+                    id="photo-caption"
+                    type="text"
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    placeholder="Add a note about this photo..."
+                    maxLength={200}
+                    className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus-visible:ring-2 focus-visible:ring-indigo-300/70"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">{caption.length}/200 characters</p>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Button type="button" onClick={handleUpload} disabled={uploading} className="w-full">
+                    {uploading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      "Upload photo"
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setPreviewUrl(null);
+                      setCaption("");
+                    }}
+                    disabled={uploading}
+                    className="w-full"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 

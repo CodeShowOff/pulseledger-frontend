@@ -35,9 +35,9 @@ export default function HowItWorksSection() {
           <h2 className={`${headingClass} mb-4 text-[clamp(32px,3.2vw,52px)]`}>
             Three steps to consistency.
           </h2>
-          <p className={`mx-auto max-w-[720px] text-lg ${textMuted}`}>
+          {/* <p className={`mx-auto max-w-[720px] text-lg ${textMuted}`}>
             A simple loop that keeps clients on track and coaches in control.
-          </p>
+          </p> */}
         </div>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-6">

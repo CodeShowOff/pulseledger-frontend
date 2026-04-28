@@ -68,8 +68,7 @@ export default function PricingSection() {
           </h2>
 
           <p className={`mx-auto max-w-[62ch] text-base sm:text-lg ${textMuted}`}>
-            Client app access is free. Coaches get a 30-day free trial, then choose ₹199 or ₹299
-            per month.
+            Client app access is free.
           </p>
         </div>
 

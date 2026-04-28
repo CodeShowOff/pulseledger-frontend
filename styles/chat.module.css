@@ -1975,12 +1975,13 @@
   }
 
   .conversationListScroll {
-    max-height: calc(100vh - 280px);
+    min-height: 0;
+    max-height: none;
   }
 
   :global(body.mobile-bottom-nav-visible) .conversationListScroll {
     padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
-    max-height: calc(100vh - 280px - 84px);
+    max-height: none;
   }
 
   .conversationItem {

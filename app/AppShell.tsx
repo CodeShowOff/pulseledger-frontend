@@ -21,10 +21,9 @@ const InstallPrompt = dynamic(() => import("@/components/shared/InstallPrompt"),
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  const { isHomePage, isPublicNavbarRoute } = useMemo(() => {
+  const { isPublicNavbarRoute } = useMemo(() => {
     const currentPath = pathname ?? "/";
     return {
-      isHomePage: currentPath === "/",
       isPublicNavbarRoute:
         publicRoutes.includes(currentPath) ||
         publicRoutePrefixes.some((prefix) => currentPath === prefix || currentPath.startsWith(`${prefix}/`)),
@@ -40,27 +39,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <ThemeProvider>
         <AuthCookieSync />
 
-        <main className="site-main">{children}</main>
+        <main className={`site-main${isPublicNavbarRoute ? "" : " site-main--with-bottom-nav"}`}>
+          {children}
+        </main>
 
         <ToastProvider />
       </ThemeProvider>
 
-      {isHomePage ? (
-        <Footer />
-      ) : (
-        <footer
-          style={{
-            padding: "1.25rem 1rem",
-            textAlign: "center",
-            borderTop: "1px solid #e5e7eb",
-            backgroundColor: "#f9fafb",
-            color: "#6b7280",
-            fontSize: "0.875rem",
-          }}
-        >
-          © {new Date().getFullYear()} FitCoach. All rights reserved.
-        </footer>
-      )}
+      {isPublicNavbarRoute && <Footer />}
 
       <InstallPrompt />
     </QueryProvider>

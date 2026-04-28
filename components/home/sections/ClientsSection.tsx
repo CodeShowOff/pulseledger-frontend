@@ -47,7 +47,7 @@ export default function ClientsSection() {
             </h2>
 
             <p className={`${textMuted} mb-6 text-base leading-relaxed sm:text-lg`}>
-              Daily guidance, easy logging, and your coach—always one message away.
+              Daily guidance, quick logging, chat.
             </p>
 
             <div className="mb-7 space-y-3">
@@ -114,7 +114,7 @@ export default function ClientsSection() {
           </h2>
 
           <p className={`${textMuted} mb-8 text-lg leading-relaxed`}>
-            Daily guidance, easy logging, and your coach—always one message away.
+            Daily guidance, quick logging, chat.
           </p>
 
           <div className="mb-8 space-y-4">

@@ -37,10 +37,6 @@ export default function FaqSection() {
           <h2 className={`${headingClass} mb-4 text-[clamp(1.85rem,4.4vw,2.9rem)]`}>
             Questions you might be asking.
           </h2>
-
-          <p className={`text-base sm:text-lg ${textMuted}`}>
-            Quick answers to help you decide faster.
-          </p>
         </div>
 
         <div className="space-y-3">

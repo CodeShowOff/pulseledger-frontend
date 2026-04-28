@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import {
   Area,
   AreaChart,
@@ -27,7 +27,7 @@ interface ProgressPreviewAreaChartProps {
   secondaryName?: string;
 }
 
-export default function ProgressPreviewAreaChart({
+function ProgressPreviewAreaChart({
   data,
   chartId,
   dataKey,
@@ -40,7 +40,7 @@ export default function ProgressPreviewAreaChart({
   const isDualSeries = Boolean(secondaryDataKey && secondaryColor);
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" debounce={180}>
       <AreaChart data={data} margin={{ top: 5, right: 15, left: 0, bottom: 5 }}>
         <defs>
           <linearGradient id={`gradient-${chartId}`} x1="0" y1="0" x2="0" y2="1">
@@ -99,6 +99,7 @@ export default function ProgressPreviewAreaChart({
               type="monotone"
               dataKey={dataKey}
               name={primaryName ?? dataKey}
+              isAnimationActive={false}
               stroke={color}
               strokeWidth={2.5}
               fill="none"
@@ -110,6 +111,7 @@ export default function ProgressPreviewAreaChart({
               type="monotone"
               dataKey={secondaryDataKey!}
               name={secondaryName ?? secondaryDataKey!}
+              isAnimationActive={false}
               stroke={secondaryColor!}
               strokeWidth={2.5}
               fill="none"
@@ -123,6 +125,7 @@ export default function ProgressPreviewAreaChart({
             type="monotone"
             dataKey={dataKey}
             name={primaryName ?? dataKey}
+            isAnimationActive={false}
             stroke={color}
             strokeWidth={3}
             fill={`url(#gradient-${chartId})`}
@@ -134,3 +137,21 @@ export default function ProgressPreviewAreaChart({
     </ResponsiveContainer>
   );
 }
+
+function arePropsEqual(
+  prev: ProgressPreviewAreaChartProps,
+  next: ProgressPreviewAreaChartProps,
+) {
+  return (
+    prev.data === next.data &&
+    prev.chartId === next.chartId &&
+    prev.dataKey === next.dataKey &&
+    prev.color === next.color &&
+    prev.primaryName === next.primaryName &&
+    prev.secondaryDataKey === next.secondaryDataKey &&
+    prev.secondaryColor === next.secondaryColor &&
+    prev.secondaryName === next.secondaryName
+  );
+}
+
+export default memo(ProgressPreviewAreaChart, arePropsEqual);
