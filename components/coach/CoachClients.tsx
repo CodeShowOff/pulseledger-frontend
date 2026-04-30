@@ -4,12 +4,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { motion } from "@/lib/motion";
 import { useQuery } from "@tanstack/react-query";
 import { MessageSquare, Search, User } from "lucide-react";
 import api from "@/lib/axios";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import CompactPagination from "@/components/shared/CompactPagination";
 import styles from "./CoachClients.module.css";
@@ -62,109 +60,103 @@ export default function CoachClients() {
 
   if (isLoading && !data) {
     return (
-      <Card className="border-slate-200/80 bg-white/95">
-        <CardContent className="p-6 text-sm text-slate-500">Loading clients...</CardContent>
-      </Card>
+      <div className={styles.statusCard}>
+        <p className={styles.statusText}>Loading clients...</p>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="border-rose-200 bg-rose-50/80">
-        <CardContent className="p-6 text-sm font-medium text-rose-700">
-          Error loading clients. Please try again.
-        </CardContent>
-      </Card>
+      <div className={`${styles.statusCard} ${styles.statusError}`}>
+        <p className={styles.statusText}>Error loading clients. Please try again.</p>
+      </div>
     );
   }
 
   return (
     <div className={styles.clientsRoot}>
-      <div className={styles.searchRow}>
-        <div className={styles.searchWrap}>
-          <Search className={styles.searchIcon} />
-          <Input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Search by name"
-            className={styles.searchInput}
-          />
-          {isFetching ? (
-            <span className={styles.searchStatus}>Updating...</span>
-          ) : null}
+      <div className={styles.listBlock}>
+        <div className={styles.searchRow}>
+          <div className={styles.searchWrap}>
+            <Search className={styles.searchIcon} />
+            <Input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search by name"
+              className={styles.searchInput}
+            />
+            {isFetching ? (
+              <span className={styles.searchStatus}>Updating...</span>
+            ) : null}
+          </div>
+        </div>
+        {clients.length ? (
+          <div className={styles.pageInfoRow}>
+            <span className={styles.pageText}>{pageInfoText}</span>
+          </div>
+        ) : null}
+        <div className={styles.listShell}>
+          <div className={styles.list}>
+            {paginatedClients.map((client) => {
+              return (
+                <div
+                  key={client._id}
+                  className={styles.listItem}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push(`/coach/clients/${client._id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      router.push(`/coach/clients/${client._id}`);
+                    }
+                  }}
+                  aria-label={`Open ${client.fullName} profile`}
+                >
+                  <div className={styles.avatar}>
+                    {client.avatarUrl ? (
+                      <Image
+                        src={client.avatarUrl}
+                        alt={`${client.fullName} profile`}
+                        width={44}
+                        height={44}
+                        sizes="44px"
+                        loading="lazy"
+                        className="h-full w-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div className={styles.details}>
+                    <p className={styles.clientName}>{client.fullName}</p>
+                  </div>
+                  <div className={styles.actions}>
+                    <Link
+                      href={`/coach/chat?clientId=${client._id}`}
+                      className={styles.chatButton}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={`Chat with ${client.fullName}`}
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      <span>Chat</span>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      <div className={styles.list}>
-        {paginatedClients.map((client, idx) => {
-          return (
-            <motion.div
-              key={client._id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.03, duration: 0.2 }}
-              className={styles.cardMotion}
-              role="button"
-              tabIndex={0}
-              onClick={() => router.push(`/coach/clients/${client._id}`)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  router.push(`/coach/clients/${client._id}`);
-                }
-              }}
-            >
-              <Card className={styles.clientCard}>
-                <CardContent className={styles.clientCardBody}>
-                  <div className={styles.topRow}>
-                    <div className={styles.identity}>
-                      <div className={styles.avatar}>
-                        {client.avatarUrl ? (
-                          <Image
-                            src={client.avatarUrl}
-                            alt={`${client.fullName} profile`}
-                            width={40}
-                            height={40}
-                            sizes="40px"
-                            loading="lazy"
-                            className="h-full w-full rounded-full object-cover"
-                          />
-                        ) : (
-                          <User className="h-5 w-5" />
-                        )}
-                      </div>
-                      <div className={styles.nameWrap}>
-                        <p className={styles.clientName}>{client.fullName}</p>
-                      </div>
-                    </div>
-
-                    <div className={styles.actions}>
-                      <Link
-                        href={`/coach/chat?clientId=${client._id}`}
-                        className={`${styles.linkBtn} ${styles.linkBtnPrimary}`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                        Chat
-                      </Link>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </div>
-
       {!clients.length ? (
-        <Card className={styles.emptyCard}>
-          <CardContent className={styles.emptyContent}>
-            No clients match the current filters.
-          </CardContent>
-        </Card>
+        <div className={styles.statusCard}>
+          <p className={styles.statusText}>No clients match the current filters.</p>
+        </div>
       ) : null}
 
       {totalPages > 1 ? (
@@ -176,8 +168,6 @@ export default function CoachClients() {
               onPageChange={setCurrentPage}
             />
           </div>
-
-          <p className={styles.pageText}>{pageInfoText}</p>
         </div>
       ) : null}
     </div>

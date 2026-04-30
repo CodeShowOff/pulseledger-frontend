@@ -1621,6 +1621,7 @@ body.chat-page-active .coach-content__inner {
   .footer-modern__brand {
     max-width: 20rem;
     text-align: center;
+    margin: 0 auto;
   }
 
   .footer-modern__trust-badges {

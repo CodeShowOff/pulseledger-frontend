@@ -27,8 +27,11 @@ export default function HeroSection() {
             Your health journey, guided.
           </h1>
 
-          <p className={`${textMuted} mb-7 text-base leading-relaxed sm:text-lg`}>
-            Programs for coaches. Consistency for clients.
+          <p
+            className={`${textMuted} mb-7 text-base leading-relaxed sm:text-lg`}
+          >
+            A calm, modern space where coaches build programs and clients stay
+            consistent—without the noise.
           </p>
 
           <div className="mb-7 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
