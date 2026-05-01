@@ -396,7 +396,7 @@ export default function WaterIntakeWidget({ compact = false }: WaterIntakeWidget
 
       {isLogModalOpen ? (
         <div
-          className="fixed inset-0 z-[1000] flex items-end justify-center bg-slate-900/45 p-3 pb-24 sm:items-center sm:p-4 sm:pb-4 sm:backdrop-blur-[1px]"
+          className="fixed inset-0 z-[1000] flex items-end justify-center bg-slate-900/45 p-3 pb-2 sm:items-center sm:p-4 sm:pb-4 sm:backdrop-blur-[1px]"
           onClick={closeLogModal}
         >
           <div

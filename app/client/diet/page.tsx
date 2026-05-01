@@ -20,12 +20,9 @@ import {
   useClientDietLogByDate,
   useClientDietPlans,
 } from "@/lib/queries/diet";
-import { formatISTDate, getISTDayOfWeek } from "@/lib/ist";
 import { cn } from "@/lib/utils";
 
 type PageView = "today" | "plans";
-
-const DAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const TAB_OPTIONS: Array<{ key: PageView; label: string; icon: React.ComponentType<{ className?: string }> }> = [
   { key: "today", label: "Today", icon: Sparkles },
@@ -60,8 +57,6 @@ export default function ClientDietPage() {
   const [view, setView] = useState<PageView>("today");
 
   const today = new Date();
-  const dayOfWeek = getISTDayOfWeek(today);
-  const todayDateLabel = formatISTDate(today);
   const todayDateKey = formatLocalDate(today);
 
   const { data: plans = [], isLoading: plansLoading } = useClientDietPlans();
@@ -330,17 +325,12 @@ export default function ClientDietPage() {
 
   return (
     <div className="client-page__sections space-y-4 pb-6 md:space-y-5">
-      <header className="space-y-3">
-        <div className="flex items-start justify-between gap-2">
+      <header className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <h1 className="client-page__title !text-[1.15rem] !font-semibold leading-tight sm:!text-[1.2rem]">
+            <h1 className="client-page__title pl-1 !text-[1.15rem] !font-bold leading-tight sm:!text-[1.2rem]">
               Nutrition Studio
             </h1>
-            <p className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
-              <span className="font-semibold text-emerald-600">{DAY_LABELS[dayOfWeek]}</span>
-              <span className="h-1 w-1 rounded-full bg-slate-300" />
-              <span>{todayDateLabel}</span>
-            </p>
           </div>
 
           <Link

@@ -14,7 +14,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid,
 } from "recharts";
 
 type ChartPoint = {
@@ -181,7 +180,6 @@ export default function ClientProgressChart() {
                   <stop offset="95%" stopColor={config.color} stopOpacity={0.05} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis 
                 dataKey="isoDate" 
                 stroke="#64748b"

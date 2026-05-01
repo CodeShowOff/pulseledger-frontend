@@ -13,7 +13,6 @@ import {
   Clock3,
   Coffee,
   Dumbbell,
-  Flame,
   Moon,
   Pill,
   Sparkles,
@@ -194,7 +193,6 @@ export default function ClientDietPlanDetailPage() {
 
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
             <div className="rounded-xl border border-orange-200 bg-orange-50 px-2 py-2 text-center">
-              <Flame className="mx-auto h-4 w-4 text-orange-600" />
               <p className="mt-1 font-semibold text-orange-700">{plan.dailyTargets.calories || 0}</p>
               <p className="text-[10px] text-orange-600">kcal</p>
             </div>

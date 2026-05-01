@@ -352,7 +352,7 @@ function PublicCoachProfileContent() {
       {/* CTA Row (buttons moved out of hero) */}
       <div className="cpp-cta">
         <div className="cpp-cta__container">
-          <button onClick={scrollToContactForm} className="cpp-btn cpp-btn--primary cpp-btn--lg">
+          <button onClick={scrollToContactForm} className="cpp-btn cpp-btn--secondary cpp-btn--lg">
             <Send size={18} />
             Contact
           </button>
@@ -691,7 +691,7 @@ function PublicCoachProfileContent() {
             </div>
             
             <div className="cpp-plans__grid">
-              {plans.slice(0, 4).map((plan) => (
+              {plans.slice(0, 3).map((plan) => (
                 <div key={plan._id} className="cpp-plan-card">
                   <div className="cpp-plan-card__header">
                     <h3 className="cpp-plan-card__title">{plan.title}</h3>

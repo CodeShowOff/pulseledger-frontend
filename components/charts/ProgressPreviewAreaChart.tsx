@@ -4,7 +4,6 @@ import React, { memo } from "react";
 import {
   Area,
   AreaChart,
-  CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -48,7 +47,6 @@ function ProgressPreviewAreaChart({
             <stop offset="95%" stopColor={color} stopOpacity={0.05} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
         <XAxis
           dataKey="isoDate"
           stroke="#64748b"

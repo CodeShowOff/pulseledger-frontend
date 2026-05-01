@@ -245,12 +245,6 @@ export default function FullProgressChart({ chartType, clientId }: FullProgressC
         border: "1px solid #e2e8f0"
       }}>
         <div style={{ textAlign: "center" }}>
-          <p style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem" }}>Total Entries</p>
-          <p style={{ fontWeight: "600", color: "#1e293b", fontSize: "1.25rem" }}>
-            {data.length}
-          </p>
-        </div>
-        <div style={{ textAlign: "center" }}>
           <p style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem" }}>Latest</p>
           <p style={{ fontWeight: "600", color: "#1e293b", fontSize: "1.25rem" }}>
             {chartConfig.secondaryDataKey

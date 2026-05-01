@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
-import { useQuery, keepPreviousData, useQueryClient } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -14,7 +14,6 @@ import {
   Minus,
   Package,
   Plus,
-  RefreshCw,
   Search,
   ShoppingBag,
   ShoppingCart,
@@ -29,7 +28,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 12 },
@@ -43,7 +41,6 @@ type ProductsResponse = {
 };
 
 export default function ProductsPage() {
-  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -54,7 +51,7 @@ export default function ProductsPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const { data, isLoading, isFetching, error } = useQuery<ProductsResponse>({
+  const { data, isLoading, error } = useQuery<ProductsResponse>({
     queryKey: ["products", page, debouncedSearch],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -196,45 +193,20 @@ export default function ProductsPage() {
         animate="animate"
         transition={{ duration: 0.28, delay: 0.05 }}
       >
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                <Search className="h-4 w-4" />
-              </span>
-              Find products
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className="pt-0">
-            <div className="flex items-center gap-2">
-              <div className="relative min-w-0 flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                  placeholder="Search products"
-                  className="h-9 pl-9"
-                />
-              </div>
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => queryClient.invalidateQueries({ queryKey: ["products"] })}
-                disabled={isFetching}
-                className="h-11 w-11 shrink-0 rounded-xl border-slate-300 px-0 text-slate-700 hover:bg-slate-100"
-                aria-label="Refresh products"
-                title="Refresh products"
-              >
-                <RefreshCw className={cn("h-7 w-7 stroke-[2.5]", isFetching ? "animate-spin" : "")} />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search products"
+              className="h-9 pl-9"
+            />
+          </div>
+        </div>
       </motion.section>
 
       <motion.section

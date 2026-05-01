@@ -18,7 +18,7 @@ function DetailedChartContent() {
 
   return (
     <>
-      <div className="client-card" style={{ marginBottom: "1.5rem" }}>
+      <div style={{ marginBottom: "1.5rem" }}>
         <button
           type="button"
           className="btn btn--outline"
@@ -29,7 +29,7 @@ function DetailedChartContent() {
           Back to Progress
         </button>
       </div>
-      
+
       <FullProgressChart chartType={chartType} />
     </>
   );
@@ -38,10 +38,6 @@ function DetailedChartContent() {
 export default function DetailedProgressPage() {
   return (
     <div className="client-page__sections">
-      <header className="client-page__header">
-        <h1 className="client-page__title">Detailed Progress Chart</h1>
-      </header>
-
       <Suspense fallback={<div className="p-6 text-center">Loading...</div>}>
         <DetailedChartContent />
       </Suspense>

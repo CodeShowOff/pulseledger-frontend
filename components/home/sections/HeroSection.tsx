@@ -105,7 +105,8 @@ export default function HeroSection() {
           </h1>
 
           <p className={`${textMuted} mb-8 text-lg leading-relaxed md:text-xl`}>
-            Programs for coaches. Consistency for clients.
+            A calm, modern space where coaches build programs and clients stay
+            consistent—without the noise.
           </p>
 
           <div className="flex flex-wrap items-center gap-4">

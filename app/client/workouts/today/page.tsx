@@ -36,6 +36,8 @@ const EXERCISE_ROW_THEMES = [
   "border-emerald-200 bg-emerald-50/80",
 ];
 
+const DAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
 interface Exercise {
   _id?: string;
   exerciseId?:
@@ -219,6 +221,10 @@ export default function ClientTodayWorkoutPage() {
   const exercises = selectedTodayWorkout?.exercises || [];
   const activeExercise = exercises[currentExerciseIndex];
   const previewExercise = exercises[selectedPreviewIndex] || exercises[0];
+  const dayNameLabel = selectedTodayWorkout?.dayName
+    ?? (typeof selectedTodayWorkout?.dayOfWeek === "number"
+      ? DAY_LABELS[selectedTodayWorkout.dayOfWeek]
+      : "Today");
 
   const activeExerciseData = activeExercise?.exerciseId;
   const activeExerciseObj = typeof activeExerciseData === "string" ? undefined : activeExerciseData;
@@ -650,10 +656,10 @@ export default function ClientTodayWorkoutPage() {
           <section className="overflow-hidden rounded-[30px] border border-violet-200 bg-gradient-to-br from-violet-100 via-fuchsia-50 to-white shadow-sm">
             <div className="flex items-center justify-between p-3">
               <span className="rounded-full border border-white/70 bg-white/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
-                Summary
+                Exercises
               </span>
               <span className="rounded-full border border-white/70 bg-white/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
-                Today plan
+                {dayNameLabel}
               </span>
             </div>
 

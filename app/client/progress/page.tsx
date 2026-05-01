@@ -1,7 +1,5 @@
 // src/app/(client)/progress/page.tsx
 "use client";
-
-import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import ProgressPhotos from "@/components/client/ProgressPhotos";
 import ProgressDataCards from "@/components/client/ProgressDataCards";
@@ -18,7 +16,7 @@ function ProgressChartsPlaceholder() {
       <CardHeader>
         <CardTitle className="text-base">Progress charts</CardTitle>
         <CardDescription>
-          Chart loads when visible to keep the dashboard snappy.
+          Loading charts… just a moment.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -29,34 +27,6 @@ function ProgressChartsPlaceholder() {
 }
 
 export default function ClientProgressPage() {
-  const chartsSectionRef = useRef<HTMLElement | null>(null);
-  const [shouldRenderCharts, setShouldRenderCharts] = useState(false);
-
-  useEffect(() => {
-    if (shouldRenderCharts) return;
-
-    if (typeof IntersectionObserver === "undefined") {
-      setShouldRenderCharts(true);
-      return;
-    }
-
-    const target = chartsSectionRef.current;
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (!entry?.isIntersecting) return;
-        setShouldRenderCharts(true);
-        observer.disconnect();
-      },
-      { rootMargin: "240px 0px" }
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [shouldRenderCharts]);
-
   return (
     <div className="client-progress-refresh space-y-5 pt-4 md:pt-6">
       <section>
@@ -78,12 +48,8 @@ export default function ClientProgressPage() {
         <ProgressDataCards />
       </section>
 
-      <section ref={chartsSectionRef}>
-        {shouldRenderCharts ? (
-          <DetailedProgressCharts />
-        ) : (
-          <ProgressChartsPlaceholder />
-        )}
+      <section>
+        <DetailedProgressCharts />
       </section>
 
       <section>
