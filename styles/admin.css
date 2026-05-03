@@ -564,6 +564,7 @@
   padding: 0.625rem 0.875rem;
   border-bottom: 1px solid var(--admin-color-border-subtle);
   text-align: left;
+  white-space: nowrap;
 }
 
 .admin-table th {

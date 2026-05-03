@@ -82,7 +82,7 @@ const DASHBOARD_ACTIONS = [
   },
   {
     label: "Platform Fee",
-    description: "Billing",
+    description: "Platform",
     href: "/coach/platform-fee",
     Icon: CreditCard,
     color: "from-indigo-500 to-blue-500",

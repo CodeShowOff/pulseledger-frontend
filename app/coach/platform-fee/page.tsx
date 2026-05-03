@@ -15,7 +15,6 @@ import {
   Eye,
   FileText,
   Loader2,
-  RefreshCw,
   TrendingUp,
   Upload,
   UserPlus2,
@@ -199,7 +198,6 @@ export default function PlatformFeeManagementPage() {
   const {
     data: paymentHistory = [],
     isLoading: historyLoading,
-    isFetching: historyFetching,
   } = useQuery<PaymentHistory[]>({
     queryKey: ["platformSubscriptionHistory"],
     queryFn: async () => {
@@ -396,53 +394,38 @@ export default function PlatformFeeManagementPage() {
                   <span className={cn("h-2 w-2 rounded-full", statusMeta.dot)} />
                   {statusMeta.label}
                 </div>
-
-                <div className="flex w-full flex-nowrap gap-1.5 sm:w-auto sm:gap-2 md:justify-end">
-                  <div className="min-w-0 flex-1 sm:flex-none">
-                  <Button
-                    type="button"
-                    className="h-9 w-full justify-center gap-1.5 whitespace-nowrap rounded-xl !bg-white px-2 text-[11px] font-semibold leading-none !text-indigo-700 hover:!bg-indigo-50 sm:h-10 sm:w-auto sm:px-3 sm:text-sm"
-                    onClick={() => setShowPaymentForm(true)}
-                  >
-                    <CreditCard className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
-                    <span className="sm:hidden">Submit payment</span>
-                    <span className="hidden sm:inline">
-                      {pendingPayments.length > 0 ? "Submit another payment" : "Submit payment"}
-                    </span>
-                  </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 pt-1.5 sm:grid-cols-2 sm:gap-3 sm:pt-2 lg:grid-cols-4">
-              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
-                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
-                  <span className="sm:hidden">Days left</span>
-                  <span className="hidden sm:inline">Days remaining</span>
-                </p>
-                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">
-                  {subscription.daysRemaining}
-                </p>
-              </div>
-              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
-                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">Platform fee</p>
-                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">{formatCurrency(subscription.platformFee)}</p>
-              </div>
-              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
-                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">Total paid</p>
-                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">{formatCurrency(subscription.totalPaid)}</p>
-              </div>
-              <div className="min-w-0 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3">
-                <p className="text-[9px] uppercase tracking-wide text-blue-100 sm:text-[11px]">
-                  <span className="sm:hidden">Pending</span>
-                  <span className="hidden sm:inline">Pending verifications</span>
-                </p>
-                <p className="mt-0.5 text-lg font-semibold sm:mt-1 sm:text-xl">{pendingPayments.length}</p>
               </div>
             </div>
           </CardHeader>
         </Card>
+
+        <div className="mt-3 space-y-2">
+          <div className="rounded-xl border border-indigo-100/80 bg-white/80 px-4 py-3 shadow-sm sm:px-5 sm:py-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-indigo-500">
+              Platform fee
+            </p>
+            <div className="mt-1 flex items-end gap-2">
+              <p className="text-2xl font-semibold text-slate-900 sm:text-3xl">
+                {formatCurrency(subscription.platformFee)}
+              </p>
+              <span className="pb-0.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                per month
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">Renews every 30 days</p>
+          </div>
+
+          <div className="flex w-full justify-end">
+            <Button
+              type="button"
+              className="h-10 w-full justify-center gap-1.5 whitespace-nowrap rounded-xl !bg-emerald-500 px-3 text-sm font-semibold !text-white hover:!bg-emerald-600 sm:w-auto"
+              onClick={() => setShowPaymentForm(true)}
+            >
+              <CreditCard className="h-4 w-4 shrink-0" />
+              {pendingPayments.length > 0 ? "Submit another payment" : "Submit payment"}
+            </Button>
+          </div>
+        </div>
       </motion.section>
 
       {(isExpired || isNearExpiry) && (
@@ -532,37 +515,40 @@ export default function PlatformFeeManagementPage() {
               Payment snapshot
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-              <p className="text-xs text-slate-500">Current balance status</p>
-              <p className={cn("mt-1 text-lg font-semibold", daysRemainingTone)}>
-                {subscription.daysRemaining} day{subscription.daysRemaining !== 1 ? "s" : ""}
-              </p>
-              <p className="text-xs text-slate-500">
-                {subscription.status === "trial"
-                  ? `Trial ends on ${formatDate(subscription.trialEndsAt)}`
-                  : `Expires on ${formatDate(subscription.subscriptionExpiresAt)}`}
-              </p>
+          <CardContent className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+                <p className="text-xs text-slate-500">Current balance status</p>
+                <p className={cn("mt-1 text-lg font-semibold", daysRemainingTone)}>
+                  {subscription.daysRemaining} day{subscription.daysRemaining !== 1 ? "s" : ""}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {subscription.status === "trial"
+                    ? `Trial ends on ${formatDate(subscription.trialEndsAt)}`
+                    : `Expires on ${formatDate(subscription.subscriptionExpiresAt)}`}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+                <p className="text-xs text-slate-500">Last payment</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {subscription.lastPaymentDate ? formatDate(subscription.lastPaymentDate) : "Not available"}
+                </p>
+              </div>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-              <p className="text-xs text-slate-500">Last payment</p>
-              <p className="mt-1 text-lg font-semibold text-slate-900">
-                {subscription.lastPaymentDate ? formatDate(subscription.lastPaymentDate) : "Not available"}
-              </p>
-              <p className="text-xs text-slate-500">Monthly fee {formatCurrency(subscription.platformFee)}</p>
-            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
+                <p className="text-xs text-emerald-700">Approved</p>
+                <p className="mt-1 text-lg font-semibold text-emerald-800">{approvedPayments.length}</p>
+              </div>
 
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
-              <p className="text-xs text-emerald-700">Approved</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-800">{approvedPayments.length}</p>
-            </div>
-
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3">
-              <p className="text-xs text-amber-700">Pending / Rejected</p>
-              <p className="mt-1 text-lg font-semibold text-amber-800">
-                {pendingPayments.length} / {rejectedPayments.length}
-              </p>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3">
+                <p className="text-xs text-amber-700">Pending / Rejected</p>
+                <p className="mt-1 text-lg font-semibold text-amber-800">
+                  {pendingPayments.length} / {rejectedPayments.length}
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -575,24 +561,30 @@ export default function PlatformFeeManagementPage() {
               </span>
               Referral benefit
             </CardTitle>
-            <CardDescription>
-              Earn +10 days when a referred coach completes their first approved subscription payment.
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-600">Info</p>
+              <p className="mt-1 text-sm text-emerald-700">
+                Earn +10 days when a referred coach completes their first approved subscription payment.
+              </p>
+            </div>
             {profile?.coachCode ? (
-              <>
-                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/70 p-2.5">
-                  <Badge variant="secondary" className="normal-case tracking-normal">
-                    Referral code
-                  </Badge>
-                  <span className="font-mono text-sm font-semibold text-slate-800">
-                    {profile.coachCode}
-                  </span>
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      Referral code
+                    </p>
+                    <p className="mt-1 font-mono text-base font-semibold text-slate-800">
+                      {profile.coachCode}
+                    </p>
+                  </div>
                   <Button
                     type="button"
                     size="sm"
                     variant="outline"
+                    className="shrink-0"
                     onClick={async () => {
                       try {
                         await navigator.clipboard.writeText(profile.coachCode ?? "");
@@ -606,18 +598,7 @@ export default function PlatformFeeManagementPage() {
                     Copy
                   </Button>
                 </div>
-
-                <a
-                  href={`/public/${profile.coachCode}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex"
-                >
-                  <Button type="button" variant="outline">
-                    Open public profile
-                  </Button>
-                </a>
-              </>
+              </div>
             ) : (
               <p className="text-sm text-slate-500">
                 Your referral code will appear here once available.
@@ -641,7 +622,6 @@ export default function PlatformFeeManagementPage() {
               </span>
               Referral tracking
             </CardTitle>
-            <CardDescription>Monitor your invited coaches and rewards performance.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {!subscription.isValid ? (
@@ -658,7 +638,7 @@ export default function PlatformFeeManagementPage() {
               </div>
             ) : (
               <>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                   <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-3">
                     <p className="text-xs text-indigo-700">Total referred</p>
                     <p className="mt-1 text-lg font-semibold text-indigo-800">
@@ -742,16 +722,6 @@ export default function PlatformFeeManagementPage() {
                   Payment history
                 </CardTitle>
               </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => queryClient.invalidateQueries({ queryKey: ["platformSubscriptionHistory"] })}
-                disabled={historyFetching}
-              >
-                <RefreshCw className={cn("h-4 w-4", historyFetching ? "animate-spin" : "")} />
-                Refresh
-              </Button>
             </div>
           </CardHeader>
 
