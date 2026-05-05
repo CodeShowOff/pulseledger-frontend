@@ -7,16 +7,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import api from "@/lib/axios";
-import { NotificationItem, useLatestNotifications } from "@/lib/queries/notifications";
 import {
   AlertCircle,
-  ClipboardList,
   Clock,
+  Copy,
   Dumbbell,
+  ExternalLink,
   FileText,
   Link2,
   Package,
-  Sparkles,
   Star,
   MessageSquare,
   UserCircle2,
@@ -128,39 +127,6 @@ const MODULE_ACTION_ORDER: Record<string, number> = {
 
 const EMPTY_PROGRESS_DATA: ProgressPoint[] = [];
 
-function formatRelativeTime(value: string) {
-  const timestamp = new Date(value).getTime();
-  if (!Number.isFinite(timestamp)) return "";
-
-  const diffMs = Date.now() - timestamp;
-  if (diffMs < 60_000) return "Just now";
-
-  const minutes = Math.floor(diffMs / 60_000);
-  if (minutes < 60) return `${minutes}m ago`;
-
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-
-  const days = Math.floor(hours / 24);
-  if (days === 1) return "Yesterday";
-  if (days < 7) return `${days}d ago`;
-
-  return new Date(timestamp).toLocaleDateString();
-}
-
-function getActivityIcon(notification: NotificationItem) {
-  switch (notification.type) {
-    case "order":
-      return ClipboardList;
-    case "plan":
-      return UtensilsCrossed;
-    case "system":
-      return Sparkles;
-    default:
-      return MessageSquare;
-  }
-}
-
 export default function CoachDashboard() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
@@ -227,30 +193,6 @@ export default function CoachDashboard() {
       return (res.data?.data ?? []) as CoachClient[];
     },
   });
-
-  const {
-    data: latestNotificationsResponse,
-    isLoading: activityLoading,
-    isError: activityError,
-  } = useLatestNotifications(4);
-
-  const latestActivity = useMemo(() => {
-    const notifications = latestNotificationsResponse?.data ?? [];
-
-    return [...notifications]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 4)
-      .map((notification) => ({
-        _id: notification._id,
-        label:
-          notification.title?.trim() ||
-          notification.message?.trim() ||
-          notification.type.toUpperCase(),
-        time: formatRelativeTime(notification.createdAt),
-        Icon: getActivityIcon(notification),
-        isUnread: !notification.readAt,
-      }));
-  }, [latestNotificationsResponse]);
 
   const publicProfileUrl =
     typeof window !== "undefined" && user?.referralCode
@@ -476,7 +418,7 @@ export default function CoachDashboard() {
                     <button
                       type="button"
                       className={cn(
-                        "flex w-full items-center gap-2 rounded-xl border border-indigo-200/80 bg-white/90 px-3 py-2 text-left",
+                        "grid h-14 w-full grid-cols-2 items-center overflow-hidden rounded-xl border border-indigo-200/80 bg-white/90 text-sm",
                         referralCode
                           ? "hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
                           : "cursor-not-allowed opacity-80",
@@ -494,87 +436,108 @@ export default function CoachDashboard() {
                       disabled={!referralCode}
                       aria-label="Copy invite code"
                     >
-                      <Badge
-                        variant="secondary"
-                        className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100"
-                      >
-                        Invite
-                      </Badge>
-                      <p className="truncate font-mono text-sm font-semibold text-slate-800">
-                        {referralCode || "Generating..."}
-                      </p>
-                      <span className="ml-auto shrink-0 text-xs font-semibold text-indigo-700">
-                        {copiedCode ? "Copied" : "Tap to copy"}
-                      </span>
+                      <div className="flex min-w-0 items-center gap-2 px-3 text-left">
+                        <Badge
+                          variant="secondary"
+                          className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100"
+                        >
+                          Code
+                        </Badge>
+                        <p className="min-w-0 truncate font-mono text-sm font-semibold text-slate-800">
+                          {referralCode || "Generating..."}
+                        </p>
+                      </div>
+                      <div className="flex h-full items-center justify-center gap-2 border-l border-indigo-200/80 px-3 text-sm font-semibold text-indigo-700">
+                        <Copy className="h-4 w-4" />
+                        <span>{copiedCode ? "Copied" : "Copy code"}</span>
+                      </div>
                     </button>
 
-                    <div className="grid w-full grid-cols-2 gap-2">
-                      <Button
-                        size="sm"
-                        className="h-10 w-full bg-indigo-600 text-white hover:bg-indigo-700"
-                        disabled={!publicProfileUrl}
-                        onClick={async () => {
-                          if (!publicProfileUrl) return;
-                          try {
-                            await navigator.clipboard.writeText(
-                              publicProfileUrl,
-                            );
-                            setCopiedLink(true);
-                            setTimeout(() => setCopiedLink(false), 1600);
-                          } catch {
-                            setCopiedLink(false);
-                          }
-                        }}
-                      >
-                        {copiedLink ? "Copied" : "Copy Profile Link"}
-                      </Button>
-                      <Link
-                        href={publicProfileUrl || "#"}
-                        target="_blank"
-                        className="w-full"
-                      >
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm">
+                          <UserCircle2 className="h-4 w-4" />
+                        </span>
+                        <p className="text-sm font-semibold uppercase tracking-wide text-indigo-700">
+                          Public profile
+                        </p>
+                      </div>
+                      <div className="grid w-full grid-cols-2 overflow-hidden rounded-xl border border-indigo-200/80 bg-white/90">
                         <Button
                           size="sm"
-                          className="h-10 w-full bg-indigo-600 text-white hover:bg-indigo-700"
+                          variant="outline"
+                          className="h-14 w-full justify-center gap-2 rounded-none border-0 bg-transparent text-sm font-semibold !text-indigo-700 hover:bg-white hover:!text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+                          disabled={!publicProfileUrl}
+                          onClick={async () => {
+                            if (!publicProfileUrl) return;
+                            try {
+                              await navigator.clipboard.writeText(
+                                publicProfileUrl,
+                              );
+                              setCopiedLink(true);
+                              setTimeout(() => setCopiedLink(false), 1600);
+                            } catch {
+                              setCopiedLink(false);
+                            }
+                          }}
                         >
-                          Open Profile Page
+                          <Copy className="h-4 w-4" />
+                          <span className="text-left text-sm">
+                            {copiedLink ? "Copied" : "Copy link"}
+                          </span>
                         </Button>
-                      </Link>
+                        <Link
+                          href={publicProfileUrl || "#"}
+                          target="_blank"
+                          className="w-full border-l border-indigo-200/80"
+                        >
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-14 w-full justify-center gap-2 rounded-none border-0 bg-transparent text-sm font-semibold !text-indigo-700 hover:bg-white hover:!text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            <span className="text-left text-sm">Open page</span>
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            <section className="grid grid-cols-3 items-stretch gap-2 sm:gap-3">
+            <section className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-3">
               {kpis.map((item, index) => (
                 <div key={item.title}>
                   <Card className="h-full border-slate-200/80 bg-white/95">
-                    <CardContent className="px-3 pb-3 pt-4 sm:p-4">
-                      <div className="mb-3 flex items-start justify-end gap-1 sm:justify-between">
-                        <p className="hidden text-[10px] font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:block sm:text-xs">
+                    <CardContent className="min-h-[120px] px-4 pb-5 pt-4">
+                      <div className="space-y-3">
+                        <p className="text-sm font-semibold uppercase leading-tight tracking-wide text-slate-500">
                           {item.title}
                         </p>
-                        <span
-                          className={cn(
-                            "grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br text-white sm:h-9 sm:w-9 sm:rounded-xl",
-                            item.tone,
-                          )}
-                        >
-                          <item.Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                        </span>
+                        <div className="flex items-center justify-between gap-3">
+                          <span
+                            className={cn(
+                              "grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-white",
+                              item.tone,
+                            )}
+                          >
+                            <item.Icon className="h-7 w-7" />
+                          </span>
+                          <p className="text-5xl font-bold leading-none text-slate-900">
+                            {item.value}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-[1.9rem] font-bold leading-none text-slate-900 sm:text-2xl">
-                        {item.value}
-                      </p>
                     </CardContent>
                   </Card>
                 </div>
               ))}
             </section>
 
-            <section className="grid gap-3 xl:grid-cols-3">
-              <div ref={chartSectionRef} className="xl:col-span-2">
+            <section>
+              <div ref={chartSectionRef}>
                 {shouldRenderChart ? (
                   <CoachProgressTrendCard
                     chartData={chartData}
@@ -595,61 +558,6 @@ export default function CoachDashboard() {
                     </CardContent>
                   </Card>
                 )}
-              </div>
-
-              <div>
-                <Card className="h-full border-slate-200/80 bg-white/95">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
-                        <Sparkles className="h-4 w-4" />
-                      </span>
-                      Activity feed
-                    </CardTitle>
-                    <CardDescription>Recent coaching updates.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {activityLoading ? (
-                      <p className="text-sm text-slate-500">
-                        Loading activity...
-                      </p>
-                    ) : activityError ? (
-                      <p className="text-sm text-rose-600">
-                        Failed to load activity.
-                      </p>
-                    ) : latestActivity.length === 0 ? (
-                      <p className="text-sm text-slate-500">
-                        No recent activity yet.
-                      </p>
-                    ) : (
-                      latestActivity.map((item) => (
-                        <div
-                          key={item._id}
-                          className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3"
-                        >
-                          <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-slate-600 shadow-sm">
-                            <item.Icon className="h-4 w-4" />
-                          </span>
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-slate-700">
-                              {item.label}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <p className="text-xs text-slate-500">
-                                {item.time}
-                              </p>
-                              {item.isUnread ? (
-                                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
-                                  New
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </CardContent>
-                </Card>
               </div>
             </section>
 

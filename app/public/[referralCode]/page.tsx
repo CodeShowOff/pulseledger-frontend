@@ -691,7 +691,7 @@ function PublicCoachProfileContent() {
             </div>
             
             <div className="cpp-plans__grid">
-              {plans.slice(0, 3).map((plan) => (
+              {plans.slice(0, 4).map((plan) => (
                 <div key={plan._id} className="cpp-plan-card">
                   <div className="cpp-plan-card__header">
                     <h3 className="cpp-plan-card__title">{plan.title}</h3>
