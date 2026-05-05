@@ -158,7 +158,7 @@ textarea:focus-visible,
 .site-navbar__link-button:focus-visible,
 .site-navbar__link-button--outline:focus-visible,
 .client-button:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #4B49E6;
   outline-offset: 2px;
 }
 
