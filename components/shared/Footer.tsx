@@ -32,13 +32,13 @@ const Footer = React.memo(function Footer() {
 
   const socialLinks = [
     {
-      href: "https://instagram.com/fitcoach.os",
+      href: "https://instagram.com/fitcoachpage",
       label: "Instagram",
       icon: Instagram,
-      username: "fitcoach.os",
+      username: "fitcoachpage",
     },
-    { href: "#", label: "Twitter", icon: Twitter, username: "fitcoach.os" },
-    { href: "#", label: "YouTube", icon: Youtube, username: "FitCoach" },
+    { href: "https://x.com/FitCoachTweets", label: "Twitter", icon: Twitter, username: "FitCoachTweets" },
+    { href: "https://www.youtube.com/@FitCoachYt", label: "YouTube", icon: Youtube, username: "FitCoachYt" },
   ];
 
   return (

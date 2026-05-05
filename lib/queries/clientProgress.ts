@@ -39,6 +39,8 @@ export type ClientProgressProfile = {
 
 export const CLIENT_PROGRESS_QUERY_KEY = ["clientProgressEntries"] as const;
 export const CLIENT_PROGRESS_SUMMARY_QUERY_KEY = ["clientProgressSummary"] as const;
+export const CLIENT_PROGRESS_BY_ID_QUERY_KEY = (clientId: string) =>
+  ["clientProgressEntries", clientId] as const;
 
 export type ClientProgressSummary = {
   latestWeight: number | null;
@@ -52,6 +54,16 @@ export async function fetchClientProgressEntries(): Promise<{
   profile: ClientProgressProfile;
 }> {
   const res = await api.get(`/progress/my`);
+  return {
+    data: Array.isArray(res.data?.data) ? res.data.data : [],
+    profile: res.data?.profile || {},
+  };
+}
+
+export async function fetchClientProgressEntriesForClient(
+  clientId: string
+): Promise<{ data: ClientProgressEntry[]; profile: ClientProgressProfile }> {
+  const res = await api.get(`/progress/client/${clientId}`);
   return {
     data: Array.isArray(res.data?.data) ? res.data.data : [],
     profile: res.data?.profile || {},

@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import api from "@/lib/axios";
 import {
@@ -29,7 +28,6 @@ import {
   UserRound,
   XCircle,
 } from "lucide-react";
-import ClientProgressPhotos from "@/components/coach/ClientProgressPhotos";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -110,19 +108,6 @@ const fadeInUp = {
   animate: { opacity: 1, y: 0 },
 };
 
-const DetailedProgressCharts = dynamic(
-  () => import("@/components/client/DetailedProgressCharts"),
-  {
-    ssr: false,
-    loading: () => (
-      <Card className="border-slate-200/80 bg-white/95">
-        <CardContent className="p-5">
-          <p className="text-sm text-slate-500">Loading progress charts...</p>
-        </CardContent>
-      </Card>
-    ),
-  }
-);
 
 function formatDate(value?: string | null) {
   if (!value) return "-";
@@ -388,21 +373,47 @@ export default function ClientDetailPage() {
                 Chat
               </Button>
             </Link>
+          </div>
+        </div>
+      </motion.section>
 
-            <Link
-              href={`/coach/clients/${id}/history`}
-              className={cn("col-span-2 md:col-auto", !whatsappHref && "col-span-1")}
-            >
+      <motion.section
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+        transition={{ duration: 0.28, delay: 0.04 }}
+      >
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Activity className="h-4 w-4" />
+              </span>
+              History & progress
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-2 sm:grid-cols-2">
+            <Link href={`/coach/clients/${id}/history`}>
               <Button
                 variant="outline"
                 className="h-10 w-full rounded-xl !border-blue-600 !bg-blue-600 px-4 text-sm font-semibold !text-white transition-all duration-200 hover:!border-blue-700 hover:!bg-blue-700 hover:!text-white"
               >
                 <CalendarDays className="h-4 w-4" />
-                View workout & diet history
+                View History
               </Button>
             </Link>
-          </div>
-        </div>
+
+            <Link href={`/coach/clients/${id}/progress`}>
+              <Button
+                variant="outline"
+                className="h-10 w-full rounded-xl !border-blue-600 !bg-blue-600 px-4 text-sm font-semibold !text-white transition-all duration-200 hover:!border-blue-700 hover:!bg-blue-700 hover:!text-white"
+              >
+                <Activity className="h-4 w-4" />
+                Track Progress
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </motion.section>
 
       <motion.section
@@ -567,15 +578,6 @@ export default function ClientDetailPage() {
             )}
           </CardContent>
         </Card>
-      </motion.section>
-
-      <motion.section
-        variants={fadeInUp}
-        initial="initial"
-        animate="animate"
-        transition={{ duration: 0.28, delay: 0.1 }}
-      >
-        <ClientProgressPhotos clientId={id} />
       </motion.section>
 
       <motion.section
@@ -782,14 +784,6 @@ export default function ClientDetailPage() {
         </Card>
       </motion.section>
 
-      <motion.section
-        variants={fadeInUp}
-        initial="initial"
-        animate="animate"
-        transition={{ duration: 0.28, delay: 0.16 }}
-      >
-        <DetailedProgressCharts clientId={id} viewerRole="coach" />
-      </motion.section>
     </div>
   );
 }

@@ -5,8 +5,10 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CLIENT_PROGRESS_QUERY_KEY,
+  CLIENT_PROGRESS_BY_ID_QUERY_KEY,
   CLIENT_PROGRESS_SUMMARY_QUERY_KEY,
   fetchClientProgressEntries,
+  fetchClientProgressEntriesForClient,
 } from "@/lib/queries/clientProgress";
 import api from "@/lib/axios";
 import axios from "axios";
@@ -23,13 +25,23 @@ function ScrollingMetricLabel({ text }: { text: string }) {
   );
 }
 
-export default function ProgressDataCards() {
+type ProgressDataCardsProps = {
+  clientId?: string;
+};
+
+export default function ProgressDataCards({ clientId }: ProgressDataCardsProps = {}) {
   const queryClient = useQueryClient();
   const [editingSection, setEditingSection] = useState<string | null>(null);
 
+  const progressQueryKey = clientId
+    ? CLIENT_PROGRESS_BY_ID_QUERY_KEY(clientId)
+    : CLIENT_PROGRESS_QUERY_KEY;
+
   const { data: response, isLoading } = useQuery({
-    queryKey: CLIENT_PROGRESS_QUERY_KEY,
-    queryFn: () => fetchClientProgressEntries(),
+    queryKey: progressQueryKey,
+    queryFn: () =>
+      clientId ? fetchClientProgressEntriesForClient(clientId) : fetchClientProgressEntries(),
+    enabled: clientId ? Boolean(clientId) : true,
   });
 
   // State for Basic Info
@@ -277,16 +289,22 @@ export default function ProgressDataCards() {
           return;
         }
 
-        await api.post("/progress", payload);
+        const endpoint = clientId ? `/progress/client/${clientId}` : "/progress";
+        await api.post(endpoint, payload);
         
         // Invalidate and refetch queries
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: CLIENT_PROGRESS_QUERY_KEY }),
-          queryClient.invalidateQueries({ queryKey: CLIENT_PROGRESS_SUMMARY_QUERY_KEY }),
-        ]);
+        const invalidations = [
+          queryClient.invalidateQueries({ queryKey: progressQueryKey }),
+        ];
+        if (!clientId) {
+          invalidations.push(
+            queryClient.invalidateQueries({ queryKey: CLIENT_PROGRESS_SUMMARY_QUERY_KEY })
+          );
+        }
+        await Promise.all(invalidations);
         
         // Wait a bit for the refetch to complete
-        await queryClient.refetchQueries({ queryKey: CLIENT_PROGRESS_QUERY_KEY });
+        await queryClient.refetchQueries({ queryKey: progressQueryKey });
         
         toast.success("Progress updated successfully");
         setEditingSection(null);
@@ -303,7 +321,21 @@ export default function ProgressDataCards() {
         setSaving(false);
       }
     },
-    [basicInfo, smartScale, lifestyle, healthHistory, vitals, originalBasicInfo, originalSmartScale, originalLifestyle, originalHealthHistory, originalVitals, queryClient]
+    [
+      basicInfo,
+      smartScale,
+      lifestyle,
+      healthHistory,
+      vitals,
+      originalBasicInfo,
+      originalSmartScale,
+      originalLifestyle,
+      originalHealthHistory,
+      originalVitals,
+      queryClient,
+      clientId,
+      progressQueryKey,
+    ]
   );
 
   const handleCancel = useCallback(

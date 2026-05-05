@@ -508,11 +508,10 @@ export default function CoachDashboard() {
                       </span>
                     </button>
 
-                    <div className="flex w-full flex-col gap-2">
+                    <div className="grid w-full grid-cols-2 gap-2">
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="h-10 w-full border-indigo-200 bg-white/80 text-indigo-700 hover:bg-indigo-50"
+                        className="h-10 w-full bg-indigo-600 text-white hover:bg-indigo-700"
                         disabled={!publicProfileUrl}
                         onClick={async () => {
                           if (!publicProfileUrl) return;
@@ -527,7 +526,7 @@ export default function CoachDashboard() {
                           }
                         }}
                       >
-                        {copiedLink ? "Copied" : "Copy Public Profile Link"}
+                        {copiedLink ? "Copied" : "Copy Profile Link"}
                       </Button>
                       <Link
                         href={publicProfileUrl || "#"}
@@ -536,9 +535,9 @@ export default function CoachDashboard() {
                       >
                         <Button
                           size="sm"
-                          className="h-10 w-full bg-indigo-600 hover:bg-indigo-700"
+                          className="h-10 w-full bg-indigo-600 text-white hover:bg-indigo-700"
                         >
-                          Open Public Profile
+                          Open Profile Page
                         </Button>
                       </Link>
                     </div>
