@@ -1,6 +1,6 @@
 {
-  "name": "Fit Coach",
-  "short_name": "Fit Coach",
+  "name": "FitCoach",
+  "short_name": "FitCoach",
   "description": "Complete health and fitness management platform with progress tracking, meal plans, and coach guidance",
   "start_url": "/dashboard",
   "display": "standalone",

@@ -26,7 +26,6 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const CoachProgressTrendCard = dynamic(() => import("@/components/coach/CoachProgressTrendCard"), {
@@ -401,72 +400,64 @@ export default function CoachDashboard() {
             </section>
 
             <div>
-              <Card className="relative overflow-hidden border-indigo-200/80">
-                <CardContent className="relative px-4 pb-4 pt-5 sm:px-5 sm:pb-5 sm:pt-6">
-                  <div className="relative space-y-3">
-                    <div className="flex items-center gap-3">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm">
-                        <Link2 className="h-4 w-4" />
-                      </span>
-                      <div className="flex min-h-9 items-center">
-                        <p className="text-sm font-semibold uppercase tracking-wide text-indigo-700">
-                          Invite Code
+              <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
+                <Card className="h-full border-slate-200/80 bg-white/95">
+                  <CardContent className="flex h-full min-h-[104px] flex-col px-4 pb-3 pt-3">
+                    <div className="flex h-full flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <Link2 className="h-4 w-4 text-slate-400" />
+                        <p className="text-sm font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:text-base">
+                          Invite code
                         </p>
                       </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      className={cn(
-                        "grid h-14 w-full grid-cols-2 items-center overflow-hidden rounded-xl border border-indigo-200/80 bg-white/90 text-sm",
-                        referralCode
-                          ? "hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
-                          : "cursor-not-allowed opacity-80",
-                      )}
-                      onClick={async () => {
-                        if (!referralCode) return;
-                        try {
-                          await navigator.clipboard.writeText(referralCode);
-                          setCopiedCode(true);
-                          setTimeout(() => setCopiedCode(false), 1600);
-                        } catch {
-                          setCopiedCode(false);
-                        }
-                      }}
-                      disabled={!referralCode}
-                      aria-label="Copy invite code"
-                    >
-                      <div className="flex min-w-0 items-center gap-2 px-3 text-left">
-                        <Badge
-                          variant="secondary"
-                          className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100"
-                        >
-                          Code
-                        </Badge>
-                        <p className="min-w-0 truncate font-mono text-sm font-semibold text-slate-800">
-                          {referralCode || "Generating..."}
-                        </p>
-                      </div>
-                      <div className="flex h-full items-center justify-center gap-2 border-l border-indigo-200/80 px-3 text-sm font-semibold text-indigo-700">
-                        <Copy className="h-4 w-4" />
-                        <span>{copiedCode ? "Copied" : "Copy code"}</span>
-                      </div>
-                    </button>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm">
-                          <UserCircle2 className="h-4 w-4" />
-                        </span>
-                        <p className="text-sm font-semibold uppercase tracking-wide text-indigo-700">
-                          Public profile
-                        </p>
-                      </div>
-                      <div className="grid w-full grid-cols-2 overflow-hidden rounded-xl border border-indigo-200/80 bg-white/90">
+                      <div className="mt-auto grid grid-cols-2 items-center gap-2">
+                        <div className="flex min-w-0 items-center justify-center">
+                          <p className="min-w-0 truncate text-center font-mono text-xl font-bold text-slate-900 sm:text-2xl">
+                            {referralCode || "Generating..."}
+                          </p>
+                        </div>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-14 w-full justify-center gap-2 rounded-none border-0 bg-transparent text-sm font-semibold !text-indigo-700 hover:bg-white hover:!text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+                          className="h-9 w-full gap-2 rounded-md border-slate-200 text-slate-700 shadow-sm hover:bg-white focus-visible:ring-2 focus-visible:ring-slate-200"
+                          onClick={async () => {
+                            if (!referralCode) return;
+                            try {
+                              await navigator.clipboard.writeText(referralCode);
+                              setCopiedCode(true);
+                              setTimeout(() => setCopiedCode(false), 1600);
+                            } catch {
+                              setCopiedCode(false);
+                            }
+                          }}
+                          disabled={!referralCode}
+                          aria-label="Copy invite code"
+                        >
+                          <Copy className="h-4 w-4" />
+                          <span>{copiedCode ? "Copied" : "Copy"}</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="h-full border-slate-200/80 bg-white/95">
+                  <CardContent className="flex h-full min-h-[104px] flex-col px-4 pb-3 pt-3">
+                    <div className="flex h-full flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <UserCircle2 className="h-4 w-4 text-slate-400" />
+                        <p className="text-sm font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:text-base">
+                          Public profile
+                        </p>
+                      </div>
+                      <p className="hidden min-w-0 truncate text-xs text-slate-600 sm:block">
+                        {publicProfileUrl}
+                      </p>
+                      <div className="mt-auto flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-9 flex-1 gap-2 rounded-md border-slate-200 text-slate-700 shadow-sm hover:bg-white focus-visible:ring-2 focus-visible:ring-slate-200"
                           disabled={!publicProfileUrl}
                           onClick={async () => {
                             if (!publicProfileUrl) return;
@@ -482,36 +473,40 @@ export default function CoachDashboard() {
                           }}
                         >
                           <Copy className="h-4 w-4" />
-                          <span className="text-left text-sm">
-                            {copiedLink ? "Copied" : "Copy link"}
-                          </span>
+                          <span>{copiedLink ? "Copied" : "Copy link"}</span>
                         </Button>
                         <Link
                           href={publicProfileUrl || "#"}
                           target="_blank"
-                          className="w-full border-l border-indigo-200/80"
+                          className={cn(
+                            "flex-1",
+                            !publicProfileUrl && "pointer-events-none",
+                          )}
+                          aria-disabled={!publicProfileUrl}
+                          tabIndex={!publicProfileUrl ? -1 : undefined}
                         >
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-14 w-full justify-center gap-2 rounded-none border-0 bg-transparent text-sm font-semibold !text-indigo-700 hover:bg-white hover:!text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+                            className="h-9 w-full gap-2 rounded-md border-slate-200 text-slate-700 shadow-sm hover:bg-white focus-visible:ring-2 focus-visible:ring-slate-200"
+                            disabled={!publicProfileUrl}
                           >
                             <ExternalLink className="h-4 w-4" />
-                            <span className="text-left text-sm">Open page</span>
+                            <span>Open</span>
                           </Button>
                         </Link>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
 
             <section className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-3">
               {kpis.map((item, index) => (
                 <div key={item.title}>
                   <Card className="h-full border-slate-200/80 bg-white/95">
-                    <CardContent className="min-h-[120px] px-4 pb-5 pt-4">
+                    <CardContent className="min-h-[104px] px-4 pb-4 pt-3">
                       <div className="space-y-3">
                         <p className="text-sm font-semibold uppercase leading-tight tracking-wide text-slate-500">
                           {item.title}
@@ -519,13 +514,13 @@ export default function CoachDashboard() {
                         <div className="flex items-center justify-between gap-3">
                           <span
                             className={cn(
-                              "grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-white",
+                              "grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-white",
                               item.tone,
                             )}
                           >
-                            <item.Icon className="h-7 w-7" />
+                            <item.Icon className="h-6 w-6" />
                           </span>
-                          <p className="text-5xl font-bold leading-none text-slate-900">
+                          <p className="text-4xl font-bold leading-none text-slate-900">
                             {item.value}
                           </p>
                         </div>
