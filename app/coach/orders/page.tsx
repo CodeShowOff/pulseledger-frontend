@@ -45,6 +45,11 @@ interface CoachOrder {
   };
 }
 
+interface CoachOrdersResponse {
+  data?: CoachOrder[];
+  pagination?: { total: number; page: number; totalPages: number };
+}
+
 const ORDERS_PER_PAGE = 5;
 
 function statusColor(status: CoachOrderStatus) {
@@ -103,11 +108,11 @@ export default function CoachOrdersPage() {
     });
   };
   
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<CoachOrdersResponse>({
     queryKey: ["coachOrders"],
     queryFn: async () => {
       const res = await api.get("/orders/coach");
-      return res.data.data;
+      return res.data as CoachOrdersResponse;
     },
   });
   const queryClient = useQueryClient();
@@ -182,7 +187,7 @@ export default function CoachOrdersPage() {
   if (isLoading) return <p>Loading orders...</p>;
   if (error) return <p className="text-red-600">Failed to load orders.</p>;
 
-  const orders: CoachOrder[] = data || [];
+  const orders: CoachOrder[] = Array.isArray(data?.data) ? data.data : [];
   const totalPages = Math.ceil(orders.length / ORDERS_PER_PAGE);
   const paginatedOrders = orders.slice(
     (currentPage - 1) * ORDERS_PER_PAGE,
