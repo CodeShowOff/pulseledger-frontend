@@ -4,7 +4,7 @@
 import Link from "next/link";
 import PlanListView from "@/components/coach/PlanListView";
 import { motion } from "@/lib/motion";
-import { Plus, CreditCard, ClipboardList, Dumbbell, Utensils, Layers3, Sparkles, ArrowRight } from "lucide-react";
+import { Plus, CreditCard, ClipboardList, Dumbbell, Utensils, Layers3, Sparkles, ArrowRight, FolderPen, ListTodo, BicepsFlexed, Salad } from "lucide-react";
 import { useCoachPendingPlanRequests } from "@/lib/queries/planRequests";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -85,19 +85,7 @@ export default function CoachPlansPage() {
         animate="animate"
         transition={{ duration: 0.28, delay: 0.05 }}
       >
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                <Layers3 className="h-4 w-4" />
-              </span>
-              Plan catalog
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PlanListView />
-          </CardContent>
-        </Card>
+        <PlanListView />
       </motion.section>
 
       <motion.section
@@ -105,46 +93,57 @@ export default function CoachPlansPage() {
         initial="initial"
         animate="animate"
         transition={{ duration: 0.28, delay: 0.1 }}
-        className="grid gap-4 lg:grid-cols-2"
       >
-        {[
-          {
-            title: "Workout Plans",
-            description: "Create and manage workout templates.",
-            href: "/coach/workout-plans",
-            cta: "Manage Workouts",
-            Icon: Dumbbell,
-          },
-          {
-            title: "Diet Plans",
-            description: "Create and manage diet plans.",
-            href: "/coach/diet-plans",
-            cta: "Manage Diet Plans",
-            Icon: Utensils,
-          },
-        ].map((item) => (
-          <motion.div key={item.title} whileHover={{ y: -4 }} transition={{ duration: 0.18 }}>
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
-                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white">
-                    <item.Icon className="h-5 w-5" />
-                  </span>
-                  {item.title}
-                </CardTitle>
-                <CardDescription>{item.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <Link href={item.href} className="block w-full">
-                  <Button variant="default" className="h-11 w-full justify-between rounded-xl px-4 text-base font-semibold">
-                    {item.cta}
-                    <ArrowRight className="h-5 w-5" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+        <Card className="border-slate-200/80 bg-white/95">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-blue-50 text-blue-600">
+                <FolderPen className="h-4 w-4" />
+              </span>
+              Plan Templates
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 lg:grid-cols-2">
+            {[
+              {
+                title: "Workout Plans",
+                description: "Create and manage workout templates.",
+                href: "/coach/workout-plans",
+                cta: "Manage Workouts",
+                Icon: Dumbbell,
+              },
+              {
+                title: "Diet Plans",
+                description: "Create and manage diet plans.",
+                href: "/coach/diet-plans",
+                cta: "Manage Diet Plans",
+                Icon: Utensils,
+              },
+            ].map((item) => (
+              <motion.div key={item.title} whileHover={{ y: -4 }} transition={{ duration: 0.18 }}>
+                <Card className="h-full group">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
+                      <span className="grid h-10 w-10 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm transition-colors group-hover:text-violet-600">
+                        <item.Icon className="h-5 w-5" />
+                      </span>
+                      {item.title}
+                    </CardTitle>
+                    <CardDescription>{item.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <Link href={item.href} className="block w-full">
+                      <Button variant="default" className="h-11 w-full justify-between rounded-xl px-4 text-base font-semibold">
+                        {item.cta}
+                        <ArrowRight className="h-5 w-5" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </CardContent>
+        </Card>
       </motion.section>
 
       <motion.section
@@ -159,7 +158,7 @@ export default function CoachPlansPage() {
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
                 <Sparkles className="h-4 w-4" />
               </span>
-              Custom library
+              Custom Library
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
@@ -168,23 +167,37 @@ export default function CoachPlansPage() {
                 title: "Custom Exercises",
                 description: "Manage your private exercise library.",
                 href: "/coach/exercises",
-                Icon: Dumbbell,
+                cta: "Manage Exercises",
+                Icon: BicepsFlexed,
               },
               {
                 title: "Custom Food Items",
                 description: "Manage your private food library.",
                 href: "/coach/food-items",
-                Icon: Utensils,
+                cta: "Manage Food Items",
+                Icon: Salad,
               },
             ].map((item) => (
               <motion.div key={item.title} whileHover={{ y: -4 }} transition={{ duration: 0.18 }}>
-                <Link href={item.href} className="group block cursor-pointer rounded-2xl border border-slate-200 bg-slate-50/70 p-5 transition-all hover:border-indigo-200 hover:bg-indigo-50/40">
-                  <span className="mb-3 grid h-10 w-10 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm transition-colors group-hover:text-violet-600">
-                    <item.Icon className="h-5 w-5" />
-                  </span>
-                  <h3 className="text-base font-semibold text-slate-900">{item.title}</h3>
-                  <p className="mt-1 text-sm text-slate-600">{item.description}</p>
-                </Link>
+                <Card className="h-full group">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
+                      <span className="grid h-10 w-10 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm transition-colors group-hover:text-violet-600">
+                        <item.Icon className="h-5 w-5" />
+                      </span>
+                      {item.title}
+                    </CardTitle>
+                    <CardDescription>{item.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <Link href={item.href} className="block w-full">
+                      <Button variant="default" className="h-11 w-full justify-between rounded-xl px-4 text-base font-semibold">
+                        {item.cta}
+                        <ArrowRight className="h-5 w-5" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </CardContent>

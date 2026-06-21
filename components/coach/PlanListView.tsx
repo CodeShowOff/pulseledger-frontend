@@ -14,6 +14,7 @@ import {
   Target,
   Trash2,
   Users,
+  Layers3,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -104,11 +105,14 @@ export default function PlanListView() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
-        <span>
-          Total plans: <span className="font-semibold text-slate-700">{totalPlans}</span>
-        </span>
-        <span>
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        <div className="flex items-center gap-2 text-base font-semibold md:text-lg">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+            <Layers3 className="h-4 w-4" />
+          </span>
+          Plan catalog
+        </div>
+        <span className="text-sm text-slate-500">
           Showing {Math.min(startIndex + 1, Math.max(totalPlans, 1))}-
           {Math.min(startIndex + PLANS_PER_PAGE, totalPlans)} of {totalPlans}
         </span>
@@ -128,15 +132,15 @@ export default function PlanListView() {
             >
               <Card className="border-slate-200/80 bg-slate-50/55">
                 <CardContent className="space-y-4 p-4 sm:p-6">
-                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/80 pb-3 pt-2">
-                    <div className="space-y-1">
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/80 pb-4 pt-3">
+                    <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-semibold text-slate-900">{plan.title}</h3>
-                        {plan.isDefault ? <Badge variant="default">Default</Badge> : null}
+                        <h3 className="text-lg sm:text-xl font-bold text-slate-900">{plan.title}</h3>
+                        {plan.isDefault ? <Badge variant="default" className="text-[10px] px-1.5 py-0 h-4">Default</Badge> : null}
                       </div>
-                      <p className="text-xs text-slate-500">Available to all eligible clients</p>
+                      <p className="text-[11px] text-slate-500 font-medium tracking-tight">Available to all eligible clients</p>
                     </div>
-                    <Badge variant={statusVariant} className="capitalize">
+                    <Badge variant={statusVariant} className="capitalize mt-1">
                       {plan.status || "draft"}
                     </Badge>
                   </div>

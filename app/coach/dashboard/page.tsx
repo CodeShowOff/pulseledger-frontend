@@ -223,13 +223,13 @@ export default function CoachDashboard() {
   const kpis = useMemo(
     () => [
       {
-        title: "Total Clients",
+        title: "Clients",
         value: statsLoading ? "--" : `${stats?.clients ?? 0}`,
         Icon: Users,
         tone: "from-blue-500 to-indigo-500",
       },
       {
-        title: "Active Plans",
+        title: "Plans",
         value: statsLoading ? "--" : `${stats?.plans ?? 0}`,
         Icon: FileText,
         tone: "from-violet-500 to-fuchsia-500",
@@ -400,18 +400,18 @@ export default function CoachDashboard() {
             </section>
 
             <div>
-              <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 items-stretch gap-3">
                 <Card className="h-full border-slate-200/80 bg-white/95">
-                  <CardContent className="flex h-full min-h-[104px] flex-col px-4 pb-3 pt-3">
-                    <div className="flex h-full flex-col gap-2">
+                  <CardContent className="flex h-full min-h-[120px] flex-col justify-center px-4 pb-4 pt-4 sm:min-h-[140px] sm:px-6 sm:pb-5 sm:pt-5">
+                    <div className="flex h-full flex-col gap-3">
                       <div className="flex items-center gap-2">
                         <Link2 className="h-4 w-4 text-slate-400" />
                         <p className="text-sm font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:text-base">
                           Invite code
                         </p>
                       </div>
-                      <div className="mt-auto grid grid-cols-2 items-center gap-2">
-                        <div className="flex min-w-0 items-center justify-center">
+                      <div className="mt-auto grid grid-cols-2 items-center gap-4">
+                        <div className="flex min-w-0 items-center justify-center lg:justify-start lg:pl-12">
                           <p className="min-w-0 truncate text-center font-mono text-xl font-bold text-slate-900 sm:text-2xl">
                             {referralCode || "Generating..."}
                           </p>
@@ -419,7 +419,7 @@ export default function CoachDashboard() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-9 w-full gap-2 rounded-md border-slate-200 text-slate-700 shadow-sm hover:bg-white focus-visible:ring-2 focus-visible:ring-slate-200"
+                          className="h-10 w-full gap-2 rounded-md border-slate-200 text-slate-700 shadow-sm hover:bg-white focus-visible:ring-2 focus-visible:ring-slate-200"
                           onClick={async () => {
                             if (!referralCode) return;
                             try {
@@ -434,7 +434,7 @@ export default function CoachDashboard() {
                           aria-label="Copy invite code"
                         >
                           <Copy className="h-4 w-4" />
-                          <span>{copiedCode ? "Copied" : "Copy"}</span>
+                          <span>{copiedCode ? "Copied" : "Copy code"}</span>
                         </Button>
                       </div>
                     </div>
@@ -442,8 +442,8 @@ export default function CoachDashboard() {
                 </Card>
 
                 <Card className="h-full border-slate-200/80 bg-white/95">
-                  <CardContent className="flex h-full min-h-[104px] flex-col px-4 pb-3 pt-3">
-                    <div className="flex h-full flex-col gap-2">
+                  <CardContent className="flex h-full min-h-[120px] flex-col justify-center px-4 pb-4 pt-4 sm:min-h-[140px] sm:px-6 sm:pb-5 sm:pt-5">
+                    <div className="flex h-full flex-col gap-3">
                       <div className="flex items-center gap-2">
                         <UserCircle2 className="h-4 w-4 text-slate-400" />
                         <p className="text-sm font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:text-base">
@@ -453,11 +453,11 @@ export default function CoachDashboard() {
                       <p className="hidden min-w-0 truncate text-xs text-slate-600 sm:block">
                         {publicProfileUrl}
                       </p>
-                      <div className="mt-auto flex items-center gap-2">
+                      <div className="mt-auto flex items-center gap-4">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-9 flex-1 gap-2 rounded-md border-slate-200 text-slate-700 shadow-sm hover:bg-white focus-visible:ring-2 focus-visible:ring-slate-200"
+                          className="h-10 flex-1 gap-2 rounded-md border-slate-200 text-slate-700 shadow-sm hover:bg-white focus-visible:ring-2 focus-visible:ring-slate-200"
                           disabled={!publicProfileUrl}
                           onClick={async () => {
                             if (!publicProfileUrl) return;
@@ -488,11 +488,11 @@ export default function CoachDashboard() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-9 w-full gap-2 rounded-md border-slate-200 text-slate-700 shadow-sm hover:bg-white focus-visible:ring-2 focus-visible:ring-slate-200"
+                            className="h-10 w-full gap-2 rounded-md border-slate-200 text-slate-700 shadow-sm hover:bg-white focus-visible:ring-2 focus-visible:ring-slate-200"
                             disabled={!publicProfileUrl}
                           >
                             <ExternalLink className="h-4 w-4" />
-                            <span>Open</span>
+                            <span>Open link</span>
                           </Button>
                         </Link>
                       </div>
@@ -502,16 +502,16 @@ export default function CoachDashboard() {
               </div>
             </div>
 
-            <section className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-3">
+            <section className="grid grid-cols-1 items-stretch gap-3">
               {kpis.map((item, index) => (
                 <div key={item.title}>
                   <Card className="h-full border-slate-200/80 bg-white/95">
-                    <CardContent className="min-h-[104px] px-4 pb-4 pt-3">
-                      <div className="space-y-3">
-                        <p className="text-sm font-semibold uppercase leading-tight tracking-wide text-slate-500">
+                    <CardContent className="flex h-full min-h-[120px] flex-col justify-center px-4 pb-4 pt-4 sm:min-h-[140px] sm:px-6 sm:pb-5 sm:pt-5">
+                      <div className="flex h-full flex-col gap-3">
+                        <p className="text-sm font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:text-base">
                           {item.title}
                         </p>
-                        <div className="flex items-center justify-between gap-3">
+                        <div className="mt-auto flex items-center justify-between gap-3">
                           <span
                             className={cn(
                               "grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-white",

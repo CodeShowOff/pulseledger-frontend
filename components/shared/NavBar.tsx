@@ -254,6 +254,16 @@ const Navbar = React.memo(function Navbar() {
                   >
                     Notifications
                   </button>
+                  <button
+                    type="button"
+                    className="navbar-modern__dropdown-item"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      router.push("/footer-pages/contact");
+                    }}
+                  >
+                    Help
+                  </button>
                   <div className="navbar-modern__dropdown-divider" />
                   <button
                     type="button"
