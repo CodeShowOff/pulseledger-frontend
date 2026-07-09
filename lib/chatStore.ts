@@ -194,6 +194,7 @@ const SOCKET_EVENTS = {
 let connectAttemptId = 0;
 
 const SOCKET_TOKEN_REFRESH_BUFFER_MS = 30_000;
+const SOCKET_EMIT_TIMEOUT_MS = 10_000;
 
 const getTokenExpiryMs = (token: string): number | null => {
   try {
@@ -366,7 +367,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
         newSocket.on("disconnect", (reason) => {
           // console.log("🔌 Socket disconnected:", reason);
-          set({ isConnected: false });
+          set({ isConnected: false, isLoadingMessages: false });
         });
 
         newSocket.on("connect_error", (error) => {
@@ -575,17 +576,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return;
     }
 
-    // If socket isn't ready yet, keep selected conversation but avoid stuck loading.
+    // If socket isn't ready or not connected, keep selected conversation but avoid stuck loading.
     // Message history will be loaded when socket connects.
+    const isSocketReady = !!socket && socket.connected;
     set({ 
       activeConversationId: conversationId, 
       messages: [], 
-      isLoadingMessages: !!socket,
+      isLoadingMessages: isSocketReady,
       hasMoreMessages: true,
       typingUsers: new Map(),
     });
 
-    if (!socket) return;
+    if (!isSocketReady) return;
 
     // Join new conversation
     socket.emit(SOCKET_EVENTS.JOIN_CONVERSATION, { conversationId }, (response: { success: boolean; error?: string }) => {
@@ -594,11 +596,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
     });
 
-    // Load initial messages
+    // Load initial messages with timeout to prevent infinite loading
+    const historyTimeoutId = setTimeout(() => {
+      if (get().activeConversationId === conversationId && get().isLoadingMessages) {
+        set({ isLoadingMessages: false });
+      }
+    }, SOCKET_EMIT_TIMEOUT_MS);
+
     socket.emit(
       SOCKET_EVENTS.MESSAGE_HISTORY,
       { conversationId, limit: 50 },
       (response: { success: boolean; messages?: ChatMessage[]; error?: string }) => {
+        clearTimeout(historyTimeoutId);
         if (response.success && response.messages) {
           const normalized = normalizeMessages(response.messages);
           set({ 
@@ -624,13 +633,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
   sendMessage: async (data) => {
     const { socket, activeConversationId } = get();
     
-    if (!socket || !activeConversationId) return null;
+    if (!socket || !socket.connected || !activeConversationId) return null;
 
     return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => resolve(null), SOCKET_EMIT_TIMEOUT_MS);
+
       socket.emit(
         SOCKET_EVENTS.SEND_MESSAGE,
         { conversationId: activeConversationId, ...data },
         (response: { success: boolean; message?: ChatMessage; error?: string }) => {
+          clearTimeout(timeoutId);
           if (response.success && response.message) {
             // Message will be added via NEW_MESSAGE event
             resolve(response.message);
@@ -659,13 +671,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
   deleteMessage: async (messageId) => {
     const { socket } = get();
     
-    if (!socket) return false;
+    if (!socket || !socket.connected) return false;
 
     return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => resolve(false), SOCKET_EMIT_TIMEOUT_MS);
+
       socket.emit(
         SOCKET_EVENTS.DELETE_MESSAGE,
         { messageId },
         (response: { success: boolean; error?: string }) => {
+          clearTimeout(timeoutId);
           resolve(response.success);
         }
       );
@@ -676,13 +691,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
   editMessage: async (messageId, content) => {
     const { socket } = get();
     
-    if (!socket) return false;
+    if (!socket || !socket.connected) return false;
 
     return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => resolve(false), SOCKET_EMIT_TIMEOUT_MS);
+
       socket.emit(
         SOCKET_EVENTS.EDIT_MESSAGE,
         { messageId, content },
         (response: { success: boolean; error?: string }) => {
+          clearTimeout(timeoutId);
           resolve(response.success);
         }
       );
@@ -693,17 +711,24 @@ export const useChatStore = create<ChatState>((set, get) => ({
   loadMoreMessages: async () => {
     const { socket, activeConversationId, messages, isLoadingMessages, hasMoreMessages } = get();
     
-    if (!socket || !activeConversationId || isLoadingMessages || !hasMoreMessages) return;
+    if (!socket || !socket.connected || !activeConversationId || isLoadingMessages || !hasMoreMessages) return;
 
     const oldestMessage = messages[0];
     if (!oldestMessage) return;
 
     set({ isLoadingMessages: true });
 
+    const loadMoreTimeoutId = setTimeout(() => {
+      if (get().isLoadingMessages) {
+        set({ isLoadingMessages: false });
+      }
+    }, SOCKET_EMIT_TIMEOUT_MS);
+
     socket.emit(
       SOCKET_EVENTS.MESSAGE_HISTORY,
       { conversationId: activeConversationId, limit: 50, before: oldestMessage.createdAt },
       (response: { success: boolean; messages?: ChatMessage[]; error?: string }) => {
+        clearTimeout(loadMoreTimeoutId);
         if (response.success && response.messages) {
           const normalized = normalizeMessages(response.messages);
           set({ 
