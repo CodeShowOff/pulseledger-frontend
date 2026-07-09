@@ -575,29 +575,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return;
     }
 
-    // Only show the loading spinner when the socket is actually connected.
-    // If the socket object exists but isn't connected yet, don't start in
-    // a loading state — the "connect" handler will re-trigger this once ready.
-    const isSocketReady = socket?.connected === true;
-
+    // If socket isn't ready yet, keep selected conversation but avoid stuck loading.
+    // Message history will be loaded when socket connects.
     set({ 
       activeConversationId: conversationId, 
       messages: [], 
-      isLoadingMessages: isSocketReady,
+      isLoadingMessages: !!socket,
       hasMoreMessages: true,
       typingUsers: new Map(),
     });
 
-    if (!isSocketReady) return;
-
-    // Safety timeout: if the socket ack callback never fires (e.g. the connection
-    // drops mid-emit), clear the loading flag so the UI doesn't get stuck forever.
-    const loadingTimeoutId = setTimeout(() => {
-      // Only clear if this conversation is still active and still loading
-      if (get().activeConversationId === conversationId && get().isLoadingMessages) {
-        set({ isLoadingMessages: false });
-      }
-    }, 10_000);
+    if (!socket) return;
 
     // Join new conversation
     socket.emit(SOCKET_EVENTS.JOIN_CONVERSATION, { conversationId }, (response: { success: boolean; error?: string }) => {
@@ -611,7 +599,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       SOCKET_EVENTS.MESSAGE_HISTORY,
       { conversationId, limit: 50 },
       (response: { success: boolean; messages?: ChatMessage[]; error?: string }) => {
-        clearTimeout(loadingTimeoutId);
         if (response.success && response.messages) {
           const normalized = normalizeMessages(response.messages);
           set({ 
@@ -713,18 +700,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     set({ isLoadingMessages: true });
 
-    // Safety timeout in case the ack never fires
-    const loadMoreTimeoutId = setTimeout(() => {
-      if (get().isLoadingMessages) {
-        set({ isLoadingMessages: false });
-      }
-    }, 10_000);
-
     socket.emit(
       SOCKET_EVENTS.MESSAGE_HISTORY,
       { conversationId: activeConversationId, limit: 50, before: oldestMessage.createdAt },
       (response: { success: boolean; messages?: ChatMessage[]; error?: string }) => {
-        clearTimeout(loadMoreTimeoutId);
         if (response.success && response.messages) {
           const normalized = normalizeMessages(response.messages);
           set({ 
