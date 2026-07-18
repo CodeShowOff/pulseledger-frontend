@@ -1,7 +1,7 @@
 {
   "name": "fit-coach-frontend",
   "version": "1.0.0",
-  "description": "Fit Coach Frontend",
+  "description": "PulseLedger frontend for coach-client wellness management",
   "main": "next.config.js",
   "directories": {
     "lib": "lib"

@@ -2,7 +2,7 @@ export default function AboutPage() {
   return (
     <main className="client-page footer-page">
       <header className="client-page__header">
-        <h1 className="client-page__title">About FitCoach</h1>
+        <h1 className="client-page__title">About PulseLedger</h1>
       </header>
 
       <section className="client-page__sections">
@@ -11,10 +11,10 @@ export default function AboutPage() {
             <h2 className="client-card__section-title">Our Story</h2>
             <div className="client-card__content">
               <p>
-                FitCoach was born from a simple yet powerful vision: to bridge the gap between dedicated health and fitness coaches and clients seeking transformative wellness journeys. We recognized that while the world is full of talented fitness professionals and motivated individuals, the tools to connect them effectively were often fragmented, inefficient, or simply missing.
+                PulseLedger was born from a simple yet powerful vision: to bridge the gap between dedicated health and fitness coaches and clients seeking transformative wellness journeys. We recognized that while the world is full of talented fitness professionals and motivated individuals, the tools to connect them effectively were often fragmented, inefficient, or simply missing.
               </p>
               <p className="mt-4">
-                In today's digital age, health and wellness coaching deserves a platform that's as dynamic and personalized as the services coaches provide. FitCoach emerged as the answer—a comprehensive platform designed to streamline the coach-client relationship, making professional guidance more accessible, progress more transparent, and health goals more achievable.
+                In today's digital age, health and wellness coaching deserves a platform that's as dynamic and personalized as the services coaches provide. PulseLedger emerged as the answer—a comprehensive platform designed to streamline the coach-client relationship, making professional guidance more accessible, progress more transparent, and health goals more achievable.
               </p>
               <p className="mt-4">
                 What started as a vision has evolved into a thriving ecosystem where certified coaches can showcase their expertise, manage their practice efficiently, and deliver exceptional value to their clients, all while clients receive personalized attention, track their progress meaningfully, and stay motivated on their wellness journey.
@@ -30,7 +30,7 @@ export default function AboutPage() {
                 <strong>To democratize access to quality health and fitness coaching by creating a technology platform that empowers coaches to scale their impact and enables clients to achieve sustainable wellness transformations.</strong>
               </p>
               <p>
-                We believe that everyone deserves access to professional health guidance, and every qualified coach deserves tools that amplify their ability to serve. FitCoach exists to make this belief a reality by:
+                We believe that everyone deserves access to professional health guidance, and every qualified coach deserves tools that amplify their ability to serve. PulseLedger exists to make this belief a reality by:
               </p>
               <ul className="client-list">
                 <li><strong>Empowering Coaches:</strong> Providing professional-grade tools to manage clients, create customized plans, track progress, and grow their coaching practice</li>
@@ -64,7 +64,7 @@ export default function AboutPage() {
             <h2 className="client-card__section-title">What We Do</h2>
             <div className="client-card__content">
               <p className="mb-4">
-                FitCoach is a comprehensive health and fitness coaching platform that connects certified coaches with clients seeking personalized wellness guidance. We facilitate every aspect of the coach-client relationship through innovative technology:
+                PulseLedger is a comprehensive health and fitness coaching platform that connects certified coaches with clients seeking personalized wellness guidance. We facilitate every aspect of the coach-client relationship through innovative technology:
               </p>
 
               <h3 className="client-card__subsection-title">For Coaches</h3>
@@ -152,9 +152,9 @@ export default function AboutPage() {
             </div>
           </div>
 
-          {/* Section 6: Why Choose FitCoach */}
+          {/* Section 6: Why Choose PulseLedger */}
           <div className="client-card">
-            <h2 className="client-card__section-title">Why Choose FitCoach?</h2>
+            <h2 className="client-card__section-title">Why Choose PulseLedger?</h2>
             <div className="client-card__content">
               <h3 className="client-card__subsection-title">For Coaches</h3>
               <ul className="client-list">
@@ -187,7 +187,7 @@ export default function AboutPage() {
             <h2 className="client-card__section-title">Our Technology</h2>
             <div className="client-card__content">
               <p className="mb-4">
-                FitCoach is built on modern, reliable, and secure technology infrastructure designed for performance, scalability, and user experience:
+                PulseLedger is built on modern, reliable, and secure technology infrastructure designed for performance, scalability, and user experience:
               </p>
 
               <h3 className="client-card__subsection-title">Platform Architecture</h3>
@@ -263,7 +263,7 @@ export default function AboutPage() {
             <h2 className="client-card__section-title">Our Team & Approach</h2>
             <div className="client-card__content">
               <p className="mb-4">
-                FitCoach is developed and maintained by a dedicated team of developers, designers, and health technology enthusiasts who are passionate about making wellness coaching more effective and accessible.
+                PulseLedger is developed and maintained by a dedicated team of developers, designers, and health technology enthusiasts who are passionate about making wellness coaching more effective and accessible.
               </p>
 
               <h3 className="client-card__subsection-title">Development Philosophy</h3>
@@ -285,22 +285,22 @@ export default function AboutPage() {
             </div>
           </div>
 
-          {/* Section 10: Join the FitCoach Community */}
+          {/* Section 10: Join the PulseLedger Community */}
           <div className="client-card">
-            <h2 className="client-card__section-title">Join the FitCoach Community</h2>
+            <h2 className="client-card__section-title">Join the PulseLedger Community</h2>
             <div className="client-card__content">
               <p className="mb-4">
-                Whether you're a certified coach looking to grow your practice or someone seeking professional health guidance, FitCoach is here to support your journey.
+                Whether you're a certified coach looking to grow your practice or someone seeking professional health guidance, PulseLedger is here to support your journey.
               </p>
 
               <h3 className="client-card__subsection-title">For Coaches</h3>
               <p>
-                Ready to take your coaching practice to the next level? Join FitCoach and gain access to professional tools that help you manage clients efficiently, deliver exceptional value, and scale your impact. Register as a coach today and start building your profile.
+                Ready to take your coaching practice to the next level? Join PulseLedger and gain access to professional tools that help you manage clients efficiently, deliver exceptional value, and scale your impact. Register as a coach today and start building your profile.
               </p>
 
               <h3 className="client-card__subsection-title mt-4">For Clients</h3>
               <p>
-                Looking for personalized health and fitness guidance? Connect with certified coaches on FitCoach who can create customized plans, track your progress, and support you every step of the way. Get a coach referral code and begin your transformation journey.
+                Looking for personalized health and fitness guidance? Connect with certified coaches on PulseLedger who can create customized plans, track your progress, and support you every step of the way. Get a coach referral code and begin your transformation journey.
               </p>
 
               <h3 className="client-card__subsection-title mt-4">Get Started Today</h3>
@@ -338,7 +338,7 @@ export default function AboutPage() {
               </ul>
 
               <p className="mt-4">
-                <strong>Business Name:</strong> FitCoach<br />
+                <strong>Business Name:</strong> PulseLedger<br />
                 <strong>Platform:</strong> Health & Fitness Coaching Technology<br />
                 <strong>Founded:</strong> 2025<br />
                 <strong>Headquarters:</strong> Digital Platform (Cloud-Based)
@@ -350,7 +350,7 @@ export default function AboutPage() {
           <div className="client-card">
             <div className="client-card__content">
               <p className="text-center">
-                <strong>Thank you for being part of the FitCoach community!</strong>
+                <strong>Thank you for being part of the PulseLedger community!</strong>
               </p>
               <p className="text-center mt-2">
                 Together, we're making health transformation accessible, measurable, and sustainable.
