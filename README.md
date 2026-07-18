@@ -1,4 +1,4 @@
-# Fit Coach Portal - Frontend
+# FitCoach
 
 This is the frontend application for the **Fit Coach Portal**. Built with Next.js and modern web technologies, it provides a highly responsive, real-time, and interactive user experience for both coaches and clients.
 
