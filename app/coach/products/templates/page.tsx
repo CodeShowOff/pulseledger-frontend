@@ -163,7 +163,7 @@ export default function CoachProductTemplatesPage() {
                 <CardTitle className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
                   Product Templates
                 </CardTitle>
-                <CardDescription className="max-w-xl text-sm !text-white/90 md:text-base">
+                <CardDescription className="hidden sm:block max-w-xl text-sm !text-white/90 md:text-base">
                   Choose an admin template and add it to your product catalog.
                 </CardDescription>
               </div>
